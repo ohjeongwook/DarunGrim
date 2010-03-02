@@ -1,0 +1,5 @@
+#pragma once
+#define DARUNGRIM2_PORT 1216
+#define SHOW_MATCHED_FUNCTION
+#define SHOW_UNIDENTIFIED_ADDR
+
