@@ -139,7 +139,7 @@ enum {STATE_NONE,STATE_DGF_CREATED,STATE_DGF_OPENED,STATE_ORIGINAL_ANALYZED,STAT
 class CMainFrame : public CFrameWindowImpl<CMainFrame>
 {
 private:
-	char *m_IDAPath;
+	std::string m_IDAPath;
 	char *m_LogFilename;
 
 	string m_DatabaseFilename;
@@ -214,8 +214,6 @@ public:
 	~CMainFrame()
 	{
 		m_LogViewerDlg.CloseDialog(0);
-		if(m_IDAPath)
-			free(m_IDAPath);
 		if(m_LogFilename)
 			free(m_LogFilename);
 	}
@@ -240,10 +238,10 @@ public:
 		{
 			ConfFileName = InstallDir;
 			ConfFileName += "\\";
+			free( InstallDir );
 		}
 		ConfFileName += "Conf.ini";
 		//Get IDA Path
-		m_IDAPath=NULL;
 		
 		char Buffer[1024]={0,};
 		DWORD Ret=GetPrivateProfileString(
@@ -255,10 +253,22 @@ public:
 			ConfFileName.c_str() );
 		if(Ret>0)
 		{
-			m_IDAPath=_strdup(Buffer);
+			m_IDAPath = Buffer;
 		}
 
-		dprintf("m_IDAPath=[%s]\n",m_IDAPath);
+		//if Buffer is not there,
+		if( GetFileAttributes( Buffer ) == INVALID_FILE_ATTRIBUTES )
+		{
+			//Detection through registry
+			char *IDAPath = GetRegValueString( "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\IDA Pro_is1", "Inno Setup: App Path" );
+			if( IDAPath )
+			{
+				m_IDAPath = IDAPath;
+				m_IDAPath += "\\idag.exe";
+				free( IDAPath );
+			}
+		}
+		dprintf("m_IDAPath=[%s]\n", m_IDAPath.c_str() );
 
 		//Get Log File Path
 		m_LogFilename=NULL;
@@ -955,8 +965,8 @@ public:
 			//TODO: If the file is found, try to get it from the user
 			//Launch IDA 
 			PrintToLogView("Launching %s\n",Filename);
-			PrintToLogView("Executing \"%s\" -S\"%s\" \"%s\"",m_IDAPath,IDCFilename,Filename);
-			Execute(FALSE,"\"%s\" -S\"%s\" \"%s\"",m_IDAPath,IDCFilename,Filename);
+			PrintToLogView("Executing \"%s\" -S\"%s\" \"%s\"",m_IDAPath.c_str(), IDCFilename, Filename );
+			Execute(FALSE,"\"%s\" -S\"%s\" \"%s\"", m_IDAPath.c_str(), IDCFilename, Filename);
 			//Delete IDC file
 			//DeleteFile(IDCFilename);
 			free(IDCFilename);
@@ -996,8 +1006,7 @@ public:
 	{
 		PrintToLogView("Starting analysis...\r\n");
 		IDAClientManager aIDAClientManager;
-		if(m_IDAPath)
-			aIDAClientManager.SetIDAPath(m_IDAPath);
+		aIDAClientManager.SetIDAPath( m_IDAPath.c_str() );
 		aIDAClientManager.SetOutputFilename((char *)m_DatabaseFilename.c_str());
 		if(m_LogFilename)
 			aIDAClientManager.SetLogFilename(m_LogFilename);
