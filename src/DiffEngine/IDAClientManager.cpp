@@ -246,7 +246,7 @@ void IDAClientManager::ShowResultsOnIDA()
 	Exit(0);\n\
 }"
 
-void IDAClientManager::SetIDAPath(char *ParamIDAPath)
+void IDAClientManager::SetIDAPath( const char *ParamIDAPath )
 {
 	if(IDAPath)
 		free(IDAPath);
@@ -305,6 +305,7 @@ void IDAClientManager::RunIDAToGenerateDB(char *TheFilename,DWORD StartAddress,D
 	{
 		//Run IDA
 		dprintf("Analyzing [%s](%s)\n",TheFilename,IDCFilename);
+		dprintf("Executing \"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
 		Execute(TRUE,"\"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
 		free(IDCFilename);
 	}

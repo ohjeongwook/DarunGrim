@@ -27,7 +27,7 @@ public:
 	DWORD IDACommandProcessor();
 	DWORD CreateIDACommandProcessor();
 	void ShowResultsOnIDA();
-	void SetIDAPath(char *ParamIDAPath);
+	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
 	void RunIDAToGenerateDB(char *TheFilename,DWORD StartAddress,DWORD EndAddress);
