@@ -18,6 +18,7 @@
 #include <list>
 #include <vector>
 #include <hash_map>
+#include <string>
 using namespace std;
 using namespace stdext;
 
@@ -34,6 +35,8 @@ using namespace stdext;
 #include "aboutdlg.h"
 #include "SelectFilesDlg.h"
 #include "LogViewerDlg.h"
+
+#include "RegistryUtil.h"
 
 int DebugLevel=0;
 extern int GraphVizInterfaceProcessorDebugLevel;
@@ -230,9 +233,18 @@ public:
 		pDiffMachine=NULL;
 		m_RetrieveClientManagersDatabase=FALSE;
 
+		//Get ini file path
+		std::string ConfFileName;
+		char *InstallDir = GetRegValueString( "HKEY_LOCAL_MACHINE\\SOFTWARE\\DarunGrim2", "Install_Dir" );
+		if( InstallDir )
+		{
+			ConfFileName = InstallDir;
+			ConfFileName += "\\";
+		}
+		ConfFileName += "Conf.ini";
 		//Get IDA Path
 		m_IDAPath=NULL;
-		LPCTSTR lpConfFileName=".\\Conf.ini";
+		
 		char Buffer[1024]={0,};
 		DWORD Ret=GetPrivateProfileString(
 			"Paths",
@@ -240,11 +252,13 @@ public:
 			NULL,
 			Buffer,
 			sizeof(Buffer),
-			lpConfFileName);
+			ConfFileName.c_str() );
 		if(Ret>0)
 		{
 			m_IDAPath=_strdup(Buffer);
 		}
+
+		dprintf("m_IDAPath=[%s]\n",m_IDAPath);
 
 		//Get Log File Path
 		m_LogFilename=NULL;
@@ -254,7 +268,7 @@ public:
 			NULL,
 			Buffer,
 			sizeof(Buffer),
-			lpConfFileName);
+			ConfFileName.c_str() );
 		if(Ret>0)
 		{
 			m_LogFilename=_strdup(Buffer);
