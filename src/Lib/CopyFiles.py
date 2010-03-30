@@ -9,6 +9,7 @@ FILE_DIR=r'\mat\Projects\ResearchTools\DevEnv\Library\File'
 DATABASE_DIR=r'\mat\Projects\ResearchTools\DevEnv\Library\Database'
 SOCKET_LIB_DIR=r'\mat\Projects\ResearchTools\DevEnv\Library\Socket'
 IDA_LIBRARY_DIR=r'\mat\Projects\ResearchTools\Binary\Static Analysis\IDALib'
+REGISTRY_API_DIR=r'T:\mat\Projects\ResearchTools\Registry\RegistryAPI'
 
 filenames=[]
 
@@ -31,6 +32,8 @@ filenames.append(SOCKET_LIB_DIR+r'\SocketOperation.h')
 filenames.append(SOCKET_LIB_DIR+r'\SocketOperation.cpp')
 filenames.append(SNIPPET_DIR+r'\ProcessUtils.h')
 filenames.append(SNIPPET_DIR+r'\ProcessUtils.cpp')
+filenames.append(REGISTRY_API_DIR+r'\RegistryUtil.h')
+filenames.append(REGISTRY_API_DIR+r'\RegistryUtil.cpp')
 
 for file_name in filenames:
 	if os.path.isfile(file_name):

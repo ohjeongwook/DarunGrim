@@ -13,4 +13,5 @@ ZLIB_DIR=\mat\Projects\Lib\zlib
 ZLIB_INC=$(ZLIB_DIR)\include
 ZLIB_LIB=$(ZLIB_DIR)\lib
 ZLIB_WRAPPER_DIR=\mat\Projects\ResearchTools\Algorithms\ZlibWrapper
+REGISTRY_API_DIR=\mat\Projects\ResearchTools\Registry\RegistryAPI
 WTL_DIR=c:\WTL80

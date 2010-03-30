@@ -11,6 +11,7 @@ copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\IDALib\IDAAnalysis.cpp So
 copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\IDALib\IDAAnalysisCommon.* Source\ExtLib
 copy \mat\Projects\ResearchTools\Console\xGetOpt\XGetopt.* Source\ExtLib
 copy \mat\Projects\ResearchTools\Algorithms\ZlibWrapper\ZlibWrapper.* Source\ExtLib
+copy \mat\Projects\ResearchTools\Registry\RegistryAPI\RegistryUtil.* Source\ExtLib
 
 mkdir Source\DiffEngine
 copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\DiffEngine\*.h Source\DiffEngine
@@ -25,6 +26,7 @@ copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\UI\Makefil
 copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\UI\inst.bat Source\UI
 copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\UI\*.rc Source\UI
 xcopy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\UI\res Source\UI\res\
+xcopy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\UI\RC Source\UI\RC\
 
 mkdir Source\Plugin
 copy \mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\Plugin\*.h Source\Plugin
