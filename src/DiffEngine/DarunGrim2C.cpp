@@ -120,7 +120,7 @@ void main(int argc,char *argv[])
 	
 	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && OutputFilename)
 	{
-		printf("TheSourceFilename=%s TheTargetFilename=%s OutputFilename=%s\r\n",
+		printf("TheSourceFilename=%s\nTheTargetFilename=%s\nOutputFilename=%s\n",
 			TheSourceFilename,TheTargetFilename,OutputFilename);
 
 		IDAClientManager aIDAClientManager;
