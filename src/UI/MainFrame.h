@@ -1341,7 +1341,6 @@ public:
 
 		m_DatabaseFilename=Filename;
 
-
 		if(m_DatabaseFilename.length()>0)
 		{
 			DWORD dwThreadId;
