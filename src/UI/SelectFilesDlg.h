@@ -113,6 +113,29 @@ public:
 		if(dlgFile.DoModal()==IDOK)
 		{
 			//Update Inputbox
+			int szFileNameLen = strlen( dlgFile.m_szFileName );
+			for( int i = szFileNameLen - 2; i > 0 ; i-- )
+			{
+				if( dlgFile.m_szFileName[ i ] == '.' )
+				{
+					//Found
+					break;
+				}
+				else if( dlgFile.m_szFileName[ i ] == '\\' )
+				{
+					//Not Found
+					//Add .dgf
+					if( szFileNameLen <= MAX_PATH - 5 )
+					{
+						dlgFile.m_szFileName[ szFileNameLen - 1 ] = '.';
+						dlgFile.m_szFileName[ szFileNameLen ] = 'd';
+						dlgFile.m_szFileName[ szFileNameLen + 1 ] = 'g';
+						dlgFile.m_szFileName[ szFileNameLen + 2 ] = 'f';
+						dlgFile.m_szFileName[ szFileNameLen + 3 ] = NULL;
+					}
+					break;
+				}
+			}
 			SetDlgItemText(IDC_EDIT_DGF,dlgFile.m_szFileName);
 		}
 		return 0;
