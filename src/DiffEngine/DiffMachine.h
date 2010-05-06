@@ -114,11 +114,14 @@ public:
 	MatchData *GetMatchData(int index,DWORD address);
 	void AppendToMatchMap(multimap <DWORD,MatchData> *pBaseMap,multimap <DWORD,MatchData> *pTemporaryMap);
 
+	//Algorithms
 	void DoFingerPrintMatch(multimap <DWORD,MatchData> *pTemporaryMap);
-	void DoIsomorphMatch(multimap <DWORD,MatchData> *pTemporaryMap);
-	void DoFunctionMatch(multimap <DWORD,MatchData> *pTemporaryMap,multimap <DWORD,MatchData> *pTargetTemporaryMap);
 	void DoFingerPrintMatchInsideFunction(multimap <DWORD,MatchData> *pTemporaryMap,DWORD SourceFunctionAddress,list <DWORD> &SourceBlockAddresses,DWORD TargetFunctionAddress,list <DWORD> &TargetBlockAddresses);
 	void PurgeFingerprintHashMap(multimap <DWORD,MatchData> *pTemporaryMap);
+
+	void DoIsomorphMatch(multimap <DWORD,MatchData> *pTemporaryMap);
+	void DoFunctionMatch(multimap <DWORD,MatchData> *pTemporaryMap,multimap <DWORD,MatchData> *pTargetTemporaryMap);
+	
 	void ShowDiffMap(DWORD unpatched_address,DWORD patched_address);
 	void PrintMatchMapInfo();
 	bool Analyze();
