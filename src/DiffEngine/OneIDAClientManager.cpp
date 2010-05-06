@@ -779,8 +779,8 @@ void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Con
 			if(pOneLocationInfo->FingerprintLen>0)
 			{
 				unsigned char *FingerprintBuffer=(unsigned char *)malloc(pOneLocationInfo->FingerprintLen+sizeof(short));
-				*(short *)FingerprintBuffer=pOneLocationInfo->FingerprintLen;
-				memcpy(FingerprintBuffer+sizeof(short),pOneLocationInfo->Data+pOneLocationInfo->NameLen+pOneLocationInfo->DisasmLinesLen,*(short *)FingerprintBuffer);
+				*(unsigned short *)FingerprintBuffer=pOneLocationInfo->FingerprintLen;
+				memcpy(FingerprintBuffer+sizeof(short),pOneLocationInfo->Data+pOneLocationInfo->NameLen+pOneLocationInfo->DisasmLinesLen,*(unsigned short *)FingerprintBuffer);
 				ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(pOneLocationInfo->StartAddress,FingerprintBuffer));
 			}
 			free(data);
@@ -980,14 +980,14 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 			if(addresses)
 			{
 				int TwoLevelFingerprintLength=0;
-				TwoLevelFingerprintLength+=*(short *)fingerprint_hash_map_pIter->first; //+
+				TwoLevelFingerprintLength+=*(unsigned short *)fingerprint_hash_map_pIter->first; //+
 				multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
 				for(int i=0;i<addresses_number;i++)
 				{
 					address_fingerprint_hash_map_Iter=ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
 					if(address_fingerprint_hash_map_Iter!=ClientAnalysisInfo->address_fingerprint_hash_map.end())
 					{
-						TwoLevelFingerprintLength+=*(short *)address_fingerprint_hash_map_Iter->second; //+
+						TwoLevelFingerprintLength+=*(unsigned short *)address_fingerprint_hash_map_Iter->second; //+
 					}
 				}
 
@@ -996,18 +996,18 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 					unsigned char *TwoLevelFingerprint=(unsigned char *)malloc(TwoLevelFingerprintLength+sizeof(short));
 					if(TwoLevelFingerprint)
 					{
-						*(short *)TwoLevelFingerprint=TwoLevelFingerprintLength;
+						*(unsigned short *)TwoLevelFingerprint=TwoLevelFingerprintLength;
 
 						int Offset=sizeof(short);
-						memcpy(TwoLevelFingerprint+Offset,fingerprint_hash_map_pIter->first+sizeof(short),*(short *)fingerprint_hash_map_pIter->first);
-						Offset+=*(short *)fingerprint_hash_map_pIter->first;
+						memcpy(TwoLevelFingerprint+Offset,fingerprint_hash_map_pIter->first+sizeof(short),*(unsigned short *)fingerprint_hash_map_pIter->first);
+						Offset+=*(unsigned short *)fingerprint_hash_map_pIter->first;
 						for(int i=0;i<addresses_number;i++)
 						{
 							address_fingerprint_hash_map_Iter=ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
 							if(address_fingerprint_hash_map_Iter!=ClientAnalysisInfo->address_fingerprint_hash_map.end())
 							{
-								memcpy(TwoLevelFingerprint+Offset,address_fingerprint_hash_map_Iter->second+sizeof(short),*(short *)address_fingerprint_hash_map_Iter->second);
-								Offset+=*(short *)address_fingerprint_hash_map_Iter->second;
+								memcpy(TwoLevelFingerprint+Offset,address_fingerprint_hash_map_Iter->second+sizeof(short),*(unsigned short *)address_fingerprint_hash_map_Iter->second);
+								Offset+=*(unsigned short *)address_fingerprint_hash_map_Iter->second;
 							}
 						}
 						ClientAnalysisInfo->fingerprint_hash_map.insert(FingerPrintAddress_Pair(TwoLevelFingerprint,fingerprint_hash_map_pIter->second));
@@ -1286,7 +1286,7 @@ unsigned char *HexToBytesWithLengthAmble(char *HexBytes)
 {
 	int StrLen=strlen(HexBytes);
 	unsigned char *Bytes=(unsigned char *)malloc(StrLen/2+sizeof(short));
-	*(short *)Bytes=StrLen/2;
+	*(unsigned short *)Bytes=StrLen/2;
 	if(Bytes)
 	{
 		for(int i=0;i<StrLen;i+=2)
@@ -1299,7 +1299,7 @@ unsigned char *HexToBytesWithLengthAmble(char *HexBytes)
 
 char *BytesWithLengthAmbleToHex(unsigned char *Bytes)
 {
-	int Len=*(short *)Bytes;
+	int Len=*(unsigned short *)Bytes;
 	char *Hex=(char *)malloc(Len*2+1);
 	Hex[0]=NULL;
 	for(int i=0;i<Len;i++)
@@ -1313,9 +1313,9 @@ char *BytesWithLengthAmbleToHex(unsigned char *Bytes)
 
 int IsEqualByteWithLengthAmble(unsigned char *Bytes01,unsigned char *Bytes02)
 {
-	if(*(short *)Bytes01==*(short *)Bytes02)
+	if(*(unsigned short *)Bytes01==*(unsigned short *)Bytes02)
 	{
-		return (memcmp(Bytes01+sizeof(short),Bytes02+sizeof(short),*(short *)Bytes01)==0);
+		return (memcmp(Bytes01+sizeof(unsigned short),Bytes02+sizeof(unsigned short),*(unsigned short *)Bytes01)==0);
 	}
 	return FALSE;
 }

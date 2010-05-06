@@ -56,7 +56,7 @@ public:
 	size_t operator() (/*[in]*/ const unsigned char *Bytes) const
 	{
 		size_t Key=0;
-		for(int i=0;i<*(short *)Bytes;i++)
+		for(int i=0;i<*(unsigned short *)Bytes;i++)
 		{
 			Key+=Bytes[sizeof(short)+i];
 		}
@@ -65,11 +65,16 @@ public:
 public:
 	bool operator() (/*[in]*/const unsigned char *Bytes01,/*[in]*/ const unsigned char *Bytes02) const
 	{
-		if(*(short *)Bytes01==*(short *)Bytes02)
+		if( Bytes01==Bytes02 )
 		{
-			return (memcmp(Bytes01+sizeof(short),Bytes02+sizeof(short),*(short *)Bytes01)<0);
+			return 0;
 		}
-		return (*(short *)Bytes01>*(short *)Bytes02);
+
+		if(*(unsigned short *)Bytes01==*(unsigned short *)Bytes02)
+		{
+			return (memcmp(Bytes01+sizeof(unsigned short),Bytes02+sizeof(unsigned short),*(unsigned short *)Bytes01)<0);
+		}
+		return (*(unsigned short *)Bytes01>*(unsigned short *)Bytes02);
 	}
 };
 
