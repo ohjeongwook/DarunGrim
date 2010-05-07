@@ -137,7 +137,7 @@ public:
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
+	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE, DWORD SourceFunctionAddress = 0, DWORD TargetFunctionAddress = 0 );
 	char *GetMatchTypeStr( int Type );
 
 	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )

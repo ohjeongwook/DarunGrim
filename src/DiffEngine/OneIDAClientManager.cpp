@@ -44,12 +44,12 @@ PBYTE OneIDAClientManager::ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pTyp
 	PBYTE Data = NULL;
 
 	ZlibWrapper *pZlibWrapper = (ZlibWrapper *)Context;
-	if(pZlibWrapper->ReadData(pType, sizeof(*pType))< = 0)
+	if(pZlibWrapper->ReadData(pType, sizeof(*pType))<= 0)
 	{
 		*pType = END_OF_DATA;
 		return NULL;
 	}
-	if(pZlibWrapper->ReadData((unsigned char *)pLength, sizeof(*pLength))< = 0)
+	if(pZlibWrapper->ReadData((unsigned char *)pLength, sizeof(*pLength))<= 0)
 	{
 		*pType = END_OF_DATA;
 		return NULL;
@@ -60,7 +60,7 @@ PBYTE OneIDAClientManager::ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pTyp
 		Data = (PBYTE)malloc(*pLength);
 		if(Data)
 		{
-			if(pZlibWrapper->ReadData((unsigned char *)Data, *pLength)< = 0)
+			if(pZlibWrapper->ReadData((unsigned char *)Data, *pLength)<= 0)
 			{
 				free(Data);
 				Data = NULL;
@@ -129,11 +129,11 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
 	for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.find(address);
-		map_info_hash_map_pIter! = ClientAnalysisInfo->map_info_hash_map.end();
+		map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
 		map_info_hash_map_pIter++
 		)
 	{
-		if(map_info_hash_map_pIter->first! = address)
+		if(map_info_hash_map_pIter->first != address)
 			break;
 		if(map_info_hash_map_pIter->second->Type  ==  type)
 		{
@@ -141,7 +141,7 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 			//TODO: add
 			if(current_size<addresses_i+2)
 			{
-				current_size+ = 50;
+				current_size += 50;
 				addresses = (DWORD *)realloc(addresses, sizeof(DWORD)*(current_size));
 			}
 			addresses[addresses_i] = map_info_hash_map_pIter->second->Dst;
@@ -166,7 +166,7 @@ void OneIDAClientManager::RemoveFromFingerprintHash(DWORD address)
 	unsigned char *Fingerprint = NULL;
 #ifdef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
 	multimap <DWORD , unsigned char *, hash_compare_fingerprint >::iterator address_fingerprint_hash_map_PIter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-	if(address_fingerprint_hash_map_PIter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+	if(address_fingerprint_hash_map_PIter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 	{
 		Fingerprint = (char *)address_fingerprint_hash_map_PIter->second;
 #else
@@ -181,7 +181,7 @@ void OneIDAClientManager::RemoveFromFingerprintHash(DWORD address)
 		{
 			multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_PIter;
 			for(fingerprint_hash_map_PIter = ClientAnalysisInfo->fingerprint_hash_map.find(Fingerprint);
-				fingerprint_hash_map_PIter! = ClientAnalysisInfo->fingerprint_hash_map.end();
+				fingerprint_hash_map_PIter != ClientAnalysisInfo->fingerprint_hash_map.end();
 				fingerprint_hash_map_PIter++
 			)
 			{
@@ -207,7 +207,7 @@ char *OneIDAClientManager::GetFingerPrintStr(DWORD address)
 	if(ClientAnalysisInfo->address_fingerprint_hash_map.size()>0)
 	{
 		multimap <DWORD , unsigned char *>::iterator address_fingerprint_hash_map_PIter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-		if(address_fingerprint_hash_map_PIter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+		if(address_fingerprint_hash_map_PIter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 		{
 			return BytesWithLengthAmbleToHex(address_fingerprint_hash_map_PIter->second);
 		}
@@ -226,7 +226,7 @@ char *OneIDAClientManager::GetName(DWORD address)
 	multimap <DWORD,  string>::iterator address_name_hash_map_iter;
 
 	address_name_hash_map_iter = ClientAnalysisInfo->address_name_hash_map.find(address);
-	if(address_name_hash_map_iter! = ClientAnalysisInfo->address_name_hash_map.end())
+	if(address_name_hash_map_iter != ClientAnalysisInfo->address_name_hash_map.end())
 	{
 		return _strdup((*address_name_hash_map_iter).second.c_str());
 	}
@@ -243,14 +243,14 @@ DWORD OneIDAClientManager::GetBlockAddress(DWORD address)
 #ifdef USE_LEGACY_MAP
 	while(1)
 	{
-		if(ClientAnalysisInfo->address_hash_map.find(address)! = ClientAnalysisInfo->address_hash_map.end())
+		if(ClientAnalysisInfo->address_hash_map.find(address) != ClientAnalysisInfo->address_hash_map.end())
 			break;
 		address--;
 	}
 	return address;
 #else
 	DWORD BlockAddress = address;
-	m_OutputDB->ExecuteStatement(m_OutputDB->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM OneLocationInfo WHERE FileID = %u and StartAddress < =  %u  and %u < =  EndAddress LIMIT 1", m_FileID, address, address);
+	m_OutputDB->ExecuteStatement(m_OutputDB->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM OneLocationInfo WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", m_FileID, address, address);
 	return BlockAddress;
 #endif
 }
@@ -325,7 +325,7 @@ BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod,
 		return FALSE;
 	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_iter;
 	for(address_hash_map_iter = ClientAnalysisInfo->address_hash_map.begin();
-		address_hash_map_iter! = ClientAnalysisInfo->address_hash_map.end();
+		address_hash_map_iter != ClientAnalysisInfo->address_hash_map.end();
 		address_hash_map_iter++)
 	{
 		if(
@@ -357,7 +357,7 @@ BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod,
 	//multimap <DWORD,  string> address_disassembly_hash_map;
 	multimap <DWORD,  string>::iterator address_disassembly_hash_map_iter;
 	for(address_disassembly_hash_map_iter = ClientAnalysisInfo->address_disassembly_hash_map.begin();
-		address_disassembly_hash_map_iter! = ClientAnalysisInfo->address_disassembly_hash_map.end();
+		address_disassembly_hash_map_iter != ClientAnalysisInfo->address_disassembly_hash_map.end();
 		address_disassembly_hash_map_iter++)
 	{
 		if(
@@ -394,7 +394,7 @@ BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod,
 	//multimap <DWORD , string> address_fingerprint_hash_map;
 	multimap <DWORD,  string>::iterator address_fingerprint_hash_map_iter;
 	for(address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-		address_fingerprint_hash_map_iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end();
+		address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
 		address_fingerprint_hash_map_iter++)
 	{
 		if(
@@ -431,7 +431,7 @@ BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod,
 	//multimap <DWORD, string> address_name_hash_map;
 	multimap <DWORD,  string>::iterator address_name_hash_map_iter;
 	for(address_name_hash_map_iter = ClientAnalysisInfo->address_name_hash_map.begin();
-		address_name_hash_map_iter! = ClientAnalysisInfo->address_name_hash_map.end();
+		address_name_hash_map_iter != ClientAnalysisInfo->address_name_hash_map.end();
 		address_name_hash_map_iter++)
 	{
 		if(
@@ -468,7 +468,7 @@ BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod,
 	//multimap <DWORD,  PMapInfo> map_info_hash_map;
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
 	for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.begin();
-		map_info_hash_map_iter! = ClientAnalysisInfo->map_info_hash_map.end();
+		map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
 		map_info_hash_map_iter++)
 	{
 		if(
@@ -508,7 +508,7 @@ char *OneIDAClientManager::RetrieveString(ZlibWrapper *zlib_wrapper)
 	DWORD nBytesRead = zlib_wrapper->ReadData((unsigned char *) 
 		&length, 
 		sizeof(length)); 
-	if(nBytesRead! = sizeof(length))
+	if(nBytesRead != sizeof(length))
 		return NULL;
 
 	if(length<0xff00)
@@ -520,7 +520,7 @@ char *OneIDAClientManager::RetrieveString(ZlibWrapper *zlib_wrapper)
 			nBytesRead = zlib_wrapper->ReadData((unsigned char *) 
 				buffer, 
 				length); 
-			if(nBytesRead! = length)
+			if(nBytesRead != length)
 			{
 				delete buffer;
 				return NULL;
@@ -552,7 +552,7 @@ BOOL OneIDAClientManager::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 			&type,  
 			sizeof(type)) ; 
 
-		if(nBytesRead! = sizeof(type))
+		if(nBytesRead != sizeof(type))
 			break;
 		if(type<sizeof(TypesCount)/sizeof(TypesCount[0]))
 		TypesCount[type]++;
@@ -673,10 +673,47 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 	return 0;
 }
 
+char *OneIDAClientManager::GetOriginalFilePath()
+{
+	return m_OriginalFilePath;
+}
+
+
+/*
+FunctionAddress = 0 : Retrieve All Functions
+	else			: Retrieve That Specific Function
+*/
+
+BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress )
+{
+	m_FileID = FileID;
+	m_OutputDB = InputDB;
+
+	m_OutputDB->ExecuteStatement(m_OutputDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
+	ClientAnalysisInfo = new AnalysisInfo;
+
+	if(bRetrieveDataForAnalysis)
+	{
+		RetrieveOneLocationInfo( FunctionAddress );
+	}
+
+	if( FunctionAddress == 0 )
+	{
+		m_OutputDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", FileID);
+	}
+	else
+	{
+		//Retrieve only relavant maps
+		m_OutputDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", FileID, FileID, FunctionAddress );
+	}
+
+	return TRUE;
+}
+
 int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
 {
 	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
-	if(argv[1] && argv[1][0]! = NULL)
+	if(argv[1] && argv[1][0] != NULL)
 	{
 		DWORD Address = strtoul10(argv[0]);
 		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
@@ -687,31 +724,21 @@ int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **nam
 	return 0;
 }
 
-BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetrieveDataForAnalysis)
-{
-	m_FileID = FileID;
-	m_OutputDB = InputDB;
-
-	m_OutputDB->ExecuteStatement(m_OutputDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
-	ClientAnalysisInfo = new AnalysisInfo;
-	m_OutputDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", FileID);
-	if(bRetrieveDataForAnalysis)
-	{
-		RetrieveAnalysisData();
-	}
-	return TRUE;
-}
-
-char *OneIDAClientManager::GetOriginalFilePath()
-{
-	return m_OriginalFilePath;
-}
-
-BOOL OneIDAClientManager::RetrieveAnalysisData()
+BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
 {
 	if(ClientAnalysisInfo->fingerprint_hash_map.size()  ==  0)
 	{
-		m_OutputDB->ExecuteStatement(ReadOneLocationInfoDataCallback, (void *)ClientAnalysisInfo, "SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u", m_FileID);
+		char FunctionAddressConditionBuffer[50]={0,};
+		if( FunctionAddress )
+		{
+			_snprintf( FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer) - 1, "AND FunctionAddress = '%d'", FunctionAddress );
+		}
+
+		m_OutputDB->ExecuteStatement(ReadOneLocationInfoDataCallback, 
+			(void *)ClientAnalysisInfo, 
+			"SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u %s",
+			m_FileID, 
+			FunctionAddressConditionBuffer );
 		GenerateFingerprintHashMap();
 	}
 	return TRUE;
@@ -763,7 +790,7 @@ void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Con
 		if(!data)
 			continue;
 		m_FileID = DatabaseWriterWrapper(m_OutputDB, type, data, length);
-		if(type  ==  ONE_LOCATION_INFO && sizeof(OneLocationInfo)< = length)
+		if(type  ==  ONE_LOCATION_INFO && sizeof(OneLocationInfo)<= length)
 		{
 			POneLocationInfo pOneLocationInfo = (POneLocationInfo)data;
 			current_addr = pOneLocationInfo->StartAddress;
@@ -825,7 +852,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 	list <AddressPair> AddressPairs;
 	multimap <DWORD, POneLocationInfo>::iterator iter;
 	for(iter = ClientAnalysisInfo->address_hash_map.begin();
-		iter! = ClientAnalysisInfo->address_hash_map.end();
+		iter != ClientAnalysisInfo->address_hash_map.end();
 		iter++)
 	{
 		DWORD address = iter->first;
@@ -833,11 +860,11 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 		int matched_children_count = 0;
 		DWORD matched_child_addr = 0L;
 		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(address);
-			map_info_hash_map_iter! = ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first! = address)
+			if(map_info_hash_map_iter->first != address)
 				break;
 			PMapInfo p_map_info = map_info_hash_map_iter->second;
 			if(p_map_info->Type  ==  CREF_FROM)
@@ -847,15 +874,15 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 			}
 		}
 		if(DebugLevel&1) dprintf("%s: ID = %d 0x%x children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
-		if(matched_children_count  ==  1 && matched_child_addr! = 0L)
+		if(matched_children_count  ==  1 && matched_child_addr != 0L)
 		{
 			int matched_parents_count = 0;
 			for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(matched_child_addr);
-				map_info_hash_map_iter! = ClientAnalysisInfo->map_info_hash_map.end();
+				map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
 				map_info_hash_map_iter++
 				)
 			{
-				if(map_info_hash_map_iter->first! = matched_child_addr)
+				if(map_info_hash_map_iter->first != matched_child_addr)
 					break;
 				PMapInfo p_map_info = map_info_hash_map_iter->second;
 				if(p_map_info->Type  ==  CREF_TO || p_map_info->Type  ==  CALLED)
@@ -865,10 +892,10 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 			if(matched_parents_count  ==  1)
 			{
 				address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(matched_child_addr);
-				if(address_hash_map_pIter! = ClientAnalysisInfo->address_hash_map.end())
+				if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
 				{
 					POneLocationInfo pOneLocationInfo = (POneLocationInfo)address_hash_map_pIter->second;
-					if(pOneLocationInfo->FunctionAddress! = matched_child_addr)
+					if(pOneLocationInfo->FunctionAddress != matched_child_addr)
 					{
 						AddressPair address_pair;
 						address_pair.address = address;
@@ -882,7 +909,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 
 	list <AddressPair>::iterator AddressPairsIter;
 	for(AddressPairsIter = AddressPairs.begin();
-		AddressPairsIter! = AddressPairs.end();
+		AddressPairsIter != AddressPairs.end();
 		AddressPairsIter++)
 	{
 		DWORD address = (*AddressPairsIter).address;
@@ -893,11 +920,11 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 
 		multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
 		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(child_address);
-			map_info_hash_map_iter! = ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first! = child_address)
+			if(map_info_hash_map_iter->first != child_address)
 				break;
 			PMapInfo p_map_info = map_info_hash_map_iter->second;
 			PMapInfo p_new_map_info = (PMapInfo)malloc(sizeof(MapInfo));
@@ -908,11 +935,11 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 			ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(address, p_new_map_info));
 		}
 		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(address);
-			map_info_hash_map_iter! = ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first! = address)
+			if(map_info_hash_map_iter->first != address)
 				break;
 			PMapInfo p_map_info = map_info_hash_map_iter->second;
 			if(p_map_info->Dst  ==  child_address)
@@ -923,25 +950,25 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 		}
 		multimap <DWORD,  string>::iterator child_address_disassembly_hash_map_iter;
 		child_address_disassembly_hash_map_iter = ClientAnalysisInfo->address_disassembly_hash_map.find(child_address);
-		if(child_address_disassembly_hash_map_iter! = ClientAnalysisInfo->address_disassembly_hash_map.end())
+		if(child_address_disassembly_hash_map_iter != ClientAnalysisInfo->address_disassembly_hash_map.end())
 		{
 			multimap <DWORD,  string>::iterator address_disassembly_hash_map_iter;
 			address_disassembly_hash_map_iter = ClientAnalysisInfo->address_disassembly_hash_map.find(address);
-			if(address_disassembly_hash_map_iter! = ClientAnalysisInfo->address_disassembly_hash_map.end())
+			if(address_disassembly_hash_map_iter != ClientAnalysisInfo->address_disassembly_hash_map.end())
 			{
-				address_disassembly_hash_map_iter->second+ = child_address_disassembly_hash_map_iter->second;
+				address_disassembly_hash_map_iter->second += child_address_disassembly_hash_map_iter->second;
 			}
 		}
 
 		multimap <DWORD, unsigned char *>::iterator child_address_fingerprint_hash_map_iter;
 		child_address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(child_address);
-		if(child_address_fingerprint_hash_map_iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+		if(child_address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 		{
 			multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_iter;
 			address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-			if(address_fingerprint_hash_map_iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+			if(address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 			{
-				//TODO: address_fingerprint_hash_map_iter->second+ = child_address_fingerprint_hash_map_iter->second;
+				//TODO: address_fingerprint_hash_map_iter->second += child_address_fingerprint_hash_map_iter->second;
 			}
 		}
 		ClientAnalysisInfo->address_hash_map.erase((*AddressPairsIter).child_address);
@@ -954,7 +981,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 
 	multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
 	for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-		address_fingerprint_hash_map_Iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end();
+		address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
 		address_fingerprint_hash_map_Iter++)
 	{
 		ClientAnalysisInfo->fingerprint_hash_map.insert(FingerPrintAddress_Pair(address_fingerprint_hash_map_Iter->second, address_fingerprint_hash_map_Iter->first));
@@ -967,7 +994,7 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 	/*
 	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_pIter;
 	for(fingerprint_hash_map_pIter = ClientAnalysisInfo->fingerprint_hash_map.begin();
-		fingerprint_hash_map_pIter! = ClientAnalysisInfo->fingerprint_hash_map.end();
+		fingerprint_hash_map_pIter != ClientAnalysisInfo->fingerprint_hash_map.end();
 		fingerprint_hash_map_pIter++)
 
 	{
@@ -980,14 +1007,14 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 			if(addresses)
 			{
 				int TwoLevelFingerprintLength = 0;
-				TwoLevelFingerprintLength+ = *(unsigned short *)fingerprint_hash_map_pIter->first; //+
+				TwoLevelFingerprintLength += *(unsigned short *)fingerprint_hash_map_pIter->first; //+
 				multimap <DWORD,  unsigned char *>::iterator address_fingerprint_hash_map_Iter;
 				for(int i = 0;i<addresses_number;i++)
 				{
 					address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
-					if(address_fingerprint_hash_map_Iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+					if(address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 					{
-						TwoLevelFingerprintLength+ = *(unsigned short *)address_fingerprint_hash_map_Iter->second; //+
+						TwoLevelFingerprintLength += *(unsigned short *)address_fingerprint_hash_map_Iter->second; //+
 					}
 				}
 
@@ -1000,14 +1027,14 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 
 						int Offset = sizeof(short);
 						memcpy(TwoLevelFingerprint+Offset, fingerprint_hash_map_pIter->first+sizeof(short), *(unsigned short *)fingerprint_hash_map_pIter->first);
-						Offset+ = *(unsigned short *)fingerprint_hash_map_pIter->first;
+						Offset += *(unsigned short *)fingerprint_hash_map_pIter->first;
 						for(int i = 0;i<addresses_number;i++)
 						{
 							address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
-							if(address_fingerprint_hash_map_Iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end())
+							if(address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
 							{
 								memcpy(TwoLevelFingerprint+Offset, address_fingerprint_hash_map_Iter->second+sizeof(short), *(unsigned short *)address_fingerprint_hash_map_Iter->second);
-								Offset+ = *(unsigned short *)address_fingerprint_hash_map_Iter->second;
+								Offset += *(unsigned short *)address_fingerprint_hash_map_Iter->second;
 							}
 						}
 						ClientAnalysisInfo->fingerprint_hash_map.insert(FingerPrintAddress_Pair(TwoLevelFingerprint, fingerprint_hash_map_pIter->second));
@@ -1041,7 +1068,7 @@ void OneIDAClientManager::DumpAnalysisInfo()
 
 BOOL OneIDAClientManager::SendTLVData(char type, PBYTE data, DWORD data_length)
 {
-	if(Socket! = INVALID_SOCKET)
+	if(Socket != INVALID_SOCKET)
 	{
 		BOOL ret = ::SendTLVData(Socket, 
 			type, 
@@ -1060,7 +1087,7 @@ char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned l
 	//Look for p_analysis_info->address_disassembly_hash_map first
 	multimap <DWORD,  string>::iterator address_disassembly_hash_map_pIter;
 	address_disassembly_hash_map_pIter = ClientAnalysisInfo->address_disassembly_hash_map.find(StartAddress);
-	if(address_disassembly_hash_map_pIter! = ClientAnalysisInfo->address_disassembly_hash_map.end())
+	if(address_disassembly_hash_map_pIter != ClientAnalysisInfo->address_disassembly_hash_map.end())
 	{
 		return _strdup(address_disassembly_hash_map_pIter->second.c_str());
 	}
@@ -1073,7 +1100,7 @@ char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned l
 	if(EndAddress  ==  0)
 	{
 		address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(StartAddress);
-		if(address_hash_map_pIter! = ClientAnalysisInfo->address_hash_map.end())
+		if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
 		{
 			POneLocationInfo pOneLocationInfo = (POneLocationInfo)address_hash_map_pIter->second;
 			EndAddress = pOneLocationInfo->EndAddress;
@@ -1149,7 +1176,7 @@ list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long address)
 	address_list.push_back(address);
 	checked_addresses.insert(address);
 	for(address_list_iter = address_list.begin();
-		address_list_iter! = address_list.end();
+		address_list_iter != address_list.end();
 		address_list_iter++
 	)
 	{
@@ -1182,14 +1209,14 @@ void OneIDAClientManager::MergeBlocks()
 
 	int NumberOfChildren = 1;
 	for(iter = ClientAnalysisInfo->map_info_hash_map.begin();
-		iter! = ClientAnalysisInfo->map_info_hash_map.end();
+		iter != ClientAnalysisInfo->map_info_hash_map.end();
 		iter++
 		)
 	{
 		if(iter->second->Type  ==  CREF_FROM)
 		{
 			BOOL bHasOnlyOneChild = FALSE;
-			if(last_iter! = ClientAnalysisInfo->map_info_hash_map.end())
+			if(last_iter != ClientAnalysisInfo->map_info_hash_map.end())
 			{
 				if(last_iter->first  ==  iter->first)
 				{
@@ -1216,10 +1243,10 @@ void OneIDAClientManager::MergeBlocks()
 			{
 				int NumberOfParents = 0;
 				for(child_iter = ClientAnalysisInfo->map_info_hash_map.find(last_iter->second->Dst);
-					child_iter! = ClientAnalysisInfo->map_info_hash_map.end() && child_iter->first  ==  last_iter->second->Dst;
+					child_iter != ClientAnalysisInfo->map_info_hash_map.end() && child_iter->first  ==  last_iter->second->Dst;
 					child_iter++)
 				{
-					if(child_iter->second->Type  ==  CREF_TO && child_iter->second->Dst! = last_iter->first)
+					if(child_iter->second->Type  ==  CREF_TO && child_iter->second->Dst != last_iter->first)
 					{
 						if(DebugLevel&1) dprintf("%s: ID = %d Found %x -> %x\n", 
 							__FUNCTION__, m_FileID, 
@@ -1251,17 +1278,17 @@ unsigned char HexToChar(char *Hex)
 	{
 		int CurrentInt = -1;
 		char c = Hex[i];
-		if('0' < =  c && c < = '9')
+		if('0' <=  c && c <= '9')
 		{
 			CurrentInt = c-'0';
-		}else if('a' < =  c && c < = 'f')
+		}else if('a' <=  c && c <= 'f')
 		{
 			CurrentInt = c-'a'+10;
-		}else if('A' < =  c && c < = 'F')
+		}else if('A' <=  c && c <= 'F')
 		{
 			CurrentInt = c-'A'+10;
 		}
-		if(CurrentInt> = 0)
+		if(CurrentInt >= 0)
 			ReturnValue = ReturnValue*16+CurrentInt;
 	}
 	return ReturnValue;
@@ -1274,7 +1301,7 @@ unsigned char *HexToBytes(char *HexBytes, int *pLen)
 	unsigned char *Bytes = (unsigned char *)malloc(*pLen);
 	if(Bytes)
 	{
-		for(int i = 0;i<StrLen;i+ = 2)
+		for(int i = 0;i<StrLen;i += 2)
 		{
 			Bytes[i/2] = HexToChar(HexBytes+i);
 		}
@@ -1289,7 +1316,7 @@ unsigned char *HexToBytesWithLengthAmble(char *HexBytes)
 	*(unsigned short *)Bytes = StrLen/2;
 	if(Bytes)
 	{
-		for(int i = 0;i<StrLen;i+ = 2)
+		for(int i = 0;i<StrLen;i += 2)
 		{
 			Bytes[sizeof(short)+i/2] = HexToChar(HexBytes+i);
 		}
@@ -1345,14 +1372,14 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 		if(FunctionMembers)
 		{
 			list <DWORD>::iterator FunctionAddressIter;
-			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter! = FunctionAddresses->end();FunctionAddressIter++)
+			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
 				if(DebugLevel&1) dprintf("Function %x: ", *FunctionAddressIter);
 				list <DWORD> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
 				list <DWORD>::iterator FunctionMemberBlocksIter;
 
 				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
-					FunctionMemberBlocksIter! = FunctionMemberBlocks.end();
+					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
 					FunctionMemberBlocksIter++
 				)
 				{
@@ -1366,9 +1393,9 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 		/*
 		multimap <DWORD, DWORD>::iterator FunctionMembersIter;
 		DWORD FunctionAddress = 0;
-		for(FunctionMembersIter = FunctionMembers->begin();FunctionMembersIter! = FunctionMembers->end();FunctionMembersIter++)
+		for(FunctionMembersIter = FunctionMembers->begin();FunctionMembersIter != FunctionMembers->end();FunctionMembersIter++)
 		{
-			if(FunctionAddress! = FunctionMembersIter->first)
+			if(FunctionAddress != FunctionMembersIter->first)
 			{
 				FunctionAddress = FunctionMembersIter->first;
 				if(DebugLevel&1) dprintf("%x\n", FunctionAddress);
@@ -1408,7 +1435,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 	{
 		if(DebugLevel&1) dprintf("AddressesHash.size() = %u\n", AddressesHash.size());
 		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter! = ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_pIter++
 			)
 		{
@@ -1416,7 +1443,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 			if(map_info_hash_map_pIter->second->Type  ==  CREF_FROM)
 			{
 				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
-				if(iter! = AddressesHash.end())
+				if(iter != AddressesHash.end())
 				{
 					iter->second = FALSE;
 				}
@@ -1425,13 +1452,13 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 		if(DebugLevel&1) dprintf("%s\n", __FUNCTION__);
 		multimap <DWORD,  unsigned char *>::iterator address_fingerprint_hash_map_iter;
 		for(address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-			address_fingerprint_hash_map_iter! = ClientAnalysisInfo->address_fingerprint_hash_map.end();
+			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
 			address_fingerprint_hash_map_iter++)
 		{
 			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck?TRUE:FALSE));
 		}
 		if(DebugLevel&1) dprintf("AddressesHash.size() = %u\n", AddressesHash.size());
-		for(hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin();AddressesHashIterator! = AddressesHash.end();AddressesHashIterator++)
+		for(hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin();AddressesHashIterator != AddressesHash.end();AddressesHashIterator++)
 		{
 			if(AddressesHashIterator->second)
 			{
@@ -1447,7 +1474,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 	if(DoCallCheck)
 	{
 		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter! = ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_pIter++
 			)
 		{
@@ -1467,7 +1494,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 	if(FunctionAddresses)
 	{
 		for(hash_set <DWORD>::iterator FunctionAddressHashIter = FunctionAddressHash.begin();
-			FunctionAddressHashIter! = FunctionAddressHash.end();
+			FunctionAddressHashIter != FunctionAddressHash.end();
 			FunctionAddressHashIter++)
 		{
 			FunctionAddresses->push_back(*FunctionAddressHashIter);
@@ -1491,13 +1518,13 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 		if(AddressToFunctionMap)
 		{
 			list <DWORD>::iterator FunctionAddressIter;
-			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter! = FunctionAddresses->end();FunctionAddressIter++)
+			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
 				list <DWORD> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
 				list <DWORD>::iterator FunctionMemberBlocksIter;
 
 				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
-					FunctionMemberBlocksIter! = FunctionMemberBlocks.end();
+					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
 					FunctionMemberBlocksIter++
 				)
 				{
@@ -1512,9 +1539,9 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 		/*
 		hash_map <DWORD, DWORD>::iterator AddressToFunctionMapIter;
 		DWORD FunctionAddress = 0;
-		for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter! = AddressToFunctionMap->end();AddressToFunctionMapIter++)
+		for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter != AddressToFunctionMap->end();AddressToFunctionMapIter++)
 		{
-			if(FunctionAddress! = AddressToFunctionMapIter->first)
+			if(FunctionAddress != AddressToFunctionMapIter->first)
 			{
 				FunctionAddress = AddressToFunctionMapIter->first;
 				if(DebugLevel&1) dprintf("%x\n", FunctionAddress);
@@ -1532,7 +1559,7 @@ void OneIDAClientManager::FixFunctionAddresses()
 	multimap <DWORD, DWORD> *AddressToFunctionMap = LoadAddressToFunctionMap();
 	multimap <DWORD, DWORD>::iterator AddressToFunctionMapIter;
 	m_OutputDB->BeginTransaction();
-	for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter! = AddressToFunctionMap->end();AddressToFunctionMapIter++)
+	for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter != AddressToFunctionMap->end();AddressToFunctionMapIter++)
 	{
 		//StartAddress: AddressToFunctionMapIter->first
 		//FunctionAddress: AddressToFunctionMapIter->second

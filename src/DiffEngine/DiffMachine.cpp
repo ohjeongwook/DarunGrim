@@ -1902,12 +1902,12 @@ int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **
 	return 0;
 }
 
-BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
+BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory, DWORD SourceFunctionAddress, DWORD TargetFunctionAddress )
 {
 	TheSource=new OneIDAClientManager(  );
 	TheTarget=new OneIDAClientManager(  );
-	TheSource->Retrieve( &InputDB, TheSourceFileID, bRetrieveDataForAnalysis );
-	TheTarget->Retrieve( &InputDB, TheTargetFileID, bRetrieveDataForAnalysis );
+	TheSource->Retrieve( &InputDB, TheSourceFileID, bRetrieveDataForAnalysis, SourceFunctionAddress );
+	TheTarget->Retrieve( &InputDB, TheTargetFileID, bRetrieveDataForAnalysis, TargetFunctionAddress );
 	m_InputDB=&InputDB;
 	m_TheSourceFileID=TheSourceFileID;
 	m_TheTargetFileID=TheTargetFileID;
