@@ -134,10 +134,13 @@ public:
 	int GetUnidentifiedBlockCount( int index );
 	CodeBlock GetUnidentifiedBlock( int index, int i );
 	BOOL IsInUnidentifiedBlockHash( int index, DWORD address );
+
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+
+	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );	
 	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE, DWORD SourceFunctionAddress = 0, DWORD TargetFunctionAddress = 0 );
+	BOOL DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE, DWORD SourceFunctionAddress = 0, DWORD TargetFunctionAddress = 0 );
 	char *GetMatchTypeStr( int Type );
 
 	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )

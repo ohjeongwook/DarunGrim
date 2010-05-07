@@ -710,6 +710,15 @@ BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetriev
 	return TRUE;
 }
 
+void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
+{
+	m_OutputDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+	m_OutputDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'", FileID, FunctionAddress );
+
+	m_OutputDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+	m_OutputDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'", FileID, FunctionAddress );
+}
+
 int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
 {
 	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;

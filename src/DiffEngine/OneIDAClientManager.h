@@ -50,8 +50,12 @@ public:
 	void SetSocket(SOCKET socket);
 	BOOL RetrieveIDARawDataFromSocket(SOCKET socket);
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
+
 	BOOL Retrieve(DBWrapper *InputDB, int FileID=1, BOOL bRetrieveDataForAnalysis=FALSE, DWORD FunctionAddress = 0 );
+	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
+
 	BOOL RetrieveOneLocationInfo( DWORD FunctionAddress = 0 );
+
 	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();
 	char *GetName(DWORD address);

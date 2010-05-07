@@ -6,10 +6,10 @@
 #include "ProcessUtils.h"
 #include "dprintf.h"
 
-#define strtoul10(X) strtoul(X,NULL,10)
+#define strtoul10( X ) strtoul( X, NULL, 10 )
 int DebugLevel=0;
 
-void main(int argc,char *argv[])
+void main( int argc, char *argv[] )
 {
 	int optind=1;
 
@@ -19,12 +19,13 @@ void main(int argc,char *argv[])
 	char *OutputFilename=argv[optind];
 
 	DiffMachine *pDiffMachine;	
-	DBWrapper OutputDB(OutputFilename);
-	CreateTables(OutputDB);
+	DBWrapper OutputDB( OutputFilename );
+	CreateTables( OutputDB );
 	pDiffMachine=new DiffMachine();
-	pDiffMachine->Retrieve(OutputDB,TRUE,TheSourceFileID,TheTargetFileID);
+	pDiffMachine->Retrieve( OutputDB, TRUE, TheSourceFileID, TheTargetFileID, 0x208a5d2a, 0x208a63b8 );
+	pDiffMachine->DeleteMatchInfo( OutputDB, TheSourceFileID, TheTargetFileID, 0x208a5d2a, 0x208a63b8 );
 	pDiffMachine->Analyze();
-	pDiffMachine->Save(OutputDB);
+	pDiffMachine->Save( OutputDB );
 	
 	OutputDB.CloseDatabase();
 }
