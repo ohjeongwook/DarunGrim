@@ -31,6 +31,7 @@ void main( int argc, char *argv[] )
 
 	printf("Start Analysis\n");
 	pDiffMachine->Analyze();
+	//pDiffMachine->TestAnalysis();
 
 	printf("Save the Results\n");
 	pDiffMachine->Save( OutputDB );
