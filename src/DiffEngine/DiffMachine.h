@@ -60,14 +60,19 @@ const enum {DiffMachineFileBinaryFormat, DiffMachineFileSQLiteFormat};
 #define DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT "DELETE FROM "FUNCTION_MATCH_INFO_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
 #define CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT "CREATE INDEX "FUNCTION_MATCH_INFO_TABLE"Index ON "FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, TheTargetAddress )"
 
+enum {TYPE_MATCH, TYPE_REVERSE_MATCH, TYPE_BEFORE_UNIDENTIFIED_BLOCK, TYPE_AFTER_UNIDENTIFIED_BLOCK};
+
 typedef struct _AnalysisResult_ {
 	multimap <DWORD, MatchData> MatchMap;
 	hash_map <DWORD, DWORD> ReverseAddressMap;
 } AnalysisResult;
 
+#define DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING 1
+
 class DiffMachine
 {
 private:
+	int DebugFlag;
 	DBWrapper *m_InputDB;
 	int m_TheSourceFileID;
 	int m_TheTargetFileID;
@@ -88,9 +93,9 @@ private:
 
 	int GetFingerPrintMatchRate( unsigned char* unpatched_finger_print, unsigned char* patched_finger_print );
 
-	void RemoveDuplicates(  );
+	void RemoveDuplicates();
 	void RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address );
-	void GenerateFunctionMatchInfo(  );
+	void GenerateFunctionMatchInfo();
 
 	BOOL DeleteMatchInfo( DBWrapper& OutputDB );
 
@@ -99,11 +104,21 @@ private:
 
 	vector <FunctionMatchInfo> FunctionMatchInfoList;
 	vector <FunctionMatchInfo> ReverseFunctionMatchInfoList;
+
+	//Algorithms
+	void DoFingerPrintMatch( multimap <DWORD, MatchData> *pTemporaryMap );
+	void DoFingerPrintMatchInsideFunction( multimap <DWORD, MatchData> *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses );
+	void PurgeFingerprintHashMap( multimap <DWORD, MatchData> *pTemporaryMap );
+
+	void DoIsomorphMatch( multimap <DWORD, MatchData> *pTemporaryMap );
+	void DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, multimap <DWORD, MatchData> *pTargetTemporaryMap );
+	bool DoFunctionLevelMatchOptimizing();
+
 public:
 	DiffMachine( OneIDAClientManager *the_source=NULL, OneIDAClientManager *the_target=NULL );
 	void SetOneIDAClientManagers( OneIDAClientManager *the_source, OneIDAClientManager *the_target );
-	OneIDAClientManager *GetTheSource(  );
-	OneIDAClientManager *GetTheTarget(  );
+	OneIDAClientManager *GetTheSource();
+	OneIDAClientManager *GetTheTarget();
 	void DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  MatchData>::iterator match_map_iter );
 	DWORD DumpFunctionMatchInfo( int index, DWORD address );
 	void DiffMachine::GetMatchStatistics( 
@@ -116,24 +131,21 @@ public:
 		 );
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
 
-	MatchData *GetMatchData( int index, DWORD address );
+	MatchData *GetMatchData( int index, DWORD address, BOOL erase = FALSE );
 	void AppendToMatchMap( multimap <DWORD, MatchData> *pBaseMap, multimap <DWORD, MatchData> *pTemporaryMap );
 
-	//Algorithms
-	void DoFingerPrintMatch( multimap <DWORD, MatchData> *pTemporaryMap );
-	void DoFingerPrintMatchInsideFunction( multimap <DWORD, MatchData> *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses );
-	void PurgeFingerprintHashMap( multimap <DWORD, MatchData> *pTemporaryMap );
 
-	void DoIsomorphMatch( multimap <DWORD, MatchData> *pTemporaryMap );
-	void DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, multimap <DWORD, MatchData> *pTargetTemporaryMap );
-	
 	void ShowDiffMap( DWORD unpatched_address, DWORD patched_address );
-	void PrintMatchMapInfo(  );
-	bool Analyze(  );
-	void AnalyzeFunctionSanity(  );
+	void PrintMatchMapInfo();
+
+	void TestFunctionMatchRate( int index, DWORD Address );
+	void RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, list <DWORD>& Members );
+	bool TestAnalysis();
+	bool Analyze();
+	void AnalyzeFunctionSanity();
 	DWORD GetMatchAddr( int index, DWORD address );
 
-	int GetFunctionMatchInfoCount(  );
+	int GetFunctionMatchInfoCount();
 	FunctionMatchInfo GetFunctionMatchInfo( int i );
 
 	int GetUnidentifiedBlockCount( int index );
@@ -151,7 +163,7 @@ public:
 
 	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )
 	{
-		for( vector <FunctionMatchInfo>::iterator iter=FunctionMatchInfoList.begin(  );iter!=FunctionMatchInfoList.end(  );iter++ )
+		for( vector <FunctionMatchInfo>::iterator iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
 		{
 			Callback( *iter, Context );
 		}
@@ -159,14 +171,14 @@ public:
 	
 	void ExecuteOnTheSourceUnidentifedBlockHash( void ( Callback( DWORD Data, PVOID Context ) ), PVOID Context )
 	{
-		for( hash_set <DWORD>::iterator iter=TheSourceUnidentifedBlockHash.begin(  );iter!=TheSourceUnidentifedBlockHash.end(  );iter++ )
+		for( hash_set <DWORD>::iterator iter=TheSourceUnidentifedBlockHash.begin();iter!=TheSourceUnidentifedBlockHash.end();iter++ )
 		{
 			Callback( *iter, Context );
 		}
 	}
 	void ExecuteOnTheTargetUnidentifedBlockHash( void ( Callback( DWORD Data, PVOID Context ) ), PVOID Context )
 	{
-		for( hash_set <DWORD>::iterator iter=TheTargetUnidentifedBlockHash.begin(  );iter!=TheTargetUnidentifedBlockHash.end(  );iter++ )
+		for( hash_set <DWORD>::iterator iter=TheTargetUnidentifedBlockHash.begin();iter!=TheTargetUnidentifedBlockHash.end();iter++ )
 		{
 			Callback( *iter, Context );
 		}

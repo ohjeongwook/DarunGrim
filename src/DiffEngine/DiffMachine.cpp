@@ -15,13 +15,13 @@ using namespace std;
 using namespace stdext;
 #include "Configuration.h"
 
-char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerprint Match", "Tree Match"};
+char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerprint Match", "IsoMorphic Match"};
 
 #include "sqlite3.h"
 
 extern int DebugLevel;
 
-DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 )
+DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 ), DebugFlag( 0 )
 {
 	m_InputDB=NULL;
 	m_TheSourceFileID=0;
@@ -202,7 +202,236 @@ void DiffMachine::AnalyzeFunctionSanity()
 		}
 	}
 }
-	
+
+void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
+{
+	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
+	list <DWORD> address_list=ClientManager->GetFunctionMemberBlocks( Address );
+	list <DWORD>::iterator address_list_iter;
+
+	for( address_list_iter=address_list.begin();
+		address_list_iter!=address_list.end();
+		address_list_iter++
+	 )
+	{
+		MatchData *pMatchData=GetMatchData( index, *address_list_iter );
+		if( pMatchData )
+		{
+			printf("Basic Block: %x Match Rate: %d%%\n", *address_list_iter, pMatchData->MatchRate );
+		}
+		else
+		{
+			printf("Basic Block: %x Has No Match.\n", *address_list_iter );
+		}
+	}
+}
+
+void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, list <DWORD>& Members )
+{
+	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
+	list <DWORD> address_list=ClientManager->GetFunctionMemberBlocks( FunctionAddress );
+
+	for( list <DWORD>::iterator address_list_iter = address_list.begin();
+		address_list_iter != address_list.end();
+		address_list_iter++
+	 )
+	{
+		MatchData *pMatchData=GetMatchData( index, *address_list_iter );
+		if( pMatchData )
+		{
+			if( pMatchData->MatchRate < 100 )
+			{
+				Members.push_back( *address_list_iter );
+			}
+		}
+		else
+		{
+			Members.push_back( *address_list_iter );
+		}
+	}
+}
+
+bool DiffMachine::TestAnalysis()
+{
+	return TRUE;
+}
+
+bool DiffMachine::DoFunctionLevelMatchOptimizing()
+{
+	vector <FunctionMatchInfo>::iterator iter;
+	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
+	{
+		printf( "FileID: 0x%.8x\n\
+FileID: 0x%.8x\n\
+TheSourceAddress : 0x%.8x\n\
+EndAddress : 0x%.8x\n\
+TheTargetAddress : 0x%.8x\n\
+BlockType : 0x%.8x\n\
+MatchRate : 0x%.8x\n\
+TheSourceFunctionName : %s\n\
+Type : 0x%.8x\n\
+TheTargetFunctionName : %s\n\
+MatchCountForTheSource : 0x%.8x\n\
+NoneMatchCountForTheSource : 0x%.8x\n\
+MatchCountWithModificationForTheSource : 0x%.8x\n\
+MatchCountForTheTarget : 0x%.8x\n\
+NoneMatchCountForTheTarget : 0x%.8x\n\
+MatchCountWithModificationForTheTarget: 0x%.8x\n\
+\r\n", 
+			TheSource->GetFileID(), 
+			TheTarget->GetFileID(), 
+			iter->TheSourceAddress, 
+			iter->EndAddress, 
+			iter->TheTargetAddress, 
+			iter->BlockType, 
+			iter->MatchRate, 
+			iter->TheSourceFunctionName, 
+			iter->Type, 
+			iter->TheTargetFunctionName, 
+			iter->MatchCountForTheSource, 
+			iter->NoneMatchCountForTheSource, 
+			iter->MatchCountWithModificationForTheSource, 
+			iter->MatchCountForTheTarget, 
+			iter->NoneMatchCountForTheTarget, 
+			iter->MatchCountWithModificationForTheTarget
+		);
+
+		if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+		{
+			printf( "** Unpatched:\n" );
+			TestFunctionMatchRate( 0, iter->TheSourceAddress );
+
+			printf( "** Patched:\n" );
+			TestFunctionMatchRate( 1, iter->TheTargetAddress );
+		}
+
+		list <DWORD> SourceMembers;
+		RetrieveNonMatchingMembers( 0, iter->TheSourceAddress, SourceMembers );
+
+		list <DWORD> TargetMembers;
+		RetrieveNonMatchingMembers( 1, iter->TheTargetAddress, TargetMembers );
+
+
+		if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+		{
+			printf( "Source Members\n" );
+			for( list <DWORD>::iterator member_iter = SourceMembers.begin();
+				member_iter != SourceMembers.end();
+				member_iter++
+			 )
+			{
+				printf("0x%x, ", *member_iter );
+			}
+			printf( "\n" );
+
+			printf( "Target Members\n" );
+			for( list <DWORD>::iterator member_iter = TargetMembers.begin();
+				member_iter != TargetMembers.end();
+				member_iter++
+			 )
+			{
+				printf("0x%x, ", *member_iter );
+			}
+			printf( "\n" );
+		}
+
+		for( list <DWORD>::iterator source_member_iter = SourceMembers.begin();
+			source_member_iter != SourceMembers.end();
+			source_member_iter++
+		 )
+		{
+			for( list <DWORD>::iterator target_member_iter = TargetMembers.begin();
+				target_member_iter != TargetMembers.end();
+				target_member_iter++
+			 )
+			{
+				int MatchRate=GetMatchRate( *source_member_iter, *target_member_iter );
+
+				if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+					printf("%x-%x: %d%%\n", *source_member_iter, *target_member_iter, MatchRate );
+
+				int OrigSourceMatchRate = 0;
+				MatchData *pSourceMatchData = GetMatchData( 0, *source_member_iter );
+				if( pSourceMatchData )
+				{
+					OrigSourceMatchRate = pSourceMatchData->MatchRate;
+					if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+						printf("\t%x-%x: %d%%\n", *source_member_iter, pSourceMatchData->Addresses[1], pSourceMatchData->MatchRate );
+				}
+
+				int OrigTargetMatchRate = 0;
+				MatchData *pTargetMatchData = GetMatchData( 1, *target_member_iter );
+				if( pTargetMatchData )
+				{
+					OrigTargetMatchRate = pTargetMatchData->MatchRate;
+					if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+						printf("\t%x-%x: %d%%\n", pTargetMatchData->Addresses[0], *target_member_iter, pTargetMatchData->MatchRate );
+				}
+
+#define MINMUM_MEANINGFUL_MATCH_RATE 90
+				if( MatchRate > MINMUM_MEANINGFUL_MATCH_RATE && MatchRate > OrigSourceMatchRate && MatchRate > OrigTargetMatchRate )
+				{
+					printf("**** Beating Existing Match Rates.\n");
+					printf("%x-%x: %d%%\n", *source_member_iter, *target_member_iter, MatchRate );
+					printf("\t%x-%x: %d%%\n", *source_member_iter, pSourceMatchData?pSourceMatchData->Addresses[1]:0, pSourceMatchData?pSourceMatchData->MatchRate:0 );
+					printf("\t%x-%x: %d%%\n", pTargetMatchData?pTargetMatchData->Addresses[0]:0, *target_member_iter, pTargetMatchData?pTargetMatchData->MatchRate:0 );
+
+
+					if( pSourceMatchData )
+					{
+						//Remove
+						GetMatchData( 0, *source_member_iter, TRUE );
+					}
+
+					if( pTargetMatchData )
+					{
+						GetMatchData( 1, *target_member_iter, TRUE );
+						//Remove
+					}
+
+					//Insert New One
+
+					if( DiffResults )
+					{
+						MatchData match_data;
+						memset( &match_data, 0, sizeof( MatchData ) );
+						match_data.Type=FINGERPRINT_INSIDE_FUNCTION_MATCH;
+						match_data.Addresses[0] = *source_member_iter;
+						match_data.Addresses[1] = *target_member_iter;
+
+						match_data.UnpatchedParentAddress=0;
+						match_data.PatchedParentAddress=0;
+						match_data.MatchRate = MatchRate;
+						DiffResults->MatchMap.insert( MatchMap_Pair( *source_member_iter, match_data ) );
+						DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( *target_member_iter, *source_member_iter ) );
+					}
+					else
+					{
+						//INSERT
+						//match_map_iter->first
+						//match_map_iter->second
+						m_InputDB->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
+							TheSource->GetFileID(), 
+							TheTarget->GetFileID(), 
+							*source_member_iter,
+							*target_member_iter,
+							TYPE_MATCH,
+							FINGERPRINT_INSIDE_FUNCTION_MATCH,
+							0,
+							0,
+							MatchRate,
+							0,
+							0 );
+					}
+				}
+			}
+		}
+		printf( "\n" );
+
+	}
+	return TRUE;
+}
+
 bool DiffMachine::Analyze()
 {
 	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
@@ -323,6 +552,11 @@ bool DiffMachine::Analyze()
 	//RemoveDuplicates();
 	//AnalyzeFunctionSanity();
 	GenerateFunctionMatchInfo();
+
+	if( DebugFlag  & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
+		dprintf( "%s: DoFunctionLevelMatchOptimizing\n", __FUNCTION__ );
+	DoFunctionLevelMatchOptimizing( );
+
 
 	FunctionMembersMapForTheSource->clear();
 	delete FunctionMembersMapForTheSource;
@@ -1496,7 +1730,7 @@ int ReadOneMatchMapCallback( void *arg, int argc, char **argv, char **names )
 	return 0;
 }
 
-MatchData *DiffMachine::GetMatchData( int index, DWORD address )
+MatchData *DiffMachine::GetMatchData( int index, DWORD address, BOOL erase )
 {
 	DWORD block_address=address;
 	
@@ -1505,11 +1739,20 @@ MatchData *DiffMachine::GetMatchData( int index, DWORD address )
 	{
 		static MatchData match_data;
 		memset( &match_data, 0, sizeof( match_data ) );
-		m_InputDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", m_TheSourceFileID, m_TheTargetFileID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
-		if( match_data.Addresses[0]!=0 )
+
+		if( erase )
 		{
-			if( DebugLevel&1 ) dprintf( "%s: %u 0x%x Returns %x-%x\r\n", __FUNCTION__, index, block_address, match_data.Addresses[0], match_data.Addresses[1] );
-			return &match_data;
+			m_InputDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", m_TheSourceFileID, m_TheTargetFileID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
+			return NULL;
+		}
+		else
+		{
+			m_InputDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", m_TheSourceFileID, m_TheTargetFileID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
+			if( match_data.Addresses[0]!=0 )
+			{
+				if( DebugLevel&1 ) dprintf( "%s: %u 0x%x Returns %x-%x\r\n", __FUNCTION__, index, block_address, match_data.Addresses[0], match_data.Addresses[1] );
+				return &match_data;
+			}
 		}
 	}else
 	{
@@ -1519,6 +1762,11 @@ MatchData *DiffMachine::GetMatchData( int index, DWORD address )
 			if( reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end() )
 			{
 				block_address=reverse_match_map_iterator->second;
+
+				if( erase )
+				{
+					DiffResults->ReverseAddressMap.erase( reverse_match_map_iterator );
+				}
 			}else
 			{
 				block_address=0;
@@ -1532,6 +1780,13 @@ MatchData *DiffMachine::GetMatchData( int index, DWORD address )
 			if( match_map_iter!=DiffResults->MatchMap.end() )
 			{
 				if( DebugLevel&1 ) dprintf( "%s: %u 0x%x Returns %x-%x\r\n", __FUNCTION__, index, block_address, match_map_iter->second.Addresses[0], match_map_iter->second.Addresses[1] );
+
+				if( erase )
+				{
+					DiffResults->MatchMap.erase( match_map_iter );
+					return NULL;
+				}
+
 				return &match_map_iter->second;
 			}
 		}
@@ -1549,8 +1804,6 @@ DWORD DiffMachine::GetMatchAddr( int index, DWORD address )
 	}
 	return 0L;
 }
-
-enum {TYPE_MATCH, TYPE_REVERSE_MATCH, TYPE_BEFORE_UNIDENTIFIED_BLOCK, TYPE_AFTER_UNIDENTIFIED_BLOCK};
 
 BOOL DiffMachine::Save( 
 						char *DataFile, 
@@ -1961,7 +2214,7 @@ BOOL DiffMachine::DeleteMatchInfo( DBWrapper& OutputDB )
 
 char *DiffMachine::GetMatchTypeStr( int Type )
 {
-	static char *TypeStr[]={"Name", "Fingerprint", "Two Level Fingerprint", "Tree", "Fingerprint Inside Function", "Function"};
+	static char *TypeStr[]={"Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function"};
 	if( Type<sizeof( TypeStr )/sizeof( TypeStr[0] ) )
 	{
 		return TypeStr[Type];
