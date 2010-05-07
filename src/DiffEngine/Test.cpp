@@ -29,9 +29,6 @@ void main( int argc, char *argv[] )
 	printf("Retrieving Data\n");
 	pDiffMachine->Retrieve( OutputDB, TRUE, TheSourceFileID, TheTargetFileID );
 
-	printf("Deleting Match Info\n");
-	pDiffMachine->DeleteMatchInfo( OutputDB, TheSourceFileID, TheTargetFileID );
-
 	printf("Start Analysis\n");
 	pDiffMachine->Analyze();
 

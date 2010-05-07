@@ -92,6 +92,8 @@ private:
 	void RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address );
 	void GenerateFunctionMatchInfo(  );
 
+	BOOL DeleteMatchInfo( DBWrapper& OutputDB );
+
 	hash_set <DWORD> TheSourceUnidentifedBlockHash;
 	hash_set <DWORD> TheTargetUnidentifedBlockHash;
 
@@ -144,7 +146,7 @@ public:
 	void SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress );
 	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );	
 	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
-	BOOL DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
+
 	char *GetMatchTypeStr( int Type );
 
 	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )

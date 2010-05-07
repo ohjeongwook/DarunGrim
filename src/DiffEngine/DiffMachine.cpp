@@ -1733,20 +1733,20 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 	if( !TheSource || !TheTarget )
 		return FALSE;
 
-	OutputDB.ExecuteStatement( NULL, NULL, DELETE_MATCH_MAP_TABLE_STATEMENT, 
-		TheSource->GetFileID(), 
-		TheTarget->GetFileID() );
+	DeleteMatchInfo( OutputDB );
+
+	printf("Executing %s\n", CREATE_MATCH_MAP_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_INDEX_STATEMENT );		
 
-	OutputDB.ExecuteStatement( NULL, NULL, DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT, 
-		TheSource->GetFileID(), 
-		TheTarget->GetFileID() );		
+	printf("Executing %s\n", CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT );
 
 	OutputDB.BeginTransaction();
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
+
+	printf( "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
 	if( DebugLevel&1 ) dprintf( "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
@@ -1939,10 +1939,23 @@ BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, i
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
+BOOL DiffMachine::DeleteMatchInfo( DBWrapper& OutputDB )
 {
-	TheSource->DeleteMatchInfo( &InputDB, TheSourceFileID, SourceFunctionAddress );
-	TheTarget->DeleteMatchInfo( &InputDB, TheTargetFileID, TargetFunctionAddress );
+	if( SourceFunctionAddress > 0 && TargetFunctionAddress > 0 )
+	{
+		TheSource->DeleteMatchInfo( &OutputDB, TheSource->GetFileID(), SourceFunctionAddress );
+		TheTarget->DeleteMatchInfo( &OutputDB, TheTarget->GetFileID(), TargetFunctionAddress );
+	}
+	else
+	{
+		OutputDB.ExecuteStatement( NULL, NULL, DELETE_MATCH_MAP_TABLE_STATEMENT, 
+			TheSource->GetFileID(), 
+			TheTarget->GetFileID() );
+		
+		OutputDB.ExecuteStatement( NULL, NULL, DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT, 
+			TheSource->GetFileID(), 
+			TheTarget->GetFileID() );
+	}
 	return TRUE;
 }
 
