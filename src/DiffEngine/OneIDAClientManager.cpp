@@ -703,7 +703,7 @@ BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetriev
 	}
 	else
 	{
-		//Retrieve only relavant maps
+		//Retrieve only relevant maps
 		m_OutputDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", FileID, FileID, FunctionAddress, FileID, FunctionAddress );
 	}
 
