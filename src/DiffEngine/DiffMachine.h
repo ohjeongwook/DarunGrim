@@ -72,6 +72,9 @@ private:
 	int m_TheSourceFileID;
 	int m_TheTargetFileID;
 
+	DWORD SourceFunctionAddress;
+	DWORD TargetFunctionAddress;
+
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
 	multimap <DWORD, DWORD> *AddressToFunctionMapForTheSource;
@@ -138,9 +141,10 @@ public:
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 
+	void SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress );
 	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );	
-	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE, DWORD SourceFunctionAddress = 0, DWORD TargetFunctionAddress = 0 );
-	BOOL DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE, DWORD SourceFunctionAddress = 0, DWORD TargetFunctionAddress = 0 );
+	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=FALSE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
+	BOOL DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
 	char *GetMatchTypeStr( int Type );
 
 	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )

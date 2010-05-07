@@ -21,7 +21,7 @@ char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerpr
 
 extern int DebugLevel;
 
-DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target )
+DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 )
 {
 	m_InputDB=NULL;
 	m_TheSourceFileID=0;
@@ -214,11 +214,11 @@ bool DiffMachine::Analyze()
 	if( !TheSource || !TheTarget )
 		return FALSE;
 
-	TheSource->FixFunctionAddresses();
-	TheSource->RetrieveOneLocationInfo();
+	if( TheSource->FixFunctionAddresses() )
+		TheSource->RetrieveOneLocationInfo( SourceFunctionAddress );
 
-	TheTarget->FixFunctionAddresses();
-	TheTarget->RetrieveOneLocationInfo();
+	if( TheTarget->FixFunctionAddresses() )
+		TheTarget->RetrieveOneLocationInfo( TargetFunctionAddress );
 	DiffResults=new AnalysisResult;
 	if( DebugLevel&1 )
 		dprintf( "%s: Fingerprint Map Size %u:%u\n", __FUNCTION__, 
@@ -1910,7 +1910,13 @@ int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **
 	return 0;
 }
 
-BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory, DWORD SourceFunctionAddress, DWORD TargetFunctionAddress )
+void DiffMachine::SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress )
+{
+	SourceFunctionAddress = ParamSourceFunctionAddress;
+	TargetFunctionAddress = ParamTargetFunctionAddress;
+}
+
+BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
 {
 	TheSource=new OneIDAClientManager();
 	TheTarget=new OneIDAClientManager();
@@ -1933,7 +1939,7 @@ BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, i
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory, DWORD SourceFunctionAddress, DWORD TargetFunctionAddress )
+BOOL DiffMachine::DeleteMatchInfo( DBWrapper& InputDB, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
 {
 	TheSource->DeleteMatchInfo( &InputDB, TheSourceFileID, SourceFunctionAddress );
 	TheTarget->DeleteMatchInfo( &InputDB, TheTargetFileID, TargetFunctionAddress );

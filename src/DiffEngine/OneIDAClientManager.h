@@ -75,7 +75,7 @@ public:
 	char *GetOriginalFilePath();
 	multimap <DWORD, DWORD> *LoadFunctionMembersMap();
 	multimap <DWORD, DWORD> *LoadAddressToFunctionMap();
-	void FixFunctionAddresses();
+	BOOL FixFunctionAddresses();
 	list <DWORD> *GetFunctionAddresses();
 };
 

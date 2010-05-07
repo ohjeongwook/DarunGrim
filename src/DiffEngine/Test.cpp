@@ -22,9 +22,20 @@ void main( int argc, char *argv[] )
 	DBWrapper OutputDB( OutputFilename );
 	CreateTables( OutputDB );
 	pDiffMachine=new DiffMachine();
-	pDiffMachine->Retrieve( OutputDB, TRUE, TheSourceFileID, TheTargetFileID, 0x208a5d2a, 0x208a63b8 );
-	pDiffMachine->DeleteMatchInfo( OutputDB, TheSourceFileID, TheTargetFileID, 0x208a5d2a, 0x208a63b8 );
+
+	printf("Setting Analysis Target\n");
+	pDiffMachine->SetTargetFunctions( 0x208a5d2a, 0x208a63b8 );
+
+	printf("Retrieving Data\n");
+	pDiffMachine->Retrieve( OutputDB, TRUE, TheSourceFileID, TheTargetFileID );
+
+	printf("Deleting Match Info\n");
+	pDiffMachine->DeleteMatchInfo( OutputDB, TheSourceFileID, TheTargetFileID );
+
+	printf("Start Analysis\n");
 	pDiffMachine->Analyze();
+
+	printf("Save the Results\n");
 	pDiffMachine->Save( OutputDB );
 	
 	OutputDB.CloseDatabase();

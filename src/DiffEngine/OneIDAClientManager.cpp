@@ -743,6 +743,8 @@ BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
 			_snprintf( FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer) - 1, "AND FunctionAddress = '%d'", FunctionAddress );
 		}
 
+		printf( "Condition [%s]\n", FunctionAddressConditionBuffer );
+
 		m_OutputDB->ExecuteStatement(ReadOneLocationInfoDataCallback, 
 			(void *)ClientAnalysisInfo, 
 			"SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u %s",
@@ -1562,8 +1564,9 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 	return NULL;
 }
 
-void OneIDAClientManager::FixFunctionAddresses()
+BOOL OneIDAClientManager::FixFunctionAddresses()
 {
+	BOOL IsFixed = FALSE;
 	if(DebugLevel&1) dprintf("%s", __FUNCTION__);
 	multimap <DWORD, DWORD> *AddressToFunctionMap = LoadAddressToFunctionMap();
 	multimap <DWORD, DWORD>::iterator AddressToFunctionMapIter;
@@ -1583,10 +1586,13 @@ void OneIDAClientManager::FixFunctionAddresses()
 					AddressToFunctionMapIter->second  ==  AddressToFunctionMapIter->first?FUNCTION_BLOCK:UNKNOWN_BLOCK, 
 					m_FileID, 
 					AddressToFunctionMapIter->first);
+		IsFixed = TRUE;
 	}
 	if(DebugLevel&1) dprintf("\r\n");
 
 	m_OutputDB->EndTransaction();
 	AddressToFunctionMap->clear();
 	delete AddressToFunctionMap;
+
+	return IsFixed;
 }
