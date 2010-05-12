@@ -27,7 +27,7 @@ class Database:
 		self.Engine = sqlalchemy.create_engine( 'sqlite:///' + filename, echo = echo )
 		metadata = MetaData()
 
-		self.IndexTable = Table( 'Index', metadata, 
+		self.IndexTable = Table( 'FileIndex', metadata, 
 			Column('id', Integer, primary_key = True ),
 			Column('operating_system', String ),
 			Column('service_pack', String ),
@@ -42,21 +42,26 @@ class Database:
 		metadata.create_all( self.Engine )
 		mapper( Index, self.IndexTable )
 		
-		Session = sessionmaker()
-		Session.configure( bind = self.Engine )	
-		session = Session()
+		self.Session = sessionmaker()
+		self.Session.configure( bind = self.Engine )	
+		self.SessionInstance = self.Session()
 
-		operating_system = "os"
-		service_pack = "sp"
-		filename = "fn"
-		company_name = "company"
-		version_string = "version"
-		patch_identifier = "patch"
-		full_path = "full"
-
+	def Add(self, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
 		new_record = Index( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
-		session.add ( new_record )
-		print 'Retrieved:',session.query( Index ).filter_by( operating_system='os').first() 
+		self.SessionInstance.add ( new_record )
+		#print 'Retrieved:',session.query( Index ).filter_by( operating_system='os').first() 
+		
+	def __del__( self ):
+		self.SessionInstance.commit()
 
 if __name__ == '__main__':
 	database = Database( 'test.db' )
+
+	operating_system = "os"
+	service_pack = "sp"
+	filename = "fn"
+	company_name = "company"
+	version_string = "version"
+	patch_identifier = "patch"
+	full_path = "full"	
+	database.Add( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
