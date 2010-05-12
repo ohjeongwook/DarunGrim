@@ -56,10 +56,7 @@ class PatchDownloader:
 		files = []
 		for anchor in soup.findAll( "a" ):
 			for name, link in anchor.attrs:
-				print name,link
-				pos = link.find("familyid=")
-				if  pos < 0:
-					pos = link.find("FamilyId=")
+				pos = link.lower().find("familyid=")
 
 				if  pos >=0:
 					family_id = link[pos+len( 'familyid=' ):]
