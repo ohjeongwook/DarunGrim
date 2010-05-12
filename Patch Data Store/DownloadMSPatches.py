@@ -9,7 +9,11 @@ class PatchDownloader:
 
 	def DownloadFileByFamilyID( self, br, family_id ):
 		link = 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en'
-		data = br.open( link ).get_data()
+		
+		try:
+			data = br.open( link ).get_data()
+		except:
+			return []
 		
 		if self.DebugLevel > 3:
 			print '='*80
@@ -52,6 +56,7 @@ class PatchDownloader:
 		files = []
 		for anchor in soup.findAll( "a" ):
 			for name, link in anchor.attrs:
+				print name,link
 				pos = link.find("familyid=")
 				if  pos < 0:
 					pos = link.find("FamilyId=")
@@ -62,8 +67,9 @@ class PatchDownloader:
 					if ampersand_pos >= 0:
 						family_id = family_id[:ampersand_pos]
 
-					if self.DebugLevel > 1:
+					if self.DebugLevel > -1:
 						print anchor.text
+						print '\t',link
 						print '\t',family_id
 						print ''
 						
@@ -75,9 +81,9 @@ if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
 
 	for Year in range(9,10):
-		for PatchNumber in range(1, 999):
+		for PatchNumber in range(32, 33):
 			files = patch_downloader.DownloadMSPatch( Year, PatchNumber )
-			if not files:
+			if files == None:
 				break
 			print files
 		
