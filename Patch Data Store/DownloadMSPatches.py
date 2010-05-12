@@ -45,7 +45,7 @@ class PatchDownloader:
 		try:
 			data = br.open( url ).get_data()
 		except:
-			return
+			return None
 
 		soup = BeautifulSoup( data )
 
@@ -77,5 +77,7 @@ if __name__ == '__main__':
 	for Year in range(9,10):
 		for PatchNumber in range(1, 999):
 			files = patch_downloader.DownloadMSPatch( Year, PatchNumber )
+			if not files:
+				break
 			print files
 		
