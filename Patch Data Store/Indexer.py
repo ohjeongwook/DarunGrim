@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, Binary, MetaData, ForeignKey
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
@@ -14,11 +14,13 @@ class Patch(Base):
 	name = Column( String )
 	title = Column( String )
 	url = Column( String )
+	html_data = Column( Binary ) 
 
-	def __init__( self, name, title, url ):
+	def __init__( self, name, title, url, html_data ):
 		self.name = name
 		self.title = title
 		self.url = url
+		self.html_data = html_data
 		
 	def __repr__( self ):
 		return "<Patches('%s','%s','%s')>" % ( self.name, self.title, self.url )
@@ -26,16 +28,18 @@ class Patch(Base):
 class CVE(Base):
 	__tablename__ = 'cves'
 	id = Column( Integer, primary_key = True )
+	cve_string = Column( String )	
 	name = Column( String )	
 
 	patch_id = Column( Integer, ForeignKey('patches.id'))
 	patches = relationship(Patch, backref=backref('cves', order_by=id))
 
-	def __init__( self, name ):
+	def __init__( self, cve_string, name ):
+		self.cve_string = cve_string
 		self.name = name
 		
 	def __repr__( self ):
-		return "<CVEs('%s')>" % ( self.name )
+		return "<CVEs('%s','%s')>" % ( self.cve_string, self.name )
 
 class Download(Base):
 	__tablename__ = 'downloads'
@@ -44,15 +48,21 @@ class Download(Base):
 	label = Column( String )	
 	url = Column( String )
 	filename = Column( String )
+	maximum_security_impact = Column( String )
+	aggregate_severity_rating = Column( String )
+	bulletins_replaced = Column( String )
 
 	patch_id = Column( Integer, ForeignKey('patches.id'))
 	patches = relationship(Patch, backref=backref('downloads', order_by=id))
 
-	def __init__( self, operating_system, label, url, filename ):
+	def __init__( self, operating_system, label, url, filename, maximum_security_impact, aggregate_severity_rating, bulletins_replaced ):
 		self.operating_system = operating_system
 		self.label = label
 		self.url = url
 		self.filename = filename
+		self.maximum_security_impact = maximum_security_impact
+		self.aggregate_severity_rating = aggregate_severity_rating
+		self.bulletins_replaced = bulletins_replaced
 		
 	def __repr__( self ):
 		return "<Downloads('%s','%s','%s')>" % ( self.label, self.url, self.filename )
@@ -90,7 +100,7 @@ class FileIndex(Base):
 		return "<FileIndex('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )>" % ( self.operating_system, self.service_pack, self.filename, self.company_name, self.version_string, self.patch_identifier, self.version_number, self.release_plan, self.full_path )
 
 class Database:
-	DebugLevel = 3
+	DebugLevel = 2
 	def __init__( self, filename ):
 		echo = False
 		if self.DebugLevel > 2:
@@ -104,21 +114,21 @@ class Database:
 		self.Session.configure( bind = self.Engine )	
 		self.SessionInstance = self.Session()
 
-	def AddPatch( self, name, title, url ):
-		patch = Patch( name, title, url )
+	def AddPatch( self, name, title, url, html_data = '' ):
+		patch = Patch( name, title, url, html_data )
 		self.SessionInstance.add ( patch )
 		return patch
 
-	def AddCVE( self, patch, name ):
-		cve = CVE( name )
+	def AddCVE( self, patch, cve_string, name ):
+		cve = CVE( cve_string, name )
 		if patch:
 			patch.cves.append( cve )
 		else:
 			self.SessionInstance.add( cve )
 		return cve
 
-	def AddDownload( self, patch, operating_system, name, url, filename ):
-		download = Download( operating_system, name, url, filename )
+	def AddDownload( self, patch, operating_system, name, url, filename, maximum_security_impact, aggregate_severity_rating, bulletins_replaced ):
+		download = Download( operating_system, name, url, filename, maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 		if patch:
 			patch.downloads.append( download )
 		else:
@@ -149,12 +159,16 @@ if __name__ == '__main__':
 	patch_identifier = "patch"
 	full_path = "full"	
 
+	maximum_security_impact = 'Remote Code Execution'
+	aggregate_severity_rating = 'Critical'
+	bulletins_replaced = 'MS08-011'
+
 	patch = database.AddPatch( 'MS09-011', 'Vulnerability in Microsoft DirectShow Could Allow Remote Code Execution (961373)', 'http://www.microsoft.com/technet/security/bulletin/ms09-011.mspx' )
-	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe' )
+	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 	database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
 	
-	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4','DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe' )
+	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4','DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 	database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
 
-	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe' )
-	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe' )
+	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
