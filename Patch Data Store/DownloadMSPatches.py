@@ -178,7 +178,7 @@ class PatchDownloader:
 						print ''
 
 					patch_data.append( td_member_hash )
-			elif p_tag.text == 'Affected Software:':
+			elif p_tag.text == 'Affected Software:' or p_tag.text == 'Affected Components:':
 				table_tag = p_tag.nextSibling
 				for td_tag in table_tag.findAll('td'):
 					td_member_hash = {}
@@ -280,7 +280,13 @@ if __name__ == '__main__':
 	#patch_downloader.DownloadMSPatchAndIndex( 8, 1 )
 	#patch_downloader.DownloadMSPatchAndIndex( 10, 31 )
 
-	for Year in range(6,11):
+	for Year in range(8,9):
+		for PatchNumber in range(19, 999):
+			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
+			if ret == None:
+				break
+
+	for Year in range(9,11):
 		for PatchNumber in range(1, 999):
 			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
 			if ret == None:
