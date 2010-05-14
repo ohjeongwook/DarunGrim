@@ -96,21 +96,24 @@ class FileStore:
 							shutil.copyfile( full_path, target_full_path )
 
 						#TODO: Put to the Index Database
-						print full_path, version_info
 						operating_system = 'Windows XP'
 						patch_identifier = ''
 						service_pack = ''
 
-						self.Database.AddFile( 
-							self.Download,
-							operating_system, 
-							service_pack, 
-							filename, 
-							version_info['CompanyName'], 
-							version_info['FileVersion'], 
-							patch_identifier, 
-							target_full_path
-						)
+						if self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] ):
+							print 'Already there:', full_path, version_info
+						else:
+							print 'New', full_path, version_info
+							self.Database.AddFile( 
+								self.Download,
+								operating_system, 
+								service_pack, 
+								filename, 
+								version_info['CompanyName'], 
+								version_info['FileVersion'], 
+								patch_identifier, 
+								target_full_path
+							)
 		self.Database.Commit()
 
 	def RemoveOutput( self, dirname = None ):
