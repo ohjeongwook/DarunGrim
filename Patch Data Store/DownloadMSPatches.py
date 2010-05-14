@@ -7,6 +7,7 @@ class PatchDownloader:
 	DebugLevel = 3
 	def __init__( self, DownloadFolder ):
 		self.DownloadFolder = DownloadFolder
+		self.Database = Indexer.Database( 'test.db' )
 
 	def DownloadFileByFamilyID( self, br, family_id ):
 		link = 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en'
@@ -64,7 +65,6 @@ class PatchDownloader:
 
 	def DownloadMSPatch( self, Year, PatchNumber ):
 		url = 'http://www.microsoft.com/technet/security/Bulletin/MS%.2d-%.3d.mspx' % ( Year, PatchNumber )
-		print url
 		br = mechanize.Browser()
 		try:
 			data = br.open( url ).get_data()
@@ -165,7 +165,9 @@ class PatchDownloader:
 						if td_member.has_key( 'url' ):
 							link = td_member['url']
 						#print td_member['text'] + "(" + link + ")", 
-						column_text = tr_members[0][column]['text']
+						column_text = ''
+						if len( tr_members[0] ) > column:
+							column_text = tr_members[0][column]['text']
 						
 						family_id = self.GetFamilyID( link )
 						if family_id:
@@ -207,8 +209,12 @@ class PatchDownloader:
 					patch_data.append( td_member_hash )
 
 		return ( patch_info, patch_data )
-		
+
 	def DownloadMSPatchAndIndex( self, Year, PatchNumber ):
+		name = 'MS%.2d-%.3d' % ( Year, PatchNumber )
+		if self.Database.GetPatch( name ):
+			return ( {},{} )
+
 		ret = patch_downloader.DownloadMSPatch( Year, PatchNumber )
 		
 		if not ret:
@@ -216,11 +222,10 @@ class PatchDownloader:
 
 		(patch_info, patch_data) = ret
 		
-		database = Indexer.Database( 'test.db' )
-		patch = database.AddPatch( patch_info['label'], patch_info['title'], patch_info['url'], patch_info['HtmlData'] )
+		patch = self.Database.AddPatch( patch_info['label'], patch_info['title'], patch_info['url'], patch_info['HtmlData'] )
 
 		for (cve_str, name) in patch_info['CVE']:
-			database.AddCVE( patch, cve_str, name )
+			self.Database.AddCVE( patch, cve_str, name )
 
 		for td_member_hash in patch_data:
 			for ( column_text, td_member ) in td_member_hash.items():
@@ -230,7 +235,7 @@ class PatchDownloader:
 							print '\t', name, data
 						
 					if td_member_hash.has_key( 'Operating System' ):
-						operating_system = td_member_hash['Operating System']
+						operating_system = td_member_hash['Operating System']['text']
 					else:
 						operating_system = td_member['text']
 
@@ -261,7 +266,7 @@ class PatchDownloader:
 					if td_member.has_key( 'files' ) and len(td_member['files']) > 0:
 						filename = td_member['files'][0]
 
-					database.AddDownload( patch, 
+					self.Database.AddDownload( patch, 
 						operating_system, 
 						td_member['text'], 
 						td_member['url'], 
@@ -270,24 +275,20 @@ class PatchDownloader:
 						aggregate_severity_rating,
 						bulletins_replaced 
 					)
+		self.Database.Commit()
 		return ret
 			
 
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
 
-	#patch_downloader.DownloadMSPatchAndIndex( 4, 19 )
+	patch_downloader.DownloadMSPatchAndIndex( 9, 18 )
 	#patch_downloader.DownloadMSPatchAndIndex( 8, 1 )
 	#patch_downloader.DownloadMSPatchAndIndex( 10, 31 )
 
-	for Year in range(8,9):
-		for PatchNumber in range(19, 999):
-			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
-			if ret == None:
-				break
-
-	for Year in range(9,11):
+	for Year in range(3,11):
 		for PatchNumber in range(1, 999):
+			print 'MS%.2d-%.3d' % ( Year, PatchNumber )
 			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
 			if ret == None:
 				break
