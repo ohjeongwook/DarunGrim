@@ -9,15 +9,40 @@ import Indexer
 
 class FileStore:
 	DebugLevel = 0
-	def __init__(self, source_binaries_folder, target_binaries_folder, indexer_database_name = 'index.db' ):
+	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll' ]
+	def __init__(self, source_binaries_folder, target_binaries_folder, indexer_database_name = 'test.db' ):
 		self.SourceBinariesFolder = source_binaries_folder
 		self.TargetBinariesFolder = target_binaries_folder
-		self.IndexerDatabaseName = indexer_database_name
-		self.IndexerDatabase = Indexer.Database( self.IndexerDatabaseName )
+		self.DatabaseName = indexer_database_name
+		self.Database = Indexer.Database( self.DatabaseName )
+		self.Download = None
+
+	def ExtractFilesInDatabase( self ):
+		for download in self.Database.GetDownloads():
+			full_path = download.filename
+			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
+				print full_path
+				if self.ExtractFile( full_path ):
+					self.ScapSourceBinaries()
+					self.RemoveOutput()
+
+	def ExtractFilesInDirectory( self, dirname ):
+		for file in dircache.listdir( dirname ):
+			full_path = os.path.join( dirname, file )
+			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
+				print full_path
+				if self.ExtractFile( full_path ):
+					self.ScapSourceBinaries()
+					self.RemoveOutput()
 
 	def ExtractFile( self, Filename ):
-		popen2.popen2( Filename + " /x:"+self.SourceBinariesFolder + " /quiet" )
-		
+		#Filename
+		self.Download = self.Database.GetDownloadByFilename( Filename )
+		if self.Download:
+			popen2.popen2( Filename + " /x:"+self.SourceBinariesFolder + " /quiet" )
+			return True
+		return False
+
 	def QueryFile( self, filename ):
 		VersionInfo = {}
 		info = win32ver.GetFileVersionInfo( filename )
@@ -42,6 +67,9 @@ class FileStore:
 		if not dirname:
 			dirname = self.SourceBinariesFolder
 
+		if not os.path.isdir( dirname ):
+			return 
+
 		for file in dircache.listdir( dirname ):
 			full_path = os.path.join( dirname, file )
 			if os.path.isdir( full_path ):
@@ -52,39 +80,45 @@ class FileStore:
 				version_info = self.QueryFile( full_path )
 				filename = os.path.basename( full_path )
 				
-				if len(version_info) > 0:
-					if self.DebugLevel > 2:
-						print version_info
-					
-					if self.SourceBinariesFolder != self.TargetBinariesFolder:
-						target_directory = os.path.join( self.TargetBinariesFolder, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-						target_full_path = os.path.join( target_directory, filename )
+				if not filename in self.NotInterestedFiles:
+					if len(version_info) > 0:
+						if self.DebugLevel > 2:
+							print version_info
+						
+						target_full_path = full_path
+						if self.SourceBinariesFolder != self.TargetBinariesFolder:
+							target_directory = os.path.join( self.TargetBinariesFolder, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
+							target_full_path = os.path.join( target_directory, filename )
 
-						if not os.path.isdir( target_directory ):
-							os.makedirs( target_directory )
-						print 'Copy to ',target_full_path
-						shutil.copyfile( full_path, target_full_path )
-					#TODO: Put to the Index Database
-					print full_path, version_info
-					operating_system = 'Windows XP'
-					patch_identifier = ''
-					service_pack = ''
+							if not os.path.isdir( target_directory ):
+								os.makedirs( target_directory )
+							#print 'Copy to ',target_full_path
+							shutil.copyfile( full_path, target_full_path )
 
-					self.IndexerDatabase.Add( 
-						operating_system, 
-						service_pack, 
-						filename, 
-						version_info['CompanyName'], 
-						version_info['FileVersion'], 
-						patch_identifier, 
-						full_path
-					)
+						#TODO: Put to the Index Database
+						print full_path, version_info
+						operating_system = 'Windows XP'
+						patch_identifier = ''
+						service_pack = ''
+
+						self.Database.AddFile( 
+							self.Download,
+							operating_system, 
+							service_pack, 
+							filename, 
+							version_info['CompanyName'], 
+							version_info['FileVersion'], 
+							patch_identifier, 
+							target_full_path
+						)
+		self.Database.Commit()
 
 	def RemoveOutput( self, dirname = None ):
 		if self.SourceBinariesFolder != self.TargetBinariesFolder:
 			if not dirname:
 				dirname = self.SourceBinariesFolder
-			shutil.rmtree( dirname )
+			if os.path.isdir( dirname ):
+				shutil.rmtree( dirname )
 
 		"""
 		for file in dircache.listdir( dirname ):
@@ -146,12 +180,13 @@ class Win32VerTest(unittest.TestCase):
 if __name__=='__main__':
 	#unittest.main()
 	SourceBinariesFolder = "Out"
-	
-	SourceBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
+	#SourceBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
 	TargetBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
 	PatchBinary = r'Patches\WindowsXP-KB950762-x86-ENU.exe'
 
 	file_store = FileStore( SourceBinariesFolder, TargetBinariesFolder )
-	#file_store.ExtractFile( PatchBinary )
-	file_store.ScapSourceBinaries()
-	#file_store.RemoveOutput()
+	print file_store.ExtractFilesInDatabase()
+	#file_store.ExtractFilesInDirectory( "Patches" )
+	#if file_store.ExtractFile( PatchBinary ):
+	#	file_store.ScapSourceBinaries()
+	#	file_store.RemoveOutput()
