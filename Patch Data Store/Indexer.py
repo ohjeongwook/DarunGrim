@@ -91,9 +91,21 @@ class FileIndex(Base):
 		self.company_name = company_name
 		self.version_string = version_string
 		self.patch_identifier = patch_identifier
-		#TODO: Parser version_string
-		#self.version_number = 
-		#self.release_plan = 
+		#Parser version_string
+		version_string_parted = version_string.split(" (")
+		if len( version_string_parted ) == 2:
+			( self.version_number, description ) = version_string_parted
+			for part in description.split('.'):
+				for part2 in part.split('_'):
+					if part2 == 'qfe' or part2 == 'gdr':
+						self.release_plan = part2
+
+					elif part2 in [ 'xpsp', 'vista', 'srv03' ]:
+						self.operating_system = part2
+
+					elif part2[0:2] == 'sp':
+						self.service_pack = part2
+
 		self.full_path = full_path
 
 	def __repr__( self ):
@@ -119,6 +131,9 @@ class Database:
 		self.SessionInstance.add ( patch )
 		return patch
 
+	def GetPatch( self, name ):
+		return self.SessionInstance.query( Patch ).filter_by( name=name ).first() 
+
 	def AddCVE( self, patch, cve_string, name ):
 		cve = CVE( cve_string, name )
 		if patch:
@@ -135,6 +150,12 @@ class Database:
 			self.SessionInstance.add( download )
 		return download
 
+	def GetDownloadByFilename( self , filename ):
+		return self.SessionInstance.query( Download ).filter_by( filename=filename ).first() 
+
+	def GetDownloads( self ):
+		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
+
 	def AddFile(self, download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
 		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
 		if download:
@@ -142,33 +163,40 @@ class Database:
 		else:
 			self.SessionInstance.add( fileindex )
 		return fileindex
-		
-		#print 'Retrieved:',session.query( Index ).filter_by( operating_system='os').first() 
-		
-	def __del__( self ):
+
+	def Commit( self ):
 		self.SessionInstance.commit()
 
 if __name__ == '__main__':
+	TestInsert = False
+	TestSelect = True
+
 	database = Database( 'test.db' )
+	if TestInsert:
+		operating_system = "os"
+		service_pack = "sp"
+		filename = "fn"
+		company_name = "company"
+		version_string = "version"
+		patch_identifier = "patch"
+		full_path = "full"	
 
-	operating_system = "os"
-	service_pack = "sp"
-	filename = "fn"
-	company_name = "company"
-	version_string = "version"
-	patch_identifier = "patch"
-	full_path = "full"	
+		maximum_security_impact = 'Remote Code Execution'
+		aggregate_severity_rating = 'Critical'
+		bulletins_replaced = 'MS08-011'
 
-	maximum_security_impact = 'Remote Code Execution'
-	aggregate_severity_rating = 'Critical'
-	bulletins_replaced = 'MS08-011'
+		patch = database.AddPatch( 'MS09-011', 'Vulnerability in Microsoft DirectShow Could Allow Remote Code Execution (961373)', 'http://www.microsoft.com/technet/security/bulletin/ms09-011.mspx' )
+		download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+		database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
+		
+		download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4','DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+		database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
 
-	patch = database.AddPatch( 'MS09-011', 'Vulnerability in Microsoft DirectShow Could Allow Remote Code Execution (961373)', 'http://www.microsoft.com/technet/security/bulletin/ms09-011.mspx' )
-	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
-	database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
-	
-	download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4','DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
-	database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
+		database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+		database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+		database.Commit()
 
-	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
-	database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
+	if TestSelect:
+		print 'MS09-018',database.GetPatch( 'MS09-018' )
+		print 'MS09-0999',database.GetPatch( 'MS09-099' )
+		
