@@ -171,7 +171,13 @@ class Database:
 		return fileindex
 
 	def Commit( self ):
-		self.SessionInstance.commit()
+		try:
+			self.SessionInstance.commit()
+			return True
+		except:
+			print 'Failed to Commit'
+			self.SessionInstance.rollback()
+			return False
 
 if __name__ == '__main__':
 	TestInsert = False
