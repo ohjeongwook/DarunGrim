@@ -189,7 +189,7 @@ class PatchDownloader:
 					for p_tag in td_tag.findAll('p'):
 						if self.DebugLevel > 3:
 							print 'p_tag=',p_tag.contents[0]
-						td_member['text'] = p_tag.contents[0]
+						td_member['text'] = str( p_tag.contents[0] )
 
 					for a_tag in td_tag.findAll('a'):					
 						for name, link in a_tag.attrs:
@@ -244,8 +244,10 @@ class PatchDownloader:
 						print td_member['text']
 						print td_member['url']
 						print td_member['files'][0]
-						print td_member_hash['Maximum Security Impact']['text']
-						print td_member_hash['Aggregate Severity Rating']['text']
+						if td_member_hash.has_key('Maximum Security Impact'):
+							print td_member_hash['Maximum Security Impact']['text']
+						if td_member_hash.has_key('Aggregate Severity Rating'):
+							print td_member_hash['Aggregate Severity Rating']['text']
 
 					bulletins_replaced = ""
 					if td_member_hash.has_key( 'Bulletins Replaced by This Update' ):
@@ -266,7 +268,8 @@ class PatchDownloader:
 					if td_member.has_key( 'files' ) and len(td_member['files']) > 0:
 						filename = td_member['files'][0]
 
-					self.Database.AddDownload( patch, 
+					self.Database.AddDownload( 
+						patch, 
 						operating_system, 
 						td_member['text'], 
 						td_member['url'], 
