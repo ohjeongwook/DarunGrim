@@ -5,6 +5,7 @@ import Indexer
 
 class PatchDownloader:
 	DebugLevel = 3
+	ShowErrorMessage = True
 	def __init__( self, DownloadFolder ):
 		self.DownloadFolder = DownloadFolder
 		self.Database = Indexer.Database( 'test.db' )
@@ -21,7 +22,6 @@ class PatchDownloader:
 			print '='*80
 			print link
 			print data
-
 
 		files = []
 		soup = BeautifulSoup( data )
@@ -69,6 +69,8 @@ class PatchDownloader:
 		try:
 			data = br.open( url ).get_data()
 		except:
+			if self.ShowErrorMessage:
+				print 'Downloading Failed'
 			return None
 
 		soup = BeautifulSoup( data )
@@ -215,9 +217,12 @@ class PatchDownloader:
 		if self.Database.GetPatch( name ):
 			return ( {},{} )
 
+		print 'Downloading',name
 		ret = patch_downloader.DownloadMSPatch( Year, PatchNumber )
-		
+
 		if not ret:
+			if self.ShowErrorMessage:
+				print 'Nothing to do'
 			return ret
 
 		(patch_info, patch_data) = ret
@@ -278,20 +283,21 @@ class PatchDownloader:
 						aggregate_severity_rating,
 						bulletins_replaced 
 					)
-		self.Database.Commit()
+
+		if not self.Database.Commit():
+			print 'Failed Downloading',name
 		return ret
-			
 
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
 
-	patch_downloader.DownloadMSPatchAndIndex( 9, 18 )
+	#patch_downloader.DownloadMSPatchAndIndex( 9, 18 )
 	#patch_downloader.DownloadMSPatchAndIndex( 8, 1 )
 	#patch_downloader.DownloadMSPatchAndIndex( 10, 31 )
 
 	for Year in range(3,11):
 		for PatchNumber in range(1, 999):
-			print 'MS%.2d-%.3d' % ( Year, PatchNumber )
+			#print 'MS%.2d-%.3d' % ( Year, PatchNumber )
 			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
 			if ret == None:
 				break
