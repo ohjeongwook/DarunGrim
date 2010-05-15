@@ -176,6 +176,8 @@ class Database:
 			return True
 		except:
 			print 'Failed to Commit'
+			import traceback
+			traceback.print_exc()
 			self.SessionInstance.rollback()
 			return False
 
