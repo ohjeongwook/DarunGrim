@@ -6,7 +6,8 @@ setup (name = "win32ver",
 	maintainer_email = "oh.jeongwook@gmail.com",
 	description = "Win32 Version Information Retriever",
 	
-	ext_modules = [Extension('win32ver', 
+	ext_modules = [ Extension('win32ver', 
 			sources = ['win32ver.cpp'], 
-			libraries = ['version'] ) ]
+			libraries = ['version'],
+			platforms='x86' ) ]
 )
