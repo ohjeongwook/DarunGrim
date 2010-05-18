@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <string>
 #include "Implementation.h"
+#include "Windowsx.h"
 
 class WindowDataCollection
 {
 private:
+	int DebugLevel;
 	int Level;
+	HWND TopLevelHwnd;
 	std::string TopLevelText;
 	bool AButtonIsClicked;
 
 public:
 
-	WindowDataCollection(): Level( 0 )
+	WindowDataCollection(): Level( 0 ), DebugLevel( 0 )
 	{
 		AButtonIsClicked = FALSE;
 	}
@@ -34,22 +37,27 @@ public:
 	void Click( HWND hwnd )
 	{
 		AButtonIsClicked = TRUE;
-		//SetActiveWindow( hwnd );
-		//SetForegroundWindow( hwnd );
+		SetActiveWindow( TopLevelHwnd );
 
-		printf("Sending a Message\n" );
-		::SendMessage( hwnd, BM_SETSTATE, 1, 0 );
-		::Sleep( 1000 );
+		//::SendMessage( hwnd, WM_NCACTIVATE, 1, 0 );
+		//printf("Sending a Message\n" );
+		//::SendMessage( hwnd, BM_SETSTATE, 1, 0 );
+		//Button_SetState( hwnd, TRUE );
+		//::Sleep( 1000 );
 		::SendMessage( hwnd, BM_CLICK, 0, 0 );
 	}
 
 	void AddWindowHandle( HWND hwnd )
 	{
 		//Level, handle
-		for( int i = 0; i < Level ; i++ )
+		if( DebugLevel > 2)
 		{
-			printf( " " );
+			for( int i = 0; i < Level ; i++ )
+			{
+				printf( " " );
+			}
 		}
+
 		char Buffer[1024];
 		GetWindowText( hwnd, Buffer, sizeof( Buffer ) );
 
@@ -58,13 +66,17 @@ public:
 
 		if( Level == 1 )
 		{
+			TopLevelHwnd = hwnd;
 			TopLevelText = Buffer;
 			AButtonIsClicked  = FALSE;
 		}
 
-		//printf("%x: %s\n", hwnd, Buffer );
-		//printf("[%s] Pid = %d\n", Buffer, dwProcessId );
-		printf("[%s]\n", Buffer );
+		if( DebugLevel > 2 )
+		{
+			//printf("%x: %s\n", hwnd, Buffer );
+			//printf("[%s] Pid = %d\n", Buffer, dwProcessId );
+			printf("[%s]\n", Buffer );
+		}
 
 		if( Level > 1 )
 		{
@@ -84,9 +96,21 @@ public:
 					Click( hwnd );
 				}
 			}*/
-			if( !strcmp( Buffer, "&OK" ) || !strcmp( Buffer, "OK" ) )
+			if( !strcmp( Buffer, "&OK" ) || 
+				!strcmp( Buffer, "OK" ) ||
+				(
+					TopLevelText == "Program Compatibility Assitant"  &&
+					(
+						!strcmp( Buffer, "&Cancel" ) ||
+						!strcmp( Buffer, "Cancel" )
+					)
+				)
+			)
 			{
-				printf("Clicking [%s]\n", TopLevelText.c_str() );
+				if( DebugLevel > 2 )
+				{
+					printf("Clicking [%s]\n", TopLevelText.c_str() );
+				}
 				Click( hwnd );
 			}
 		}
@@ -119,7 +143,7 @@ void ClickDialogs()
 	while( 1 )
 	{
 		BOOL ret = EnumWindows( EnumWindowsProc, (LPARAM)  pWindowDataCollection );
-		//::Sleep(100);
+		::Sleep(100);
 	}
 }
 
