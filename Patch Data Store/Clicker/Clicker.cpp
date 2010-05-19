@@ -96,8 +96,8 @@ public:
 					Click( hwnd );
 				}
 			}*/
-			if( !strcmp( Buffer, "&OK" ) || 
-				!strcmp( Buffer, "OK" ) ||
+			if( !_stricmp( Buffer, "&OK" ) || 
+				!_stricmp( Buffer, "OK" ) ||
 				(
 					TopLevelText == "Program Compatibility Assitant"  &&
 					(
