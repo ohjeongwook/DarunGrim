@@ -146,6 +146,8 @@ class DiffMachine(_object):
     def GetMatchAddr(self, *args): return _DiffEngine.DiffMachine_GetMatchAddr(self, *args)
     def GetUnidentifiedBlockCount(self, *args): return _DiffEngine.DiffMachine_GetUnidentifiedBlockCount(self, *args)
     def GetUnidentifiedBlock(self, *args): return _DiffEngine.DiffMachine_GetUnidentifiedBlock(self, *args)
+    def Retrieve(self, *args): return _DiffEngine.DiffMachine_Retrieve(self, *args)
+    def Save(self, *args): return _DiffEngine.DiffMachine_Save(self, *args)
     __swig_destroy__ = _DiffEngine.delete_DiffMachine
     __del__ = lambda self : None;
 DiffMachine_swigregister = _DiffEngine.DiffMachine_swigregister
