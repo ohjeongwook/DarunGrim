@@ -14,79 +14,46 @@
 		return a[index];
 	}
 %}
+
+class DBWrapper
+{
+public:
+	DBWrapper( char *DatabaseName = NULL );
+};
+
 class OneIDAClientManager
 {
 public:
-        BOOL RetrieveFromSocket(SOCKET socket);
-        BOOL Retrieve(char *DataFile);
-	void Save(char *DataFile);
+	OneIDAClientManager(DBWrapper *StorageDB=NULL);
 	AnalysisInfo *GetClientAnalysisInfo();
 	FileInfo *GetClientFileInfo();
-	OneIDAClientManager();
 	void DumpAnalysisInfo();
-	void GetName(unsigned long address,char *buffer,int len);
+	//void GetName(unsigned long address,char *buffer,int len);
 	void DumpBlockInfo(unsigned long block_address);
-	const char *GetFingerPrint(unsigned long address);
+	//const char *GetFingerPrint(unsigned long address);
 	void RemoveFromFingerprintHash(unsigned long address);
 	unsigned long GetBlockAddress(unsigned long address);
 	unsigned long *GetMappedAddresses(unsigned long address,int type,int *OUTPUT);
-	BOOL SendTLVData(char type,PBYTE data,unsigned long data_length);
 	char *GetDisasmLines(unsigned long start_addr,unsigned long end_addr);
-        void FreeDisasmLines();
+	void FreeDisasmLines();
 	void ShowAddress(unsigned long address);
 };
 
 class IDAClientManager
 {
 public:
-	IDAClientManager(unsigned short port);
-	OneIDAClientManager *GetOneIDAClientManagerFromSocket();
-        OneIDAClientManager *GetOneIDAClientManagerFromFile(char *DataFile);
-	DWORD IDACommandProcessor(OneIDAClientManager *OneIDAClientManagerBefore,OneIDAClientManager *OneIDAClientManagerAfter,DiffMachine *ADiffMachine);
+	IDAClientManager(unsigned short port=0,DBWrapper *OutputDB=NULL);
+	void SetIDAPath( const char *ParamIDAPath );
+	void SetOutputFilename(char *OutputFilename);
+	void SetLogFilename(char *LogFilename);
+	void RunIDAToGenerateDB(char *TheFilename,unsigned long StartAddress,unsigned long EndAddress);
 };
-
-typedef struct _FileInfo_ 
-{
-	char orignal_file_path[100];
-	char ComputerName[100];
-	char UserName[100];
-	char company_name_str[100];
-	char file_version_str[100];
-	char file_description_str[100];
-	char internal_name_str[100];
-	char product_name_str[100];
-	char modified_time_str[100];
-	char md5_sum_str[100];
-} FileInfo,*PFileInfo;
-
-typedef struct _MatchInfo_
-{
-	unsigned long addr;
-	unsigned long end_addr;
-	unsigned long block_type;
-	int match_rate;
-	char name[40];
-	unsigned long type;
-	unsigned long match_addr;
-	char match_name[40];
-	int first_found_match;
-	int first_not_found_match;
-	int first_found_match_with_difference;
-	int second_found_match;
-	int second_not_found_match;
-	int second_found_match_with_difference;
-} MatchInfo;
-
-typedef struct _CodeBlock_
-{
-	unsigned long start_addr;
-	unsigned long end_addr;
-} CodeBlock;
 
 class DiffMachine
 {
 public:
-	DiffMachine(OneIDAClientManager *before,OneIDAClientManager *after);
+	DiffMachine( OneIDAClientManager *the_source=NULL, OneIDAClientManager *the_target=NULL );
+	/*
 	void DumpMatchMapIterInfo(multimap <unsigned long, MappingData>::iterator match_map_iter);
 	void GetMatchStatistics(
 		unsigned long address,
@@ -97,16 +64,18 @@ public:
 		int *p_not_found_match_number);
 	int GetMatchRate(unsigned long unpatched_address,unsigned long patched_address);
 	void DoFingerPrintMatch(multimap <unsigned long,MappingData> *p_match_map);
+	*/
 	void ShowDiffMap(unsigned long unpatched_address,unsigned long patched_address);
 	void PrintMatchMapInfo();
-	void ShowResultsOnIDA();
+	//void ShowResultsOnIDA();
 	bool Analyze();
 	void AnalyzeFunctionSanity();
 	unsigned long GetMatchAddr(int index,unsigned long address);
-	int GetMatchInfoCount();
-	MatchInfo GetMatchInfo(int i);
+	//int GetMatchInfoCount();
+	//MatchInfo GetMatchInfo(int i);
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
-	BOOL Save(char *DataFile);
-	BOOL Retrieve(char *DataFile);
+	
+	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=TRUE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
+	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
