@@ -1,3 +1,5 @@
-c:\python26\python StartDiff.py > out.txt
-notepad out.txt
+c:\python26\python StartDiffOnMSFiles.py kernel32.dll
+REM netapi32.dll','wkssvc.dll'
+REM > out.txt
+REM notepad out.txt
 pause
