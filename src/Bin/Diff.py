@@ -4,8 +4,8 @@ import DiffEngine
 TheSourceFilename = sys.argv[1]
 TheTargetFilename = sys.argv[2]
 
-StorageFilename = "test.db" 
-LogFilename = "test.log"
+StorageFilename = r"T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\Bin\test.dgf" 
+LogFilename = r"T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\Bin\test.log"
 IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 
 print 'Comparing',TheSourceFilename,TheTargetFilename
@@ -20,7 +20,6 @@ ida_client_manager.RunIDAToGenerateDB(TheSourceFilename,0L,0L);
 ida_client_manager.RunIDAToGenerateDB(TheTargetFilename,0L,0L);
 
 DiffMachine = DiffEngine.DiffMachine()
-DiffMachine.Retrieve(StorageDB,TRUE,1,2);
-
+DiffMachine.Retrieve(StorageDB)
 DiffMachine.Analyze()
-DiffMachine.Save(StorageDB);
+DiffMachine.Save(StorageDB)
