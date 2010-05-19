@@ -20,7 +20,7 @@ private:
 #ifndef USE_LEGACY_MAP
 	int m_FileID;
 #endif
-	DBWrapper *m_OutputDB;
+	DBWrapper *m_StorageDB;
 	char *m_OriginalFilePath;
 	SOCKET Socket;
 	AnalysisInfo *ClientAnalysisInfo;
@@ -44,7 +44,7 @@ public:
 	{
 		return &ClientAnalysisInfo->file_info;
 	}
-	OneIDAClientManager(DBWrapper *OutputDB=NULL);
+	OneIDAClientManager(DBWrapper *StorageDB=NULL);
 	~OneIDAClientManager();
 	BOOL RetrieveIDARawDataFromFile(const char *Filename);
 	void SetSocket(SOCKET socket);
