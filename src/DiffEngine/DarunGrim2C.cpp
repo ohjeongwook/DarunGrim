@@ -114,37 +114,37 @@ void main(int argc,char *argv[])
 
 	printf("RetrieveFromFile=%d\r\n",RetrieveFromFile);
 	printf("RetrieveFromDB=%d\r\n",RetrieveFromDB);
-	char *OutputFilename=argv[optind];
+	char *StorageFilename=argv[optind];
 
 	DiffMachine *pDiffMachine;
 	
-	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && OutputFilename)
+	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
 	{
-		printf("TheSourceFilename=%s\nTheTargetFilename=%s\nOutputFilename=%s\n",
-			TheSourceFilename,TheTargetFilename,OutputFilename);
+		printf("TheSourceFilename=%s\nTheTargetFilename=%s\nStorageFilename=%s\n",
+			TheSourceFilename,TheTargetFilename,StorageFilename);
 
 		IDAClientManager aIDAClientManager;
 		if(IDAPath)
 			aIDAClientManager.SetIDAPath(IDAPath);
-		aIDAClientManager.SetOutputFilename(OutputFilename);
+		aIDAClientManager.SetOutputFilename(StorageFilename);
 		aIDAClientManager.SetLogFilename(LogFilename);
 		aIDAClientManager.RunIDAToGenerateDB(TheSourceFilename,StartAddressForTheOriginal,EndAddressForTheOriginal);
 		aIDAClientManager.RunIDAToGenerateDB(TheTargetFilename,StartAddressForThePatched,EndAddressForThePatched);
 	}
 
-	DBWrapper OutputDB(OutputFilename);
-	CreateTables(OutputDB);
+	DBWrapper StorageDB(StorageFilename);
+	CreateTables(StorageDB);
 	if(RetrieveFromFile || RetrieveFromDB)
 	{
 		pDiffMachine=new DiffMachine();
-		pDiffMachine->Retrieve(OutputDB,TRUE,TheSourceFileID,TheTargetFileID);
+		pDiffMachine->Retrieve(StorageDB,TRUE,TheSourceFileID,TheTargetFileID);
 		pDiffMachine->Analyze();
-		pDiffMachine->Save(OutputDB);
+		pDiffMachine->Save(StorageDB);
 	}else
 	{
-		IDAClientManager *pIDAClientManager=new IDAClientManager(DARUNGRIM2_PORT,&OutputDB);
-		OneIDAClientManager *pOneIDAClientManagerTheSource=new OneIDAClientManager(&OutputDB);
-		OneIDAClientManager *pOneIDAClientManagerTheTarget=new OneIDAClientManager(&OutputDB);
+		IDAClientManager *pIDAClientManager=new IDAClientManager(DARUNGRIM2_PORT,&StorageDB);
+		OneIDAClientManager *pOneIDAClientManagerTheSource=new OneIDAClientManager(&StorageDB);
+		OneIDAClientManager *pOneIDAClientManagerTheTarget=new OneIDAClientManager(&StorageDB);
 
 		pIDAClientManager->AssociateSocket(pOneIDAClientManagerTheSource,TRUE);
 		pIDAClientManager->AssociateSocket(pOneIDAClientManagerTheTarget,TRUE);
@@ -152,7 +152,7 @@ void main(int argc,char *argv[])
 		dprintf("Analyzing [%s]\n",TheTargetFilename);
 		pDiffMachine=new DiffMachine(pOneIDAClientManagerTheSource,pOneIDAClientManagerTheTarget);
 		pDiffMachine->Analyze();
-		pDiffMachine->Save(OutputDB);
+		pDiffMachine->Save(StorageDB);
 
 		//Run idc for each file
 		/*
@@ -162,7 +162,7 @@ void main(int argc,char *argv[])
 			RunPlugin("DarunGrim2",1);
 			SendDiassemblyInfo("%s");
 			Exit(0);
-		}",OutputFilename
+		}",StorageFilename
 		Execute "c:\program files\IDA\idag" -A -S<idc filename> <filename> for each file
 		*/
 		if(UseIDASync)
@@ -176,7 +176,7 @@ void main(int argc,char *argv[])
 	if(bListFiles)
 	{
 		//List files information
-		OutputDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
+		StorageDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 	}
-	OutputDB.CloseDatabase();
+	StorageDB.CloseDatabase();
 }
