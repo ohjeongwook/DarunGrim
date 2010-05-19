@@ -1,18 +1,26 @@
 import sys
 import DiffEngine
 
-before_filename = sys.argv[1]
-after_filename = sys.argv[2]
+TheSourceFilename = sys.argv[1]
+TheTargetFilename = sys.argv[2]
 
-print 'Comparing',before_filename,after_filename
-IDAClientManager = DiffEngine.IDAClientManager(1216)
-OneClientManagerBefore=DiffEngine.OneIDAClientManager()
-OneClientManagerBefore.Retrieve( before_filename )
+StorageFilename = "test.db" 
+LogFilename = "test.log"
+IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 
-OneClientManagerAfter=DiffEngine.OneIDAClientManager()
-OneClientManagerAfter.Retrieve( after_filename )
+print 'Comparing',TheSourceFilename,TheTargetFilename
 
+StorageDB = DiffEngine.DBWrapper( StorageFilename )
 
-DiffMachine = DiffEngine.DiffMachine( OneClientManagerBefore, OneClientManagerAfter )
+ida_client_manager = DiffEngine.IDAClientManager()
+ida_client_manager.SetIDAPath( IDAPath );
+ida_client_manager.SetOutputFilename(StorageFilename);
+ida_client_manager.SetLogFilename(LogFilename);
+ida_client_manager.RunIDAToGenerateDB(TheSourceFilename,0L,0L);
+ida_client_manager.RunIDAToGenerateDB(TheTargetFilename,0L,0L);
+
+DiffMachine = DiffEngine.DiffMachine()
+DiffMachine.Retrieve(StorageDB,TRUE,1,2);
 
 DiffMachine.Analyze()
+DiffMachine.Save(StorageDB);
