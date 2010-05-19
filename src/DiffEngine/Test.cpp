@@ -7,7 +7,7 @@
 #include "dprintf.h"
 
 #define strtoul10( X ) strtoul( X, NULL, 10 )
-int DebugLevel=0;
+extern int DebugLevel;
 
 void main( int argc, char *argv[] )
 {

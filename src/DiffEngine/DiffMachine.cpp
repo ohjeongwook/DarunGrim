@@ -19,7 +19,7 @@ char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerpr
 
 #include "sqlite3.h"
 
-extern int DebugLevel;
+int DebugLevel = 0;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 ), DebugFlag( 0 )
 {
