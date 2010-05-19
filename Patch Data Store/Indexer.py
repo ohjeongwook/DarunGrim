@@ -158,9 +158,9 @@ class Database:
 		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
 
 	def GetFileByFileInfo( self, filename, company_name = None, version_string = None ):
-		if not company_name and not version_string:
-			return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename )
-		return self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) )
+		if company_name==None and version_string==None:
+			return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
+		return self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) ).all()
 
 	def AddFile(self, download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
 		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
