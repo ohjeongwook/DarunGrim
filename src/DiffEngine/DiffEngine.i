@@ -5,9 +5,9 @@
 #include <windows.h>
 #include "DataStructure.h"
 #include "Configuration.h"
-#include "CIDAClientManager.h"
-#include "CDiffMachine.h"
-#include "COneIDAClientManager.h"
+#include "IDAClientManager.h"
+#include "DiffMachine.h"
+#include "OneIDAClientManager.h"
 %}
 %inline %{
 	unsigned long GetDWORD(unsigned long *a,int index) {
