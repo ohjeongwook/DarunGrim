@@ -3,10 +3,12 @@
 !include <Win32.Mak>
 !include "..\Paths.Mak"
 
-cflags=$(cflags) -I$(SQLITE_DIR_INC) -I$(DEBUG_LIB_DIR) -I$(IDA_LIB_DIR) -I$(GRAPHVIZ_INTERFACE) -D_CRT_SECURE_NO_WARNINGS -I\mat\Projects\ResearchTools\Graphics\GraphVizInterface\Src -I$(DIFF_LIB_DIR) -I"\mat\Projects\Lib\GraphViz\include" -I$(ZLIB_INC) -I$(ZLIB_WRAPPER_DIR) /DEBUG /Zi /EHsc -Ddprintf=PrintToStdOutWithTime -I$(DBWRAPPER_DIR) -I$(LIB_DIR) -I$(XGETOPT_DIR)
+cflags=$(cflags) -I$(SQLITE_DIR_INC) -I$(DEBUG_LIB_DIR) -I$(IDA_LIB_DIR) -I$(GRAPHVIZ_INTERFACE) -D_CRT_SECURE_NO_WARNINGS -I\mat\Projects\ResearchTools\Graphics\GraphVizInterface\Src -I$(DIFF_LIB_DIR) -I"\mat\Projects\Lib\GraphViz\include" -I$(ZLIB_INC) -I$(ZLIB_WRAPPER_DIR) /Zi /EHsc -Ddprintf=PrintToStdOutWithTime -I$(DBWRAPPER_DIR) -I$(LIB_DIR) -I$(XGETOPT_DIR)
+#/DEBUG
 conlibs=$(conlibs) user32.lib
 
-graphviz_flags=/DEBUG /LIBPATH:$(GRAPHVIZ_LIB_DIR)
+graphviz_flags=/LIBPATH:$(GRAPHVIZ_LIB_DIR)
+#/DEBUG
 graphviz_libs=cdt.lib graph.lib gvc.lib /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD 
 
 DIFF_ENGINE=..\DiffEngine
@@ -16,8 +18,9 @@ cflags=$(cflags) -I$(LIB_DIR) -I$(DIFF_ENGINE) /EHsc -Ic:\WTL\include -I$(GRAPHV
 conflags=$(conflags) odbc32.lib odbccp32.lib comctl32.lib
 
 python_include=-IC:\Python26\include -D__WIN32__
+python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib
 
-all: $(OUTDIR) $(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\DiffEngine.pyd $(OUTDIR)\Test.exe
+all: $(OUTDIR) $(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\_DiffEngine.pyd $(OUTDIR)\Test.exe
 
 #----- If OUTDIR does not exist, then create directory
 $(OUTDIR) :
@@ -74,8 +77,12 @@ DiffEngine_wrap.cxx: DiffEngine.i
 $(OUTDIR)\DiffEngine_wrap.obj: DiffEngine_wrap.cxx
     $(cc) $(cflags) $(cvars) $(python_include) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" DiffEngine_wrap.cxx
 
-$(OUTDIR)\DiffEngine.pyd: $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DiffEngine_wrap.obj
-    $(link) $(conflags) -out:$(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DiffEngine_wrap.obj
+$(OUTDIR)\_DiffEngine.pyd: $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DiffEngine_wrap.obj $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj
+    $(link) $(linkdebug) $(dlllflags) \
+    -base:0x1C000000 \
+    -out:$(OUTDIR)\_DiffEngine.pyd\
+    $(python_lflags) \
+    $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DiffEngine_wrap.obj $(LIBS) $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj
 
 $(OUTDIR)\Test.exe: $(OUTDIR)\CGraphVizProcessor.obj $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\Test.obj $(OUTDIR)\XGetopt.obj
     $(link) $(conflags) $(graphviz_flags) -out:$(OUTDIR)\Test.exe $(OUTDIR)\CGraphVizProcessor.obj $(conlibs) $(graphviz_libs) $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(conlibs) $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\Test.obj $(OUTDIR)\XGetopt.obj
