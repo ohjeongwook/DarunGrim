@@ -100,7 +100,8 @@ class FileStore:
 						patch_identifier = ''
 						service_pack = ''
 
-						if self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] ):
+						ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
+						if ret and len(ret)>0:
 							print 'Already there:', full_path, version_info
 						else:
 							print 'New', full_path, version_info
