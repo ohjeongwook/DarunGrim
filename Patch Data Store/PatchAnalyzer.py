@@ -6,7 +6,6 @@ class PatchSorter:
 	def __init__( self, database_name, filename ):
 		self.DatabaseName = database_name
 		self.Database = Indexer.Database( self.DatabaseName )
-		self.PatchInfo = self.GetPatchInfo( filename )
 
 	def GetPatchInfo( self, filename ):
 		patch_infos_by_patch_name = {}
@@ -96,21 +95,21 @@ class PatchSorter:
 			if self.DebugLevel > 2:
 				print '\t',os_string, sp_string, os_type, os_code, build_number
 
-	def FindPatchTarget( self, target_name, target_file_entry ):
+	def FindPatchTarget( self, file_patch_info, target_patch_name, target_file_entry ):
 		maximum_match_patch_name = None
 		maximum_match_file_entry = None
 		maximum_point = 0
 		index = 0
-		for (patch_name, file_entries) in self.PatchInfo:
+		for (patch_name, file_entries) in file_patch_info:
 			if self.DebugLevel > 2:
-				print 'Comparing',target_name,patch_name
-			if cmp( target_name, patch_name ) > 0 :
+				print 'Comparing',target_patch_name,patch_name
+			if cmp( target_patch_name, patch_name ) > 0 :
 				if self.DebugLevel > 2:
 					print 'Check',patch_name
 
 				for file_entry in file_entries:
-					weight = len(self.PatchInfo)
-					point = weight * (len(self.PatchInfo) - index) * 30
+					weight = len(file_patch_info)
+					point = weight * (len(file_patch_info) - index) * 30
 					
 					if not target_file_entry.has_key('os_code') or ( target_file_entry[ 'os_code' ] == file_entry[ 'os_code' ] ):
 						point += weight * 20
@@ -130,14 +129,15 @@ class PatchSorter:
 			index += 1
 		return ( maximum_match_patch_name, maximum_match_file_entry, maximum_point )
 
-	def GetPatchPairsForAnalysis( self ):
+	def GetPatchPairsForAnalysis( self, filename ):
+		file_patch_info = self.GetPatchInfo( filename )
 		patch_pairs_for_analysis = []
-		for ( patch_name, file_entries ) in self.PatchInfo:
+		for ( patch_name, file_entries ) in file_patch_info:
 			maximum_point = 0
 			maximum_entry = None
 			
 			for file_entry in file_entries:
-				( matched_patch_name, matched_file_entry, match_point ) = self.FindPatchTarget( patch_name, file_entry )
+				( matched_patch_name, matched_file_entry, match_point ) = self.FindPatchTarget( file_patch_info, patch_name, file_entry )
 				if match_point > maximum_point:
 					maximum_entry = ( matched_patch_name, file_entry, matched_file_entry, match_point )
 					maximum_point = match_point
