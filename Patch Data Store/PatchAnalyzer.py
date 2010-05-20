@@ -3,7 +3,7 @@ import Indexer
 
 class PatchSorter:
 	DebugLevel = 0
-	def __init__( self, database_name, filename ):
+	def __init__( self, database_name ):
 		self.DatabaseName = database_name
 		self.Database = Indexer.Database( self.DatabaseName )
 
@@ -129,10 +129,13 @@ class PatchSorter:
 			index += 1
 		return ( maximum_match_patch_name, maximum_match_file_entry, maximum_point )
 
-	def GetPatchPairsForAnalysis( self, filename ):
+	def GetPatchPairsForAnalysis( self, filename, patch_name_to_check = None ):
 		file_patch_info = self.GetPatchInfo( filename )
 		patch_pairs_for_analysis = []
-		for ( patch_name, file_entries ) in file_patch_info:
+		for ( patch_name, file_entries ) in file_patch_info:		
+			if patch_name_to_check and not patch_name in patch_name_to_check:
+				continue
+
 			maximum_point = 0
 			maximum_entry = None
 			
