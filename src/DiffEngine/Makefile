@@ -71,8 +71,8 @@ $(OUTDIR)\DarunGrim2C.obj: $(DIFF_ENGINE)\DarunGrim2C.cpp $(DIFF_ENGINE)\DataStr
 $(OUTDIR)\DarunGrim2C.exe: $(OUTDIR)\CGraphVizProcessor.obj $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DarunGrim2C.obj $(OUTDIR)\XGetopt.obj
     $(link) $(conflags) $(graphviz_flags) -out:$(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\CGraphVizProcessor.obj $(conlibs) $(graphviz_libs) $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(conlibs) $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DarunGrim2C.obj $(OUTDIR)\XGetopt.obj
 
-DiffEngine_wrap.cxx: DiffEngine.i
-	T:\mat\Bin\swigwin-1.3.40\swig.exe -c++ -python DiffEngine.i
+DiffEngine_wrap.cxx: Python\DiffEngine.i
+	T:\mat\Bin\swigwin-1.3.40\swig.exe -c++ -python Python\DiffEngine.i
 
 $(OUTDIR)\DiffEngine_wrap.obj: DiffEngine_wrap.cxx
     $(cc) $(cflags) $(cvars) $(python_include) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" DiffEngine_wrap.cxx
