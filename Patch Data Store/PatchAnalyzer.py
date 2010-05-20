@@ -7,11 +7,25 @@ class PatchSorter:
 		self.DatabaseName = database_name
 		self.Database = Indexer.Database( self.DatabaseName )
 
+	def GetPatchFileNamePairs( self ):
+		patch_file_name_pairs = []
+		for patch in self.Database.GetPatches():
+			if self.DebugLevel > 2:
+				print patch.name
+			for download in self.Database.GetDownloadByPatchID( patch.id ):
+				if self.DebugLevel > 2:
+					print '\t',download.filename
+				for fileindex in self.Database.GetFileByDownloadID( download.id ):
+					if self.DebugLevel > 2:
+						print '\t\t',fileindex.filename
+					patch_file_name_pairs.append( ( patch.name, fileindex.filename ) )
+		return patch_file_name_pairs
+
 	def GetPatchInfo( self, filename ):
 		patch_infos_by_patch_name = {}
 		
 		process_patches = {}
-		for entry in self.Database.GetFileByFileInfo( filename ):
+		for entry in self.Database.GetFileByFileName( filename ):
 			patch_name = 'Default'
 			if entry.downloads and entry.downloads.patches:
 				patch_name = entry.downloads.patches.name
