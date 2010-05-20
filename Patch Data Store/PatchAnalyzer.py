@@ -15,10 +15,13 @@ class PatchSorter:
 			for download in self.Database.GetDownloadByPatchID( patch.id ):
 				if self.DebugLevel > 2:
 					print '\t',download.filename
+				filenames = {}
 				for fileindex in self.Database.GetFileByDownloadID( download.id ):
 					if self.DebugLevel > 2:
 						print '\t\t',fileindex.filename
-					patch_file_name_pairs.append( ( patch.name, fileindex.filename ) )
+					filenames[fileindex.filename] = 1
+			for filename in filenames:
+				patch_file_name_pairs.append( ( patch.name, fileindex.filename ) )
 		return patch_file_name_pairs
 
 	def GetPatchInfo( self, filename ):
