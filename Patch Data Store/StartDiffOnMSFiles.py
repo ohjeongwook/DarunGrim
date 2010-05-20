@@ -10,12 +10,15 @@ AnalysisTargetFiles = sys.argv[1:]
 if not os.path.isdir( OutputDirectory ):
 	os.makedirs( OutputDirectory )
 	
-for filename in AnalysisTargetFiles:
-	patch_analyzer = PatchSorter( IndexFile, filename )
-	for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in patch_analyzer.GetPatchPairsForAnalysis():
+patch_analyzer = PatchSorter( IndexFile )
+
+for ( patch_name, filename ) in patch_analyzer.GetPatchFileNamePairs():
+	print 'Analyzing', patch_name, filename
+	for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in patch_analyzer.GetPatchPairsForAnalysis( filename, patch_name ):
 		print '='*80
 		#print patch_name, file_entry
 		#print matched_patch_name, matched_file_entries
+		print patch_name,matched_patch_name
 
 		TheSourceFilename = matched_file_entries['full_path']
 		TheTargetFilename = file_entry['full_path']
