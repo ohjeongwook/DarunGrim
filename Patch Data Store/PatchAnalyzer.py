@@ -60,7 +60,8 @@ class PatchSorter:
 	def ParseVersionString( self, version_string ):
 		main_parts = version_string.split( ' ' )
 
-		identifier= ''
+		identifier = ''
+		version = ''
 		if len( main_parts ) == 1:
 			version = main_parts[0]
 		elif len( main_parts ) == 2:
