@@ -61,6 +61,7 @@ class PatchSorter:
 		return patch_infos
 
 	def ParseVersionString( self, version_string ):
+		print 'version_string=',version_string
 		main_parts = version_string.split( ' ' )
 
 		identifier = ''
@@ -72,8 +73,12 @@ class PatchSorter:
 
 		#### Version
 		version_parts = version.split('.')
-		os_code = version_parts[0]+'.'+version_parts[1]+'.'+version_parts[2]
-		build_number = version_parts[3]
+		
+		os_code = ''
+		build_number = ''
+		if len( version_parts ) > 3:
+			os_code = version_parts[0]+'.'+version_parts[1]+'.'+version_parts[2]
+			build_number = version_parts[3]
 
 		
 		#### Distro
