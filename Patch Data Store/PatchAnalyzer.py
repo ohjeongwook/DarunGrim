@@ -12,10 +12,10 @@ class PatchSorter:
 		for patch in self.Database.GetPatches():
 			if self.DebugLevel > 2:
 				print patch.name
+			filenames = {}
 			for download in self.Database.GetDownloadByPatchID( patch.id ):
 				if self.DebugLevel > 2:
 					print '\t',download.filename
-				filenames = {}
 				for fileindex in self.Database.GetFileByDownloadID( download.id ):
 					if self.DebugLevel > 2:
 						print '\t\t',fileindex.filename
