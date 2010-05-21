@@ -20,8 +20,8 @@ class PatchSorter:
 					if self.DebugLevel > 2:
 						print '\t\t',fileindex.filename
 					filenames[fileindex.filename] = 1
-			for filename in filenames:
-				patch_file_name_pairs.append( ( patch.name, fileindex.filename ) )
+			for filename in filenames.keys():
+				patch_file_name_pairs.append( ( patch.name, filename ) )
 		return patch_file_name_pairs
 
 	def GetPatchInfo( self, filename ):
