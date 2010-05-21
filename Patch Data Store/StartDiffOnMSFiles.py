@@ -33,4 +33,7 @@ for ( patch_name, filename ) in patch_analyzer.GetPatchFileNamePairs():
 		LogFilename = os.path.join( OutputDirectory , prefix + ".log" )
 		IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 
-		DarunGrimEngine.DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
+		if os.path.isfile( StorageFilename ) and os.path.getsize( StorageFilename ) > 0:
+			print 'Already analyzed',StorageFilename
+		else:
+			DarunGrimEngine.DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
