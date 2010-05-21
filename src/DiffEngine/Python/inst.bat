@@ -1,1 +1,1 @@
-copy *.py ..\..\Bin
+copy *.py ..\..\..\Bin
