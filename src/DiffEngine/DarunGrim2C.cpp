@@ -5,6 +5,7 @@
 #include "XGetopt.h"
 #include "ProcessUtils.h"
 #include "dprintf.h"
+#include "DarunGrim.h"
 
 #define strtoul10(X) strtoul(X,NULL,10)
 extern int DebugLevel;
@@ -37,10 +38,10 @@ void main(int argc,char *argv[])
 	char *IDAPath=NULL;
 	BOOL UseIDASync=FALSE;
 
-	DWORD StartAddressForTheOriginal=0;
-	DWORD EndAddressForTheOriginal=0;
-	DWORD StartAddressForThePatched=0;
-	DWORD EndAddressForThePatched=0;
+	DWORD StartAddressForSource=0;
+	DWORD EndAddressForSource=0;
+	DWORD StartAddressForTarget=0;
+	DWORD EndAddressForTarget=0;
 
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
@@ -63,16 +64,16 @@ void main(int argc,char *argv[])
 				DebugLevel=strtoul10(optarg);
 				break;
 			case 'S':
-				StartAddressForTheOriginal=strtoul10(optarg);
+				StartAddressForSource=strtoul10(optarg);
 				break;
 			case 'E':
-				EndAddressForTheOriginal=strtoul10(optarg);
+				EndAddressForSource=strtoul10(optarg);
 				break;
 			case 's':
-				StartAddressForThePatched=strtoul10(optarg);
+				StartAddressForTarget=strtoul10(optarg);
 				break;
 			case 'e':
-				EndAddressForThePatched=strtoul10(optarg);
+				EndAddressForTarget=strtoul10(optarg);
 				break;
 			case 'I':
 				IDAPath=optarg;
@@ -112,6 +113,12 @@ void main(int argc,char *argv[])
 		return;
 	}
 
+
+
+	DarunGrim aDarunGrim;
+	if(IDAPath)
+		aDarunGrim.SetIDAPath(IDAPath);
+
 	printf("RetrieveFromFile=%d\r\n",RetrieveFromFile);
 	printf("RetrieveFromDB=%d\r\n",RetrieveFromDB);
 	char *StorageFilename=argv[optind];
@@ -120,16 +127,10 @@ void main(int argc,char *argv[])
 	
 	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
 	{
-		printf("TheSourceFilename=%s\nTheTargetFilename=%s\nStorageFilename=%s\n",
-			TheSourceFilename,TheTargetFilename,StorageFilename);
+		aDarunGrim.RunIDAToGenerateDB( StorageFilename, LogFilename, 
+			TheSourceFilename,StartAddressForSource,EndAddressForSource,
+			TheTargetFilename,StartAddressForTarget,EndAddressForTarget );
 
-		IDAClientManager aIDAClientManager;
-		if(IDAPath)
-			aIDAClientManager.SetIDAPath(IDAPath);
-		aIDAClientManager.SetOutputFilename(StorageFilename);
-		aIDAClientManager.SetLogFilename(LogFilename);
-		aIDAClientManager.RunIDAToGenerateDB(TheSourceFilename,StartAddressForTheOriginal,EndAddressForTheOriginal);
-		aIDAClientManager.RunIDAToGenerateDB(TheTargetFilename,StartAddressForThePatched,EndAddressForThePatched);
 	}
 
 	DBWrapper StorageDB(StorageFilename);
