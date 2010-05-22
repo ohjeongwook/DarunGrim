@@ -9,6 +9,7 @@ DarunGrim::DarunGrim()
 
 DarunGrim::~DarunGrim()
 {
+	_CrtDumpMemoryLeaks();
 }
 
 void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
