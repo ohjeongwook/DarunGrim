@@ -11,20 +11,26 @@ extern LogOperation Logger;
 #define DATA_BUFSIZE 4096
 #define DEFAULT_IDA_PATH TEXT("c:\\Program Files\\IDA\\idag.exe")
 
-
-IDAClientManager::IDAClientManager(unsigned short port,DBWrapper *OutputDB)
+IDAClientManager::IDAClientManager(): EscapedOutputFilename(NULL), EscapedLogFilename(NULL)
 {
 	IDAPath=_strdup(DEFAULT_IDA_PATH);
-	EscapedOutputFilename=NULL;
-	EscapedLogFilename=NULL;
+}
 
+void IDAClientManager::SetDatabase( DBWrapper *OutputDB )
+{
 	m_OutputDB=OutputDB;
+}
+
+bool IDAClientManager::StartIDAListener( unsigned short port )
+{	
 	ListeningPort=port;
 	if(ListeningPort>0)
 	{
 		ListeningSocket=CreateListener(NULL,port);
 		Logger.Log( 10, "%s: ListeningSocket=%d\n",__FUNCTION__,ListeningSocket);
+		return TRUE;
 	}
+	return FALSE;
 }
 
 IDAClientManager::~IDAClientManager()

@@ -8,6 +8,7 @@
 #include "IDAClientManager.h"
 #include "DiffMachine.h"
 #include "OneIDAClientManager.h"
+#include "DarunGrim.h"
 %}
 %inline %{
 	unsigned long GetDWORD(unsigned long *a,int index) {
@@ -42,7 +43,11 @@ public:
 class IDAClientManager
 {
 public:
-	IDAClientManager(unsigned short port=0,DBWrapper *OutputDB=NULL);
+	IDAClientManager();
+
+	void SetDatabase( DBWrapper *OutputDB );
+	bool StartIDAListener( unsigned short port );
+
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);

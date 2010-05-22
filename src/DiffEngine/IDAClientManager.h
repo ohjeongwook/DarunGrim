@@ -22,7 +22,10 @@ private:
 	char *EscapedOutputFilename;
 	char *EscapedLogFilename;
 public:
-	IDAClientManager(unsigned short port=0,DBWrapper *OutputDB=NULL);
+	IDAClientManager();
+	void SetDatabase( DBWrapper *OutputDB );
+	bool StartIDAListener( unsigned short port );
+
 	~IDAClientManager();
 	BOOL AssociateSocket(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData=FALSE);
 	OneIDAClientManager *GetOneIDAClientManagerFromFile(char *DataFile);

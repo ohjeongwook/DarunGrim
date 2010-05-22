@@ -116,10 +116,12 @@ class IDAClientManager(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, IDAClientManager, name)
     __repr__ = _swig_repr
-    def __init__(self, port = 0, OutputDB = None): 
-        this = _DiffEngine.new_IDAClientManager(port, OutputDB)
+    def __init__(self): 
+        this = _DiffEngine.new_IDAClientManager()
         try: self.this.append(this)
         except: self.this = this
+    def SetDatabase(self, *args): return _DiffEngine.IDAClientManager_SetDatabase(self, *args)
+    def StartIDAListener(self, *args): return _DiffEngine.IDAClientManager_StartIDAListener(self, *args)
     def SetIDAPath(self, *args): return _DiffEngine.IDAClientManager_SetIDAPath(self, *args)
     def SetOutputFilename(self, *args): return _DiffEngine.IDAClientManager_SetOutputFilename(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.IDAClientManager_SetLogFilename(self, *args)
