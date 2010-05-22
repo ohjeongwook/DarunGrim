@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\src\Bin')
+sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
 from PatchAnalyzer import *
 import DarunGrimEngine
 
