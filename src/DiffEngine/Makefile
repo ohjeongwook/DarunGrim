@@ -25,6 +25,7 @@ cflags=$(cflags) -I$(DBWRAPPER_DIR)
 cflags=$(cflags) -I$(LIB_DIR) 
 cflags=$(cflags) -I$(XGETOPT_DIR) 
 cflags=$(cflags) /D_DEBUG /D_MTd /Zi /D_CRTDBG_MAP_ALLOC
+#cflags=$(cflags) /FICommon.h
 cflags=$(cflags) /EHsc
 cflags=$(cflags) -Ic:\WTL\include
 cflags=$(cflags) /Ddprintf=printf

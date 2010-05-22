@@ -3,7 +3,7 @@ REM nmake nodebug=1 WIN2000_RETAIL\_DiffEngine.pyd
 copy WIN2000_RETAIL\*.pyd ..\..\Bin\
 copy Python\DiffEngine.py ..\..\Bin\
 
-nmake WIN2000_DEBUG\DarunGrim2C.exe
+nmake WIN2000_DEBUG\DarunGrim2C.exe 
 copy WIN2000_DEBUG\*.exe ..\..\Bin\
 
 pause
