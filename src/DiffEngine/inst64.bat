@@ -5,6 +5,6 @@ copy WIN2000_DEBUG\*.exe ..\..\Bin\
 copy WIN2000_RETAIL\*.exe ..\..\Bin\
 
 copy WIN2000_RETAIL\*.pyd ..\..\Bin\
-copy DiffEngine.py ..\..\Bin\
+copy Python\DiffEngine.py ..\..\Bin\
 
 pause

@@ -1,4 +1,6 @@
 #pragma once
+#include "Common.h"
+
 #include "DiffMachine.h"
 #include "DataStructure.h"
 #include "DBWrapper.h"

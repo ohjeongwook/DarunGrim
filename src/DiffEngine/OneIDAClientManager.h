@@ -3,11 +3,13 @@
 #include <windows.h>
 #include <winsock.h>
 #include <hash_map>
+#include <list>
+#include <hash_set>
+
+#include "Common.h"
 #include "DataStructure.h"
 #include "SharedMemory.h"
 #include "SharedSocket.h"
-#include <list>
-#include <hash_set>
 #include "ZlibWrapper.h"
 #include "DBWrapper.h"
 

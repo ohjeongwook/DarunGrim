@@ -1,9 +1,11 @@
 #pragma once
-#include "OneIDAClientManager.h"
-#include "DataStructure.h"
 #include <vector>
 #include <hash_set>
 #include <list>
+
+#include "Common.h"
+#include "OneIDAClientManager.h"
+#include "DataStructure.h"
 #include "LogOperation.h"
 
 const enum {DiffMachineFileBinaryFormat, DiffMachineFileSQLiteFormat};

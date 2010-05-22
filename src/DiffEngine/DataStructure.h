@@ -2,9 +2,12 @@
 #pragma pack(push)
 #pragma pack(1)
 
-#include "IDAAnalysisCommon.h"
 #include <hash_set>
 #include <hash_map>
+
+#include "Common.h"
+#include "IDAAnalysisCommon.h"
+
 using namespace std;
 using namespace stdext;
 
