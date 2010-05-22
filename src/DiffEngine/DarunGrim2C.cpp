@@ -32,8 +32,6 @@ void main(int argc,char *argv[])
 	char *TheTargetFilename=NULL;
 	char *LogFilename=NULL;
 	BOOL RetrieveFromDB=FALSE;
-	int TheSourceFileID=1;
-	int TheTargetFileID=2;
 	BOOL bListFiles=FALSE;
 	char *IDAPath=NULL;
 	BOOL UseIDASync=FALSE;
@@ -42,6 +40,9 @@ void main(int argc,char *argv[])
 	DWORD EndAddressForSource=0;
 	DWORD StartAddressForTarget=0;
 	DWORD EndAddressForTarget=0;
+
+	int TheSourceFileID;
+	int TheTargetFileID;
 
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
@@ -122,62 +123,24 @@ void main(int argc,char *argv[])
 	printf("RetrieveFromFile=%d\r\n",RetrieveFromFile);
 	printf("RetrieveFromDB=%d\r\n",RetrieveFromDB);
 	char *StorageFilename=argv[optind];
-
-	DiffMachine *pDiffMachine;
 	
 	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
 	{
 		aDarunGrim.RunIDAToGenerateDB( StorageFilename, LogFilename, 
 			TheSourceFilename,StartAddressForSource,EndAddressForSource,
 			TheTargetFilename,StartAddressForTarget,EndAddressForTarget );
-
 	}
 
-	DBWrapper StorageDB(StorageFilename);
-	CreateTables(StorageDB);
 	if(RetrieveFromFile || RetrieveFromDB)
 	{
-		pDiffMachine=new DiffMachine();
-		pDiffMachine->Retrieve(StorageDB,TRUE,TheSourceFileID,TheTargetFileID);
-		pDiffMachine->Analyze();
-		pDiffMachine->Save(StorageDB);
+		aDarunGrim.Analyze();
 	}else
 	{
-		IDAClientManager *pIDAClientManager=new IDAClientManager(DARUNGRIM2_PORT,&StorageDB);
-		OneIDAClientManager *pOneIDAClientManagerTheSource=new OneIDAClientManager(&StorageDB);
-		OneIDAClientManager *pOneIDAClientManagerTheTarget=new OneIDAClientManager(&StorageDB);
-
-		pIDAClientManager->AssociateSocket(pOneIDAClientManagerTheSource,TRUE);
-		pIDAClientManager->AssociateSocket(pOneIDAClientManagerTheTarget,TRUE);
-
-		dprintf("Analyzing [%s]\n",TheTargetFilename);
-		pDiffMachine=new DiffMachine(pOneIDAClientManagerTheSource,pOneIDAClientManagerTheTarget);
-		pDiffMachine->Analyze();
-		pDiffMachine->Save(StorageDB);
-
-		//Run idc for each file
-		/*
-		Create temporary IDC file: <idc filename>
-		"static main()
-		{
-			RunPlugin("DarunGrim2",1);
-			SendDiassemblyInfo("%s");
-			Exit(0);
-		}",StorageFilename
-		Execute "c:\program files\IDA\idag" -A -S<idc filename> <filename> for each file
-		*/
-		if(UseIDASync)
-		{
-			//pDiffMachine->PrintMatchMapInfo();
-			pIDAClientManager->SetMembers(pOneIDAClientManagerTheSource,pOneIDAClientManagerTheTarget,pDiffMachine);
-			pIDAClientManager->ShowResultsOnIDA();
-			pIDAClientManager->IDACommandProcessor();
-		}
 	}
 	if(bListFiles)
 	{
 		//List files information
-		StorageDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
+		//StorageDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 	}
-	StorageDB.CloseDatabase();
+	//StorageDB.CloseDatabase();
 }

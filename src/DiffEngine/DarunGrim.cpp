@@ -26,11 +26,12 @@ void DarunGrim::SetIDAPath( const char *path )
 		aIDAClientManager.SetIDAPath( path );
 }
 
-void DarunGrim::RunIDAToGenerateDB( char *StorageFilename, 
+bool DarunGrim::RunIDAToGenerateDB( char *ParamStorageFilename, 
 	char *LogFilename, 
 	char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 	char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget )
 {
+	StorageFilename = ParamStorageFilename;
 
 	printf("TheSourceFilename=%s\nTheTargetFilename=%s\nStorageFilename=%s\n",
 		TheSourceFilename,TheTargetFilename,StorageFilename);
@@ -39,4 +40,31 @@ void DarunGrim::RunIDAToGenerateDB( char *StorageFilename,
 	aIDAClientManager.SetLogFilename(LogFilename);
 	aIDAClientManager.RunIDAToGenerateDB(TheSourceFilename,StartAddressForSource,EndAddressForSource);
 	aIDAClientManager.RunIDAToGenerateDB(TheTargetFilename,StartAddressForTarget,EndAddressForTarget);
+	return OpenDatabase();
 }
+
+bool DarunGrim::OpenDatabase()
+{
+	pStorageDB = new DBWrapper( StorageFilename );
+
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_START_ADDRESS_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_END_ADDRESS_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_MAP_INFO_TABLE_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_MAP_INFO_TABLE_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_FILE_INFO_TABLE_STATEMENT);
+	return TRUE;
+}
+
+bool DarunGrim::Analyze()
+{
+	int TheSourceFileID=1;
+	int TheTargetFileID=2;
+
+	pDiffMachine=new DiffMachine();
+	pDiffMachine->Retrieve( *pStorageDB,TRUE,TheSourceFileID,TheTargetFileID);
+	pDiffMachine->Analyze();
+	pDiffMachine->Save( *pStorageDB );
+	return TRUE;
+}
+
