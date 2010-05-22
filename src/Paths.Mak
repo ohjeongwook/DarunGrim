@@ -15,3 +15,4 @@ ZLIB_LIB=$(ZLIB_DIR)\lib
 ZLIB_WRAPPER_DIR=\mat\Projects\ResearchTools\Algorithms\ZlibWrapper
 REGISTRY_API_DIR=\mat\Projects\ResearchTools\Registry\RegistryAPI
 WTL_DIR=c:\WTL80
+LOGGER_DIR=\mat\Projects\ResearchTools\Logger
