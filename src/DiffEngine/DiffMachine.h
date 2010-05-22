@@ -185,3 +185,5 @@ public:
 		}
 	}
 };
+
+void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
