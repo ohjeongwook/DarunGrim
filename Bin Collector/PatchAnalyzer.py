@@ -61,7 +61,6 @@ class PatchSorter:
 		return patch_infos
 
 	def ParseVersionString( self, version_string ):
-		print 'version_string=',version_string
 		main_parts = version_string.split( ' ' )
 
 		identifier = ''
