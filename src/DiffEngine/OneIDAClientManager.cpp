@@ -2,7 +2,7 @@
 #pragma warning(disable:4200)
 #include "OneIDAClientManager.h"
 #include <string>
-#include "dprintf.h"
+#include "LogOperation.h"
 
 #define strtoul10(X) strtoul(X, NULL, 10)
 
@@ -14,6 +14,10 @@
 #include <hash_set>
 using namespace std;
 using namespace stdext;
+
+#include "LogOperation.h"
+
+extern LogOperation Logger;
 
 #define DEBUG_LEVEL 0
 extern int DebugLevel;
@@ -96,23 +100,23 @@ BOOL OneIDAClientManager::RetrieveIDARawDataFromSocket(SOCKET socket)
 		GetCurrentProcessId(), 
 		GetCurrentThreadId());
 
-	if(DebugLevel&1) dprintf("%s: ID = %d InitDataSharer\n", __FUNCTION__);
+	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d InitDataSharer\n", __FUNCTION__);
 	#define SHARED_MEMORY_SIZE 100000
 	if(!InitDataSharer(&IDADataSharer, 
 		shared_memory_name, 
 		SHARED_MEMORY_SIZE, 
 		TRUE))
 	{
-		if(DebugLevel&1) dprintf("%s: ID = %d InitDataSharer failed\n", __FUNCTION__);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d InitDataSharer failed\n", __FUNCTION__);
 		return FALSE;
 	}
 	char data[1024+sizeof(DWORD)];
 	*(DWORD *)data = SHARED_MEMORY_SIZE;
 	memcpy(data+sizeof(DWORD), shared_memory_name, strlen(shared_memory_name)+1);
-	if(DebugLevel&1) dprintf("%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
+	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
 	if(SendTLVData(SEND_ANALYSIS_DATA, (PBYTE)data, sizeof(DWORD)+strlen(shared_memory_name)+1))
 	{
-		if(DebugLevel&1) dprintf("%s: ID = %d RetrieveIDARawData\n", __FUNCTION__);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d RetrieveIDARawData\n", __FUNCTION__);
 		RetrieveIDARawData((PBYTE (*)(PVOID Context, BYTE *Type, DWORD *Length))GetData, (PVOID)&IDADataSharer);
 		return TRUE;
 	}
@@ -267,18 +271,18 @@ void OneIDAClientManager::DumpBlockInfo(DWORD block_address)
 			&addresses_number);
 		if(addresses)
 		{
-			if(DebugLevel&1) dprintf("%s: ID = %d %s: ", __FUNCTION__, m_FileID, type_descriptions[i]);
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %s: ", __FUNCTION__, m_FileID, type_descriptions[i]);
 			for(int j = 0;j<addresses_number;j++)
 			{
-				if(DebugLevel&1) dprintf("%s: ID = %d %x ", __FUNCTION__, m_FileID, addresses[j]);
+				if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %x ", __FUNCTION__, m_FileID, addresses[j]);
 			}
-			if(DebugLevel&1) dprintf("\n");
+			if(DebugLevel&1) Logger.Log( 10, "\n");
 		}
 	}
 	char *hex_str = GetFingerPrintStr(block_address);
 	if(hex_str)
 	{
-		if(DebugLevel&1) dprintf("%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
 		free(hex_str);
 	}
 }
@@ -643,7 +647,7 @@ BOOL OneIDAClientManager::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 	}
 	for(int i = 0;i<10;i++)
 		if(TypesCount[i])
-			if(DebugLevel&1) dprintf("%s: ID = %d %u\n", GetFileDataTypeStr(i), TypesCount[i]);
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %u\n", GetFileDataTypeStr(i), TypesCount[i]);
 	delete zlib_wrapper;
 	//DumpAnalysisInfo();
 	//GenerateTwoLevelFingerPrint();
@@ -653,7 +657,7 @@ BOOL OneIDAClientManager::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 
 int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 {
-	//printf("%s: %s %s %s %s\n", __FUNCTION__, m_FileID, argv[0], argv[1], argv[2], argv[3]);
+	//Logger.Log( 10, "%s: %s %s %s %s\n", __FUNCTION__, m_FileID, argv[0], argv[1], argv[2], argv[3]);
 	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
 
 	PMapInfo p_map_info = new MapInfo;
@@ -662,7 +666,7 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 	p_map_info->SrcBlockEnd = strtoul10(argv[2]);
 	p_map_info->Dst = strtoul10(argv[3]);
 #if DEBUG_LEVEL > 1
-	if(DebugLevel&1) dprintf("%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, 
+	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, 
 		argv[0], strtoul10(argv[0]), 
 		argv[1], strtoul10(argv[1]), 
 		argv[2], strtoul10(argv[2]), 
@@ -743,7 +747,7 @@ BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
 			_snprintf( FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer) - 1, "AND FunctionAddress = '%d'", FunctionAddress );
 		}
 
-		printf( "Condition [%s]\n", FunctionAddressConditionBuffer );
+		Logger.Log( 10,  "Condition [%s]\n", FunctionAddressConditionBuffer );
 
 		m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback, 
 			(void *)ClientAnalysisInfo, 
@@ -778,14 +782,14 @@ void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Con
 	{	
 		PBYTE data = RetrieveCallback(Context, &type, &length);
 #if DEBUG_LEVEL > 0
-		if(DebugLevel&1) dprintf("%s: ID = %d type = %u Data(0x%x) is Read %u Bytes Long\n", __FUNCTION__, m_FileID, type, data, length);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d type = %u Data(0x%x) is Read %u Bytes Long\n", __FUNCTION__, m_FileID, type, data, length);
 #endif
 
 		if(type  ==  END_OF_DATA)
 		{
 #if DEBUG_LEVEL > -1
-			if(DebugLevel&1) dprintf("%s: ID = %d End of Analysis\n", __FUNCTION__);
-			if(DebugLevel&1) dprintf("%s: ID = %d address_hash_map:%u/address_fingerprint_hash_map:%u/fingerprint_hash_map:%u/name_hash_map:%u/map_info_hash_map:%u\n", 
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d End of Analysis\n", __FUNCTION__);
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d address_hash_map:%u/address_fingerprint_hash_map:%u/fingerprint_hash_map:%u/name_hash_map:%u/map_info_hash_map:%u\n", 
 				__FUNCTION__, m_FileID, 
 				ClientAnalysisInfo->address_hash_map.size(), 
 				ClientAnalysisInfo->address_fingerprint_hash_map.size(), 
@@ -805,7 +809,7 @@ void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Con
 		{
 			POneLocationInfo pOneLocationInfo = (POneLocationInfo)data;
 			current_addr = pOneLocationInfo->StartAddress;
-			if(DebugLevel&4) dprintf("%s: ID = %d ONE_LOCATION_INFO[StartAddress = %x Flag = %u function addr = %x BlockType = %u]\n", __FUNCTION__, m_FileID, 
+			if(DebugLevel&4) Logger.Log( 10, "%s: ID = %d ONE_LOCATION_INFO[StartAddress = %x Flag = %u function addr = %x BlockType = %u]\n", __FUNCTION__, m_FileID, 
 				pOneLocationInfo->StartAddress, //ea_t
 				pOneLocationInfo->Flag,  //Flag_t
 				pOneLocationInfo->FunctionAddress, 
@@ -826,7 +830,7 @@ void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Con
 		{
 			PMapInfo p_map_info = (PMapInfo)data;
 #if DEBUG_LEVEL > 2
-			if(DebugLevel&1) dprintf("%s: ID = %d %s %x(%x)->%x\n", __FUNCTION__, m_FileID, 
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %s %x(%x)->%x\n", __FUNCTION__, m_FileID, 
 				MapInfoTypesStr[p_map_info->Type], 
 				p_map_info->SrcBlock, 
 				p_map_info->SrcBlockEnd, 
@@ -884,7 +888,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 				matched_children_count++;
 			}
 		}
-		if(DebugLevel&1) dprintf("%s: ID = %d 0x%x children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d 0x%x children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
 		if(matched_children_count  ==  1 && matched_child_addr != 0L)
 		{
 			int matched_parents_count = 0;
@@ -899,7 +903,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 				if(p_map_info->Type  ==  CREF_TO || p_map_info->Type  ==  CALLED)
 					matched_parents_count++;
 			}
-			if(DebugLevel&1) dprintf("%s: ID = %d 0x%x -> 0x%x parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
+			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d 0x%x -> 0x%x parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
 			if(matched_parents_count  ==  1)
 			{
 				address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(matched_child_addr);
@@ -925,7 +929,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 	{
 		DWORD address = (*AddressPairsIter).address;
 		DWORD child_address = (*AddressPairsIter).child_address;
-		if(DebugLevel&1) dprintf("%s: ID = %d Joining 0x%x-0x%x\n", __FUNCTION__, m_FileID, address, child_address);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Joining 0x%x-0x%x\n", __FUNCTION__, m_FileID, address, child_address);
 
 		DWORD matched_child_addr = 0L;
 
@@ -1061,19 +1065,19 @@ void OneIDAClientManager::DumpAnalysisInfo()
 	if(ClientAnalysisInfo)
 	{
 		/*
-		if(DebugLevel&1) dprintf("OriginalFilePath = %s\n", ClientAnalysisInfo->file_info.OriginalFilePath);
-		if(DebugLevel&1) dprintf("ComputerName = %s\n", ClientAnalysisInfo->file_info.ComputerName);
-		if(DebugLevel&1) dprintf("UserName = %s\n", ClientAnalysisInfo->file_info.UserName);
-		if(DebugLevel&1) dprintf("CompanyName = %s\n", ClientAnalysisInfo->file_info.CompanyName);
-		if(DebugLevel&1) dprintf("FileVersion = %s\n", ClientAnalysisInfo->file_info.FileVersion);
-		if(DebugLevel&1) dprintf("FileDescription = %s\n", ClientAnalysisInfo->file_info.FileDescription);
-		if(DebugLevel&1) dprintf("InternalName = %s\n", ClientAnalysisInfo->file_info.InternalName);
-		if(DebugLevel&1) dprintf("ProductName = %s\n", ClientAnalysisInfo->file_info.ProductName);
-		if(DebugLevel&1) dprintf("ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
-		if(DebugLevel&1) dprintf("MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
+		if(DebugLevel&1) Logger.Log( 10, "OriginalFilePath = %s\n", ClientAnalysisInfo->file_info.OriginalFilePath);
+		if(DebugLevel&1) Logger.Log( 10, "ComputerName = %s\n", ClientAnalysisInfo->file_info.ComputerName);
+		if(DebugLevel&1) Logger.Log( 10, "UserName = %s\n", ClientAnalysisInfo->file_info.UserName);
+		if(DebugLevel&1) Logger.Log( 10, "CompanyName = %s\n", ClientAnalysisInfo->file_info.CompanyName);
+		if(DebugLevel&1) Logger.Log( 10, "FileVersion = %s\n", ClientAnalysisInfo->file_info.FileVersion);
+		if(DebugLevel&1) Logger.Log( 10, "FileDescription = %s\n", ClientAnalysisInfo->file_info.FileDescription);
+		if(DebugLevel&1) Logger.Log( 10, "InternalName = %s\n", ClientAnalysisInfo->file_info.InternalName);
+		if(DebugLevel&1) Logger.Log( 10, "ProductName = %s\n", ClientAnalysisInfo->file_info.ProductName);
+		if(DebugLevel&1) Logger.Log( 10, "ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
+		if(DebugLevel&1) Logger.Log( 10, "MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
 
 		*/
-		if(DebugLevel&1) dprintf("fingerprint_hash_map = %u\n", ClientAnalysisInfo->fingerprint_hash_map.size());
+		if(DebugLevel&1) Logger.Log( 10, "fingerprint_hash_map = %u\n", ClientAnalysisInfo->fingerprint_hash_map.size());
 	}
 }
 
@@ -1134,7 +1138,7 @@ char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned l
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
 	if(DisasmLines)
 	{
-		if(DebugLevel&1) dprintf("DisasmLines = %s\n", DisasmLines);
+		if(DebugLevel&1) Logger.Log( 10, "DisasmLines = %s\n", DisasmLines);
 		return DisasmLines;
 	}
 	return _strdup("");
@@ -1152,11 +1156,11 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 
 	if(DebugLevel&8)
 	{		
-		dprintf("%s: %x Block Type: %d\n", __FUNCTION__, p_one_location_info->StartAddress, p_one_location_info->BlockType);
+		Logger.Log( 10, "%s: %x Block Type: %d\n", __FUNCTION__, p_one_location_info->StartAddress, p_one_location_info->BlockType);
 	}
 	if(DebugLevel&1 && p_one_location_info->BlockType  ==  FUNCTION_BLOCK)
 	{		
-		dprintf("%s: Function Block: %x\n", __FUNCTION__, p_one_location_info->StartAddress);
+		Logger.Log( 10, "%s: Function Block: %x\n", __FUNCTION__, p_one_location_info->StartAddress);
 	}
 	return 0;
 }
@@ -1234,7 +1238,7 @@ void OneIDAClientManager::MergeBlocks()
 					NumberOfChildren++;
 				}else
 				{
-					if(DebugLevel&1) dprintf("%s: ID = %d Number Of Children for %x  = %u\n", 
+					if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Number Of Children for %x  = %u\n", 
 											__FUNCTION__, m_FileID, 
 											last_iter->first, 
 											NumberOfChildren);
@@ -1259,7 +1263,7 @@ void OneIDAClientManager::MergeBlocks()
 				{
 					if(child_iter->second->Type  ==  CREF_TO && child_iter->second->Dst != last_iter->first)
 					{
-						if(DebugLevel&1) dprintf("%s: ID = %d Found %x -> %x\n", 
+						if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Found %x -> %x\n", 
 							__FUNCTION__, m_FileID, 
 							child_iter->second->Dst, child_iter->first);
 						NumberOfParents++;
@@ -1267,7 +1271,7 @@ void OneIDAClientManager::MergeBlocks()
 				}
 				if(NumberOfParents  ==  0)
 				{
-					if(DebugLevel&1) dprintf("%s: ID = %d Found Mergable Nodes %x -> %x\n", 
+					if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Found Mergable Nodes %x -> %x\n", 
 						__FUNCTION__, m_FileID, 
 						last_iter->first, last_iter->second->Dst);
 				}
@@ -1364,7 +1368,7 @@ static int ReadFunctionMembersResultsCallback(void *arg, int argc, char **argv, 
 	if(FunctionAddressHash)
 	{
 #if DEBUG_LEVEL > 1
-		if(DebugLevel&1) dprintf("%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
 #endif
 		FunctionAddressHash->insert(strtoul10(argv[0]));
 	}
@@ -1373,11 +1377,11 @@ static int ReadFunctionMembersResultsCallback(void *arg, int argc, char **argv, 
 
 multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 {
-	if(DebugLevel&1) dprintf("Retrieve Functions Addresses\n");
+	if(DebugLevel&1) Logger.Log( 10, "Retrieve Functions Addresses\n");
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
 	if(FunctionAddresses)
 	{
-		if(DebugLevel&1) dprintf("Retrieved Functions Addresses(%u entries)\n", FunctionAddresses->size());
+		if(DebugLevel&1) Logger.Log( 10, "Retrieved Functions Addresses(%u entries)\n", FunctionAddresses->size());
 
 		multimap <DWORD, DWORD> *FunctionMembers = new multimap <DWORD, DWORD>;
 		if(FunctionMembers)
@@ -1385,7 +1389,7 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 			list <DWORD>::iterator FunctionAddressIter;
 			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
-				if(DebugLevel&1) dprintf("Function %x: ", *FunctionAddressIter);
+				if(DebugLevel&1) Logger.Log( 10, "Function %x: ", *FunctionAddressIter);
 				list <DWORD> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
 				list <DWORD>::iterator FunctionMemberBlocksIter;
 
@@ -1394,10 +1398,10 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 					FunctionMemberBlocksIter++
 				)
 				{
-					if(DebugLevel&1) dprintf("%x ", *FunctionMemberBlocksIter);
+					if(DebugLevel&1) Logger.Log( 10, "%x ", *FunctionMemberBlocksIter);
 					FunctionMembers->insert(pair <DWORD, DWORD>(*FunctionAddressIter, *FunctionMemberBlocksIter));
 				}
-				if(DebugLevel&1) dprintf("\n");
+				if(DebugLevel&1) Logger.Log( 10, "\n");
 			}
 		}
 
@@ -1409,9 +1413,9 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 			if(FunctionAddress != FunctionMembersIter->first)
 			{
 				FunctionAddress = FunctionMembersIter->first;
-				if(DebugLevel&1) dprintf("%x\n", FunctionAddress);
+				if(DebugLevel&1) Logger.Log( 10, "%x\n", FunctionAddress);
 			}
-			if(DebugLevel&1) dprintf("\t%x\n", FunctionMembersIter->second);
+			if(DebugLevel&1) Logger.Log( 10, "\t%x\n", FunctionMembersIter->second);
 		}
 		*/
 		FunctionAddresses->clear();
@@ -1427,7 +1431,7 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 	if(AddressToFunctionMap)
 	{
 #if DEBUG_LEVEL > 1
-		if(DebugLevel&1) dprintf("%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]), argv[1], strtoul10(argv[1]));
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]), argv[1], strtoul10(argv[1]));
 #endif
 		AddressToFunctionMap->insert(pair <DWORD, DWORD>(strtoul10(argv[0]), strtoul10(argv[1])));
 	}
@@ -1444,13 +1448,13 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
 	if(DoCrefFromCheck)
 	{
-		if(DebugLevel&1) dprintf("AddressesHash.size() = %u\n", AddressesHash.size());
+		if(DebugLevel&1) Logger.Log( 10, "AddressesHash.size() = %u\n", AddressesHash.size());
 		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
 			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_pIter++
 			)
 		{
-			if(DebugLevel&1) dprintf("%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
+			if(DebugLevel&1) Logger.Log( 10, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
 			if(map_info_hash_map_pIter->second->Type  ==  CREF_FROM)
 			{
 				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
@@ -1460,7 +1464,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 				}
 			}
 		}
-		if(DebugLevel&1) dprintf("%s\n", __FUNCTION__);
+		if(DebugLevel&1) Logger.Log( 10, "%s\n", __FUNCTION__);
 		multimap <DWORD,  unsigned char *>::iterator address_fingerprint_hash_map_iter;
 		for(address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
 			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
@@ -1468,12 +1472,12 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 		{
 			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck?TRUE:FALSE));
 		}
-		if(DebugLevel&1) dprintf("AddressesHash.size() = %u\n", AddressesHash.size());
+		if(DebugLevel&1) Logger.Log( 10, "AddressesHash.size() = %u\n", AddressesHash.size());
 		for(hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin();AddressesHashIterator != AddressesHash.end();AddressesHashIterator++)
 		{
 			if(AddressesHashIterator->second)
 			{
-				if(DebugLevel&1) dprintf("%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
+				if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
 				FunctionAddressHash.insert(AddressesHashIterator->first);
 			}
 		}
@@ -1494,7 +1498,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 				if(FunctionAddressHash.find(map_info_hash_map_pIter->second->Dst)  ==  FunctionAddressHash.end())
 				{
 					if(DebugLevel&1)
-						dprintf("%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
+						Logger.Log( 10, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
 					FunctionAddressHash.insert(map_info_hash_map_pIter->second->Dst);
 				}
 			}
@@ -1510,9 +1514,9 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 		{
 			FunctionAddresses->push_back(*FunctionAddressHashIter);
 			if(DebugLevel&4)
-				dprintf("%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
+				Logger.Log( 10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
 		}
-		if(DebugLevel&1) dprintf("%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
 	}
 	return FunctionAddresses;
 }
@@ -1520,11 +1524,11 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 {
 	int Count = 0;
-	if(DebugLevel&1) dprintf("%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
+	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
 	if(FunctionAddresses)
 	{
-		if(DebugLevel&1) dprintf("%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
 		multimap <DWORD, DWORD> *AddressToFunctionMap = new multimap <DWORD, DWORD>;
 		if(AddressToFunctionMap)
 		{
@@ -1545,7 +1549,7 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 		}
 		FunctionAddresses->clear();
 		delete FunctionAddresses;
-		if(DebugLevel&1) dprintf("%s: ID = %d AddressToFunctionMap %u entries\n", __FUNCTION__, m_FileID, AddressToFunctionMap->size());
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d AddressToFunctionMap %u entries\n", __FUNCTION__, m_FileID, AddressToFunctionMap->size());
 		return AddressToFunctionMap;
 		/*
 		hash_map <DWORD, DWORD>::iterator AddressToFunctionMapIter;
@@ -1555,9 +1559,9 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 			if(FunctionAddress != AddressToFunctionMapIter->first)
 			{
 				FunctionAddress = AddressToFunctionMapIter->first;
-				if(DebugLevel&1) dprintf("%x\n", FunctionAddress);
+				if(DebugLevel&1) Logger.Log( 10, "%x\n", FunctionAddress);
 			}
-			if(DebugLevel&1) dprintf("\t%x\n", AddressToFunctionMapIter->second);
+			if(DebugLevel&1) Logger.Log( 10, "\t%x\n", AddressToFunctionMapIter->second);
 		}*/
 
 	}
@@ -1567,7 +1571,7 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 BOOL OneIDAClientManager::FixFunctionAddresses()
 {
 	BOOL IsFixed = FALSE;
-	if(DebugLevel&1) dprintf("%s", __FUNCTION__);
+	if(DebugLevel&1) Logger.Log( 10, "%s", __FUNCTION__);
 	multimap <DWORD, DWORD> *AddressToFunctionMap = LoadAddressToFunctionMap();
 	multimap <DWORD, DWORD>::iterator AddressToFunctionMapIter;
 	m_StorageDB->BeginTransaction();
@@ -1577,7 +1581,7 @@ BOOL OneIDAClientManager::FixFunctionAddresses()
 		//FunctionAddress: AddressToFunctionMapIter->second
 		//Update
 		if(DebugLevel&1) 
-			dprintf("Updating OneLocationInfoTable Address = %x Function = %x\r\n", 
+			Logger.Log( 10, "Updating OneLocationInfoTable Address = %x Function = %x\r\n", 
 				AddressToFunctionMapIter->second, 
 				AddressToFunctionMapIter->first);
 
@@ -1588,7 +1592,7 @@ BOOL OneIDAClientManager::FixFunctionAddresses()
 					AddressToFunctionMapIter->first);
 		IsFixed = TRUE;
 	}
-	if(DebugLevel&1) dprintf("\r\n");
+	if(DebugLevel&1) Logger.Log( 10, "\r\n");
 
 	m_StorageDB->EndTransaction();
 	AddressToFunctionMap->clear();

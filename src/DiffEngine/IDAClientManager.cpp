@@ -2,12 +2,15 @@
 
 #include "IDAClientManager.h"
 #include "SocketOperation.h"
-#include "dprintf.h"
 #include "DataBaseWriter.h"
 #include "ProcessUtils.h"
+#include "LogOperation.h"
+
+extern LogOperation Logger;
 
 #define DATA_BUFSIZE 4096
 #define DEFAULT_IDA_PATH TEXT("c:\\Program Files\\IDA\\idag.exe")
+
 
 IDAClientManager::IDAClientManager(unsigned short port,DBWrapper *OutputDB)
 {
@@ -20,7 +23,7 @@ IDAClientManager::IDAClientManager(unsigned short port,DBWrapper *OutputDB)
 	if(ListeningPort>0)
 	{
 		ListeningSocket=CreateListener(NULL,port);
-		dprintf("%s: ListeningSocket=%d\n",__FUNCTION__,ListeningSocket);
+		Logger.Log( 10, "%s: ListeningSocket=%d\n",__FUNCTION__,ListeningSocket);
 	}
 }
 
@@ -44,22 +47,22 @@ OneIDAClientManager *IDAClientManager::GetOneIDAClientManagerFromFile(char *Data
 BOOL IDAClientManager::AssociateSocket(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData)
 {
 	SOCKET ClientSocket=accept(ListeningSocket,NULL,NULL);
-	dprintf("%s: accepting=%d\n",__FUNCTION__,ClientSocket);
+	Logger.Log( 10, "%s: accepting=%d\n",__FUNCTION__,ClientSocket);
 	if(ClientSocket==INVALID_SOCKET)
 	{
 		int error=WSAGetLastError();
-		dprintf("Socket error=%d\n",error);
+		Logger.Log( 10, "Socket error=%d\n",error);
 		return FALSE;
 	}else
 	{
 		if(RetrieveData)
 		{
-			dprintf("%s: Calling RetrieveIDARawDataFromSocket\n",__FUNCTION__);
+			Logger.Log( 10, "%s: Calling RetrieveIDARawDataFromSocket\n",__FUNCTION__);
 			pOneIDAClientManager->RetrieveIDARawDataFromSocket(ClientSocket);
 		}
 		else
 		{
-			dprintf("%s: SetSocket\n",__FUNCTION__);
+			Logger.Log( 10, "%s: SetSocket\n",__FUNCTION__);
 			pOneIDAClientManager->SetSocket(ClientSocket);
 		}
 		return TRUE;
@@ -118,7 +121,7 @@ DWORD IDAClientManager::IDACommandProcessor()
 			{
 				if(WSAEnumNetworkEvents(SocketArray[i],EventArray[i],&NetworkEvents)==0)
 				{
-					dprintf("Signal(%d - %d)\n",i,NetworkEvents.lNetworkEvents);
+					Logger.Log( 10, "Signal(%d - %d)\n",i,NetworkEvents.lNetworkEvents);
 					if(NetworkEvents.lNetworkEvents==FD_READ)
 					{
 						char buffer[DATA_BUFSIZE]={0,};
@@ -130,21 +133,21 @@ DWORD IDAClientManager::IDACommandProcessor()
 						DWORD Flags=0;
 						if (WSARecv(SocketArray[i],&DataBuf,1,&RecvBytes,&Flags,NULL,NULL)==SOCKET_ERROR)
 						{
-							dprintf("Error occurred at WSARecv()\n");
+							Logger.Log( 10, "Error occurred at WSARecv()\n");
 						}else
 						{
-							dprintf("Read %d bytes\n",RecvBytes);
+							Logger.Log( 10, "Read %d bytes\n",RecvBytes);
 						}*/
 						char type;
 						DWORD length;
 						PBYTE data=RecvTLVData(SocketArray[i],&type,&length);
 						if(data)
 						{
-							dprintf("%s: Type: %d Length: %d data:%x\n",__FUNCTION__,type,length,data);
+							Logger.Log( 10, "%s: Type: %d Length: %d data:%x\n",__FUNCTION__,type,length,data);
 							if(type==SHOW_MATCH_ADDR && length>=4)
 							{
 								DWORD address=*(DWORD *)data;
-								dprintf("%s: Showing address=%x\n",__FUNCTION__,address);
+								Logger.Log( 10, "%s: Showing address=%x\n",__FUNCTION__,address);
 								//Get Matching Address
 								DWORD MatchingAddress=pDiffMachine->GetMatchAddr(i,address);
 								if(MatchingAddress!=0)
@@ -304,8 +307,8 @@ void IDAClientManager::RunIDAToGenerateDB(char *TheFilename,DWORD StartAddress,D
 	if(IDCFilename)
 	{
 		//Run IDA
-		dprintf("Analyzing [%s](%s)\n",TheFilename,IDCFilename);
-		dprintf("Executing \"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
+		Logger.Log( 10, "Analyzing [%s](%s)\n",TheFilename,IDCFilename);
+		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
 		Execute(TRUE,"\"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
 		free(IDCFilename);
 	}

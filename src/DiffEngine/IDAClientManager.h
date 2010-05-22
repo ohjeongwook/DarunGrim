@@ -2,6 +2,7 @@
 #include "DiffMachine.h"
 #include "DataStructure.h"
 #include "DBWrapper.h"
+#include "LogOperation.h"
 
 class IDAClientManager
 {

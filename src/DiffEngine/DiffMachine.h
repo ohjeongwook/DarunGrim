@@ -4,6 +4,7 @@
 #include <vector>
 #include <hash_set>
 #include <list>
+#include "LogOperation.h"
 
 const enum {DiffMachineFileBinaryFormat, DiffMachineFileSQLiteFormat};
 

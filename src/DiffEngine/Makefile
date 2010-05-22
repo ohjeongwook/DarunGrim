@@ -3,7 +3,7 @@
 !include <Win32.Mak>
 !include "..\Paths.Mak"
 
-cflags=$(cflags) -I$(SQLITE_DIR_INC) -I$(DEBUG_LIB_DIR) -I$(IDA_LIB_DIR) -I$(GRAPHVIZ_INTERFACE) -D_CRT_SECURE_NO_WARNINGS -I\mat\Projects\ResearchTools\Graphics\GraphVizInterface\Src -I$(DIFF_LIB_DIR) -I"\mat\Projects\Lib\GraphViz\include" -I$(ZLIB_INC) -I$(ZLIB_WRAPPER_DIR) /Zi /EHsc -Ddprintf=PrintToStdOutWithTime -I$(DBWRAPPER_DIR) -I$(LIB_DIR) -I$(XGETOPT_DIR)
+cflags=$(cflags) -I$(SQLITE_DIR_INC) -I$(DEBUG_LIB_DIR) -I$(IDA_LIB_DIR) -I$(LOGGER_DIR) -I$(GRAPHVIZ_INTERFACE) -D_CRT_SECURE_NO_WARNINGS -I\mat\Projects\ResearchTools\Graphics\GraphVizInterface\Src -I$(DIFF_LIB_DIR) -I"\mat\Projects\Lib\GraphViz\include" -I$(ZLIB_INC) -I$(ZLIB_WRAPPER_DIR) /Zi /EHsc -Ddprintf=PrintToStdOutWithTime -I$(DBWRAPPER_DIR) -I$(LIB_DIR) -I$(XGETOPT_DIR)
 #/DEBUG
 conlibs=$(conlibs) user32.lib
 
