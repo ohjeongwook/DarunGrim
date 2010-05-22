@@ -5,24 +5,17 @@ import os
 def DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
 	TheSourceFilename = str(TheSourceFilename)
 	TheTargetFilename = str(TheTargetFilename)
-	print 'Comparing',TheSourceFilename,TheTargetFilename
+	#print 'Comparing',TheSourceFilename,TheTargetFilename
 
 	StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
 	LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
 
-	StorageDB = DiffEngine.DBWrapper( StorageFilename )
-
-	ida_client_manager = DiffEngine.IDAClientManager()
-	ida_client_manager.SetIDAPath( IDAPath );
-	ida_client_manager.SetOutputFilename(StorageFilename);
-	ida_client_manager.SetLogFilename(LogFilename);
-	ida_client_manager.RunIDAToGenerateDB(TheSourceFilename,0L,0L);
-	ida_client_manager.RunIDAToGenerateDB(TheTargetFilename,0L,0L);
-
-	DiffMachine = DiffEngine.DiffMachine()
-	DiffMachine.Retrieve(StorageDB)
-	DiffMachine.Analyze()
-	DiffMachine.Save(StorageDB)
+	darun_grim = DiffEngine.DarunGrim()
+	darun_grim.GenerateDB( 
+		StorageFilename, LogFilename, 
+		TheSourceFilename, 0L, 0L,
+		TheTargetFilename, 0L, 0L)
+	darun_grim.Analyze()
 
 if __name__ == '__main__':
 	TheSourceFilename = sys.argv[1]
