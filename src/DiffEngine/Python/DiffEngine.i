@@ -80,4 +80,16 @@ public:
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
 
-void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
+class DarunGrim
+{
+public:
+	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
+	void SetIDAPath( const char *path );
+	bool GenerateDB(
+		char *StorageFilename, 
+		char *LogFilename, 
+		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
+		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
+	bool GenerateDB();
+	bool Analyze();
+};
