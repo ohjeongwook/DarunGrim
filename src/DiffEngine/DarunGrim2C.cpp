@@ -1,3 +1,5 @@
+#include "Common.h"
+
 #include "IDAClientManager.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
@@ -43,6 +45,8 @@ void main(int argc,char *argv[])
 
 	int TheSourceFileID;
 	int TheTargetFileID;
+
+	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
@@ -114,26 +118,24 @@ void main(int argc,char *argv[])
 		return;
 	}
 
-	DarunGrim aDarunGrim;
+	DarunGrim *pDarunGrim = new DarunGrim();
 	if(IDAPath)
-		aDarunGrim.SetIDAPath(IDAPath);
+		pDarunGrim->SetIDAPath(IDAPath);
 
-	printf("RetrieveFromFile=%d\r\n",RetrieveFromFile);
-	printf("RetrieveFromDB=%d\r\n",RetrieveFromDB);
 	char *StorageFilename=argv[optind];
 	
 	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
 	{
-		aDarunGrim.GenerateDB( StorageFilename, LogFilename, 
+		pDarunGrim->GenerateDB( StorageFilename, LogFilename, 
 			TheSourceFilename,StartAddressForSource,EndAddressForSource,
 			TheTargetFilename,StartAddressForTarget,EndAddressForTarget );
 	}
 	else if( !( RetrieveFromFile || RetrieveFromDB ) )
 	{
-		aDarunGrim.GenerateDB();
+		pDarunGrim->GenerateDB();
 	}
 
-	aDarunGrim.Analyze();
+	pDarunGrim->Analyze();
 
 	if(bListFiles)
 	{
@@ -143,6 +145,9 @@ void main(int argc,char *argv[])
 
 	if(UseIDASync)
 	{
-		aDarunGrim.ShowOnIDA();
+		pDarunGrim->ShowOnIDA();
 	}
+
+	delete pDarunGrim;
+	_CrtDumpMemoryLeaks();
 }
