@@ -38,7 +38,6 @@ using namespace stdext;
 
 #include "RegistryUtil.h"
 
-int DebugLevel=0;
 extern int GraphVizInterfaceProcessorDebugLevel;
 
 
@@ -846,7 +845,8 @@ public:
 	{
 		DBWrapper *OutputDB=&(((CMainFrame *)pParam)->m_DatabaseHandle);
 		{
-			IDAClientManager *pOneClientManager=new IDAClientManager(DARUNGRIM2_PORT);
+			IDAClientManager *pOneClientManager=new IDAClientManager();
+			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
 			if(pOneClientManager->AssociateSocket(((CMainFrame *)pParam)->GetOneClientManagerTheSource(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
 			{
 				((CMainFrame *)pParam)->PostMessage(
@@ -942,7 +942,8 @@ public:
 		}else if(AssociateSocketCount==ASSOCIATE_SOCKET_COUNT_BASE_FOR_IDA_SYNC+1)
 		{
 			::MessageBox(m_hWnd,"Patched IDB is opened.\r\nIDA will be synced from now on.","Information",MB_OK);
-			IDAClientManager *pOneClientManager=new IDAClientManager(DARUNGRIM2_PORT);
+			IDAClientManager *pOneClientManager=new IDAClientManager();
+			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
 			//pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
 			//pOneClientManager->ShowResultsOnIDA();
 			//pOneClientManager->CreateIDACommandProcessor();
