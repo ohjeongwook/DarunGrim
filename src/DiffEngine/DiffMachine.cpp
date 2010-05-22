@@ -21,15 +21,7 @@ char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerpr
 
 int DebugLevel = 0;
 
-LogOperation Logger;
-
-void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
-{
-	Logger.SetLogOutputType( ParamLogOutputType );
-	if( LogFile )
-		Logger.SetLogFilename( LogFile );
-	Logger.SetDebugLevel( ParamDebugLevel );
-}
+extern LogOperation Logger;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 ), DebugFlag( 0 )
 {
