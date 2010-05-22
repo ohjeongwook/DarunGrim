@@ -3,7 +3,7 @@ sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2
 from PatchAnalyzer import *
 import DarunGrimEngine
 
-OutputDirectory = 'DGFs'
+OutputDirectory = r'C:\mat\Projects\DGFs'
 IndexFile = 'test.db'
 AnalysisTargetFiles = sys.argv[1:]
 
