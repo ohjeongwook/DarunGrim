@@ -5,6 +5,7 @@ LogOperation Logger;
 
 DarunGrim::DarunGrim(): pOneIDAClientManagerTheSource(NULL), pOneIDAClientManagerTheTarget(NULL)
 {
+	pIDAClientManager = new IDAClientManager();
 }
 
 DarunGrim::~DarunGrim()
@@ -24,6 +25,8 @@ DarunGrim::~DarunGrim()
 	if( pDiffMachine )
 		delete pDiffMachine;
 
+	delete pIDAClientManager;
+
 	_CrtDumpMemoryLeaks();
 }
 
@@ -38,7 +41,7 @@ void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, c
 void DarunGrim::SetIDAPath( const char *path )
 {
 	if( path )
-		aIDAClientManager.SetIDAPath( path );
+		pIDAClientManager->SetIDAPath( path );
 }
 
 bool DarunGrim::GenerateDB( 
@@ -52,16 +55,17 @@ bool DarunGrim::GenerateDB(
 	printf("TheSourceFilename=%s\nTheTargetFilename=%s\nStorageFilename=%s\n",
 		TheSourceFilename,TheTargetFilename,StorageFilename);
 
-	aIDAClientManager.SetOutputFilename(StorageFilename);
-	aIDAClientManager.SetLogFilename(LogFilename);
-	aIDAClientManager.RunIDAToGenerateDB(TheSourceFilename,StartAddressForSource,EndAddressForSource);
-	aIDAClientManager.RunIDAToGenerateDB(TheTargetFilename,StartAddressForTarget,EndAddressForTarget);
+	pIDAClientManager->SetOutputFilename(StorageFilename);
+	pIDAClientManager->SetLogFilename(LogFilename);
+	pIDAClientManager->RunIDAToGenerateDB(TheSourceFilename,StartAddressForSource,EndAddressForSource);
+	pIDAClientManager->RunIDAToGenerateDB(TheTargetFilename,StartAddressForTarget,EndAddressForTarget);
 	return OpenDatabase();
 }
 
 bool DarunGrim::GenerateDB()
 {
-	IDAClientManager *pIDAClientManager=new IDAClientManager(DARUNGRIM2_PORT, pStorageDB );
+	pIDAClientManager->SetDatabase( pStorageDB );
+	pIDAClientManager->StartIDAListener( DARUNGRIM2_PORT );
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
 
@@ -115,3 +119,19 @@ bool DarunGrim::Analyze()
 	return TRUE;
 }
 
+bool DarunGrim::ShowOnIDA()
+{
+	//pDiffMachine->PrintMatchMapInfo();
+	if( pIDAClientManager )
+	{
+		pIDAClientManager->SetMembers(
+			pOneIDAClientManagerTheSource,
+			pOneIDAClientManagerTheTarget,
+			pDiffMachine
+		);
+		pIDAClientManager->ShowResultsOnIDA();
+		pIDAClientManager->IDACommandProcessor();
+		return TRUE;
+	}
+	return FALSE;
+}

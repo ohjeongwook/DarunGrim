@@ -8,7 +8,7 @@
 class DarunGrim
 {
 private:
-	IDAClientManager aIDAClientManager;
+	IDAClientManager *pIDAClientManager;
 	OneIDAClientManager *pOneIDAClientManagerTheSource;
 	OneIDAClientManager *pOneIDAClientManagerTheTarget;
 
@@ -27,4 +27,5 @@ public:
 		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
 	bool GenerateDB();
 	bool Analyze();
+	bool ShowOnIDA();
 };

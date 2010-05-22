@@ -140,4 +140,9 @@ void main(int argc,char *argv[])
 		//List files information
 		//StorageDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 	}
+
+	if(UseIDASync)
+	{
+		aDarunGrim.ShowOnIDA();
+	}
 }
