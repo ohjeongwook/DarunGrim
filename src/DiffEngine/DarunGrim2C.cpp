@@ -114,8 +114,6 @@ void main(int argc,char *argv[])
 		return;
 	}
 
-
-
 	DarunGrim aDarunGrim;
 	if(IDAPath)
 		aDarunGrim.SetIDAPath(IDAPath);
@@ -126,21 +124,20 @@ void main(int argc,char *argv[])
 	
 	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
 	{
-		aDarunGrim.RunIDAToGenerateDB( StorageFilename, LogFilename, 
+		aDarunGrim.GenerateDB( StorageFilename, LogFilename, 
 			TheSourceFilename,StartAddressForSource,EndAddressForSource,
 			TheTargetFilename,StartAddressForTarget,EndAddressForTarget );
 	}
-
-	if(RetrieveFromFile || RetrieveFromDB)
+	else if( !( RetrieveFromFile || RetrieveFromDB ) )
 	{
-		aDarunGrim.Analyze();
-	}else
-	{
+		aDarunGrim.GenerateDB();
 	}
+
+	aDarunGrim.Analyze();
+
 	if(bListFiles)
 	{
 		//List files information
 		//StorageDB.ExecuteStatement(ReadFileInfo,NULL,"SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 	}
-	//StorageDB.CloseDatabase();
 }

@@ -3,12 +3,27 @@
 
 LogOperation Logger;
 
-DarunGrim::DarunGrim()
+DarunGrim::DarunGrim(): pOneIDAClientManagerTheSource(NULL), pOneIDAClientManagerTheTarget(NULL)
 {
 }
 
 DarunGrim::~DarunGrim()
 {
+	if( pStorageDB )
+	{
+		pStorageDB->CloseDatabase();
+		delete pStorageDB;
+	}
+
+	if( pOneIDAClientManagerTheSource )
+		delete pOneIDAClientManagerTheSource;
+
+	if( pOneIDAClientManagerTheTarget )
+		delete pOneIDAClientManagerTheTarget;
+
+	if( pDiffMachine )
+		delete pDiffMachine;
+
 	_CrtDumpMemoryLeaks();
 }
 
@@ -26,7 +41,8 @@ void DarunGrim::SetIDAPath( const char *path )
 		aIDAClientManager.SetIDAPath( path );
 }
 
-bool DarunGrim::RunIDAToGenerateDB( char *ParamStorageFilename, 
+bool DarunGrim::GenerateDB( 
+	char *ParamStorageFilename, 
 	char *LogFilename, 
 	char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 	char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget )
@@ -41,6 +57,29 @@ bool DarunGrim::RunIDAToGenerateDB( char *ParamStorageFilename,
 	aIDAClientManager.RunIDAToGenerateDB(TheSourceFilename,StartAddressForSource,EndAddressForSource);
 	aIDAClientManager.RunIDAToGenerateDB(TheTargetFilename,StartAddressForTarget,EndAddressForTarget);
 	return OpenDatabase();
+}
+
+bool DarunGrim::GenerateDB()
+{
+	IDAClientManager *pIDAClientManager=new IDAClientManager(DARUNGRIM2_PORT, pStorageDB );
+	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
+	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
+
+	pIDAClientManager->AssociateSocket( pOneIDAClientManagerTheSource, TRUE );
+	pIDAClientManager->AssociateSocket( pOneIDAClientManagerTheTarget, TRUE );
+
+	//Run idc for each file
+	/*
+	Create temporary IDC file: <idc filename>
+	"static main()
+	{
+		RunPlugin("DarunGrim2",1);
+		SendDiassemblyInfo("%s");
+		Exit(0);
+	}",StorageFilename
+	Execute "c:\program files\IDA\idag" -A -S<idc filename> <filename> for each file
+	*/
+	return TRUE;
 }
 
 bool DarunGrim::OpenDatabase()
@@ -61,8 +100,16 @@ bool DarunGrim::Analyze()
 	int TheSourceFileID=1;
 	int TheTargetFileID=2;
 
-	pDiffMachine=new DiffMachine();
-	pDiffMachine->Retrieve( *pStorageDB,TRUE,TheSourceFileID,TheTargetFileID);
+	if( pOneIDAClientManagerTheSource && pOneIDAClientManagerTheTarget )
+	{
+		pDiffMachine=new DiffMachine( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget );
+	}
+	else
+	{
+		pDiffMachine=new DiffMachine();
+		pDiffMachine->Retrieve( *pStorageDB,TRUE,TheSourceFileID,TheTargetFileID);
+	}
+
 	pDiffMachine->Analyze();
 	pDiffMachine->Save( *pStorageDB );
 	return TRUE;

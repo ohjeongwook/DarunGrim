@@ -9,6 +9,9 @@ class DarunGrim
 {
 private:
 	IDAClientManager aIDAClientManager;
+	OneIDAClientManager *pOneIDAClientManagerTheSource;
+	OneIDAClientManager *pOneIDAClientManagerTheTarget;
+
 	DBWrapper *pStorageDB;
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase();
@@ -18,9 +21,10 @@ public:
 	~DarunGrim();
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 	void SetIDAPath( const char *path );
-	bool RunIDAToGenerateDB( char *StorageFilename, 
+	bool GenerateDB( char *StorageFilename, 
 		char *LogFilename, 
 		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
+	bool GenerateDB();
 	bool Analyze();
 };
