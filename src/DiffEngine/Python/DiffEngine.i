@@ -79,3 +79,5 @@ public:
 	BOOL Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=TRUE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
+
+void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );

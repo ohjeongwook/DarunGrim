@@ -155,3 +155,7 @@ DiffMachine_swigregister(DiffMachine)
 
 
 
+def SetLogParameters(*args):
+  return _DiffEngine.SetLogParameters(*args)
+SetLogParameters = _DiffEngine.SetLogParameters
+
