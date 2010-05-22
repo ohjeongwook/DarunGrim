@@ -1,1 +1,2 @@
 copy *.py ..\..\..\Bin
+pause
