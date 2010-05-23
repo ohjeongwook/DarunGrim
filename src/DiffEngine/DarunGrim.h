@@ -25,7 +25,7 @@ public:
 		char *LogFilename, 
 		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
-	bool GenerateDB();
+	bool ConnectToIDA();
 	bool Analyze();
 	bool ShowOnIDA();
 };

@@ -131,7 +131,7 @@ void main(int argc,char *argv[])
 
 	char *StorageFilename=argv[optind];
 	
-	if(RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename)
+	if( RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename )
 	{
 		pDarunGrim->GenerateDB( StorageFilename, LogFilename, 
 			TheSourceFilename,StartAddressForSource,EndAddressForSource,
@@ -139,7 +139,7 @@ void main(int argc,char *argv[])
 	}
 	else if( !( RetrieveFromFile || RetrieveFromDB ) )
 	{
-		pDarunGrim->GenerateDB();
+		pDarunGrim->ConnectToIDA();
 	}
 
 	pDarunGrim->Analyze();
