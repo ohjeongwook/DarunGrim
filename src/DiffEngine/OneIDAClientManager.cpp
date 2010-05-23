@@ -25,7 +25,8 @@ extern int DebugLevel;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-OneIDAClientManager::OneIDAClientManager(DBWrapper *StorageDB)
+OneIDAClientManager::OneIDAClientManager(DBWrapper *StorageDB):
+	ClientAnalysisInfo(NULL)
 {
 	ClientAnalysisInfo = NULL;
 	m_FileID = 0;
@@ -40,6 +41,19 @@ OneIDAClientManager::~OneIDAClientManager()
 	if(m_OriginalFilePath)
 		free(m_OriginalFilePath);
 
+	ClientAnalysisInfo->name_hash_map.clear();
+
+	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
+	for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.begin();
+		map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
+		map_info_hash_map_iter++)
+	{
+		if( map_info_hash_map_iter->second )
+			delete map_info_hash_map_iter->second;
+	}
+
+	ClientAnalysisInfo->map_info_hash_map.clear();
+
 	multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
 	for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
 		address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
@@ -50,6 +64,11 @@ OneIDAClientManager::~OneIDAClientManager()
 			free( address_fingerprint_hash_map_Iter->second );
 		}
 	}
+	ClientAnalysisInfo->address_fingerprint_hash_map.clear();
+	ClientAnalysisInfo->fingerprint_hash_map.clear();
+
+	if( ClientAnalysisInfo )
+		delete ClientAnalysisInfo;
 }
 
 PBYTE OneIDAClientManager::ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pType, DWORD *pLength)
@@ -682,7 +701,7 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 		argv[1], strtoul10(argv[1]), 
 		argv[2], strtoul10(argv[2]), 
 		argv[3], strtoul10(argv[3])
-		);
+	);
 #endif
 	ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
 	return 0;
@@ -737,7 +756,7 @@ void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD
 int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
 {
 	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
-	if(argv[1] && argv[1][0] != NULL)
+	if( argv[1] && argv[1][0] != NULL )
 	{
 		DWORD Address = strtoul10(argv[0]);
 		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
@@ -752,7 +771,7 @@ int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **nam
 
 BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
 {
-	if(ClientAnalysisInfo->fingerprint_hash_map.size()  ==  0)
+	if( ClientAnalysisInfo->fingerprint_hash_map.size()  ==  0 )
 	{
 		char FunctionAddressConditionBuffer[50]={0,};
 		if( FunctionAddress )
@@ -760,7 +779,7 @@ BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
 			_snprintf( FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer) - 1, "AND FunctionAddress = '%d'", FunctionAddress );
 		}
 
-		Logger.Log( 10,  "Condition [%s]\n", FunctionAddressConditionBuffer );
+		//Logger.Log( 10,  "Condition [%s]\n", FunctionAddressConditionBuffer );
 
 		m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback, 
 			(void *)ClientAnalysisInfo, 

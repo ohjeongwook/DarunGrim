@@ -1,5 +1,10 @@
 #include "Common.h"
 
+#ifdef _DEBUG
+#include <conio.h>
+#include <ctype.h>
+#endif
+
 #include "IDAClientManager.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
@@ -54,6 +59,11 @@ void main(int argc,char *argv[])
 	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+
+#ifdef _DEBUG
+	printf("Just before starting main logic, press any key to continue...\n");
+	_getch();
+#endif
 
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
@@ -155,6 +165,15 @@ void main(int argc,char *argv[])
 		pDarunGrim->ShowOnIDA();
 	}
 
+#ifdef _DEBUG
+	//printf("Just before calling free, press any key to continue...\n");
+	//_getch();
+#endif
 	delete pDarunGrim;
+#ifdef _DEBUG
+	printf("Just after calling free, press any key to continue...\n");
+	_getch();
+#endif
+
 	_CrtDumpMemoryLeaks();
 }

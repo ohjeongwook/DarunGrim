@@ -23,7 +23,7 @@ int DebugLevel = 0;
 
 extern LogOperation Logger;
 
-DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): 
+DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
 	SourceFunctionAddress( 0 ), 
 	TargetFunctionAddress( 0 ), 
 	DebugFlag( 0 ),
@@ -51,6 +51,8 @@ void DiffMachine::ClearFunctionMatchInfoList()
 
 DiffMachine::~DiffMachine()
 {
+	DiffResults->MatchMap.clear();
+	DiffResults->ReverseAddressMap.clear();
 	ClearFunctionMatchInfoList();
 	if( TheSource )
 		delete TheSource;
@@ -2203,10 +2205,17 @@ void DiffMachine::SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD Pa
 
 BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
 {
+	if( TheSource )
+		delete TheSource;
+	if( TheTarget )
+		delete TheTarget;
+
 	TheSource=new OneIDAClientManager();
 	TheTarget=new OneIDAClientManager();
+
 	TheSource->Retrieve( &InputDB, TheSourceFileID, bRetrieveDataForAnalysis, SourceFunctionAddress );
 	TheTarget->Retrieve( &InputDB, TheTargetFileID, bRetrieveDataForAnalysis, TargetFunctionAddress );
+
 	m_InputDB=&InputDB;
 	m_TheSourceFileID=TheSourceFileID;
 	m_TheTargetFileID=TheTargetFileID;

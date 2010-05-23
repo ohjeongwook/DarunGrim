@@ -96,6 +96,10 @@ bool DarunGrim::ConnectToIDA()
 bool DarunGrim::OpenDatabase()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
+
+	if( pStorageDB )
+		delete pStorageDB;
+
 	pStorageDB = new DBWrapper( StorageFilename );
 
 	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT);
