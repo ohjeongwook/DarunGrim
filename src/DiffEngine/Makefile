@@ -36,6 +36,7 @@ conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib
 !IFDEF NODEBUG
 conlibs=$(conlibs) LIBCMT.LIB
 !ELSE
+conflags=$(conflags) /DEBUG
 conlibs=$(conlibs) LIBCMTD.LIB /NODEFAULTLIB:Libcmt.lib
 !ENDIF
 
