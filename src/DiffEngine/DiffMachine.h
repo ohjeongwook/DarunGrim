@@ -119,6 +119,9 @@ private:
 
 public:
 	DiffMachine( OneIDAClientManager *the_source=NULL, OneIDAClientManager *the_target=NULL );
+	~DiffMachine();
+	void ClearFunctionMatchInfoList();
+
 	void SetOneIDAClientManagers( OneIDAClientManager *the_source, OneIDAClientManager *the_target );
 	OneIDAClientManager *GetTheSource();
 	OneIDAClientManager *GetTheTarget();

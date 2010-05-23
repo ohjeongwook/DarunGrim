@@ -26,12 +26,6 @@ DarunGrim::~DarunGrim()
 		delete pStorageDB;
 	}
 
-	if( pOneIDAClientManagerTheSource )
-		delete pOneIDAClientManagerTheSource;
-
-	if( pOneIDAClientManagerTheTarget )
-		delete pOneIDAClientManagerTheTarget;
-
 	if( pDiffMachine )
 		delete pDiffMachine;
 
@@ -74,7 +68,7 @@ bool DarunGrim::GenerateDB(
 	return OpenDatabase();
 }
 
-bool DarunGrim::GenerateDB()
+bool DarunGrim::ConnectToIDA()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pIDAClientManager->SetDatabase( pStorageDB );

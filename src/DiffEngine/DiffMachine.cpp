@@ -23,15 +23,39 @@ int DebugLevel = 0;
 
 extern LogOperation Logger;
 
-DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): SourceFunctionAddress( 0 ), TargetFunctionAddress( 0 ), DebugFlag( 0 )
+DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ): 
+	SourceFunctionAddress( 0 ), 
+	TargetFunctionAddress( 0 ), 
+	DebugFlag( 0 ),
+	TheSource( NULL ),
+	TheTarget( NULL )
 {
 	m_InputDB=NULL;
 	m_TheSourceFileID=0;
 	m_TheTargetFileID=0;
-	TheSource=NULL;
-	TheTarget=NULL;
+
 	DiffResults=NULL;
 	SetOneIDAClientManagers( the_source, the_target );
+}
+
+void DiffMachine::ClearFunctionMatchInfoList()
+{
+	vector <FunctionMatchInfo>::iterator iter;
+	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
+	{
+		free( (*iter).TheSourceFunctionName );
+		free( (*iter).TheTargetFunctionName );
+	}
+	FunctionMatchInfoList.clear();
+}
+
+DiffMachine::~DiffMachine()
+{
+	ClearFunctionMatchInfoList();
+	if( TheSource )
+		delete TheSource;
+	if( TheTarget )
+		delete TheTarget;
 }
 
 void DiffMachine::SetOneIDAClientManagers( OneIDAClientManager *the_source, OneIDAClientManager *the_target )
@@ -201,6 +225,8 @@ void DiffMachine::AnalyzeFunctionSanity()
 			}
 			last_unpatched_addr=unpatched_addr;
 			last_patched_addr=patched_addr;
+
+			free( p_one_location_info );
 		}
 	}
 }
@@ -1497,7 +1523,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	if( !DiffResults ||! TheSource ||!TheTarget )
 		return;
 
-	FunctionMatchInfoList.clear();
+	ClearFunctionMatchInfoList();
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
 		match_map_iter++ )
@@ -1559,6 +1585,10 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			}
 			last_unpatched_addr=match_info.TheSourceAddress;
 			last_patched_addr=match_info.TheTargetAddress;
+		}
+
+		if( p_one_location_info )
+		{
 #ifndef USE_LEGACY_MAP
 			free( p_one_location_info );
 #endif
@@ -1596,7 +1626,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 					match_info.EndAddress=p_one_location_info->EndAddress;
 					match_info.Type=0;
 					match_info.TheTargetAddress=0;
-					match_info.TheTargetFunctionName="";
+					match_info.TheTargetFunctionName=_strdup("");
 					match_info.MatchRate=0;
 					match_info.MatchCountForTheSource=0;
 					match_info.MatchCountWithModificationForTheSource=0;
@@ -1644,7 +1674,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 				if( p_one_location_info->BlockType==FUNCTION_BLOCK )
 				{
 					match_info.TheSourceAddress=0;
-					match_info.TheSourceFunctionName="";
+					match_info.TheSourceFunctionName=_strdup( "" );
 					match_info.BlockType=p_one_location_info->BlockType;
 					match_info.EndAddress=0;
 					match_info.Type=0;

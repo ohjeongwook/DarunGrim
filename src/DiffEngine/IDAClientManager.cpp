@@ -14,7 +14,9 @@ extern LogOperation Logger;
 IDAClientManager::IDAClientManager(): 
 	EscapedOutputFilename(NULL),
 	EscapedLogFilename(NULL),
-	ListeningSocket(INVALID_SOCKET)
+	ListeningSocket(INVALID_SOCKET),
+	TheSource(NULL),
+	TheTarget(NULL)
 {
 	IDAPath=_strdup(DEFAULT_IDA_PATH);
 }
@@ -47,6 +49,12 @@ IDAClientManager::~IDAClientManager()
 		free(EscapedOutputFilename);
 	if(EscapedLogFilename)
 		free(EscapedLogFilename);
+
+	if( TheSource )
+		delete TheSource;
+
+	if( TheTarget )
+		delete TheTarget;
 }
 
 OneIDAClientManager *IDAClientManager::GetOneIDAClientManagerFromFile(char *DataFile)

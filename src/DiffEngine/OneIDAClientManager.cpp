@@ -39,6 +39,17 @@ OneIDAClientManager::~OneIDAClientManager()
 {
 	if(m_OriginalFilePath)
 		free(m_OriginalFilePath);
+
+	multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
+	for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
+		address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
+		address_fingerprint_hash_map_Iter++)
+	{
+		if( address_fingerprint_hash_map_Iter->second )
+		{
+			free( address_fingerprint_hash_map_Iter->second );
+		}
+	}
 }
 
 PBYTE OneIDAClientManager::ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pType, DWORD *pLength)
@@ -731,7 +742,9 @@ int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **nam
 		DWORD Address = strtoul10(argv[0]);
 		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
 		if(FingerprintStr)
+		{
 			ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
+		}
 		ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(argv[2], Address));
 	}
 	return 0;
