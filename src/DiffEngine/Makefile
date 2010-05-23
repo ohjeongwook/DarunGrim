@@ -24,17 +24,20 @@ cflags=$(cflags) -I$(ZLIB_WRAPPER_DIR)
 cflags=$(cflags) -I$(DBWRAPPER_DIR) 
 cflags=$(cflags) -I$(LIB_DIR) 
 cflags=$(cflags) -I$(XGETOPT_DIR) 
-cflags=$(cflags) /D_DEBUG /D_MTd /Zi /D_CRTDBG_MAP_ALLOC
+cflags=$(cflags) $(cdebug) $(cvarsmt)
 #cflags=$(cflags) /FICommon.h
 cflags=$(cflags) /EHsc
 cflags=$(cflags) -Ic:\WTL\include
 cflags=$(cflags) /Ddprintf=printf
 cvars=
 
-conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib LIBCMTD.LIB
-conflags=$(conflags) /DEBUG 
-#/NODEFAULTLIB:libcmt
-#/NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD 
+conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib 
+
+!IFDEF NODEBUG
+conlibs=$(conlibs) LIBCMT.LIB
+!ELSE
+conlibs=$(conlibs) LIBCMTD.LIB /NODEFAULTLIB:Libcmt.lib
+!ENDIF
 
 python_include=-IC:\Python26\include -D__WIN32__
 python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib
