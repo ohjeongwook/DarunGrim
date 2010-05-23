@@ -11,17 +11,18 @@ def DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename
 	LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
 
 	darun_grim = DiffEngine.DarunGrim()
-	darun_grim.GenerateDB( 
+	darun_grim.SetIDAPath( IDAPath )
+	darun_grim.GenerateDB(
 		StorageFilename, LogFilename, 
-		TheSourceFilename, 0L, 0L,
-		TheTargetFilename, 0L, 0L)
+		TheSourceFilename, 0, 0,
+		TheTargetFilename, 0, 0)
 	darun_grim.Analyze()
 
 if __name__ == '__main__':
 	TheSourceFilename = sys.argv[1]
 	TheTargetFilename = sys.argv[2]
+	StorageFilename = sys.argv[3]
 
-	StorageFilename = 'test.dgf'
 	LogFilename = 'test.log'
 
 	IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'

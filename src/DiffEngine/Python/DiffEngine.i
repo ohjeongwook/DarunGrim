@@ -1,6 +1,7 @@
 /* File : DiffEngine.i */
 %module DiffEngine
 %include typemaps.i
+
 %{
 #include <windows.h>
 #include "DataStructure.h"
@@ -93,8 +94,8 @@ public:
 	bool GenerateDB(
 		char *StorageFilename, 
 		char *LogFilename, 
-		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
-		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
-	bool GenerateDB();
+		char *TheSourceFilename, int StartAddressForSource, int EndAddressForSource, 
+		char *TheTargetFilename, int StartAddressForTarget, int EndAddressForTarget );
+	bool ConnectToIDA();
 	bool Analyze();
 };

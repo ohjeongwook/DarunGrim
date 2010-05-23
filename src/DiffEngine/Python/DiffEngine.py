@@ -164,6 +164,7 @@ class DarunGrim(_object):
     def SetLogParameters(self, *args): return _DiffEngine.DarunGrim_SetLogParameters(self, *args)
     def SetIDAPath(self, *args): return _DiffEngine.DarunGrim_SetIDAPath(self, *args)
     def GenerateDB(self, *args): return _DiffEngine.DarunGrim_GenerateDB(self, *args)
+    def ConnectToIDA(self): return _DiffEngine.DarunGrim_ConnectToIDA(self)
     def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
