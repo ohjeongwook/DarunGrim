@@ -1,0 +1,1 @@
+grep ".cpp" log.txt|sed "s/ :.*$//g"|sort|uniq > FilterLog.txt
