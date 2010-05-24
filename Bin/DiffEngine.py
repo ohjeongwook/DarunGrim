@@ -116,10 +116,12 @@ class IDAClientManager(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, IDAClientManager, name)
     __repr__ = _swig_repr
-    def __init__(self, port = 0, OutputDB = None): 
-        this = _DiffEngine.new_IDAClientManager(port, OutputDB)
+    def __init__(self): 
+        this = _DiffEngine.new_IDAClientManager()
         try: self.this.append(this)
         except: self.this = this
+    def SetDatabase(self, *args): return _DiffEngine.IDAClientManager_SetDatabase(self, *args)
+    def StartIDAListener(self, *args): return _DiffEngine.IDAClientManager_StartIDAListener(self, *args)
     def SetIDAPath(self, *args): return _DiffEngine.IDAClientManager_SetIDAPath(self, *args)
     def SetOutputFilename(self, *args): return _DiffEngine.IDAClientManager_SetOutputFilename(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.IDAClientManager_SetLogFilename(self, *args)
@@ -152,6 +154,26 @@ class DiffMachine(_object):
     __del__ = lambda self : None;
 DiffMachine_swigregister = _DiffEngine.DiffMachine_swigregister
 DiffMachine_swigregister(DiffMachine)
+
+class DarunGrim(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, DarunGrim, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, DarunGrim, name)
+    __repr__ = _swig_repr
+    def SetLogParameters(self, *args): return _DiffEngine.DarunGrim_SetLogParameters(self, *args)
+    def SetIDAPath(self, *args): return _DiffEngine.DarunGrim_SetIDAPath(self, *args)
+    def GenerateDB(self, *args): return _DiffEngine.DarunGrim_GenerateDB(self, *args)
+    def ConnectToIDA(self): return _DiffEngine.DarunGrim_ConnectToIDA(self)
+    def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
+    def __init__(self): 
+        this = _DiffEngine.new_DarunGrim()
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _DiffEngine.delete_DarunGrim
+    __del__ = lambda self : None;
+DarunGrim_swigregister = _DiffEngine.DarunGrim_swigregister
+DarunGrim_swigregister(DarunGrim)
 
 
 
