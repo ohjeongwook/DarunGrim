@@ -39,7 +39,7 @@ bool StartProcess(LPTSTR szCmdline)
 	}
 	return FALSE;
 }
-
+/*
 void *malloc_wrapper(size_t size)
 {
 	if(ServerHandle)
@@ -76,7 +76,7 @@ void *realloc(void *memblock,size_t old_size,size_t size)
 	}else{
 		return realloc(memblock,size);
 	}
-}
+}*/
 
 char *WriteToTemporaryFile(const char *format,...)
 {
@@ -159,7 +159,7 @@ void Execute(bool Wait,const char *format,...)
 	_vsnprintf(szCmdline,sizeof(szCmdline)/sizeof(char),format,args);
 	va_end(args);
 
-	if(CreateProcess(
+	if( CreateProcess(
 		NULL,
 		szCmdline,      // Command line
 		NULL,           // Process handle not inheritable
