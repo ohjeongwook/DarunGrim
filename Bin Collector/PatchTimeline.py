@@ -1,11 +1,11 @@
 from FileStore import *
-import Indexer
+import PatchesDatabaseWrapper
 
 class Analyzer:
 	DebugLevel = 0
 	def __init__( self, database_name ):
 		self.DatabaseName = database_name
-		self.Database = Indexer.Database( self.DatabaseName )
+		self.Database = PatchesDatabaseWrapper.Database( self.DatabaseName )
 
 	def GetPatchFileNamePairs( self ):
 		patch_file_name_pairs = []

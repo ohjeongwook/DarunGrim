@@ -1,6 +1,6 @@
 import sys
 sys.path.append('..')
-import Indexer
+import PatchesDatabaseWrapper
 from mako.template import Template
 
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
@@ -61,7 +61,7 @@ Body data: ${col}\
 class Worker:
 	def __init__ ( self, database = r'..\test.db' ):
 		self.DatabaseName = database
-		self.Database = Indexer.Database( self.DatabaseName )
+		self.Database = PatchesDatabaseWrapper.Database( self.DatabaseName )
 
 	def Patches( self ):
 		mytemplate = Template( PatchesTemplateText )

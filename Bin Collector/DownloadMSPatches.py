@@ -1,14 +1,14 @@
 import os
 import mechanize
 from BeautifulSoup import BeautifulSoup
-import Indexer
+import PatchesDatabaseWrapper
 
 class PatchDownloader:
 	DebugLevel = 3
 	ShowErrorMessage = True
 	def __init__( self, DownloadFolder ):
 		self.DownloadFolder = DownloadFolder
-		self.Database = Indexer.Database( 'test.db' )
+		self.Database = PatchesDatabaseWrapper.Database( 'test.db' )
 
 	def DownloadFileByFamilyID( self, br, family_id ):
 		link = 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en'
