@@ -25,7 +25,7 @@ class FileDiffer:
 			self.InitFileDiff( patch_name, source_filename, matched_patch_name, target_filename )
 
 	def InitFileDiff( self, patch_name, source_filename, matched_patch_name, target_filename, storage_filename = None ):
-		base_filename = source_filename
+		base_filename = os.path.basename( source_filename )
 		dot_pos = source_filename.find('.')
 		if dot_pos >= 0:
 			base_filename = source_filename[:dot_pos]
@@ -39,6 +39,7 @@ class FileDiffer:
 		if os.path.isfile( storage_filename ) and os.path.getsize( storage_filename ) > 0:
 			print 'Already analyzed',storage_filename
 		else:
+			print 'storage_filename',storage_filename
 			DarunGrimEngine.DiffFile( source_filename, target_filename, storage_filename, LogFilename, self.IDAPath )
 
 	def InitMSFileDiffAll( self ):
