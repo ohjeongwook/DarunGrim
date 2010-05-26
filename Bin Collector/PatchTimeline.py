@@ -3,9 +3,12 @@ import PatchDatabaseWrapper
 
 class Analyzer:
 	DebugLevel = 0
-	def __init__( self, database_name ):
-		self.DatabaseName = database_name
-		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+	def __init__( self, database_name = None, database = None ):
+		if database_name:
+			self.DatabaseName = database_name
+			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		elif database:
+			self.Database = database
 
 	def GetPatchFileNamePairs( self ):
 		patch_file_name_pairs = []
