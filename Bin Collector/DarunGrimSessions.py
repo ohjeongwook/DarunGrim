@@ -2,6 +2,7 @@ import sys
 sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
 import PatchTimeline
 import DarunGrimEngine
+import os
 
 class Manager:
 	DebugLevel = 0
