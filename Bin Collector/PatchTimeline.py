@@ -27,11 +27,16 @@ class Analyzer:
 				patch_file_name_pairs.append( ( patch.name, filename ) )
 		return patch_file_name_pairs
 
-	def GetPatchInfo( self, filename ):
+	def GetPatchInfo( self, filename = None, id = None ):
 		patch_infos_by_patch_name = {}
 		
 		process_patches = {}
-		for entry in self.Database.GetFileByFileName( filename ):
+		if filename:
+			entries = self.Database.GetFileByFileName( filename ):
+		elif id:
+			entries = self.Database.GetFileByID( id ):
+
+		for entry in entries:
 			patch_name = 'Default'
 			if entry.downloads and entry.downloads.patches:
 				patch_name = entry.downloads.patches.name
@@ -154,18 +159,18 @@ class Analyzer:
 			index += 1
 		return ( maximum_match_patch_name, maximum_match_file_entry, maximum_point )
 
-	def GetPatchPairsForAnalysis( self, filename, patch_name_to_check = None ):
-		file_patch_info = self.GetPatchInfo( filename )
+	def GetPatchPairsForAnalysis( self, filename = None, id = None, patch_name = None ):
+		file_patch_info = self.GetPatchInfo( filename, id )
 		patch_pairs_for_analysis = []
-		for ( patch_name, file_entries ) in file_patch_info:		
-			if patch_name_to_check and not patch_name in patch_name_to_check:
+		for ( current_patch_name, file_entries ) in file_patch_info:		
+			if patch_name and current_patch_name != patch_name:
 				continue
 
 			maximum_point = 0
 			maximum_entry = None
 			
 			for file_entry in file_entries:
-				( matched_patch_name, matched_file_entry, match_point ) = self.FindPatchTarget( file_patch_info, patch_name, file_entry )
+				( matched_patch_name, matched_file_entry, match_point ) = self.FindPatchTarget( file_patch_info, current_patch_name, file_entry )
 				if match_point > maximum_point:
 					maximum_entry = ( matched_patch_name, file_entry, matched_file_entry, match_point )
 					maximum_point = match_point
@@ -174,10 +179,10 @@ class Analyzer:
 				( matched_patch_name, file_entry, matched_file_entry, match_point ) = maximum_entry
 				if self.DebugLevel > 2:
 					print '='*80
-					print patch_name
+					print current_patch_name
 					print file_entry
 					print matched_patch_name
 					print matched_file_entry
-				patch_pairs_for_analysis.append( ( patch_name, file_entry, matched_patch_name, matched_file_entry ) )
+				patch_pairs_for_analysis.append( ( current_patch_name, file_entry, matched_patch_name, matched_file_entry ) )
 
 		return patch_pairs_for_analysis
