@@ -1,6 +1,6 @@
 import sys
 sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
-import PatchTimelineAnalyzer
+import PatchTimeline
 import DarunGrimEngine
 
 class Manager:
