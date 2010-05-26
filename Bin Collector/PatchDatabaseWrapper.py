@@ -163,6 +163,9 @@ class Database:
 	def GetDownloads( self ):
 		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
 
+	def GetFileByID( self, id ):
+		return self.SessionInstance.query( FileIndex ).filter( FileIndex.id==id ).all()
+
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
