@@ -136,7 +136,7 @@ class Database:
 		return self.SessionInstance.query( Patch ).filter_by( name=name ).first() 
 
 	def GetPatches( self ):
-		return self.SessionInstance.query( Patch ).all()
+		return self.SessionInstance.query( Patch ).order_by(Patch.name).all()
 
 	def AddCVE( self, patch, cve_string, name ):
 		cve = CVE( cve_string, name )
