@@ -3,7 +3,9 @@ sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2
 from PatchAnalyzer import *
 import DarunGrimEngine
 
-class DarunGrimSessionManager:
+class Manager:
+	DebugLevel = 0
+
 	def __init__( self, indexfile = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
 		self.IndexFile = indexfile
 		self.OutputDirectory = output_directory
@@ -26,9 +28,10 @@ class DarunGrimSessionManager:
 
 	def InitFileDiff( self, patch_name, source_filename, matched_patch_name, target_filename, storage_filename = None ):
 		base_filename = os.path.basename( source_filename )
-		dot_pos = source_filename.find('.')
+		print 'base_name', base_filename 
+		dot_pos = base_filename.find('.')
 		if dot_pos >= 0:
-			base_filename = source_filename[:dot_pos]
+			base_filename = base_filename[:dot_pos]
 		
 		prefix = patch_name + '-' + matched_patch_name + '-' + base_filename
 
@@ -39,7 +42,10 @@ class DarunGrimSessionManager:
 		if os.path.isfile( storage_filename ) and os.path.getsize( storage_filename ) > 0:
 			print 'Already analyzed',storage_filename
 		else:
-			print 'storage_filename',storage_filename
+			if self.DebugLevel > 2:
+				print 'source_filename',source_filename
+				print 'target_filename',target_filename
+				print 'storage_filename',storage_filename
 			DarunGrimEngine.DiffFile( source_filename, target_filename, storage_filename, LogFilename, self.IDAPath )
 
 	def InitMSFileDiffAll( self ):
@@ -47,5 +53,5 @@ class DarunGrimSessionManager:
 			self.InitMSFileDiff( patch_name, filename )
 
 if __name__ == '__main__':
-	file_differ = DarunGrimSessionManager()
+	file_differ = Manager()
 	file_differ.InitMSFileDiffAll()
