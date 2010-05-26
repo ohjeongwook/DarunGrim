@@ -1,6 +1,6 @@
 import sys
 sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
-from PatchAnalyzer import *
+import PatchTimelineAnalyzer
 import DarunGrimEngine
 
 class Manager:
@@ -13,11 +13,11 @@ class Manager:
 		if not os.path.isdir( self.OutputDirectory ):
 			os.makedirs( self.OutputDirectory )
 		
-		self.PatchAnalyzer = PatchSorter( self.IndexFile )
+		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.IndexFile )
 
 	def InitMSFileDiff( self, patch_name, filename ):
 		print 'Analyzing', patch_name, filename
-		for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in self.PatchAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
+		for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
 			print '='*80
 			print patch_name,matched_patch_name
 	
@@ -49,7 +49,7 @@ class Manager:
 			DarunGrimEngine.DiffFile( source_filename, target_filename, storage_filename, LogFilename, self.IDAPath )
 
 	def InitMSFileDiffAll( self ):
-		for ( patch_name, filename ) in self.PatchAnalyzer.GetPatchFileNamePairs():
+		for ( patch_name, filename ) in self.PatchTimelineAnalyzer.GetPatchFileNamePairs():
 			self.InitMSFileDiff( patch_name, filename )
 
 if __name__ == '__main__':

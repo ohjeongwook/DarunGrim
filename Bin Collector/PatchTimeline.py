@@ -1,7 +1,7 @@
 from FileStore import *
 import Indexer
 
-class PatchSorter:
+class Analyzer:
 	DebugLevel = 0
 	def __init__( self, database_name ):
 		self.DatabaseName = database_name
