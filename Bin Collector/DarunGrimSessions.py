@@ -3,7 +3,7 @@ sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2
 from PatchAnalyzer import *
 import DarunGrimEngine
 
-class FileDiffer:
+class DarunGrimSessionManager:
 	def __init__( self, indexfile = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
 		self.IndexFile = indexfile
 		self.OutputDirectory = output_directory
@@ -47,5 +47,5 @@ class FileDiffer:
 			self.InitMSFileDiff( patch_name, filename )
 
 if __name__ == '__main__':
-	file_differ = FileDiffer()
+	file_differ = DarunGrimSessionManager()
 	file_differ.InitMSFileDiffAll()
