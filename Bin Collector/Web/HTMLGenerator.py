@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
-import PatchesDatabaseWrapper
+import PatchDatabaseWrapper
+import PatchTimeline
 from mako.template import Template
 
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
@@ -61,7 +62,7 @@ Body data: ${col}\
 class Worker:
 	def __init__ ( self, database = r'..\test.db' ):
 		self.DatabaseName = database
-		self.Database = PatchesDatabaseWrapper.Database( self.DatabaseName )
+		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 
 	def Patches( self ):
 		mytemplate = Template( PatchesTemplateText )

@@ -5,16 +5,16 @@ import dircache
 import shutil
 import string
 
-import PatchesDatabaseWrapper
+import PatchDatabaseWrapper
 
 class FileStore:
 	DebugLevel = 0
 	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll' ]
-	def __init__(self, source_binaries_folder, target_binaries_folder, PatchesDatabaseWrapper_database_name = 'test.db' ):
+	def __init__(self, source_binaries_folder, target_binaries_folder, PatchDatabaseWrapper_database_name = 'test.db' ):
 		self.SourceBinariesFolder = source_binaries_folder
 		self.TargetBinariesFolder = target_binaries_folder
-		self.DatabaseName = PatchesDatabaseWrapper_database_name
-		self.Database = PatchesDatabaseWrapper.Database( self.DatabaseName )
+		self.DatabaseName = PatchDatabaseWrapper_database_name
+		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.Download = None
 
 	def ExtractFilesInDatabase( self ):
