@@ -3,37 +3,48 @@ sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2
 from PatchAnalyzer import *
 import DarunGrimEngine
 
-OutputDirectory = r'C:\mat\Projects\DGFs'
-IndexFile = 'test.db'
-AnalysisTargetFiles = sys.argv[1:]
+class FileDiffer:
+	def __init__( self, indexfile = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
+		self.IndexFile = indexfile
+		self.OutputDirectory = output_directory
+		self.IDAPath = ida_path
+		if not os.path.isdir( self.OutputDirectory ):
+			os.makedirs( self.OutputDirectory )
+		
+		self.PatchAnalyzer = PatchSorter( self.IndexFile )
 
-if not os.path.isdir( OutputDirectory ):
-	os.makedirs( OutputDirectory )
+	def InitMSFileDiff( self, patch_name, filename ):
+		print 'Analyzing', patch_name, filename
+		for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in self.PatchAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
+			print '='*80
+			print patch_name,matched_patch_name
 	
-patch_analyzer = PatchSorter( IndexFile )
+			source_filename = matched_file_entries['full_path']
+			target_filename = file_entry['full_path']
+			print patch_name, source_filename, matched_patch_name, target_filename 
+			self.InitFileDiff( patch_name, source_filename, matched_patch_name, target_filename )
 
-for ( patch_name, filename ) in patch_analyzer.GetPatchFileNamePairs():
-	print 'Analyzing', patch_name, filename
-	for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in patch_analyzer.GetPatchPairsForAnalysis( filename, patch_name ):
-		print '='*80
-		#print patch_name, file_entry
-		#print matched_patch_name, matched_file_entries
-		print patch_name,matched_patch_name
-
-		TheSourceFilename = matched_file_entries['full_path']
-		TheTargetFilename = file_entry['full_path']
-
-		base_filename = filename
-		dot_pos = filename.find('.')
+	def InitFileDiff( self, patch_name, source_filename, matched_patch_name, target_filename, storage_filename = None ):
+		base_filename = source_filename
+		dot_pos = source_filename.find('.')
 		if dot_pos >= 0:
-			base_filename = filename[:dot_pos]
+			base_filename = source_filename[:dot_pos]
 		
 		prefix = patch_name + '-' + matched_patch_name + '-' + base_filename
-		StorageFilename =  os.path.join( OutputDirectory , prefix + ".dgf" )
-		LogFilename = os.path.join( OutputDirectory , prefix + ".log" )
-		IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 
-		if os.path.isfile( StorageFilename ) and os.path.getsize( StorageFilename ) > 0:
-			print 'Already analyzed',StorageFilename
+		if not storage_filename:
+			storage_filename =  os.path.join( self.OutputDirectory , prefix + ".dgf" )
+		LogFilename = os.path.join( self.OutputDirectory , prefix + ".log" )
+
+		if os.path.isfile( storage_filename ) and os.path.getsize( storage_filename ) > 0:
+			print 'Already analyzed',storage_filename
 		else:
-			DarunGrimEngine.DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
+			DarunGrimEngine.DiffFile( source_filename, target_filename, storage_filename, LogFilename, self.IDAPath )
+
+	def InitMSFileDiffAll( self ):
+		for ( patch_name, filename ) in self.PatchAnalyzer.GetPatchFileNamePairs():
+			self.InitMSFileDiff( patch_name, filename )
+
+if __name__ == '__main__':
+	file_differ = FileDiffer()
+	file_differ.InitMSFileDiffAll()
