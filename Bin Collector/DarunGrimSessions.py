@@ -21,11 +21,7 @@ class Manager:
 
 	def InitMSFileDiff( self, patch_name, filename ):
 		print 'Analyzing', patch_name, filename
-<<<<<<< HEAD
 		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
-=======
-		for ( patch_name, file_entry, matched_patch_name, matched_file_entries ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename = filename, patch_name = patch_name ):
->>>>>>> master
 			print '='*80
 			print target_patch_name,source_patch_name
 	
