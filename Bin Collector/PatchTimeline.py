@@ -27,16 +27,11 @@ class Analyzer:
 				patch_file_name_pairs.append( ( patch.name, filename ) )
 		return patch_file_name_pairs
 
-	def GetPatchInfo( self, filename = None, id = None ):
+	def GetPatchHistory( self, filename ):
 		patch_infos_by_patch_name = {}
 		
 		process_patches = {}
-		if filename:
-			entries = self.Database.GetFileByFileName( filename ):
-		elif id:
-			entries = self.Database.GetFileByID( id ):
-
-		for entry in entries:
+		for entry in self.Database.GetFileByFileName( filename ):
 			patch_name = 'Default'
 			if entry.downloads and entry.downloads.patches:
 				patch_name = entry.downloads.patches.name
@@ -46,72 +41,16 @@ class Analyzer:
 				
 			if not process_patches.has_key( entry.version_string ):
 				process_patches[entry.version_string] = 1
-				(os_string, sp_string, os_type, os_code, build_number) = self.ParseVersionString( entry.version_string )
-				patch_infos_by_patch_name[patch_name].append( (entry.id, entry.full_path,os_string, sp_string, os_type, os_code, build_number) )
+				patch_infos_by_patch_name[patch_name].append( entry.GetVersionDetail() )
 
-		patch_infos = []
+		sorted_patch_infos = []
 		patch_names = patch_infos_by_patch_name.keys()
 		patch_names.sort()
 		patch_names.reverse()
 		for patch_name in patch_names:
-			file_entries = []
-			for (id, full_path, os_string, sp_string, os_type, os_code, build_number) in patch_infos_by_patch_name[patch_name]:
-				file_entry = {}
-				file_entry['id'] = id
-				file_entry['full_path'] = full_path
-				file_entry['os_code'] = os_code
-				file_entry['os_string'] = os_string
-				file_entry['sp_string'] = sp_string
-				file_entry['os_type'] = os_type
-				file_entry['build_number'] = build_number
-				file_entries.append( file_entry )
-			patch_infos.append( ( patch_name, file_entries ) )
-		return patch_infos
+			sorted_patch_infos.append( ( patch_name, patch_infos_by_patch_name[patch_name] ) )
 
-	def ParseVersionString( self, version_string ):
-		main_parts = version_string.split( ' ' )
-
-		identifier = ''
-		version = ''
-		if len( main_parts ) == 1:
-			version = main_parts[0]
-		elif len( main_parts ) == 2:
-			( version, identifier ) = main_parts
-
-		#### Version
-		version_parts = version.split('.')
-		
-		os_code = ''
-		build_number = ''
-		if len( version_parts ) > 3:
-			os_code = version_parts[0]+'.'+version_parts[1]+'.'+version_parts[2]
-			build_number = version_parts[3]
-
-		
-		#### Distro
-		dot_pos = identifier.find(".")
-		distro=''
-		if dot_pos >= 0:
-			distro = identifier[:dot_pos]
-		distro = distro[1:]
-		distro_parts = distro.split( '_' )
-		os_string = ''
-		sp_string = ''
-		os_type = ''
-		if len( distro_parts ) == 2:
-			os_string = distro_parts[0]
-			if os_string == 'xpsp2':
-				os_string = 'xpsp'
-				sp_string = 'sp2'
-			elif os_string == 'xpclnt':
-				os_string = 'xpsp'
-
-		elif len( distro_parts ) == 3:
-			os_string = distro_parts[0]
-			sp_string = distro_parts[1]
-			os_type = distro_parts[2]
-
-		return (os_string, sp_string, os_type, os_code, build_number)
+		return sorted_patch_infos
 
 	def DumpPatchInfos( self, patch_infos ):
 		version_strings = patch_infos.keys()
@@ -140,7 +79,7 @@ class Analyzer:
 				for file_entry in file_entries:
 					weight = len(file_patch_info)
 					point = weight * (len(file_patch_info) - index) * 30
-					
+
 					if not target_file_entry.has_key('os_code') or ( target_file_entry[ 'os_code' ] == file_entry[ 'os_code' ] ):
 						point += weight * 20
 						if not target_file_entry.has_key('os_string') or ( target_file_entry[ 'os_string' ] == file_entry[ 'os_string' ] ):
@@ -160,7 +99,15 @@ class Analyzer:
 		return ( maximum_match_patch_name, maximum_match_file_entry, maximum_point )
 
 	def GetPatchPairsForAnalysis( self, filename = None, id = None, patch_name = None ):
-		file_patch_info = self.GetPatchInfo( filename, id )
+		file_patch_info = self.GetPatchHistory( filename )
+		target_file_entry = None
+
+		if id:
+			file_entry = self.Database.GetFileByID( id )
+			if file_entry and len( file_entry ) > 0:
+				target_file_entry = file_entry[0].GetVersionDetail()
+				print 'target_file_entry=', target_file_entry
+
 		patch_pairs_for_analysis = []
 		for ( current_patch_name, file_entries ) in file_patch_info:		
 			if patch_name and current_patch_name != patch_name:
@@ -168,8 +115,13 @@ class Analyzer:
 
 			maximum_point = 0
 			maximum_entry = None
-			
-			for file_entry in file_entries:
+
+			if target_file_entry:
+				target_file_entries = [ target_file_entry ]
+			else:
+				target_file_entries = file_entries
+
+			for file_entry in target_file_entries:
 				( matched_patch_name, matched_file_entry, match_point ) = self.FindPatchTarget( file_patch_info, current_patch_name, file_entry )
 				if match_point > maximum_point:
 					maximum_entry = ( matched_patch_name, file_entry, matched_file_entry, match_point )

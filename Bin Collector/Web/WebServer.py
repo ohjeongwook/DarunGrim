@@ -25,6 +25,16 @@ class WebServer(object):
 		return worker.DownloadInfo( id )
 	DownloadInfo.exposed = True
 
+	def FileInfo(self,id = None):
+		worker = HTMLGenerator.Worker()
+		return worker.FileInfo( id )
+	FileInfo.exposed = True
+
+	def StartDiff( self, source_id, target_id ):
+		worker = HTMLGenerator.Worker()
+		return worker.StartDiff( source_id, target_id )
+	StartDiff.exposed = True
+
 if __name__ == '__main__':
 	cherrypy.config.update({'server.socket_host': '0.0.0.0',
                         'server.socket_port': 80,

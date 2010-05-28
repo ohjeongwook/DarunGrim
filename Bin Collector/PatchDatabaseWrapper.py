@@ -109,6 +109,67 @@ class FileIndex(Base):
 
 		self.full_path = full_path
 
+	def GetVersionDetailList( self ):
+		(os_string, sp_string, os_type, os_code, build_number) = self.ParseVersionString( self.version_string )
+		return (self.id, self.full_path,os_string, sp_string, os_type, os_code, build_number)
+
+	def GetVersionDetail( self ):
+		(id, full_path, os_string, sp_string, os_type, os_code, build_number) = self.GetVersionDetailList()
+		file_entry = {}
+		file_entry['id'] = id
+		file_entry['full_path'] = full_path
+		file_entry['os_code'] = os_code
+		file_entry['os_string'] = os_string
+		file_entry['sp_string'] = sp_string
+		file_entry['os_type'] = os_type
+		file_entry['build_number'] = build_number
+		return file_entry
+
+	def ParseVersionString( self, version_string ):
+		main_parts = version_string.split( ' ' )
+
+		identifier = ''
+		version = ''
+		if len( main_parts ) == 1:
+			version = main_parts[0]
+		elif len( main_parts ) == 2:
+			( version, identifier ) = main_parts
+
+		#### Version
+		version_parts = version.split('.')
+		
+		os_code = ''
+		build_number = ''
+		if len( version_parts ) > 3:
+			os_code = version_parts[0]+'.'+version_parts[1]+'.'+version_parts[2]
+			build_number = version_parts[3]
+
+		
+		#### Distro
+		dot_pos = identifier.find(".")
+		distro=''
+		if dot_pos >= 0:
+			distro = identifier[:dot_pos]
+		distro = distro[1:]
+		distro_parts = distro.split( '_' )
+		os_string = ''
+		sp_string = ''
+		os_type = ''
+		if len( distro_parts ) == 2:
+			os_string = distro_parts[0]
+			if os_string == 'xpsp2':
+				os_string = 'xpsp'
+				sp_string = 'sp2'
+			elif os_string == 'xpclnt':
+				os_string = 'xpsp'
+
+		elif len( distro_parts ) == 3:
+			os_string = distro_parts[0]
+			sp_string = distro_parts[1]
+			os_type = distro_parts[2]
+
+		return (os_string, sp_string, os_type, os_code, build_number)
+
 	def __repr__( self ):
 		return "<FileIndex('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )>" % ( self.operating_system, self.service_pack, self.filename, self.company_name, self.version_string, self.patch_identifier, self.version_number, self.release_plan, self.full_path )
 
