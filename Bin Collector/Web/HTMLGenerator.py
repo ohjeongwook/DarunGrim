@@ -118,8 +118,11 @@ class Worker:
 		filename = file_index_entry.filename
 		target_patch_name = file_index_entry.downloads.patches.name
 
+		source_id = 0
+		source_patch_name = 'Not Found'
 		source_filename = 'Not Found'
 		target_filename = 'Not Found'
+		target_id = 0
 		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename = filename, id = id, patch_name = target_patch_name ):
 			print '='*80
 			print target_patch_name,source_patch_name
