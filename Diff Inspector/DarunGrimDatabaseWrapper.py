@@ -221,7 +221,7 @@ class Database:
 		indexes = DisasmTable.keys()
 		indexes.sort()
 	
-		disasm_lines=[]
+		disasm_blocks=[]
 	
 		for index in indexes:
 			( left_address_index, right_address_index ) = DisasmTable[index]
@@ -234,7 +234,6 @@ class Database:
 			if right_address_index:
 				right_address = right_addresses[ right_address_index ]
 	
-			disasm_lines.append( ( hex(left_address)+":", hex(right_address)+":" ) )
 			if DebugLevel > 2:
 				print index, ':', left_address_index, hex(left_address), right_address_index, hex(right_address)
 	
@@ -250,32 +249,30 @@ class Database:
 			if DebugLevel > 2:
 				print 'Split Lines'
 				print left_lines, right_lines
-	
-			i = 0
-			while 1:
-				left_line = ''
-				if len(left_lines) > i:
-					left_line = left_lines[i]
-				right_line = ''
-				if len(right_lines) > i:
-					right_line = right_lines[i]
-	
-				if left_line=='' and right_line=='':
-					break
-	
-				disasm_lines.append( (left_line, right_line) )
-				i += 1
-			disasm_lines.append( ( "", "" ) )
-	
+
+			disasm_blocks.append( ( left_address, left_lines, right_address, right_lines ) )
+		return disasm_blocks
+
+	def GetDisasmLinesSideBySide(self, left_lines, right_lines ):
+		disasm_lines=[]
+		i = 0
+		while 1:
+			left_line = ''
+			if len(left_lines) > i:
+				left_line = left_lines[i]
+			right_line = ''
+			if len(right_lines) > i:
+				right_line = right_lines[i]
+
+			if left_line=='' and right_line=='':
+				break
+
+			disasm_lines.append( (left_line, right_line) )
+			i += 1
 		return disasm_lines
 
-	def GetMatchedFunctionDiffLines( self, source_function_address, target_function_address ):
-		source_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 1, source_function_address )
-		target_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 2, target_function_address )
-		match_map = self.GetMatchMapForFunction( 1, source_function_address )
-		disasm_lines = self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
-
-		disasm_comparion_table = ''
+	def GetAlignedDisasmText(self, disasm_lines ):
+		disasm_text = ''
 		maximum_left_line_length = 0
 		for (left_line, right_line) in disasm_lines:
 			if len( left_line ) > maximum_left_line_length:
@@ -284,9 +281,21 @@ class Database:
 		maximum_left_line_length += 10
 		for (left_line, right_line) in disasm_lines:
 			space_len = maximum_left_line_length - len( left_line )
-			disasm_comparion_table += left_line + " " * space_len + right_line + '\n'
+			disasm_text += left_line + " " * space_len + right_line + '\n'
+		return disasm_text
 
-		return disasm_comparion_table
+	def GetDisasmText(self, comparison_table ):
+		disasm_lines = []
+		for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+			disasm_lines += self.GetDisasmLinesSideBySide( left_lines, right_lines )
+
+		return self.GetAlignedDisasmText( disasm_lines )
+
+	def GetDisasmComparisonTextByFunctionAddress( self, source_function_address, target_function_address ):
+		source_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 1, source_function_address )
+		target_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 2, target_function_address )
+		match_map = self.GetMatchMapForFunction( 1, source_function_address )
+		return self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
 
 if __name__ == '__main__':
 	import sys
@@ -305,5 +314,6 @@ if __name__ == '__main__':
 			print function_match_info.match_count_for_the_source, function_match_info.non_match_count_for_the_source, function_match_info.match_count_with_modificationfor_the_source, function_match_info.match_count_for_the_target, function_match_info.non_match_count_for_the_target, function_match_info.match_count_with_modification_for_the_target
 			#print database.GetFunctionDisasmLinesMap( function_match_info.source_file_id, function_match_info.source_address )
 			#print database.GetMatchMapForFunction( function_match_info.source_file_id, function_match_info.source_address )
-			print database.GetMatchedFunctionDiffLines( function_match_info.source_address, function_match_info.target_address )
+			disasm_table = database.GetDisasmComparisonTextByFunctionAddress( function_match_info.source_address, function_match_info.target_address )
+			print database. GetDisasmText( disasm_table )
 
