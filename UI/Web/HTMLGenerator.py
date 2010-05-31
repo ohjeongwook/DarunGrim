@@ -1,8 +1,12 @@
 import sys
-sys.path.append('..')
+TestDir =  r'..\..\Bin Collector'
+sys.path.append( TestDir )
+sys.path.append(r'..\..\Diff Inspector')
+import os
 import PatchDatabaseWrapper
 import PatchTimeline
 import DarunGrimSessions
+import DarunGrimDatabaseWrapper
 
 from mako.template import Template
 
@@ -90,9 +94,68 @@ Body data: ${col}\
 </body>
 </html>"""
 
+FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
+<p>
+	<table>
+		<tr>
+			<td>Source Function Name</td>
+			<td>Target Function Name</td>
+			<td>Match Count</td>
+			<td>Match Count With Modifications</td>
+			<td>Non Match Count for Source</td>
+			<td>Non Match Count For Target</td>
+		</tr>
+	% for function_match_info in function_match_infos:
+		<tr>
+			<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
+			<td>${function_match_info.target_function_name} (${hex(function_match_info.target_address)})</td>
+			<td>${function_match_info.match_count_for_the_source}</td>
+			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
+			<td>${function_match_info.non_match_count_for_the_source}</td>
+			<td>${function_match_info.non_match_count_for_the_target}</td>
+		</tr>
+	% endfor
+	</table>
+</%def>
+<html>
+<body>
+<%self:layoutdata function_match_infos="${function_match_infos}" args="col">\
+Body data: ${col}\
+</%self:layoutdata>
+</body>
+</html>"""
+
+"""
+str(function_match_info.block_type)
+str(function_match_info.type)
+str( function_match_info.match_rate )
+"""
+
+ComparisonTableTemplateText = """<%def name="layoutdata(comparison_table)">
+<p>
+	<table>
+		<tr>
+			<td>Source</td>
+			<td>Target</td>
+		</tr>
+	% for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+		<tr>
+			<td>${hex(left_address)}<p>${left_lines}</td>
+			<td>${hex(right_address)}<p>${right_lines}</td>
+		</tr>
+	% endfor
+	</table>
+</%def>
+<html>
+<body>
+<%self:layoutdata comparison_table="${comparison_table}" args="col">\
+Body data: ${col}\
+</%self:layoutdata>
+</body>
+</html>"""
 
 class Worker:
-	def __init__ ( self, database = r'..\test.db' ):
+	def __init__ ( self, database = os.path.join( TestDir, 'test.db' ) ):
 		self.DatabaseName = database
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
@@ -152,6 +215,30 @@ class Worker:
 		mytemplate = Template( DiffInfoTemplateText )
 		return mytemplate.render( storage_filename = storage_filename )
 
+	def GetFunctionMatchInfo( self, databasename ):
+		database = DarunGrimDatabaseWrapper.Database( databasename )
+		function_match_infos = []
+		for function_match_info in database.GetFunctionMatchInfo():
+			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
+				function_match_infos.append( function_match_info )
+		mytemplate = Template( FunctionmatchInfosTemplateText )
+		return mytemplate.render( function_match_infos = function_match_infos )
+
+	def GetDisasmComparisonTextByFunctionAddress( self, databasename, source_address, target_address ):
+		database = DarunGrimDatabaseWrapper.Database( databasename )
+		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
+		text_comparison_table = []
+		for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+			left_line_text = "<p>".join( left_lines )
+			right_line_text = "<p>".join( right_lines )
+			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text ) )
+		mytemplate = Template( ComparisonTableTemplateText )
+		return mytemplate.render( comparison_table = text_comparison_table )
+
 if __name__ == '__main__':
 	worker = Worker()
-	print worker.Patches()
+	#print worker.Patches()
+	databasename = r'..\..\Diff Inspector\Samples\MS06-040-MS04-022-netapi32.dgf'
+	print worker.GetFunctionMatchInfo( databasename )
+	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c21d00, 0x5b870058 )
+	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
