@@ -146,13 +146,10 @@ ComparisonTableTemplateText = """<%def name="layoutdata(comparison_table)">
 	% endfor
 	</table>
 </%def>
-<html>
-<body>
 <%self:layoutdata comparison_table="${comparison_table}" args="col">\
 Body data: ${col}\
 </%self:layoutdata>
-</body>
-</html>"""
+"""
 
 class Worker:
 	def __init__ ( self, database = os.path.join( TestDir, 'test.db' ) ):
@@ -235,10 +232,20 @@ class Worker:
 		mytemplate = Template( ComparisonTableTemplateText )
 		return mytemplate.render( comparison_table = text_comparison_table )
 
+	def GetDisasmComparisonText( self, databasename ):
+		database = DarunGrimDatabaseWrapper.Database( databasename )
+		function_match_infos = []
+		ret = ''
+		for function_match_info in database.GetFunctionMatchInfo():
+			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
+				ret += worker.GetDisasmComparisonTextByFunctionAddress( databasename, function_match_info.source_address, function_match_info.target_address )  
+		return ret
+
 if __name__ == '__main__':
 	worker = Worker()
 	#print worker.Patches()
 	databasename = r'..\..\Diff Inspector\Samples\MS06-040-MS04-022-netapi32.dgf'
-	print worker.GetFunctionMatchInfo( databasename )
-	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c21d00, 0x5b870058 )
-	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
+	#print worker.GetFunctionMatchInfo( databasename )
+	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c21d00, 0x5b870058 )
+	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
+	print worker.GetDisasmComparisonText( databasename )
