@@ -63,6 +63,42 @@ table.TableTitleLine td {
 	overflow: hidden;
 	max-width: 1000px;
 }
+
+td.UnidentifiedBlock {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	color: white;
+	background-color:#f00000;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+td.UnidentifiedWithSecurityImplicationBlock {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	color: white;
+	background-color:#ff0000;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+td.ModifiedBlock {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	color: green;
+	background-color:#ffff00;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
 </style>
 """
 
@@ -192,21 +228,43 @@ str(function_match_info.type)
 str( function_match_info.match_rate )
 """
 
-ComparisonTableTemplateText = """<%def name="layoutdata(comparison_table)">
+ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, comparison_table)">
 <p>
 	<table class="Table">
 		<tr>
-			<td>Source</td>
-			<td>Target</td>
+			% if function_match_info:
+				<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
+				<td>${function_match_info.target_function_name} (${hex(function_match_info.target_address)})</td>
+			% else:
+				<td>Source</td>
+				<td>Target</td>
+			% endif
 		</tr>
-	% for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+	% for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
 		<tr>
-			<td>
+			% if right_address == 0:
+				<td class="UnidentifiedBlock">
+			% else:
+				% if match_rate == 100 or left_address == 0:
+					<td>
+				% else:
+					<td class="ModifiedBlock">
+				% endif
+			% endif
 			% if left_address != 0:
 				${hex(left_address)}
 			% endif
 			<p>${left_lines}</td>
-			<td>
+
+			% if left_address == 0:
+				<td class="UnidentifiedBlock">
+			% else:
+				% if match_rate == 100 or right_address == 0:
+					<td>
+				% else:
+					<td class="ModifiedBlock">
+				% endif
+			% endif
 			% if right_address != 0:
 				${hex(right_address)}
 			% endif
@@ -216,7 +274,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(comparison_table)">
 	</table>
 </%def>
 """ + CSSText + """
-<%self:layoutdata comparison_table="${comparison_table}" args="col">\
+<%self:layoutdata function_match_info="${function_match_info}" comparison_table="${comparison_table}" args="col">\
 Body data: ${col}\
 </%self:layoutdata>
 """
@@ -291,16 +349,17 @@ class Worker:
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render( function_match_infos = function_match_infos )
 
-	def GetDisasmComparisonTextByFunctionAddress( self, databasename, source_address, target_address ):
+	def GetDisasmComparisonTextByFunctionAddress( self, databasename, source_address, target_address, function_match_info = None ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
-		for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+		for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
 			left_line_text = "<p>".join( left_lines )
 			right_line_text = "<p>".join( right_lines )
-			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text ) )
+			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
+
 		mytemplate = Template( ComparisonTableTemplateText )
-		return mytemplate.render( comparison_table = text_comparison_table )
+		return mytemplate.render( function_match_info = function_match_info, comparison_table = text_comparison_table )
 
 	def GetDisasmComparisonText( self, databasename ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
@@ -308,7 +367,11 @@ class Worker:
 		ret = ''
 		for function_match_info in database.GetFunctionMatchInfo():
 			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
-				ret += worker.GetDisasmComparisonTextByFunctionAddress( databasename, function_match_info.source_address, function_match_info.target_address )  
+				ret += worker.GetDisasmComparisonTextByFunctionAddress( databasename, 
+					function_match_info.source_address, 
+					function_match_info.target_address,
+					function_match_info = function_match_info
+				) 
 		return ret
 
 if __name__ == '__main__':
@@ -317,5 +380,5 @@ if __name__ == '__main__':
 	databasename = r'..\..\Diff Inspector\Samples\MS06-040-MS04-022-netapi32.dgf'
 	#print worker.GetFunctionMatchInfo( databasename )
 	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c21d00, 0x5b870058 )
-	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
-	#print worker.GetDisasmComparisonText( databasename )
+	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
+	print worker.GetDisasmComparisonText( databasename )
