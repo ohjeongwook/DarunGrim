@@ -10,6 +10,62 @@ import DarunGrimDatabaseWrapper
 
 from mako.template import Template
 
+CSSText = """
+<style type="text/css">
+div.Message
+{
+	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	max-width: 1000px;
+	overflow: scroll;
+	font-size:80%;
+}
+
+table.Table {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: dotted;
+	border-color: green;
+	border-collapse: separate;
+	background-color: white;
+	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	max-width: 1000px;
+}
+
+table.Table tr {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+table.Table td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+table.TableTitleLine td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(60, a0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+</style>
+"""
+
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
 	<table>
 	% for item in somedata:
@@ -21,6 +77,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata somedata="${patches}" args="col">\
 Body data: ${col}\
@@ -39,6 +96,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata somedata="${downloads}" args="col">\
 Body data: ${col}\
@@ -71,6 +129,7 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 <p>${target_patch_name}: ${target_filename}
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
 Body data: ${col}\
@@ -87,6 +146,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 <p><a href="file://${storage_filename}"> Result File </a>
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
 Body data: ${col}\
@@ -118,6 +178,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 	</table>
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata function_match_infos="${function_match_infos}" args="col">\
 Body data: ${col}\
@@ -133,19 +194,28 @@ str( function_match_info.match_rate )
 
 ComparisonTableTemplateText = """<%def name="layoutdata(comparison_table)">
 <p>
-	<table>
+	<table class="Table">
 		<tr>
 			<td>Source</td>
 			<td>Target</td>
 		</tr>
 	% for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
 		<tr>
-			<td>${hex(left_address)}<p>${left_lines}</td>
-			<td>${hex(right_address)}<p>${right_lines}</td>
+			<td>
+			% if left_address != 0:
+				${hex(left_address)}
+			% endif
+			<p>${left_lines}</td>
+			<td>
+			% if right_address != 0:
+				${hex(right_address)}
+			% endif
+			<p>${right_lines}</td>
 		</tr>
 	% endfor
 	</table>
 </%def>
+""" + CSSText + """
 <%self:layoutdata comparison_table="${comparison_table}" args="col">\
 Body data: ${col}\
 </%self:layoutdata>
@@ -247,5 +317,5 @@ if __name__ == '__main__':
 	databasename = r'..\..\Diff Inspector\Samples\MS06-040-MS04-022-netapi32.dgf'
 	#print worker.GetFunctionMatchInfo( databasename )
 	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c21d00, 0x5b870058 )
-	#print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
-	print worker.GetDisasmComparisonText( databasename )
+	print worker.GetDisasmComparisonTextByFunctionAddress( databasename, 0x71c40a4a,0x5b893ab1 )  
+	#print worker.GetDisasmComparisonText( databasename )
