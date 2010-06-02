@@ -157,10 +157,10 @@ class Database:
 	def GetMatchMapForFunction( self, file_id, function_address ):
 		match_hash = {}
 		for match_map in self.SessionInstance.query( MatchMap ).filter( MatchMap.source_address.in_(self.SessionInstance.query( OneLocationInfo.start_address ).filter_by( file_id = file_id, function_address=function_address))).all():
-			match_hash[ match_map.source_address ] = match_map.target_address
+			match_hash[ match_map.source_address ] = ( match_map.target_address, match_map.match_rate )
 		return match_hash
 
-	def GetDisasmComparisonTable( self, source_data, target_data, map ):
+	def GetDisasmComparisonTable( self, source_data, target_data, match_map ):
 		DebugLevel = 0
 		left_addresses = source_data.keys()
 		left_addresses.sort()
@@ -174,14 +174,16 @@ class Database:
 			right_addressesIndex[address] = index
 			index += 1
 		
-		DisasmTable={}
+		disasm_table={}
 		Checkedright_addresses={}
 		left_address_index = 0
 		for left_address in left_addresses:
 			right_address_index = None
+			match_rate = 0
 			maximum_index = left_address_index
-			if map.has_key( left_address ):
-				right_address = map[ left_address ]
+			if match_map.has_key( left_address ):
+				right_address = match_map[ left_address ][0]
+				match_rate = match_map[ left_address ][1]
 				Checkedright_addresses[ right_address ] = 1
 				
 				if right_addressesIndex.has_key( right_address ):
@@ -194,37 +196,38 @@ class Database:
 					elif left_address_index < right_address_index:
 						maximum_index = right_address_index
 	
-			while DisasmTable.has_key( maximum_index ):
+			while disasm_table.has_key( maximum_index ):
 				maximum_index += 1
 	
-			DisasmTable[ maximum_index ] = ( left_address_index, right_address_index )
+			disasm_table[ maximum_index ] = ( left_address_index, right_address_index, match_rate )
 			left_address_index += 1
 	
 		for right_address in right_addressesIndex:
 			if not Checkedright_addresses.has_key( right_address ):
 				right_address_index = right_addressesIndex[right_address]
 				
-				NewDisasmTable = {}
-				if DisasmTable.has_key( right_address_index ):
-					for index in DisasmTable.keys():
+				new_disasm_table = {}
+				if disasm_table.has_key( right_address_index ):
+					for index in disasm_table.keys():
 						if index >= right_address_index:
-							NewDisasmTable[ index + 1 ] = DisasmTable[ index ]
+							new_disasm_table[ index + 1 ] = disasm_table[ index ]
 						else:
-							NewDisasmTable[ index ] = DisasmTable[ index ]
-					NewDisasmTable[right_address_index] = ( None, right_address_index )
-					DisasmTable = NewDisasmTable
+							new_disasm_table[ index ] = disasm_table[ index ]
+					new_disasm_table[right_address_index] = ( None, right_address_index, 0 )
+					disasm_table = new_disasm_table
 				else:
-					DisasmTable[right_address_index] = ( None, right_address_index )
+					disasm_table[right_address_index] = ( None, right_address_index, 0 )
 	
 		if DebugLevel > 2:
-			print DisasmTable
-		indexes = DisasmTable.keys()
+			print disasm_table
+
+		indexes = disasm_table.keys()
 		indexes.sort()
 	
 		disasm_blocks=[]
 	
 		for index in indexes:
-			( left_address_index, right_address_index ) = DisasmTable[index]
+			( left_address_index, right_address_index, match_rate ) = disasm_table[index]
 	
 			left_address = 0
 			right_address = 0
@@ -250,7 +253,7 @@ class Database:
 				print 'Split Lines'
 				print left_lines, right_lines
 
-			disasm_blocks.append( ( left_address, left_lines, right_address, right_lines ) )
+			disasm_blocks.append( ( left_address, left_lines, right_address, right_lines, match_rate ) )
 		return disasm_blocks
 
 	def GetDisasmLinesSideBySide(self, left_lines, right_lines ):
@@ -286,7 +289,7 @@ class Database:
 
 	def GetDisasmText(self, comparison_table ):
 		disasm_lines = []
-		for ( left_address, left_lines, right_address, right_lines ) in comparison_table:
+		for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
 			disasm_lines += self.GetDisasmLinesSideBySide( left_lines, right_lines )
 
 		return self.GetAlignedDisasmText( disasm_lines )
