@@ -7,6 +7,7 @@ import PatchDatabaseWrapper
 import PatchTimeline
 import DarunGrimSessions
 import DarunGrimDatabaseWrapper
+import DarunGrimAnalyzers
 
 from mako.template import Template
 
@@ -334,14 +335,15 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 	<table class="FunctionMatchInfoTable">
 		<tr>
 			<td>Source Function Name</td>
-			<td>Non Match Count for Source</td>
+			<td>Non Match</td>
 			<td>Target Function Name</td>
-			<td>Non Match Count For Target</td>
-			<td>Match Count</td>
-			<td>Match Count With Modifications</td>
+			<td>Non Match</td>
+			<td>Matched</td>
+			<td>Modifications</td>
+			<td>Security Implications Score</td>
 			<td>Operations</td>
 		</tr>
-	% for function_match_info in function_match_infos:
+	% for ( function_match_info, security_implication_score ) in function_match_infos:
 		<tr>
 			<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
 			<td>${function_match_info.non_match_count_for_the_source}</td>
@@ -349,6 +351,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
+			<td>${security_implication_score}</td>
 			<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 		</tr>
 	% endfor
@@ -439,6 +442,7 @@ class Worker:
 		
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
 		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
+		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 
 	def Patches( self ):
 		mytemplate = Template( PatchesTemplateText )
@@ -509,19 +513,18 @@ class Worker:
 		for function_match_info in database.GetFunctionMatchInfo():
 			if function_match_info.non_match_count_for_the_source > 0 or \
 				function_match_info.non_match_count_for_the_target > 0 or \
-				function_match_info.match_count_with_modificationfor_the_source > 0:			
-				function_match_infos.append( function_match_info )
+				function_match_info.match_count_with_modificationfor_the_source > 0:
+
+				databasename = self.GenerateDGFName( source_id, target_id )
+				security_implications_score = self.PatternAnalyzer.GetSecurityImplicationsScore( 
+											databasename,
+											function_match_info.source_address, 
+											function_match_info.target_address )
+
+				function_match_infos.append( ( function_match_info, security_implications_score ) )
+				
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(  patch_id=patch_id, download_id = download_id, file_id = file_id, source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
-
-	def GetDisasmLinesWithSecurityImplications( self, lines ):
-		return_lines = ''
-		for line in lines:
-			if line.find( "cmp" ) >= 0 or line.find( "test" ) >= 0 or line.find( "wcslen" ) >= 0 or line.find( "StringCchCopyW" ) >=0:
-				line = '<div class="SecurityImplication">' + line + '</div>'
-
-			return_lines += '<p>' + line
-		return return_lines
 
 	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, function_match_info = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
@@ -532,17 +535,24 @@ class Worker:
 
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
+
+		left_line_security_implications_score_total = 0
+		right_line_security_implications_score_total = 0
 		for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
+			left_line_security_implications_score = 0
+			right_line_security_implications_score = 0
 			if (right_address == 0 and left_address !=0) or match_rate < 100 :
-				left_line_text = self.GetDisasmLinesWithSecurityImplications( left_lines )
+				( left_line_security_implications_score, left_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( left_lines )
 			else:
 				left_line_text = "<p>".join( left_lines )
 
 			if (left_address == 0 and right_address !=0) or match_rate < 100 :
-				right_line_text = self.GetDisasmLinesWithSecurityImplications( right_lines )
+				( right_line_security_implications_score, right_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( right_lines )
 			else:
 				right_line_text = "<p>".join( right_lines )
 
+			left_line_security_implications_score_total += left_line_security_implications_score
+			right_line_security_implications_score_total += right_line_security_implications_score
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 
 		mytemplate = Template( ComparisonTableTemplateText )
