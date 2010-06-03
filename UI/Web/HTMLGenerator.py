@@ -47,7 +47,6 @@ table.Table td {
 	padding: 1px;
 	border-style: dashed;
 	border-color: gray;
-	background-color: rgb(f0, f0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 1000px;
@@ -65,12 +64,12 @@ table.TableTitleLine td {
 }
 
 td.UnidentifiedBlock {
-	border-width: 1px;
+	border-width: 3px;
 	padding: 1px;
-	border-style: dashed;
-	border-color: gray;
+	border-style: solid;
+	border-color: green;
 	color: white;
-	background-color:#f00000;
+	background-color:#ff9933;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 1000px;
@@ -81,7 +80,7 @@ td.UnidentifiedWithSecurityImplicationBlock {
 	padding: 1px;
 	border-style: dashed;
 	border-color: gray;
-	color: white;
+	color: gray;
 	background-color:#ff0000;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
@@ -99,6 +98,23 @@ td.ModifiedBlock {
 	overflow: hidden;
 	max-width: 1000px;
 }
+
+td.MatchedBlock {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	color: black;
+	background-color:#f1f1f1;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+div.SecurityImplication {
+	color:#ff0000;
+}
+
 </style>
 """
 
@@ -241,35 +257,37 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 			% endif
 		</tr>
 	% for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
-		<tr>
-			% if right_address == 0:
-				<td class="UnidentifiedBlock">
-			% else:
-				% if match_rate == 100 or left_address == 0:
-					<td>
+		% if left_address != 0 or right_address != 0:
+			<tr>
+				% if right_address == 0:
+					<td class="UnidentifiedBlock">
 				% else:
-					<td class="ModifiedBlock">
+					% if match_rate == 100 or left_address == 0:
+						<td class="MatchedBlock">
+					% else:
+						<td class="ModifiedBlock">
+					% endif
 				% endif
-			% endif
-			% if left_address != 0:
-				${hex(left_address)}
-			% endif
-			<p>${left_lines}</td>
-
-			% if left_address == 0:
-				<td class="UnidentifiedBlock">
-			% else:
-				% if match_rate == 100 or right_address == 0:
-					<td>
+				% if left_address != 0:
+					${hex(left_address)}
+				% endif
+				<p>${left_lines}</td>
+	
+				% if left_address == 0:
+					<td class="UnidentifiedBlock">
 				% else:
-					<td class="ModifiedBlock">
+					% if match_rate == 100 or right_address == 0:
+						<td class="MatchedBlock">
+					% else:
+						<td class="ModifiedBlock">
+					% endif
 				% endif
-			% endif
-			% if right_address != 0:
-				${hex(right_address)}
-			% endif
-			<p>${right_lines}</td>
-		</tr>
+				% if right_address != 0:
+					${hex(right_address)}
+				% endif
+				<p>${right_lines}</td>
+			</tr>
+		% endif
 	% endfor
 	</table>
 </%def>
@@ -349,13 +367,30 @@ class Worker:
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render( function_match_infos = function_match_infos )
 
+	def GetDisasmLinesWithSecurityImplications( self, lines ):
+		return_lines = ''
+		for line in lines:
+			if line.find( "cmp" ) >= 0 or line.find( "test" ) >= 0 or line.find( "wcslen" ) >= 0:
+				line = '<div class="SecurityImplication">' + line + '</div>'
+
+			return_lines += '<p>' + line
+		return return_lines
+
 	def GetDisasmComparisonTextByFunctionAddress( self, databasename, source_address, target_address, function_match_info = None ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
 		for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
-			left_line_text = "<p>".join( left_lines )
-			right_line_text = "<p>".join( right_lines )
+			if (right_address == 0 and left_address !=0) or match_rate < 100 :
+				left_line_text = self.GetDisasmLinesWithSecurityImplications( left_lines )
+			else:
+				left_line_text = "<p>".join( left_lines )
+
+			if (left_address == 0 and right_address !=0) or match_rate < 100 :
+				right_line_text = self.GetDisasmLinesWithSecurityImplications( right_lines )
+			else:
+				right_line_text = "<p>".join( right_lines )
+
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 
 		mytemplate = Template( ComparisonTableTemplateText )
