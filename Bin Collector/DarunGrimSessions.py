@@ -10,14 +10,14 @@ import PatchDatabaseWrapper
 class Manager:
 	DebugLevel = 3
 
-	def __init__( self, indexfile = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
-		self.IndexFile = indexfile
+	def __init__( self, database_name = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
+		self.DatabaseFilename = database_name
 		self.OutputDirectory = output_directory
 		self.IDAPath = ida_path
 		if not os.path.isdir( self.OutputDirectory ):
 			os.makedirs( self.OutputDirectory )
 		
-		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.IndexFile )
+		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.DatabaseFilename )
 
 	def InitMSFileDiff( self, patch_name, filename ):
 		print 'Analyzing', patch_name, filename
@@ -31,14 +31,16 @@ class Manager:
 			self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
 	def InitFileDiffByID( self, source_id, target_id ):
-		database = PatchDatabaseWrapper.Database( self.IndexFile )
+		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
-		print source_file_entries[0]
+		print source_id, source_file_entries
 
 		source_patch_name = source_file_entries[0].downloads.patches.name
 		source_filename = source_file_entries[0].full_path
 
 		target_file_entries = database.GetFileByID( target_id )
+		print target_id, target_file_entries 
+
 		target_patch_name = target_file_entries[0].downloads.patches.name
 		target_filename = target_file_entries[0].full_path
 		storage_filename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
