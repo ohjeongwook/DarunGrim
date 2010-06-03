@@ -374,7 +374,7 @@ str( function_match_info.match_rate )
 """
 
 
-ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, comparison_table)">
+ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, target_function_name, comparison_table)">
 <p><a href="/">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
@@ -383,12 +383,15 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 
 	<table class="Block">
 		<tr>
-			% if function_match_info:
-				<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
-				<td>${function_match_info.target_function_name} (${hex(function_match_info.target_address)})</td>
+			% if source_function_name:
+				<td><h3>Unpatched: ${source_function_name}<h3></td>
 			% else:
-				<td>Source</td>
-				<td>Target</td>
+				<td><h3>Unpatched</h3></td>
+			% endif
+			% if target_function_name:
+				<td><h3>Patched: ${target_function_name}<h3></td>
+			% else:
+				<td><h3>Patched</h3></td>
 			% endif
 		</tr>
 	% for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
@@ -404,7 +407,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 					% endif
 				% endif
 				% if left_address != 0:
-					${hex(left_address)}
+					<b>[${hex(left_address)[2:].upper()}]</b>
 				% endif
 				<p>${left_lines}</td>
 	
@@ -418,7 +421,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 					% endif
 				% endif
 				% if right_address != 0:
-					${hex(right_address)}
+					<b>[${hex(right_address)[2:].upper()}]</b>
 				% endif
 				<p>${right_lines}</td>
 			</tr>
@@ -428,7 +431,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 </%def>
 """ + CSSText + """
 <div id=Content>
-<%self:layoutdata function_match_info="${function_match_info}" comparison_table="${comparison_table}" args="col">\
+<%self:layoutdata source_function_name="${source_function_name}" target_function_name="${target_function_name}" comparison_table="${comparison_table}" args="col">\
 </%self:layoutdata>
 </div>
 </div>
@@ -526,13 +529,22 @@ class Worker:
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(  patch_id=patch_id, download_id = download_id, file_id = file_id, source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
 
-	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, function_match_info = None ):
+	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, source_function_name = None, target_function_name = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		
 		source_address = int(source_address)
 		target_address = int(target_address)
 
+		if not source_function_name:
+			source_function_name = database.GetBlockName( 1, source_address )
+
+		if not target_function_name:
+			target_function_name = database.GetBlockName( 2, target_address )
+
+		print 'source_function_name', source_function_name
+		print 'target_function_name', target_function_name
+		
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
 
@@ -556,7 +568,15 @@ class Worker:
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 
 		mytemplate = Template( ComparisonTableTemplateText )
-		return mytemplate.render( function_match_info = function_match_info, comparison_table = text_comparison_table, source_id = source_id, target_id = target_id, patch_id=patch_id, download_id=download_id, file_id=file_id  )
+		return mytemplate.render( source_function_name = source_function_name, 
+									target_function_name = target_function_name,
+									comparison_table = text_comparison_table, 
+									source_id = source_id, 
+									target_id = target_id, 
+									patch_id=patch_id, 
+									download_id=download_id, 
+									file_id=file_id
+						)
 
 	def GetDisasmComparisonText( self, source_id, target_id ):
 		databasename = self.GenerateDGFName( source_id, target_id )
@@ -568,7 +588,8 @@ class Worker:
 				ret += worker.GetDisasmComparisonTextByFunctionAddress( databasename, 
 					function_match_info.source_address, 
 					function_match_info.target_address,
-					function_match_info = function_match_info
+					source_function_name = function_match_info.source_function_name,
+					target_function_name = function_match_info.target_function_name
 				) 
 		return ret
 
