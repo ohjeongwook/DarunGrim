@@ -33,6 +33,14 @@ class OneLocationInfo(Base):
 								self.disasm_lines, 
 								self.fingerprint )
 
+CALL = 0
+CREF_FROM = 1
+CREF_TO = 2
+DREF_FROM = 3
+DREF_TO = 4
+CALLED = 5
+
+
 class MapInfo(Base):
 	__tablename__='MapInfo'
 
@@ -147,12 +155,37 @@ class Database:
 	def GetFunctionMatchInfo( self ):
 		return self.SessionInstance.query( FunctionMatchInfo ).all()		
 
-	def GetFunctionDisasmLinesMap( self, file_id, function_address):
+	def GetFunctionDisasmLinesMapOrig( self, file_id, function_address):
 		disasm_lines_hash={}
-
-		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id = file_id, function_address=function_address ).all():
+		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, function_address=function_address ).all():
+			print 'one_location_info',one_location_info
 			disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
 		return disasm_lines_hash
+
+	def GetFunctionDisasmLinesMap( self, file_id, function_address):
+		disasm_lines_hash={}
+		block_addresses = [ function_address ]
+		
+		for block_address in block_addresses:
+			for map_info in self.SessionInstance.query( MapInfo ).filter_by( file_id=file_id, src_block=block_address, type = CREF_FROM ).all():
+				if not map_info.dst in block_addresses:
+					block_addresses.append( map_info.dst )
+
+		for block_address in block_addresses:
+			for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
+				disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
+		return disasm_lines_hash
+
+	def GetMatchMapForAddresses( self, file_id, block_addresses ):
+		match_hash = {}
+		for block_address in block_addresses:
+			if file_id == 1:
+				for match_map in self.SessionInstance.query( MatchMap ).filter_by( source_address=block_address).all():
+					match_hash[ match_map.source_address ] = ( match_map.target_address, match_map.match_rate )			
+			else:
+				for match_map in self.SessionInstance.query( MatchMap ).filter_by( target_address=block_address).all():
+					match_hash[ match_map.target_address ] = ( match_map.source_address, match_map.match_rate )
+		return match_hash
 
 	def GetMatchMapForFunction( self, file_id, function_address ):
 		match_hash = {}
@@ -161,7 +194,6 @@ class Database:
 		return match_hash
 
 	def GetDisasmComparisonTable( self, source_data, target_data, match_map ):
-		DebugLevel = 0
 		left_addresses = source_data.keys()
 		left_addresses.sort()
 	
@@ -173,7 +205,6 @@ class Database:
 		for address in right_addresses:
 			right_addressesIndex[address] = index
 			index += 1
-		
 		disasm_table={}
 		Checkedright_addresses={}
 		left_address_index = 0
@@ -188,7 +219,7 @@ class Database:
 				
 				if right_addressesIndex.has_key( right_address ):
 					right_address_index = right_addressesIndex[right_address]
-					if DebugLevel > 2:
+					if self.DebugLevel > 2:
 						print left_address_index, right_address_index
 					
 					if left_address_index > right_address_index:
@@ -218,7 +249,7 @@ class Database:
 				else:
 					disasm_table[right_address_index] = ( None, right_address_index, 0 )
 	
-		if DebugLevel > 2:
+		if self.DebugLevel > 2:
 			print disasm_table
 
 		indexes = disasm_table.keys()
@@ -237,7 +268,7 @@ class Database:
 			if right_address_index:
 				right_address = right_addresses[ right_address_index ]
 	
-			if DebugLevel > 2:
+			if self.DebugLevel > 2:
 				print index, ':', left_address_index, hex(left_address), right_address_index, hex(right_address)
 	
 			left_lines=()
@@ -249,7 +280,7 @@ class Database:
 			if target_data.has_key(right_address):
 				right_lines = target_data[ right_address ].split('\n')
 		
-			if DebugLevel > 2:
+			if self.DebugLevel > 2:
 				print 'Split Lines'
 				print left_lines, right_lines
 
@@ -297,7 +328,8 @@ class Database:
 	def GetDisasmComparisonTextByFunctionAddress( self, source_function_address, target_function_address ):
 		source_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 1, source_function_address )
 		target_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 2, target_function_address )
-		match_map = self.GetMatchMapForFunction( 1, source_function_address )
+		
+		match_map = self.GetMatchMapForAddresses( 1, source_disasm_lines_hash.keys() )
 		return self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
 
 if __name__ == '__main__':
