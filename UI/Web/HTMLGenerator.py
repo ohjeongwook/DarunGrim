@@ -272,7 +272,8 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="ShowFunctionMatchInfo?databasename=${storage_filename}">Show Function Match Table</a>
+<META HTTP-EQUIV="Refresh" CONTENT="1; URL="ShowFunctionMatchInfo?databasename=${databasename}">
+<p><a href="ShowFunctionMatchInfo?databasename=${databasename}">Show Function Match Table</a>
 </%def>
 <html>
 """ + CSSText + """
@@ -436,10 +437,11 @@ class Worker:
 	def StartDiff( self, source_id, target_id ):
 		print 'StartDiff', source_id,target_id
 		file_differ = DarunGrimSessions.Manager( self.DatabaseName )
-		storage_filename = file_differ.InitFileDiffByID( source_id, target_id )
-		print 'StartDiff: ', source_id,'/',target_id,'/', storage_filename
-		mytemplate = Template( DiffInfoTemplateText )
-		return mytemplate.render( storage_filename = storage_filename )
+		databasename = file_differ.InitFileDiffByID( source_id, target_id )
+		print 'StartDiff: ', source_id,'/',target_id,'/', databasename
+		#mytemplate = Template( DiffInfoTemplateText )
+		#return mytemplate.render( databasename = databasename )
+		return self.GetFunctionMatchInfo( databasename )
 
 	def GetFunctionMatchInfo( self, databasename ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
