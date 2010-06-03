@@ -61,9 +61,41 @@ table.Table td {
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 400px;
+	max-width: 1000px;
 }
 
+table.FunctionMatchInfoTable {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: dotted;
+	border-color: green;
+	border-collapse: separate;
+	background-color: white;
+	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	max-width: 1000px;
+	table-layout: auto;
+}
+
+table.FunctionMatchInfoTable tr {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+table.FunctionMatchInfoTable td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 400px;
+}
 table.TableTitleLine td {
 	border-width: 1px;
 	padding: 1px;
@@ -299,7 +331,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
-	<table class="Table">
+	<table class="FunctionMatchInfoTable">
 		<tr>
 			<td>Source Function Name</td>
 			<td>Non Match Count for Source</td>
