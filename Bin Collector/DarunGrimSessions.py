@@ -30,7 +30,7 @@ class Manager:
 			print source_patch_name, source_filename, target_patch_name, target_filename 
 			self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
-	def InitFileDiffByID( self, source_id, target_id ):
+	def InitFileDiffByID( self, source_id, target_id, storage_filename = None ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
 		print source_id, source_file_entries
@@ -43,7 +43,10 @@ class Manager:
 
 		target_patch_name = target_file_entries[0].downloads.patches.name
 		target_filename = target_file_entries[0].full_path
-		storage_filename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
+
+		if not storage_filename:
+			storage_filename =  os.path.join( self.OutputDirectory , str( source_id ) + '_' + str( target_id ) + ".dgf" )
+		storage_filename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, storage_filename )
 		return storage_filename
 
 	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, storage_filename = None ):
