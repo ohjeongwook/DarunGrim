@@ -10,8 +10,8 @@ import PatchDatabaseWrapper
 class Manager:
 	DebugLevel = 3
 
-	def __init__( self, database_name = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
-		self.DatabaseFilename = database_name
+	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
+		self.DatabaseFilename = databasename
 		self.OutputDirectory = output_directory
 		self.IDAPath = ida_path
 		if not os.path.isdir( self.OutputDirectory ):
@@ -30,7 +30,7 @@ class Manager:
 			print source_patch_name, source_filename, target_patch_name, target_filename 
 			self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
-	def InitFileDiffByID( self, source_id, target_id, storage_filename = None ):
+	def InitFileDiffByID( self, source_id, target_id, databasename = None ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
 		print source_id, source_file_entries
@@ -44,19 +44,19 @@ class Manager:
 		target_patch_name = target_file_entries[0].downloads.patches.name
 		target_filename = target_file_entries[0].full_path
 
-		if not storage_filename:
-			storage_filename =  os.path.join( self.OutputDirectory , str( source_id ) + '_' + str( target_id ) + ".dgf" )
-		storage_filename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, storage_filename )
-		return storage_filename
+		if not databasename:
+			databasename =  os.path.join( self.OutputDirectory , str( source_id ) + '_' + str( target_id ) + ".dgf" )
+		databasename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
+		return databasename
 
-	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, storage_filename = None ):
+	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
 		if self.DebugLevel > 2:
 			print '='*80
 			print source_patch_name
 			print source_filename
 			print target_patch_name
 			print target_filename
-			print storage_filename
+			print databasename
 		base_filename = os.path.basename( source_filename )
 		dot_pos = base_filename.find('.')
 		if dot_pos >= 0:
@@ -64,19 +64,19 @@ class Manager:
 		
 		prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
 
-		if not storage_filename:
-			storage_filename =  os.path.join( self.OutputDirectory , prefix + ".dgf" )
+		if not databasename:
+			databasename =  os.path.join( self.OutputDirectory , prefix + ".dgf" )
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
-		if os.path.isfile( storage_filename ) and os.path.getsize( storage_filename ) > 0:
-			print 'Already analyzed',storage_filename
+		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
+			print 'Already analyzed',databasename
 		else:
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
-				print 'storage_filename',storage_filename
-			DarunGrimEngine.DiffFile( source_filename, target_filename, storage_filename, log_filename, self.IDAPath )
-		return storage_filename
+				print 'databasename',databasename
+			DarunGrimEngine.DiffFile( source_filename, target_filename, databasename, log_filename, self.IDAPath )
+		return databasename
 
 	def InitMSFileDiffAll( self ):
 		for ( patch_name, filename ) in self.PatchTimelineAnalyzer.GetPatchFileNamePairs():
