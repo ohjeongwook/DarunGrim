@@ -199,11 +199,11 @@ class Database:
 	
 		right_addresses = target_data.keys()
 		right_addresses.sort()
-		
-		right_addressesIndex={}	
+
+		right_addresses_index={}	
 		index = 0
 		for address in right_addresses:
-			right_addressesIndex[address] = index
+			right_addresses_index[address] = index
 			index += 1
 		disasm_table={}
 		Checkedright_addresses={}
@@ -217,8 +217,8 @@ class Database:
 				match_rate = match_map[ left_address ][1]
 				Checkedright_addresses[ right_address ] = 1
 				
-				if right_addressesIndex.has_key( right_address ):
-					right_address_index = right_addressesIndex[right_address]
+				if right_addresses_index.has_key( right_address ):
+					right_address_index = right_addresses_index[right_address]
 					if self.DebugLevel > 2:
 						print left_address_index, right_address_index
 					
@@ -233,9 +233,9 @@ class Database:
 			disasm_table[ maximum_index ] = ( left_address_index, right_address_index, match_rate )
 			left_address_index += 1
 	
-		for right_address in right_addressesIndex:
+		for right_address in right_addresses_index:
 			if not Checkedright_addresses.has_key( right_address ):
-				right_address_index = right_addressesIndex[right_address]
+				right_address_index = right_addresses_index[right_address]
 				
 				new_disasm_table = {}
 				if disasm_table.has_key( right_address_index ):
@@ -249,8 +249,10 @@ class Database:
 				else:
 					disasm_table[right_address_index] = ( None, right_address_index, 0 )
 	
-		if self.DebugLevel > 2:
-			print disasm_table
+		if self.DebugLevel > -2:
+			print 'disasm_table:'
+			for ( index, (left_address_index, right_address_index, match_rate) ) in disasm_table.items():
+				print left_address_index, right_address_index, match_rate
 
 		indexes = disasm_table.keys()
 		indexes.sort()
@@ -262,10 +264,10 @@ class Database:
 	
 			left_address = 0
 			right_address = 0
-			if left_address_index:
+			if left_address_index != None :
 				left_address = left_addresses[ left_address_index ]
 				
-			if right_address_index:
+			if right_address_index != None :
 				right_address = right_addresses[ right_address_index ]
 	
 			if self.DebugLevel > 2:
