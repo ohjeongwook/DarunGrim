@@ -12,6 +12,21 @@ from mako.template import Template
 
 CSSText = """
 <style type="text/css">
+body {
+	margin:50px 50px; padding:10px;
+	text-align:center;
+}
+
+#Content {
+	width:1500px;
+	margin:0px auto;
+	text-align:left;
+	padding:15px;
+	border:1px dashed #333;
+	background-color:#eee;
+}
+
+
 div.Message
 {
 	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
@@ -29,6 +44,7 @@ table.Table {
 	background-color: white;
 	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
 	max-width: 1000px;
+	table-layout: auto;
 }
 
 table.Table tr {
@@ -119,7 +135,7 @@ div.SecurityImplication {
 """
 
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
-	<table>
+	<table class="Table">
 	% for item in somedata:
 		<tr>
 			<td><a href="PatchInfo?id=${item.id}">${item.name}</a></td>
@@ -138,7 +154,7 @@ Body data: ${col}\
 </html>"""
 
 PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
-	<table>
+	<table class="Table">
 	% for item in somedata:
 		<tr>
 			<td><a href="DownloadInfo?id=${item.id}">${item.label}</a></td>
@@ -157,7 +173,7 @@ Body data: ${col}\
 </html>"""
 
 DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
-	<table>
+	<table class="Table">
 	% for item in somedata:
 		<tr>
 			<td><a href="FileInfo?id=${item.id}">${item.filename}</a></td>
@@ -167,6 +183,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
+""" + CSSText + """
 <body>
 <%self:layoutdata somedata="${files}" args="col">\
 Body data: ${col}\
@@ -175,10 +192,32 @@ Body data: ${col}\
 </html>"""
 
 FileInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p>${somedata.company_name}, ${somedata.operating_system}, ${somedata.service_pack}
-<p>${somedata.filename}
-<p>${source_patch_name}: ${source_filename}
-<p>${target_patch_name}: ${target_filename}
+	<table class="Table">
+		<tr>
+			<td>Company Name</td>
+			<td>${somedata.company_name}</td>
+		</tr>
+		<tr>
+			<td>Operating System</td>
+			<td>${somedata.operating_system}</td>
+		</tr>
+		<tr>
+			<td>Service Pack</td>
+			<td>${somedata.service_pack}</td>
+		</tr>
+		<tr>
+			<td>Filename</td>
+			<td>${somedata.filename}</td>
+		</tr>
+		<tr>
+			<td>Unpatched Filename</td>
+			<td>${source_patch_name}: ${source_filename}</td>
+		</tr>
+		<tr>
+			<td>Patched Filename</td>
+			<td>${target_patch_name}: ${target_filename}</td>
+		</tr>
+	</table>
 </%def>
 <html>
 """ + CSSText + """
@@ -208,7 +247,7 @@ Body data: ${col}\
 
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
 <p>
-	<table>
+	<table class="Table">
 		<tr>
 			<td>Source Function Name</td>
 			<td>Target Function Name</td>
