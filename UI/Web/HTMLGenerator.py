@@ -13,19 +13,18 @@ from mako.template import Template
 CSSText = """
 <style type="text/css">
 body {
-	margin:50px 50px; padding:10px;
+	margin:50px 0px; padding:0px;
 	text-align:center;
-}
-
+	}
+	
 #Content {
-	width:1500px;
+	width: auto;
 	margin:0px auto;
 	text-align:left;
 	padding:15px;
 	border:1px dashed #333;
 	background-color:#eee;
-}
-
+	}
 
 div.Message
 {
@@ -147,9 +146,10 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata somedata="${patches}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
 </body>
 </html>"""
 
@@ -166,9 +166,10 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata somedata="${downloads}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
 </body>
 </html>"""
 
@@ -185,9 +186,10 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata somedata="${files}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
 </body>
 </html>"""
 
@@ -222,14 +224,15 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
 <form name="input" action="StartDiff" method="get">
 <input type="hidden" name="source_id" value="${source_id}"/>
 <input type="hidden" name="target_id" value="${target_id}"/>
 <input type="submit" value="Start Diffing" />
 </form> 
+</div>
 </body>
 </html>"""
 
@@ -239,9 +242,10 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
 </body>
 </html>"""
 
@@ -273,9 +277,10 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 <html>
 """ + CSSText + """
 <body>
+<div id=Content>
 <%self:layoutdata function_match_infos="${function_match_infos}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
 </body>
 </html>"""
 
@@ -333,9 +338,11 @@ ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, com
 	</table>
 </%def>
 """ + CSSText + """
+<div id=Content>
 <%self:layoutdata function_match_info="${function_match_info}" comparison_table="${comparison_table}" args="col">\
-Body data: ${col}\
 </%self:layoutdata>
+</div>
+</div>
 """
 
 class Worker:
