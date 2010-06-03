@@ -475,7 +475,9 @@ class Worker:
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
 		for function_match_info in database.GetFunctionMatchInfo():
-			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
+			if function_match_info.non_match_count_for_the_source > 0 or \
+				function_match_info.non_match_count_for_the_target > 0 or \
+				function_match_info.match_count_with_modificationfor_the_source > 0:			
 				function_match_infos.append( function_match_info )
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(  patch_id=patch_id, download_id = download_id, file_id = file_id, source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
@@ -492,6 +494,10 @@ class Worker:
 	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, function_match_info = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
+		
+		source_address = int(source_address)
+		target_address = int(target_address)
+
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
 		for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
