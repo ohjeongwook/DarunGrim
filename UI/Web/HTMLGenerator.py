@@ -189,10 +189,11 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
+<p><a href="/">List</a>
 	<table class="Table">
 	% for item in somedata:
 		<tr>
-			<td><a href="DownloadInfo?id=${item.id}">${item.label}</a></td>
+			<td><a href="DownloadInfo?patch_id=${id}&id=${item.id}">${item.label}</a></td>
 			<td>${item.filename}</td>
 		</tr>
 	% endfor
@@ -209,10 +210,12 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
+<p><a href="/">List</a>
+&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 	<table class="Table">
 	% for item in somedata:
 		<tr>
-			<td><a href="FileInfo?id=${item.id}">${item.filename}</a></td>
+			<td><a href="FileInfo?patch_id=${patch_id}&download_id=${id}&id=${item.id}">${item.filename}</a></td>
 			<td>${item.version_string}</td>
 		</tr>
 	% endfor
@@ -229,6 +232,9 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FileInfoTemplateText = """<%def name="layoutdata(somedata)">
+<p><a href="/">List</a>
+&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 	<table class="Table">
 		<tr>
 			<td>Company Name</td>
@@ -263,6 +269,9 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
 </%self:layoutdata>
 <form name="input" action="StartDiff" method="get">
+<input type="hidden" name="patch_id" value="${patch_id}"/>
+<input type="hidden" name="download_id" value="${download_id}"/>
+<input type="hidden" name="file_id" value="${id}"/>
 <input type="hidden" name="source_id" value="${source_id}"/>
 <input type="hidden" name="target_id" value="${target_id}"/>
 <input type="submit" value="Start Diffing" />
@@ -286,7 +295,10 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
-<p>
+<p><a href="/">List</a>
+&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
+&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
 	<table class="Table">
 		<tr>
 			<td>Source Function Name</td>
@@ -305,7 +317,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-			<td><a href="ShowBasicBlockMatchInfo?source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
+			<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 		</tr>
 	% endfor
 	</table>
@@ -326,8 +338,14 @@ str(function_match_info.type)
 str( function_match_info.match_rate )
 """
 
+
 ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, comparison_table)">
-<p>
+<p><a href="/">List</a>
+&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
+&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
+&gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
+
 	<table class="Block">
 		<tr>
 			% if function_match_info:
@@ -398,14 +416,14 @@ class Worker:
 	def PatchInfo( self, id ):
 		mytemplate = Template( PatchInfoTemplateText )
 		downloads = self.Database.GetDownloadByPatchID( id )
-		return mytemplate.render( downloads=downloads )
-
-	def DownloadInfo( self, id ):
+		return mytemplate.render( id=id, downloads=downloads )
+	
+	def DownloadInfo( self, patch_id, id ):
 		mytemplate = Template( DownloadInfoTemplateText )
 		files = self.Database.GetFileByDownloadID( id )
-		return mytemplate.render( files=files )
+		return mytemplate.render( patch_id=patch_id, id=id, files=files )
 
-	def FileInfo( self, id ):
+	def FileInfo( self, patch_id, download_id, id ):
 		#PatchTimeline
 		[ file_index_entry ] = self.Database.GetFileByID( id )
 		filename = file_index_entry.filename
@@ -428,6 +446,9 @@ class Worker:
 
 		mytemplate = Template( FileInfoTemplateText )
 		return mytemplate.render(
+			patch_id = patch_id,
+			download_id = download_id,
+			id = id,
 			file_index_entry=file_index_entry, 
 			source_patch_name = source_patch_name, 
 			source_filename = source_filename,
@@ -440,16 +461,16 @@ class Worker:
 	def GenerateDGFName( self, source_id, target_id ):
 		return os.path.join( self.DGFDirectory, str( source_id ) + '_' + str( target_id ) + '.dgf')
 
-	def StartDiff( self, source_id, target_id ):
+	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id ):
 		print 'StartDiff', source_id,target_id
 		databasename = self.GenerateDGFName( source_id, target_id )
 		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff: ', source_id,'/',target_id,'/', databasename
 		#mytemplate = Template( DiffInfoTemplateText )
 		#return mytemplate.render( databasename = databasename )
-		return self.GetFunctionMatchInfo( source_id=source_id, target_id = target_id )
+		return self.GetFunctionMatchInfo( patch_id, download_id, file_id, source_id=source_id, target_id = target_id )
 
-	def GetFunctionMatchInfo( self, source_id, target_id ):
+	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
@@ -457,7 +478,7 @@ class Worker:
 			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
 				function_match_infos.append( function_match_info )
 		mytemplate = Template( FunctionmatchInfosTemplateText )
-		return mytemplate.render( source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
+		return mytemplate.render(  patch_id=patch_id, download_id = download_id, file_id = file_id, source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
 
 	def GetDisasmLinesWithSecurityImplications( self, lines ):
 		return_lines = ''
@@ -468,7 +489,7 @@ class Worker:
 			return_lines += '<p>' + line
 		return return_lines
 
-	def GetDisasmComparisonTextByFunctionAddress( self, source_id, target_id, source_address, target_address, function_match_info = None ):
+	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, function_match_info = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
@@ -487,7 +508,7 @@ class Worker:
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 
 		mytemplate = Template( ComparisonTableTemplateText )
-		return mytemplate.render( function_match_info = function_match_info, comparison_table = text_comparison_table )
+		return mytemplate.render( function_match_info = function_match_info, comparison_table = text_comparison_table, source_id = source_id, target_id = target_id, patch_id=patch_id, download_id=download_id, file_id=file_id  )
 
 	def GetDisasmComparisonText( self, source_id, target_id ):
 		databasename = self.GenerateDGFName( source_id, target_id )

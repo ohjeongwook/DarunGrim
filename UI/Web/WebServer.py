@@ -15,34 +15,34 @@ class WebServer(object):
 		return worker.Patches()
 	index.exposed = True
 
-	def PatchInfo(self,id = None):
+	def PatchInfo(self,id):
 		worker = HTMLGenerator.Worker()
 		return worker.PatchInfo( id )
 	PatchInfo.exposed = True
 
-	def DownloadInfo(self,id = None):
+	def DownloadInfo(self, patch_id, id ):
 		worker = HTMLGenerator.Worker()
-		return worker.DownloadInfo( id )
+		return worker.DownloadInfo( patch_id, id )
 	DownloadInfo.exposed = True
 
-	def FileInfo(self,id = None):
+	def FileInfo(self, patch_id, download_id, id):
 		worker = HTMLGenerator.Worker()
-		return worker.FileInfo( id )
+		return worker.FileInfo( patch_id, download_id, id )
 	FileInfo.exposed = True
 
-	def StartDiff( self, source_id, target_id ):
+	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id ):
 		worker = HTMLGenerator.Worker()
-		return worker.StartDiff( source_id, target_id )
+		return worker.StartDiff( patch_id, download_id, file_id, source_id, target_id )
 	StartDiff.exposed = True
 
-	def ShowFunctionMatchInfo( self, source_id, target_id ):
+	def ShowFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
 		worker = HTMLGenerator.Worker()
-		return worker.GetFunctionMatchInfo( source_id, target_id )
+		return worker.GetFunctionMatchInfo( patch_id, download_id, file_id, source_id, target_id )
 	ShowFunctionMatchInfo.exposed = True
 
-	def ShowBasicBlockMatchInfo( self, source_id, target_id, source_address, target_address ):
+	def ShowBasicBlockMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address ):
 		worker = HTMLGenerator.Worker()
-		return worker.GetDisasmComparisonTextByFunctionAddress( source_id, target_id, source_address, target_address )
+		return worker.GetDisasmComparisonTextByFunctionAddress( patch_id, download_id, file_id, source_id, target_id, source_address, target_address )
 	ShowBasicBlockMatchInfo.exposed = True
 
 if __name__ == '__main__':
