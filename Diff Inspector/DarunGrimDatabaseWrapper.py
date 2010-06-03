@@ -155,6 +155,11 @@ class Database:
 	def GetFunctionMatchInfo( self ):
 		return self.SessionInstance.query( FunctionMatchInfo ).all()		
 
+	def GetBlockName( self, file_id, address ):
+		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=address).all():
+			return one_location_info.name
+		return ""
+
 	def GetFunctionDisasmLinesMapOrig( self, file_id, function_address):
 		disasm_lines_hash={}
 		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, function_address=function_address ).all():
@@ -249,7 +254,7 @@ class Database:
 				else:
 					disasm_table[right_address_index] = ( None, right_address_index, 0 )
 	
-		if self.DebugLevel > -2:
+		if self.DebugLevel > 2:
 			print 'disasm_table:'
 			for ( index, (left_address_index, right_address_index, match_rate) ) in disasm_table.items():
 				print left_address_index, right_address_index, match_rate
