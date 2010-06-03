@@ -12,19 +12,16 @@ from mako.template import Template
 
 CSSText = """
 <style type="text/css">
+
 body {
-	margin:50px 0px; padding:0px;
-	text-align:center;
-	}
-	
-#Content {
-	width: auto;
-	margin:0px auto;
-	text-align:left;
-	padding:15px;
-	border:1px dashed #333;
-	background-color:#eee;
-	}
+  text-align: center;
+}
+
+#Container {
+  margin: 0 auto;
+  width: 1000px;
+}
+
 
 div.Message
 {
@@ -78,7 +75,43 @@ table.TableTitleLine td {
 	max-width: 1000px;
 }
 
+table.Block {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: dotted;
+	border-color: green;
+	border-collapse: separate;
+	background-color: white;
+	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	max-width: 1000px;
+	table-layout: auto;
+}
+
+table.Block tr {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+}
+
+table.Block td {
+	width: 500px;
+	max-width: 500px;
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
 td.UnidentifiedBlock {
+	width: 500px;
+	max-width: 500px;
 	border-width: 3px;
 	padding: 1px;
 	border-style: solid;
@@ -87,10 +120,11 @@ td.UnidentifiedBlock {
 	background-color:#ff9933;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
 }
 
 td.UnidentifiedWithSecurityImplicationBlock {
+	width: 500px;
+	max-width: 500px;
 	border-width: 1px;
 	padding: 1px;
 	border-style: dashed;
@@ -99,10 +133,11 @@ td.UnidentifiedWithSecurityImplicationBlock {
 	background-color:#ff0000;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
 }
 
 td.ModifiedBlock {
+	width: 500px;
+	max-width: 500px;
 	border-width: 1px;
 	padding: 1px;
 	border-style: dashed;
@@ -111,10 +146,11 @@ td.ModifiedBlock {
 	background-color:#ffff00;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
 }
 
 td.MatchedBlock {
+	width: 500px;
+	max-width: 500px;
 	border-width: 1px;
 	padding: 1px;
 	border-style: dashed;
@@ -123,7 +159,6 @@ td.MatchedBlock {
 	background-color:#f1f1f1;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
 }
 
 div.SecurityImplication {
@@ -254,21 +289,21 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 	<table class="Table">
 		<tr>
 			<td>Source Function Name</td>
+			<td>Non Match Count for Source</td>
 			<td>Target Function Name</td>
+			<td>Non Match Count For Target</td>
 			<td>Match Count</td>
 			<td>Match Count With Modifications</td>
-			<td>Non Match Count for Source</td>
-			<td>Non Match Count For Target</td>
 			<td>Operations</td>
 		</tr>
 	% for function_match_info in function_match_infos:
 		<tr>
 			<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
+			<td>${function_match_info.non_match_count_for_the_source}</td>
 			<td>${function_match_info.target_function_name} (${hex(function_match_info.target_address)})</td>
+			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-			<td>${function_match_info.non_match_count_for_the_source}</td>
-			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td><a href="ShowBasicBlockMatchInfo?databasename=${databasename}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 		</tr>
 	% endfor
@@ -292,7 +327,7 @@ str( function_match_info.match_rate )
 
 ComparisonTableTemplateText = """<%def name="layoutdata(function_match_info, comparison_table)">
 <p>
-	<table class="Table">
+	<table class="Block">
 		<tr>
 			% if function_match_info:
 				<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
