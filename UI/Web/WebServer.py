@@ -35,6 +35,16 @@ class WebServer(object):
 		return worker.StartDiff( source_id, target_id )
 	StartDiff.exposed = True
 
+	def ShowFunctionMatchInfo( self, databasename ):
+		worker = HTMLGenerator.Worker()
+		return worker.GetFunctionMatchInfo( databasename )
+	ShowFunctionMatchInfo.exposed = True
+
+	def ShowBasicBlockMatchInfo( self, databasename, source_address, target_address ):
+		worker = HTMLGenerator.Worker()
+		return worker.GetDisasmComparisonTextByFunctionAddress( databasename, source_address, target_address )
+	ShowBasicBlockMatchInfo.exposed = True
+
 if __name__ == '__main__':
 	cherrypy.config.update({'server.socket_host': '0.0.0.0',
                         'server.socket_port': 80,
