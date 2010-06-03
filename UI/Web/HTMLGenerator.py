@@ -272,8 +272,8 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
-<META HTTP-EQUIV="Refresh" CONTENT="1; URL="ShowFunctionMatchInfo?databasename=${databasename}">
-<p><a href="ShowFunctionMatchInfo?databasename=${databasename}">Show Function Match Table</a>
+<META HTTP-EQUIV="Refresh" CONTENT="1; URL="ShowFunctionMatchInfo?source_id=${source_id}&target_id=${target_id}">
+<p><a href="ShowFunctionMatchInfo?databasename=source_id=${source_id}&target_id=${target_id}">Show Function Match Table</a>
 </%def>
 <html>
 """ + CSSText + """
@@ -305,7 +305,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-			<td><a href="ShowBasicBlockMatchInfo?databasename=${databasename}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
+			<td><a href="ShowBasicBlockMatchInfo?source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 		</tr>
 	% endfor
 	</table>
@@ -386,6 +386,9 @@ class Worker:
 		self.DatabaseName = database
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
+		
+		self.DGFDirectory = r'C:\mat\Projects\DGFs'
+		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
 
 	def Patches( self ):
 		mytemplate = Template( PatchesTemplateText )
@@ -434,23 +437,27 @@ class Worker:
 			target_id = target_id
 		)
 
+	def GenerateDGFName( self, source_id, target_id ):
+		return os.path.join( self.DGFDirectory, str( source_id ) + '_' + str( target_id ) + '.dgf')
+
 	def StartDiff( self, source_id, target_id ):
 		print 'StartDiff', source_id,target_id
-		file_differ = DarunGrimSessions.Manager( self.DatabaseName )
-		databasename = file_differ.InitFileDiffByID( source_id, target_id )
+		databasename = self.GenerateDGFName( source_id, target_id )
+		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff: ', source_id,'/',target_id,'/', databasename
 		#mytemplate = Template( DiffInfoTemplateText )
 		#return mytemplate.render( databasename = databasename )
-		return self.GetFunctionMatchInfo( databasename )
+		return self.GetFunctionMatchInfo( source_id=source_id, target_id = target_id )
 
-	def GetFunctionMatchInfo( self, databasename ):
+	def GetFunctionMatchInfo( self, source_id, target_id ):
+		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
 		for function_match_info in database.GetFunctionMatchInfo():
 			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
 				function_match_infos.append( function_match_info )
 		mytemplate = Template( FunctionmatchInfosTemplateText )
-		return mytemplate.render( databasename = databasename, function_match_infos = function_match_infos )
+		return mytemplate.render( source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
 
 	def GetDisasmLinesWithSecurityImplications( self, lines ):
 		return_lines = ''
@@ -461,7 +468,8 @@ class Worker:
 			return_lines += '<p>' + line
 		return return_lines
 
-	def GetDisasmComparisonTextByFunctionAddress( self, databasename, source_address, target_address, function_match_info = None ):
+	def GetDisasmComparisonTextByFunctionAddress( self, source_id, target_id, source_address, target_address, function_match_info = None ):
+		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
@@ -481,7 +489,8 @@ class Worker:
 		mytemplate = Template( ComparisonTableTemplateText )
 		return mytemplate.render( function_match_info = function_match_info, comparison_table = text_comparison_table )
 
-	def GetDisasmComparisonText( self, databasename ):
+	def GetDisasmComparisonText( self, source_id, target_id ):
+		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
 		ret = ''

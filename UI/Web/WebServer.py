@@ -35,14 +35,14 @@ class WebServer(object):
 		return worker.StartDiff( source_id, target_id )
 	StartDiff.exposed = True
 
-	def ShowFunctionMatchInfo( self, databasename ):
+	def ShowFunctionMatchInfo( self, source_id, target_id ):
 		worker = HTMLGenerator.Worker()
-		return worker.GetFunctionMatchInfo( databasename )
+		return worker.GetFunctionMatchInfo( source_id, target_id )
 	ShowFunctionMatchInfo.exposed = True
 
-	def ShowBasicBlockMatchInfo( self, databasename, source_address, target_address ):
+	def ShowBasicBlockMatchInfo( self, source_id, target_id, source_address, target_address ):
 		worker = HTMLGenerator.Worker()
-		return worker.GetDisasmComparisonTextByFunctionAddress( databasename, source_address, target_address )
+		return worker.GetDisasmComparisonTextByFunctionAddress( source_id, target_id, source_address, target_address )
 	ShowBasicBlockMatchInfo.exposed = True
 
 if __name__ == '__main__':
