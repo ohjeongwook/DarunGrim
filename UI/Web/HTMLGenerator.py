@@ -372,7 +372,7 @@ class Worker:
 	def GetDisasmLinesWithSecurityImplications( self, lines ):
 		return_lines = ''
 		for line in lines:
-			if line.find( "cmp" ) >= 0 or line.find( "test" ) >= 0 or line.find( "wcslen" ) >= 0:
+			if line.find( "cmp" ) >= 0 or line.find( "test" ) >= 0 or line.find( "wcslen" ) >= 0 or line.find( "StringCchCopyW" ) >=0:
 				line = '<div class="SecurityImplication">' + line + '</div>'
 
 			return_lines += '<p>' + line
