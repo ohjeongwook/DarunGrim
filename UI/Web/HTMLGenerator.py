@@ -195,7 +195,7 @@ Body data: ${col}\
 </html>"""
 
 DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="file://${storage_filename}"> Result File </a>
+<p><a href="ShowFunctionMatchInfo?databasename=${storage_filename}">Show Function Match Table</a>
 </%def>
 <html>
 """ + CSSText + """
@@ -216,6 +216,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<td>Match Count With Modifications</td>
 			<td>Non Match Count for Source</td>
 			<td>Non Match Count For Target</td>
+			<td>Operations</td>
 		</tr>
 	% for function_match_info in function_match_infos:
 		<tr>
@@ -225,6 +226,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
 			<td>${function_match_info.non_match_count_for_the_source}</td>
 			<td>${function_match_info.non_match_count_for_the_target}</td>
+			<td><a href="ShowBasicBlockMatchInfo?databasename=${databasename}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 		</tr>
 	% endfor
 	</table>
@@ -352,7 +354,7 @@ class Worker:
 
 	def StartDiff( self, source_id, target_id ):
 		print 'StartDiff', source_id,target_id
-		file_differ = DarunGrimSessions.Manager(r'..\test.db')
+		file_differ = DarunGrimSessions.Manager( self.DatabaseName )
 		storage_filename = file_differ.InitFileDiffByID( source_id, target_id )
 		print 'StartDiff: ', source_id,'/',target_id,'/', storage_filename
 		mytemplate = Template( DiffInfoTemplateText )
@@ -365,7 +367,7 @@ class Worker:
 			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
 				function_match_infos.append( function_match_info )
 		mytemplate = Template( FunctionmatchInfosTemplateText )
-		return mytemplate.render( function_match_infos = function_match_infos )
+		return mytemplate.render( databasename = databasename, function_match_infos = function_match_infos )
 
 	def GetDisasmLinesWithSecurityImplications( self, lines ):
 		return_lines = ''
