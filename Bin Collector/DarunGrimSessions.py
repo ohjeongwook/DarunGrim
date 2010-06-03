@@ -45,7 +45,7 @@ class Manager:
 		target_filename = target_file_entries[0].full_path
 
 		if not databasename:
-			databasename =  os.path.join( self.OutputDirectory , str( source_id ) + '_' + str( target_id ) + ".dgf" )
+			databasename = str( source_id ) + '_' + str( target_id ) + ".dgf"
 		databasename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
 		return databasename
 
@@ -65,7 +65,8 @@ class Manager:
 		prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
 
 		if not databasename:
-			databasename =  os.path.join( self.OutputDirectory , prefix + ".dgf" )
+			databasename = prefix + ".dgf"
+		full_databasename =  os.path.join( self.OutputDirectory , databasename )
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
@@ -75,7 +76,7 @@ class Manager:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
 				print 'databasename',databasename
-			DarunGrimEngine.DiffFile( source_filename, target_filename, databasename, log_filename, self.IDAPath )
+			DarunGrimEngine.DiffFile( source_filename, target_filename, full_databasename, log_filename, self.IDAPath )
 		return databasename
 
 	def InitMSFileDiffAll( self ):
