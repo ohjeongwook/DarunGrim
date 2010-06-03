@@ -61,7 +61,7 @@ table.Table td {
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
+	max-width: 400px;
 }
 
 table.TableTitleLine td {
