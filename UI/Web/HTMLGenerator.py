@@ -16,6 +16,8 @@ CSSText = """
 
 body {
   text-align: center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size: 80%;
 }
 
 #Container {
@@ -29,7 +31,7 @@ div.Message
 	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
 	max-width: 1000px;
 	overflow: scroll;
-	font-size:80%;
+	font-size: 80%;
 }
 
 table.Table {
@@ -46,7 +48,7 @@ table.Table {
 
 table.Table tr {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	background-color: rgb(f0, f0, f0);
@@ -57,7 +59,7 @@ table.Table tr {
 
 table.Table td {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
@@ -79,7 +81,7 @@ table.FunctionMatchInfoTable {
 
 table.FunctionMatchInfoTable tr {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	background-color: rgb(f0, f0, f0);
@@ -90,22 +92,24 @@ table.FunctionMatchInfoTable tr {
 
 table.FunctionMatchInfoTable td {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 400px;
+	font-size: 80%;
 }
 table.TableTitleLine td {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	background-color: rgb(60, a0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 1000px;
+	font-size: 80%;
 }
 
 table.Block {
@@ -122,7 +126,7 @@ table.Block {
 
 table.Block tr {
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	background-color: rgb(f0, f0, f0);
@@ -135,18 +139,19 @@ table.Block td {
 	width: 500px;
 	max-width: 500px;
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
+	font-size: 80%;
 }
 
 td.UnidentifiedBlock {
 	width: 500px;
 	max-width: 500px;
 	border-width: 3px;
-	padding: 1px;
+	padding: 2px;
 	border-style: solid;
 	border-color: green;
 	color: white;
@@ -159,7 +164,7 @@ td.UnidentifiedWithSecurityImplicationBlock {
 	width: 500px;
 	max-width: 500px;
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	color: gray;
@@ -172,7 +177,7 @@ td.ModifiedBlock {
 	width: 500px;
 	max-width: 500px;
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	color: green;
@@ -185,7 +190,7 @@ td.MatchedBlock {
 	width: 500px;
 	max-width: 500px;
 	border-width: 1px;
-	padding: 1px;
+	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	color: black;
@@ -334,10 +339,12 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
 	<table class="FunctionMatchInfoTable">
 		<tr>
-			<td>Source Function Name</td>
-			<td>Non Match</td>
-			<td>Target Function Name</td>
-			<td>Non Match</td>
+			<td>Unpatched</td>
+			<td>Address</td>
+			<td>Unidentified</td>
+			<td>Patched</td>
+			<td>Address</td>
+			<td>Unidentified</td>
 			<td>Matched</td>
 			<td>Modifications</td>
 			<td>Security Implications Score</td>
@@ -345,9 +352,11 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 		</tr>
 	% for ( function_match_info, security_implication_score ) in function_match_infos:
 		<tr>
-			<td>${function_match_info.source_function_name} (${hex(function_match_info.source_address)})</td>
+			<td>${function_match_info.source_function_name}</td>
+			<td>${hex(function_match_info.source_address)}[2:].upper()</td>
 			<td>${function_match_info.non_match_count_for_the_source}</td>
-			<td>${function_match_info.target_function_name} (${hex(function_match_info.target_address)})</td>
+			<td>${function_match_info.target_function_name}[2:].upper()</td>
+			<td>${hex(function_match_info.target_address)}</td>
 			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
