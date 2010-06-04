@@ -353,10 +353,10 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 	% for ( function_match_info, security_implication_score ) in function_match_infos:
 		<tr>
 			<td>${function_match_info.source_function_name}</td>
-			<td>${hex(function_match_info.source_address)}[2:].upper()</td>
+			<td>${hex(function_match_info.source_address)[2:].upper()}</td>
 			<td>${function_match_info.non_match_count_for_the_source}</td>
-			<td>${function_match_info.target_function_name}[2:].upper()</td>
-			<td>${hex(function_match_info.target_address)}</td>
+			<td>${function_match_info.target_function_name}</td>
+			<td>${hex(function_match_info.target_address)[2:].upper()}</td>
 			<td>${function_match_info.non_match_count_for_the_target}</td>
 			<td>${function_match_info.match_count_for_the_source}</td>
 			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
@@ -393,14 +393,14 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 	<table class="Block">
 		<tr>
 			% if source_function_name:
-				<td><h3>Unpatched: ${source_function_name}<h3></td>
+				<td><b>Unpatched: ${source_function_name}<b></td>
 			% else:
-				<td><h3>Unpatched</h3></td>
+				<td><b>Unpatched</b></td>
 			% endif
 			% if target_function_name:
-				<td><h3>Patched: ${target_function_name}<h3></td>
+				<td><b>Patched: ${target_function_name}<b></td>
 			% else:
-				<td><h3>Patched</h3></td>
+				<td><b>Patched</b></td>
 			% endif
 		</tr>
 	% for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
