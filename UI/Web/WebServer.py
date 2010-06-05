@@ -5,6 +5,7 @@ import urllib
 import unittest
 import re
 import HTMLGenerator
+import os
 
 class WebServer(object):
 	def __init__(self):
@@ -46,7 +47,16 @@ class WebServer(object):
 	ShowBasicBlockMatchInfo.exposed = True
 
 if __name__ == '__main__':
-	cherrypy.config.update({'server.socket_host': '0.0.0.0',
+	cherrypy.config.update({'server.socket_host': '127.0.0.1',
                         'server.socket_port': 80,
                        })
-	cherrypy.quickstart( WebServer() )
+	config = {'/data': {'tools.staticdir.on': True,
+		'tools.staticdir.dir': os.path.join(os.getcwd(), 'data'),
+		'tools.staticdir.content_types': {'js': 'application/javascript',
+		'atom': 'application/atom+xml'}}}
+	
+	cherrypy.tree.mount( WebServer(), config=config )
+	cherrypy.engine.start()
+	cherrypy.engine.block()
+
+	#cherrypy.quickstart( WebServer() )
