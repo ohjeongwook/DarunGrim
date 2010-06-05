@@ -11,223 +11,20 @@ import DarunGrimAnalyzers
 
 from mako.template import Template
 
-CSSText = """
+HeadText = """
 <link rel="stylesheet" type="text/css" href="/data/jquery-ui.css" media="screen" />
 <script type="text/javascript" src="/data/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/data/jquery-latest.js"></script> 
-<script type="text/javascript" src="/data/jquery.tablesorter.js"></script> 
+<script type="text/javascript" src="/data/tablesorter/jquery-latest.js"></script> 
+<script type="text/javascript" src="/data/tablesorter/jquery.tablesorter.js"></script> 
+<link rel="stylesheet" href="/data/themes/basic/style.css" type="text/css" media="print, projection, screen" />
+	
 <script type="text/javascript">
 	$(document).ready(function() 
 		{ 
-			$("#mainTable").tablesorter(); 
+			$("#mainTable").tablesorter( {sortList:[[0,0],[2,1]], widgets: ['zebra']} ); 
 		} 
 	); 
 </script>
-<style type="text/css">
-
-body {
-  text-align: center;
-  font-family:Arial,Helvetica,sans-serif;
-  font-size: 80%;
-}
-
-#Container {
-  margin: 0 auto;
-  width: 1000px;
-}
-
-
-div.Message
-{
-	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
-	max-width: 1000px;
-	overflow: scroll;
-	font-size: 80%;
-}
-
-table.Table {
-	border-width: 1px;
-	border-spacing: 1px;
-	border-style: dotted;
-	border-color: red;
-	border-collapse: separate;
-	background-color: white;
-	table-layout: auto;
-}
-
-table.Table tr {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: rgb(f0, f0, f0);
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-}
-
-table.Table td {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	overflow: hidden;
-	font-size: 80%;
-	max-width: 800px;
-	width:expression(this.clientWidth > 800 ? "800px": "auto" );
-}
-
-table.FunctionMatchInfoTable {
-	border-width: 1px;
-	border-spacing: 2px;
-	border-style: dotted;
-	border-color: green;
-	border-collapse: separate;
-	background-color: white;
-	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
-	max-width: 1000px;
-	table-layout: auto;
-}
-
-table.FunctionMatchInfoTable tr {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: rgb(f0, f0, f0);
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	max-width: 1000px;
-}
-
-table.FunctionMatchInfoTable th {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	max-width: 400px;
-	width:expression(this.clientWidth > 400 ? "400px": "auto" );
-	font-size: 80%;
-}
-
-table.FunctionMatchInfoTable td {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	max-width: 400px;
-	width:expression(this.clientWidth > 400 ? "400px": "auto" );
-	font-size: 80%;
-}
-
-table.TableTitleLine td {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: rgb(60, a0, f0);
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	max-width: 1000px;
-	font-size: 80%;
-}
-
-table.Block {
-	border-width: 1px;
-	border-spacing: 2px;
-	border-style: dotted;
-	border-color: green;
-	border-collapse: separate;
-	background-color: white;
-	max-width: 1000px;
-	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
-	table-layout: auto;
-}
-
-table.Block tr {
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: rgb(f0, f0, f0);
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	max-width: 1000px;
-	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
-}
-
-table.Block td {
-	max-width: 500px;
-	width:expression(this.clientWidth > 500 ? "500px": "auto" );
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-	font-size: 80%;
-}
-
-td.UnidentifiedBlock {
-	width: 500px;
-	max-width: 500px;
-	border-width: 3px;
-	padding: 2px;
-	border-style: solid;
-	border-color: green;
-	color: white;
-	background-color:#ff9933;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-}
-
-td.UnidentifiedWithSecurityImplicationBlock {
-	width: 500px;
-	max-width: 500px;
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	color: gray;
-	background-color:#ff0000;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-}
-
-td.ModifiedBlock {
-	max-width: 500px;
-	width:expression(this.clientWidth > 500 ? "500px": "auto" );
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	color: green;
-	background-color:#ffff00;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-}
-
-td.MatchedBlock {
-	width: 500px;
-	max-width: 500px;
-	border-width: 1px;
-	padding: 2px;
-	border-style: dashed;
-	border-color: gray;
-	color: black;
-	background-color:#f1f1f1;
-	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
-}
-
-div.SecurityImplication {
-	color:#ff0000;
-}
-
-</style>
 """
 
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
@@ -241,7 +38,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 <body>
 <div id=Content>
 <%self:layoutdata somedata="${patches}" args="col">\
@@ -262,7 +59,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 <body>
 <div id=Content>
 <%self:layoutdata somedata="${downloads}" args="col">\
@@ -284,7 +81,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 <body>
 <div id=Content>
 <%self:layoutdata somedata="${files}" args="col">\
@@ -325,7 +122,7 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 	</table>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 <body>
 <div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
@@ -347,7 +144,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 <p><a href="ShowFunctionMatchInfo?databasename=source_id=${source_id}&target_id=${target_id}">Show Function Match Table</a>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 <body>
 <div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
@@ -361,7 +158,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
-	<table id="mainTable" class="FunctionMatchInfoTable">
+	<table id="mainTable" class="tablesorter">
 		<thead>
 		<tr>
 			<th>Unpatched</th>
@@ -372,7 +169,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 			<th>Unidentified</th>
 			<th>Matched</th>
 			<th>Modifications</th>
-			<th>Security Implications Score</th>
+			<th>Security Implication Score</th>
 			<th>Operations</th>
 		</tr>
 		</thead>
@@ -388,7 +185,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 				<td>${function_match_info.non_match_count_for_the_target}</td>
 				<td>${function_match_info.match_count_for_the_source}</td>
 				<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-				<td>${security_implication_score}</td>
+				<td>${'%d' % ( security_implication_score) }</td>
 				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 			</tr>
 		% endfor
@@ -396,7 +193,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 	</table>
 </%def>
 <html>
-""" + CSSText + """
+""" + HeadText + """
 
 <body>
 <div id=Content>
@@ -468,7 +265,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 	% endfor
 	</table>
 </%def>
-""" + CSSText + """
+""" + HeadText + """
 <div id=Content>
 <%self:layoutdata source_function_name="${source_function_name}" target_function_name="${target_function_name}" comparison_table="${comparison_table}" args="col">\
 </%self:layoutdata>
