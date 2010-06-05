@@ -1,0 +1,243 @@
+body {
+  text-align: center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size: 80%;
+}
+
+#Container {
+  margin: 0 auto;
+  width: 1000px;
+}
+
+div.Message
+{
+	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	max-width: 1000px;
+	overflow: scroll;
+	font-size: 80%;
+}
+
+table.Table {
+	border-width: 1px;
+	border-spacing: 1px;
+	border-style: dotted;
+	border-color: red;
+	border-collapse: separate;
+	background-color: white;
+	table-layout: auto;
+}
+
+table.Table tr {
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
+table.Table td {
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	overflow: hidden;
+	font-size: 80%;
+	max-width: 800px;
+	width:expression(this.clientWidth > 800 ? "800px": "auto" );
+}
+
+table.FunctionMatchInfoTable {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: dotted;
+	border-color: green;
+	border-collapse: separate;
+	background-color: white;
+	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
+	max-width: 1000px;
+	table-layout: auto;
+	text-align: left;
+}
+
+table.FunctionMatchInfoTable thead tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 80%;
+	width: auto;
+	overflow: hidden;
+	padding-right: 15px;
+}
+
+table.FunctionMatchInfoTable thead tr .header {
+	background-image: url(data/image/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+
+table.FunctionMatchInfoTable thead tr .headerSortUp {
+	background-image: url(data/image/asc.gif);
+}
+table.FunctionMatchInfoTable thead tr .headerSortDown {
+	background-image: url(data/image/desc.gif);
+}
+
+table.FunctionMatchInfoTable td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+	border-width: 1px;
+	border-style: dashed;
+	border-color: gray;
+	max-width: 400px;
+	width:expression(this.clientWidth > 400 ? "400px": "auto" );
+	font-size: 80%;
+}
+
+table.TableTitleLine td {
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(60, a0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+	font-size: 80%;
+}
+
+table.Block {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: dotted;
+	border-color: green;
+	border-collapse: separate;
+	background-color: white;
+	max-width: 1000px;
+	width:expression( this.clientWidth > 1000 ? "1000px": "auto" );
+	table-layout: auto;
+}
+
+table.Block tr {
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: rgb(f0, f0, f0);
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 1000px;
+	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
+}
+
+table.Block td {
+	max-width: 500px;
+	width:expression(this.clientWidth > 500 ? "500px": "auto" );
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	font-size: 80%;
+}
+
+td.UnidentifiedBlock {
+	width: 500px;
+	max-width: 500px;
+	border-width: 3px;
+	padding: 2px;
+	border-style: solid;
+	border-color: green;
+	color: white;
+	background-color:#ff9933;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
+td.UnidentifiedWithSecurityImplicationBlock {
+	width: 500px;
+	max-width: 500px;
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	color: gray;
+	background-color:#ff0000;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
+td.ModifiedBlock {
+	max-width: 500px;
+	width:expression(this.clientWidth > 500 ? "500px": "auto" );
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	color: green;
+	background-color:#ffff00;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
+td.MatchedBlock {
+	width: 500px;
+	max-width: 500px;
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	color: black;
+	background-color:#f1f1f1;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+}
+
+div.SecurityImplication {
+	color:#ff0000;
+}
+
+/* tables */
+table.tablesorter {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 8pt;
+	width: 100%;
+	text-align: left;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 8pt;
+	padding: 4px;
+}
+table.tablesorter thead tr .header {
+	background-image: url(bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+}
+table.tablesorter tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(desc.gif);
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
+}
+
