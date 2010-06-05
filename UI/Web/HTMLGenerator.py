@@ -12,6 +12,17 @@ import DarunGrimAnalyzers
 from mako.template import Template
 
 CSSText = """
+<link rel="stylesheet" type="text/css" href="/data/jquery-ui.css" media="screen" />
+<script type="text/javascript" src="/data/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/data/jquery-latest.js"></script> 
+<script type="text/javascript" src="/data/jquery.tablesorter.js"></script> 
+<script type="text/javascript">
+	$(document).ready(function() 
+		{ 
+			$("#mainTable").tablesorter(); 
+		} 
+	); 
+</script>
 <style type="text/css">
 
 body {
@@ -36,13 +47,11 @@ div.Message
 
 table.Table {
 	border-width: 1px;
-	border-spacing: 2px;
+	border-spacing: 1px;
 	border-style: dotted;
-	border-color: green;
+	border-color: red;
 	border-collapse: separate;
 	background-color: white;
-	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
-	max-width: 1000px;
 	table-layout: auto;
 }
 
@@ -54,7 +63,6 @@ table.Table tr {
 	background-color: rgb(f0, f0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
 }
 
 table.Table td {
@@ -62,9 +70,10 @@ table.Table td {
 	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	max-width: 1000px;
+	font-size: 80%;
+	max-width: 800px;
+	width:expression(this.clientWidth > 800 ? "800px": "auto" );
 }
 
 table.FunctionMatchInfoTable {
@@ -74,7 +83,7 @@ table.FunctionMatchInfoTable {
 	border-color: green;
 	border-collapse: separate;
 	background-color: white;
-	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
+	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
 	max-width: 1000px;
 	table-layout: auto;
 }
@@ -90,6 +99,18 @@ table.FunctionMatchInfoTable tr {
 	max-width: 1000px;
 }
 
+table.FunctionMatchInfoTable th {
+	border-width: 1px;
+	padding: 2px;
+	border-style: dashed;
+	border-color: gray;
+	-moz-border-radius: 0px 0px 0px 0px;
+	overflow: hidden;
+	max-width: 400px;
+	width:expression(this.clientWidth > 400 ? "400px": "auto" );
+	font-size: 80%;
+}
+
 table.FunctionMatchInfoTable td {
 	border-width: 1px;
 	padding: 2px;
@@ -98,8 +119,10 @@ table.FunctionMatchInfoTable td {
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 400px;
+	width:expression(this.clientWidth > 400 ? "400px": "auto" );
 	font-size: 80%;
 }
+
 table.TableTitleLine td {
 	border-width: 1px;
 	padding: 2px;
@@ -119,8 +142,8 @@ table.Block {
 	border-color: green;
 	border-collapse: separate;
 	background-color: white;
-	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
 	max-width: 1000px;
+	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
 	table-layout: auto;
 }
 
@@ -133,11 +156,12 @@ table.Block tr {
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 1000px;
+	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
 }
 
 table.Block td {
-	width: 500px;
 	max-width: 500px;
+	width:expression(this.clientWidth > 500 ? "500px": "auto" );
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
@@ -174,8 +198,8 @@ td.UnidentifiedWithSecurityImplicationBlock {
 }
 
 td.ModifiedBlock {
-	width: 500px;
 	max-width: 500px;
+	width:expression(this.clientWidth > 500 ? "500px": "auto" );
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
@@ -337,37 +361,43 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
-	<table class="FunctionMatchInfoTable">
+	<table id="mainTable" class="FunctionMatchInfoTable">
+		<thead>
 		<tr>
-			<td>Unpatched</td>
-			<td>Address</td>
-			<td>Unidentified</td>
-			<td>Patched</td>
-			<td>Address</td>
-			<td>Unidentified</td>
-			<td>Matched</td>
-			<td>Modifications</td>
-			<td>Security Implications Score</td>
-			<td>Operations</td>
+			<th>Unpatched</th>
+			<th>Address</th>
+			<th>Unidentified</th>
+			<th>Patched</th>
+			<th>Address</th>
+			<th>Unidentified</th>
+			<th>Matched</th>
+			<th>Modifications</th>
+			<th>Security Implications Score</th>
+			<th>Operations</th>
 		</tr>
-	% for ( function_match_info, security_implication_score ) in function_match_infos:
-		<tr>
-			<td>${function_match_info.source_function_name}</td>
-			<td>${hex(function_match_info.source_address)[2:].upper()}</td>
-			<td>${function_match_info.non_match_count_for_the_source}</td>
-			<td>${function_match_info.target_function_name}</td>
-			<td>${hex(function_match_info.target_address)[2:].upper()}</td>
-			<td>${function_match_info.non_match_count_for_the_target}</td>
-			<td>${function_match_info.match_count_for_the_source}</td>
-			<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-			<td>${security_implication_score}</td>
-			<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
-		</tr>
-	% endfor
+		</thead>
+
+		<tbody>
+		% for ( function_match_info, security_implication_score ) in function_match_infos:
+			<tr>
+				<td>${function_match_info.source_function_name}</td>
+				<td>${hex(function_match_info.source_address)[2:].upper()}</td>
+				<td>${function_match_info.non_match_count_for_the_source}</td>
+				<td>${function_match_info.target_function_name}</td>
+				<td>${hex(function_match_info.target_address)[2:].upper()}</td>
+				<td>${function_match_info.non_match_count_for_the_target}</td>
+				<td>${function_match_info.match_count_for_the_source}</td>
+				<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
+				<td>${security_implication_score}</td>
+				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
+			</tr>
+		% endfor
+		</tbody>
 	</table>
 </%def>
 <html>
 """ + CSSText + """
+
 <body>
 <div id=Content>
 <%self:layoutdata function_match_infos="${function_match_infos}" args="col">\
