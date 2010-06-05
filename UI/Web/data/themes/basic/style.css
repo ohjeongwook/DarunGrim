@@ -1,7 +1,7 @@
 body {
   text-align: center;
   font-family:Arial,Helvetica,sans-serif;
-  font-size: 80%;
+  font-size: 10pt;
 }
 
 #Container {
@@ -14,14 +14,14 @@ div.Message
 	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
 	max-width: 1000px;
 	overflow: scroll;
-	font-size: 80%;
+	font-size: 10pt;
 }
 
 table.Table {
 	border-width: 1px;
 	border-spacing: 1px;
 	border-style: dotted;
-	border-color: red;
+	border-color: green;
 	border-collapse: separate;
 	background-color: white;
 	table-layout: auto;
@@ -43,7 +43,7 @@ table.Table td {
 	border-style: dashed;
 	border-color: gray;
 	overflow: hidden;
-	font-size: 80%;
+	font-size: 10pt;
 	max-width: 800px;
 	width:expression(this.clientWidth > 800 ? "800px": "auto" );
 }
@@ -64,7 +64,7 @@ table.FunctionMatchInfoTable {
 table.FunctionMatchInfoTable thead tr th {
 	background-color: #e6EEEE;
 	border: 1px solid #FFF;
-	font-size: 80%;
+	font-size: 10pt;
 	width: auto;
 	overflow: hidden;
 	padding-right: 15px;
@@ -94,7 +94,7 @@ table.FunctionMatchInfoTable td {
 	border-color: gray;
 	max-width: 400px;
 	width:expression(this.clientWidth > 400 ? "400px": "auto" );
-	font-size: 80%;
+	font-size: 10pt;
 }
 
 table.TableTitleLine td {
@@ -106,7 +106,7 @@ table.TableTitleLine td {
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
 	max-width: 1000px;
-	font-size: 80%;
+	font-size: 10pt;
 }
 
 table.Block {
@@ -142,7 +142,7 @@ table.Block td {
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: hidden;
-	font-size: 80%;
+	font-size: 10pt;
 }
 
 td.UnidentifiedBlock {
@@ -206,18 +206,18 @@ table.tablesorter {
 	font-family:arial;
 	background-color: #CDCDCD;
 	margin:10px 0pt 15px;
-	font-size: 8pt;
+	font-size: 10pt;
 	width: 100%;
 	text-align: left;
 }
 table.tablesorter thead tr th, table.tablesorter tfoot tr th {
 	background-color: #e6EEEE;
 	border: 1px solid #FFF;
-	font-size: 8pt;
+	font-size: 10pt;
 	padding: 4px;
 }
 table.tablesorter thead tr .header {
-	background-image: url(bg.gif);
+	background-image: url(/data/images/bg.gif);
 	background-repeat: no-repeat;
 	background-position: center right;
 	cursor: pointer;
@@ -232,10 +232,10 @@ table.tablesorter tbody tr.odd td {
 	background-color:#F0F0F6;
 }
 table.tablesorter thead tr .headerSortUp {
-	background-image: url(asc.gif);
+	background-image: url(/data/images/asc.gif);
 }
 table.tablesorter thead tr .headerSortDown {
-	background-image: url(desc.gif);
+	background-image: url(/data/images/desc.gif);
 }
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
 background-color: #8dbdd8;
