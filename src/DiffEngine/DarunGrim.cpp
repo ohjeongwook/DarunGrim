@@ -12,7 +12,7 @@ DarunGrim::DarunGrim():
 	pIDAClientManager(NULL)
 {
 	Logger.SetLogOutputType( LogToStdout );
-	Logger.SetDebugLevel( 100 );
+	Logger.SetDebugLevel( 0 );
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pIDAClientManager = new IDAClientManager();
 }
