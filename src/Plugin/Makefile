@@ -22,7 +22,8 @@ A=.lib                               # library file extension
 RM=erase /q                          # File Remover
 IDALIB=$(L)ida$(A)
 
-OBJS=$(F)DataBaseWriter$(O) $(F)IDAAnalysis$(O) $(F)fileinfo$(O) $(F)md5$(O) $(F)SharedMemory$(O) $(F)SharedSocket$(O) $(F)SocketOperation.obj $(F)ProcessUtils$(O) $(F)IDAVerifier$(O) $(F)dprintf$(O) $(F)$(PROC)$(O) $(OUTDIR)\Main.res
+OBJS=$(F)DataBaseWriter$(O) $(F)IDAAnalysis$(O) $(F)fileinfo$(O) $(F)md5$(O) $(F)SharedMemory$(O) $(F)SharedSocket$(O) $(F)SocketOperation.obj $(F)ProcessUtils$(O) $(F)IDAVerifier$(O) $(F)dprintf$(O) $(F)$(PROC)$(O) 
+#$(OUTDIR)\Main.res
 
 BINARY=$(R)$(SUBDIR)$(PROC)$(PLUGIN)
 
