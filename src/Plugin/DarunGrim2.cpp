@@ -690,6 +690,7 @@ bool FileWriterWrapper(PVOID Context,BYTE Type,PBYTE Data,DWORD Length)
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 void idaapi run(int arg)
 {
+	long start_tick = GetTickCount();
 	msg("Start DarunGrim2 Plugin\n");
 	if(arg==1)
 	{
@@ -835,7 +836,9 @@ void idaapi run(int arg)
 	SaveToDatabase(db,addr_map_base,p_first_location_info);
 	DeInitializeDatabase(db);
 #endif
-	msg("DarunGrim2 Analysis Finished\n");
+
+	long end_tick = GetTickCount();
+	msg("DarunGrim2 Analysis Finished %.3f sec\n", (float) (end_tick - start_tick)/ 1000 );
 }
 
 char comment[]="This is a DarunGrim2 Plugin.";
