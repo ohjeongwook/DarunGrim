@@ -87,7 +87,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 
 DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 <p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
+&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 	<table class="Table">
 	% for item in somedata:
 		<tr>
@@ -109,8 +109,8 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 
 FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 <p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
-&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
+&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 	<table class="Table">
 		<tr>
 			<td>Company Name</td>
@@ -172,8 +172,8 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
 <p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
-&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
+&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
 	<table id="mainTable" class="tablesorter">
 		<thead>
@@ -229,8 +229,8 @@ str( function_match_info.match_rate )
 
 ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, target_function_name, comparison_table)">
 <p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
-&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
+&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
+&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
 &gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
 
@@ -318,7 +318,12 @@ class Worker:
 	def DownloadInfo( self, patch_id, id ):
 		mytemplate = Template( DownloadInfoTemplateText )
 		files = self.Database.GetFileByDownloadID( id )
-		return mytemplate.render( patch_id=patch_id, id=id, files=files )
+		return mytemplate.render( 
+				patch_id=patch_id, 
+				patch_name=self.Database.GetPatchNameByID( patch_id ), 
+				id=id, 
+				files=files 
+			)
 
 	def FileInfo( self, patch_id, download_id, id ):
 		#PatchTimeline
@@ -344,7 +349,9 @@ class Worker:
 		mytemplate = Template( FileInfoTemplateText )
 		return mytemplate.render(
 			patch_id = patch_id,
+			patch_name = self.Database.GetPatchNameByID( patch_id ), 
 			download_id = download_id,
+			download_label = self.Database.GetDownloadLabelByID( download_id),
 			id = id,
 			file_index_entry=file_index_entry, 
 			source_patch_name = source_patch_name, 
@@ -385,7 +392,16 @@ class Worker:
 				function_match_infos.append( ( function_match_info, security_implications_score ) )
 				
 		mytemplate = Template( FunctionmatchInfosTemplateText )
-		return mytemplate.render(  patch_id=patch_id, download_id = download_id, file_id = file_id, source_id=source_id, target_id = target_id, function_match_infos = function_match_infos )
+		return mytemplate.render(  
+				patch_id = patch_id, 
+				patch_name = self.Database.GetPatchNameByID( patch_id ), 
+				download_id = download_id, 
+				download_label = self.Database.GetDownloadLabelByID( download_id),
+				file_id = file_id, 
+				source_id=source_id, 
+				target_id = target_id, 
+				function_match_infos = function_match_infos 
+			)
 
 	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, source_function_name = None, target_function_name = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
@@ -426,15 +442,18 @@ class Worker:
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 
 		mytemplate = Template( ComparisonTableTemplateText )
-		return mytemplate.render( source_function_name = source_function_name, 
-									target_function_name = target_function_name,
-									comparison_table = text_comparison_table, 
-									source_id = source_id, 
-									target_id = target_id, 
-									patch_id=patch_id, 
-									download_id=download_id, 
-									file_id=file_id
-						)
+		return mytemplate.render( 
+				source_function_name = source_function_name, 
+				target_function_name = target_function_name,
+				comparison_table = text_comparison_table, 
+				source_id = source_id, 
+				target_id = target_id, 
+				patch_id = patch_id, 
+				patch_name = self.Database.GetPatchNameByID( patch_id ), 
+				download_id = download_id, 
+				download_label = self.Database.GetDownloadLabelByID( download_id),
+				file_id=file_id
+			)
 
 	def GetDisasmComparisonText( self, source_id, target_id ):
 		databasename = self.GenerateDGFName( source_id, target_id )
