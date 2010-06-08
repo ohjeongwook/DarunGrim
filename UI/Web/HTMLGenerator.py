@@ -297,7 +297,6 @@ class Worker:
 		
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
 		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
-		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 
 	def Index( self ):
 		mytemplate = Template( IndexTemplateText )
