@@ -1,11 +1,14 @@
 import sys
 sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
 sys.path.append(r'..')
+sys.path.append(r'..\Diff Inspector')
 import os
 
 import PatchTimeline
 import DarunGrimEngine
 import PatchDatabaseWrapper
+import DarunGrimAnalyzers
+import DarunGrimDatabaseWrapper
 
 class Manager:
 	DebugLevel = 3
@@ -71,13 +74,30 @@ class Manager:
 
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
+			self.UpdateSecurityImplicationsScore( databasename )
 		else:
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
 				print 'databasename',databasename
 			DarunGrimEngine.DiffFile( source_filename, target_filename, full_databasename, log_filename, self.IDAPath )
+			self.UpdateSecurityImplicationsScore( full_databasename )
 		return databasename
+
+	def UpdateSecurityImplicationsScore( self, databasename ):
+		database = DarunGrimDatabaseWrapper.Database( databasename )
+		pattern_analyzer = DarunGrimAnalyzers.PatternAnalyzer()
+		for function_match_info in database.GetFunctionMatchInfo():
+			if function_match_info.non_match_count_for_the_source > 0 or \
+				function_match_info.non_match_count_for_the_target > 0 or \
+				function_match_info.match_count_with_modificationfor_the_source > 0:
+	
+				function_match_info.security_implications_score = pattern_analyzer.GetSecurityImplicationsScore( 
+											databasename,
+											function_match_info.source_address, 
+											function_match_info.target_address )
+				print function_match_info.security_implications_score
+		database.Commit()
 
 	def InitMSFileDiffAll( self ):
 		for ( patch_name, filename ) in self.PatchTimelineAnalyzer.GetPatchFileNamePairs():
