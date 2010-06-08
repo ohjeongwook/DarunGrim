@@ -199,6 +199,14 @@ class Database:
 	def GetPatches( self ):
 		return self.SessionInstance.query( Patch ).order_by( Patch.name ).all()
 
+	def GetPatchByID( self, id ):
+		return self.SessionInstance.query( Patch ).filter_by( id = id ).all()
+
+	def GetPatchNameByID( self, id ):
+		for patch in self.SessionInstance.query( Patch ).filter_by( id = id ).all():
+			return patch.name
+		return ''
+
 	def AddCVE( self, patch, cve_string, name ):
 		cve = CVE( cve_string, name )
 		if patch:
@@ -217,12 +225,19 @@ class Database:
 
 	def GetDownloadByFilename( self , filename ):
 		return self.SessionInstance.query( Download ).filter_by( filename=filename ).first() 
-
 	def GetDownloadByPatchID( self , patch_id ):
 		return self.SessionInstance.query( Download ).filter_by( patch_id=patch_id ).all()
 
 	def GetDownloads( self ):
 		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
+
+	def GetDownloadID( self, id ):
+		return self.SessionInstance.query( Download ).filter_by( id=id ).all() 
+
+	def GetDownloadLabelByID( self, id ):
+		for download in self.GetDownloadID( id ):
+			return download.label
+		return ''
 
 	def GetFileByID( self, id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
