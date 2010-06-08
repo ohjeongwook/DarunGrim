@@ -10,21 +10,33 @@ import PatchDatabaseWrapper
 class MSFileProcessor:
 	DebugLevel = 0
 	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll' ]
-	def __init__(self, source_binaries_folder, target_binaries_folder, PatchDatabaseWrapper_database_name = 'test.db' ):
-		self.SourceBinariesFolder = source_binaries_folder
+	def __init__(self, source_binaries_folder, target_binaries_folder, database = None, databasename = 'test.db' ):
+		self.TemporaryExtractedFilesFolderFolder = source_binaries_folder
 		self.TargetBinariesFolder = target_binaries_folder
-		self.DatabaseName = PatchDatabaseWrapper_database_name
-		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+
+		self.DatabaseName = databasename
+		if database:
+			self.Database = database
+		else:
+			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.Download = None
 
 	def ExtractFilesInDatabase( self ):
 		for download in self.Database.GetDownloads():
-			full_path = download.filename
-			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
-				print full_path
-				if self.ExtractFile( full_path ):
-					self.ScapSourceBinaries()
-					self.RemoveOutput()
+			self.ExtractDownload( download )
+
+	def ExtractDownload( self, download ):
+		print 'ExtractDownload', download
+		filename = download.filename
+		if os.path.isfile( filename ) and filename[-4:]=='.exe':
+			print 'Filename', filename
+			if self.ExtractMSArchive( filename ):
+				self.ScapTemporaryExtractedFilesFolder( download )
+				self.RemoveTemporaryFiles()
+
+	def ExtractMSArchive( self, filename ):		
+		popen2.popen2( filename + " /x:"+self.TemporaryExtractedFilesFolderFolder + " /quiet" )
+		return True
 
 	def ExtractFilesInDirectory( self, dirname ):
 		for file in dircache.listdir( dirname ):
@@ -32,14 +44,16 @@ class MSFileProcessor:
 			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
 				print full_path
 				if self.ExtractFile( full_path ):
-					self.ScapSourceBinaries()
-					self.RemoveOutput()
+					self.ScapTemporaryExtractedFilesFolder( self.Download )
+					self.RemoveTemporaryFiles()
 
-	def ExtractFile( self, Filename ):
+	def ExtractFile( self, filename ):
 		#Filename
-		self.Download = self.Database.GetDownloadByFilename( Filename )
+		print 'Filename', filename
+		self.Download = self.Database.GetDownloadByFilename( filename )
+		print 'Download', self.Download
 		if self.Download:
-			popen2.popen2( Filename + " /x:"+self.SourceBinariesFolder + " /quiet" )
+			self.ExtractMSArchive( filename )
 			return True
 		return False
 
@@ -63,9 +77,9 @@ class MSFileProcessor:
 						print "\t", s, value
 		return VersionInfo
 
-	def ScapSourceBinaries( self, dirname = None ):
+	def ScapTemporaryExtractedFilesFolder( self, download, dirname = None ):
 		if not dirname:
-			dirname = self.SourceBinariesFolder
+			dirname = self.TemporaryExtractedFilesFolderFolder
 
 		if not os.path.isdir( dirname ):
 			return 
@@ -73,7 +87,7 @@ class MSFileProcessor:
 		for file in dircache.listdir( dirname ):
 			full_path = os.path.join( dirname, file )
 			if os.path.isdir( full_path ):
-				self.ScapSourceBinaries( full_path )
+				self.ScapTemporaryExtractedFilesFolder( download, full_path )
 			else:
 				if self.DebugLevel > 2:
 					print full_path
@@ -86,13 +100,13 @@ class MSFileProcessor:
 							print version_info
 						
 						target_full_path = full_path
-						if self.SourceBinariesFolder != self.TargetBinariesFolder:
+						if self.TemporaryExtractedFilesFolderFolder != self.TargetBinariesFolder:
 							target_directory = os.path.join( self.TargetBinariesFolder, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
 							target_full_path = os.path.join( target_directory, filename )
 
 							if not os.path.isdir( target_directory ):
 								os.makedirs( target_directory )
-							#print 'Copy to ',target_full_path
+							print 'Copy to ',target_full_path
 							shutil.copyfile( full_path, target_full_path )
 
 						#TODO: Put to the Index Database
@@ -101,12 +115,12 @@ class MSFileProcessor:
 						service_pack = ''
 
 						ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
-						if ret and len(ret)>0:
+						if ret and len(ret)>0 and 0:
 							print 'Already there:', full_path, version_info
 						else:
 							print 'New', full_path, version_info
 							self.Database.AddFile( 
-								self.Download,
+								download,
 								operating_system, 
 								service_pack, 
 								filename, 
@@ -117,10 +131,10 @@ class MSFileProcessor:
 							)
 		self.Database.Commit()
 
-	def RemoveOutput( self, dirname = None ):
-		if self.SourceBinariesFolder != self.TargetBinariesFolder:
+	def RemoveTemporaryFiles( self, dirname = None ):
+		if self.TemporaryExtractedFilesFolderFolder != self.TargetBinariesFolder:
 			if not dirname:
-				dirname = self.SourceBinariesFolder
+				dirname = self.TemporaryExtractedFilesFolderFolder
 			if os.path.isdir( dirname ):
 				shutil.rmtree( dirname )
 
@@ -128,7 +142,7 @@ class MSFileProcessor:
 		for file in dircache.listdir( dirname ):
 			full_path = os.path.join( dirname, file )
 			if os.path.isdir( full_path ):
-				self.RemoveOutput( full_path )
+				self.RemoveTemporaryFiles( full_path )
 				#Remove directory
 				os.remove( full_path )
 			else:
@@ -183,14 +197,14 @@ class Win32VerTest(unittest.TestCase):
 
 if __name__=='__main__':
 	#unittest.main()
-	SourceBinariesFolder = "Out"
-	#SourceBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
+	TemporaryExtractedFilesFolderFolder = "Out"
+	#TemporaryExtractedFilesFolderFolder = r"T:\mat\Projects\Binaries\Windows XP"
 	TargetBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
 	PatchBinary = r'Patches\WindowsXP-KB950762-x86-ENU.exe'
 
-	file_store = MSFileProcessor( SourceBinariesFolder, TargetBinariesFolder )
+	file_store = MSFileProcessor( TemporaryExtractedFilesFolderFolder, TargetBinariesFolder )
 	print file_store.ExtractFilesInDatabase()
 	#file_store.ExtractFilesInDirectory( "Patches" )
 	#if file_store.ExtractFile( PatchBinary ):
-	#	file_store.ScapSourceBinaries()
-	#	file_store.RemoveOutput()
+	#	file_store.ScapTemporaryExtractedFilesFolder()
+	#	file_store.RemoveTemporaryFiles()
