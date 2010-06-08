@@ -242,6 +242,11 @@ class Database:
 	def GetFileByID( self, id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
 
+	def GetFileNameByID( self, id ):
+		for file_index in self.SessionInstance.query( FileIndex ).filter_by( id=id ).all():
+			return file_index.filename
+		return ''
+
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
