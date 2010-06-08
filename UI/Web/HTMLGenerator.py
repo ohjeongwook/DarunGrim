@@ -8,6 +8,8 @@ import PatchTimeline
 import DarunGrimSessions
 import DarunGrimDatabaseWrapper
 import DarunGrimAnalyzers
+import DownloadMSPatches
+import FileStore
 
 from mako.template import Template
 
@@ -53,6 +55,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 		</tr>
 	% endfor
 	</table>
+	<a href="/MSPatchList?operation=update">Check for MS Patches Updates</a>
 </%def>
 <html>
 """ + HeadText + """
@@ -96,6 +99,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 		</tr>
 	% endfor
 	</table>
+	<a href="/DownloadInfo?patch_id=${patch_id}&id=${id}&operation=extract">Extract Archives Automatically</a>
 </%def>
 <html>
 """ + HeadText + """
@@ -296,16 +300,22 @@ class Worker:
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
 		
+		self.BinariesStorage = r"T:\mat\Projects\Binaries\Windows XP"
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
 		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
+		self.PatchTemporaryStore = 'Patches'
 
 	def Index( self ):
 		mytemplate = Template( IndexTemplateText )
 		patches = self.Database.GetPatches()
 		return mytemplate.render()
 
-	def MSPatchList( self ):
+	def MSPatchList( self, operation = '' ):
+		if operation == 'update':
+			patch_downloader = DownloadMSPatches.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
+			patch_downloader.DownloadCurrentYearPatches()
+
 		mytemplate = Template( PatchesTemplateText )
 		patches = self.Database.GetPatches()
 		return mytemplate.render( patches=patches )
@@ -315,19 +325,30 @@ class Worker:
 		downloads = self.Database.GetDownloadByPatchID( id )
 		return mytemplate.render( id=id, downloads=downloads )
 	
-	def DownloadInfo( self, patch_id, id ):
-		mytemplate = Template( DownloadInfoTemplateText )
+	def DownloadInfo( self, patch_id, id, operation = '' ):
+		if operation == 'extract':
+			file_store = FileStore.MSFileProcessor( self.PatchTemporaryStore, self.BinariesStorage, database = self.Database )
+			patch_downloader = DownloadMSPatches.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
+			for download in self.Database.GetDownloadByID( id ):
+				print 'Extracting', download.filename, download.url
+				if not os.path.isfile( download.filename ):
+					patch_downloader.DownloadFileByLink( download.url )
+				file_store.ExtractDownload( download )
+
 		files = self.Database.GetFileByDownloadID( id )
+		mytemplate = Template( DownloadInfoTemplateText )
 		return mytemplate.render( 
-				patch_id=patch_id, 
-				patch_name=self.Database.GetPatchNameByID( patch_id ), 
-				id=id, 
-				files=files 
+				patch_id = patch_id, 
+				patch_name = self.Database.GetPatchNameByID( patch_id ), 
+				id = id, 
+				files = files 
 			)
 
 	def FileInfo( self, patch_id, download_id, id ):
 		#PatchTimeline
-		[ file_index_entry ] = self.Database.GetFileByID( id )
+		files = self.Database.GetFileByID( id )
+		print 'files', files
+		[ file_index_entry ] = files
 		filename = file_index_entry.filename
 		target_patch_name = file_index_entry.downloads.patches.name
 

@@ -16,10 +16,10 @@ class WebServer(object):
 		return worker.Index()
 	index.exposed = True
 
-	def MSPatchList(self):
+	def MSPatchList(self, operation = '' ):
 		print 'MSPatchList'
 		worker = HTMLGenerator.Worker()
-		return worker.MSPatchList()
+		return worker.MSPatchList( operation )
 	MSPatchList.exposed = True
 
 	def PatchInfo(self,id):
@@ -27,9 +27,9 @@ class WebServer(object):
 		return worker.PatchInfo( id )
 	PatchInfo.exposed = True
 
-	def DownloadInfo(self, patch_id, id ):
+	def DownloadInfo(self, patch_id, id, operation = '' ):
 		worker = HTMLGenerator.Worker()
-		return worker.DownloadInfo( patch_id, id )
+		return worker.DownloadInfo( patch_id, id, operation )
 	DownloadInfo.exposed = True
 
 	def FileInfo(self, patch_id, download_id, id):
