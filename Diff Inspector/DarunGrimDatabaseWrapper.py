@@ -154,7 +154,7 @@ class Database:
 		return self.SessionInstance.query( OneLocationInfo ).all()
 		
 	def GetFunctionMatchInfo( self ):
-		return self.SessionInstance.query( FunctionMatchInfo ).all()		
+		return self.SessionInstance.query( FunctionMatchInfo ).all()
 
 	def GetBlockName( self, file_id, address ):
 		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=address).all():
