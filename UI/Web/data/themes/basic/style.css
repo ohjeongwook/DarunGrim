@@ -255,6 +255,7 @@ table.FunctionmatchInfo thead tr th, table.FunctionmatchInfo tfoot tr th {
 	font-size: 10pt;
 	padding: 4px;
 	overflow: auto;
+	max-width: 200px;
 }
 table.FunctionmatchInfo thead tr .header {
 	background-image: url(/data/images/bg.gif);
@@ -267,7 +268,9 @@ table.FunctionmatchInfo tbody td {
 	padding: 4px;
 	background-color: #FFF;
 	vertical-align: top;
-	overflow: auto;
+	max-width: 300px;
+	overflow: hidden;
+	word-wrap: break-word;
 }
 table.FunctionmatchInfo tbody tr.odd td {
 	background-color:#F0F0F6;
