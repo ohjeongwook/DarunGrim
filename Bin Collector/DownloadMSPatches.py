@@ -2,13 +2,16 @@ import os
 import mechanize
 from BeautifulSoup import BeautifulSoup
 import PatchDatabaseWrapper
+import datetime
 
 class PatchDownloader:
 	DebugLevel = 3
 	ShowErrorMessage = True
-	def __init__( self, DownloadFolder ):
-		self.DownloadFolder = DownloadFolder
-		self.Database = PatchDatabaseWrapper.Database( 'test.db' )
+	def __init__( self, download_folder, databasename = 'test.db' ):
+		self.DownloadFolder = download_folder
+		if not os.path.isdir( self.DownloadFolder ):
+			os.makedirs( self.DownloadFolder )
+		self.Database = PatchDatabaseWrapper.Database( databasename )
 
 	def DownloadFileByFamilyID( self, br, family_id ):
 		link = 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en'
@@ -30,7 +33,7 @@ class PatchDownloader:
 				if anchor.text == 'Start download' and name =='href':
 					filename = download_link[download_link.rfind("/")+1:]
 					filename = os.path.join( self.DownloadFolder, filename )
-					if self.DebugLevel > 3:
+					if self.DebugLevel > -3:
 						print '\t\t',download_link,'->',filename
 
 					try:
@@ -218,7 +221,7 @@ class PatchDownloader:
 			return ( {},{} )
 
 		print 'Downloading',name
-		ret = patch_downloader.DownloadMSPatch( Year, PatchNumber )
+		ret = self.DownloadMSPatch( Year, PatchNumber )
 
 		if not ret:
 			if self.ShowErrorMessage:
@@ -288,16 +291,32 @@ class PatchDownloader:
 			print 'Failed Downloading',name
 		return ret
 
+	def DownloadPatches( self, start_year, start_number, end_year, end_number ):
+		for year in range( start_year, end_year+1 ):
+			current_start_number = 1
+			current_end_number = 999
+			if year == start_year:
+				current_start_number = start_number
+			elif year == end_year:
+				current_end_number = end_number
+			
+			for patch_number in range( current_start_number, current_end_number):
+				print 'Checking for MS%.2d-%.3d' % ( year, patch_number )
+				ret = self.DownloadMSPatchAndIndex( year, patch_number )
+				if ret == None:
+					break
+		return
+
+	def DownloadCurrentYearPatches( self ):
+		now = datetime.datetime.now()
+		year = now.year - 2000
+		return self.DownloadPatches( year, 1, year, 999 )
+
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
 
 	#patch_downloader.DownloadMSPatchAndIndex( 9, 18 )
 	#patch_downloader.DownloadMSPatchAndIndex( 8, 1 )
 	#patch_downloader.DownloadMSPatchAndIndex( 10, 31 )
+	patch_downloader.DownloadCurrentYearPatches()
 
-	for Year in range(3,11):
-		for PatchNumber in range(1, 999):
-			#print 'MS%.2d-%.3d' % ( Year, PatchNumber )
-			ret = patch_downloader.DownloadMSPatchAndIndex( Year, PatchNumber )
-			if ret == None:
-				break
