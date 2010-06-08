@@ -7,7 +7,6 @@ import PatchDatabaseWrapper
 import PatchTimeline
 import DarunGrimSessions
 import DarunGrimDatabaseWrapper
-import DarunGrimAnalyzers
 
 from mako.template import Template
 
