@@ -57,7 +57,8 @@ const enum {DiffMachineFileBinaryFormat, DiffMachineFileSQLiteFormat};
 			MatchCountWithModificationForTheSource INTEGER, \n\
 			MatchCountForTheTarget INTEGER, \n\
 			NoneMatchCountForTheTarget INTEGER, \n\
-			MatchCountWithModificationForTheTarget INTEGER\n\
+			MatchCountWithModificationForTheTarget INTEGER, \n\
+			SecurityImplicationsScore INTEGER \n\
 		 );"
 #define INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT "INSERT INTO  " FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%s', '%u', '%s', '%u', '%u', '%u', '%u', '%u', '%u' );"
 #define DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT "DELETE FROM "FUNCTION_MATCH_INFO_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
