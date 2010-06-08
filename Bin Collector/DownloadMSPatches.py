@@ -12,15 +12,24 @@ class PatchDownloader:
 		if not os.path.isdir( self.DownloadFolder ):
 			os.makedirs( self.DownloadFolder )
 		self.Database = PatchDatabaseWrapper.Database( databasename )
+		self.BR = mechanize.Browser()
 
-	def DownloadFileByFamilyID( self, br, family_id ):
-		link = 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en'
+	def DownloadFileByLink( self, link ):
+		family_id = self.GetFamilyID( link )
+		if family_id:
+			return self.DownloadFileByFamilyID( family_id )
+		return None
+
+	def DownloadFileByFamilyID( self, family_id ):
+		return self.DownloadFileByConfirmationLink( 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en' )
 		
+	def DownloadFileByConfirmationLink( self, link ):
+		print 'DownloadFileByLink', link
 		try:
-			data = br.open( link ).get_data()
+			data = self.BR.open( link ).get_data()
 		except:
 			return []
-		
+
 		if self.DebugLevel > 3:
 			print '='*80
 			print link
@@ -31,6 +40,7 @@ class PatchDownloader:
 		for anchor in soup.findAll( "a" ):
 			for name, download_link in anchor.attrs:
 				if anchor.text == 'Start download' and name =='href':
+					print  'Found Start download'
 					filename = download_link[download_link.rfind("/")+1:]
 					filename = os.path.join( self.DownloadFolder, filename )
 					if self.DebugLevel > -3:
@@ -38,7 +48,7 @@ class PatchDownloader:
 
 					try:
 						if not os.path.isfile( filename ):
-							data = br.open( download_link ).get_data()
+							data = self.BR.open( download_link ).get_data()
 
 							if data and len( data ) > 0:
 								fd = open( filename, "wb" )
@@ -47,7 +57,6 @@ class PatchDownloader:
 						files.append( filename )
 					except:
 						print 'Failed to download', download_link
-
 		return files
 
 	def GetFamilyID( self, link ):
@@ -66,11 +75,10 @@ class PatchDownloader:
 					print ''
 		return family_id
 
-	def DownloadMSPatch( self, Year, PatchNumber ):
+	def DownloadMSPatch( self, Year, PatchNumber, download_patch_files = False ):
 		url = 'http://www.microsoft.com/technet/security/Bulletin/MS%.2d-%.3d.mspx' % ( Year, PatchNumber )
-		br = mechanize.Browser()
 		try:
-			data = br.open( url ).get_data()
+			data = self.BR.open( url ).get_data()
 		except:
 			if self.ShowErrorMessage:
 				print 'Downloading Failed'
@@ -173,10 +181,11 @@ class PatchDownloader:
 						column_text = ''
 						if len( tr_members[0] ) > column:
 							column_text = tr_members[0][column]['text']
-						
-						family_id = self.GetFamilyID( link )
-						if family_id:
-							td_member['files'] = self.DownloadFileByFamilyID( br, family_id )
+					
+						if download_patch_files:	
+							family_id = self.GetFamilyID( link )
+							if family_id:
+								td_member['files'] = self.DownloadFileByFamilyID( family_id )
 						td_member_hash[ column_text ] = td_member
 						column += 1
 
@@ -185,6 +194,7 @@ class PatchDownloader:
 						print ''
 
 					patch_data.append( td_member_hash )
+
 			elif p_tag.text == 'Affected Software:' or p_tag.text == 'Affected Components:':
 				table_tag = p_tag.nextSibling
 				for td_tag in table_tag.findAll('td'):
@@ -199,12 +209,13 @@ class PatchDownloader:
 					for a_tag in td_tag.findAll('a'):					
 						for name, link in a_tag.attrs:
 							if name == 'href':
-								family_id = self.GetFamilyID( link )
-								print link
-								print family_id
 								td_member['url'] = link
-								if family_id:
-									td_member['files'] = self.DownloadFileByFamilyID( br, family_id )
+								if download_patch_files:	
+									family_id = self.GetFamilyID( link )
+									print link
+									print family_id
+									if family_id:
+										td_member['files'] = self.DownloadFileByFamilyID( family_id )
 
 						td_member_hash['Data'] = td_member
 						td_member_hash['Maximum Security Impact']={}
