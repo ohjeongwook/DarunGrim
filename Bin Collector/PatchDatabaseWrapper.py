@@ -225,6 +225,7 @@ class Database:
 
 	def GetDownloadByFilename( self , filename ):
 		return self.SessionInstance.query( Download ).filter_by( filename=filename ).first() 
+	
 	def GetDownloadByPatchID( self , patch_id ):
 		return self.SessionInstance.query( Download ).filter_by( patch_id=patch_id ).all()
 
@@ -232,6 +233,9 @@ class Database:
 		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
 
 	def GetDownloadID( self, id ):
+		return self.SessionInstance.query( Download ).filter_by( id=id ).all() 
+
+	def GetDownloadByID( self, id ):
 		return self.SessionInstance.query( Download ).filter_by( id=id ).all() 
 
 	def GetDownloadLabelByID( self, id ):
