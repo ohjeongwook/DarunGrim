@@ -36,15 +36,19 @@ class Manager:
 	def InitFileDiffByID( self, source_id, target_id, databasename = None ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
-		print source_id, source_file_entries
+		print 'source', source_id, source_file_entries
 
-		source_patch_name = source_file_entries[0].downloads.patches.name
+		source_patch_name = 'None'
+		if source_file_entries[0].downloads and source_file_entries[0].downloads.patches.name:
+			source_patch_name = source_file_entries[0].downloads.patches.name
 		source_filename = source_file_entries[0].full_path
 
 		target_file_entries = database.GetFileByID( target_id )
 		print target_id, target_file_entries 
 
-		target_patch_name = target_file_entries[0].downloads.patches.name
+		target_patch_name = 'None'
+		if target_file_entries[0].downloads and target_file_entries[0].downloads.patches.name:
+			target_patch_name = target_file_entries[0].downloads.patches.name
 		target_filename = target_file_entries[0].full_path
 
 		if not databasename:
