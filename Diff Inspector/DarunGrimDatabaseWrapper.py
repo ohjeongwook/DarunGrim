@@ -127,6 +127,7 @@ class FunctionMatchInfo(Base):
 	match_count_for_the_target = Column(Integer, name = "MatchCountForTheTarget" )
 	non_match_count_for_the_target = Column(Integer, name = "NoneMatchCountForTheTarget" )
 	match_count_with_modification_for_the_target = Column(Integer, name = "MatchCountWithModificationForTheTarget" )
+	security_implications_score = Column(Integer, name = "SecurityImplicationsScore" )
 
 	def __init__( self ):
 		pass
