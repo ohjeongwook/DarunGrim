@@ -7,7 +7,7 @@ import string
 
 import PatchDatabaseWrapper
 
-class FileStore:
+class MSFileProcessor:
 	DebugLevel = 0
 	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll' ]
 	def __init__(self, source_binaries_folder, target_binaries_folder, PatchDatabaseWrapper_database_name = 'test.db' ):
@@ -188,7 +188,7 @@ if __name__=='__main__':
 	TargetBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
 	PatchBinary = r'Patches\WindowsXP-KB950762-x86-ENU.exe'
 
-	file_store = FileStore( SourceBinariesFolder, TargetBinariesFolder )
+	file_store = MSFileProcessor( SourceBinariesFolder, TargetBinariesFolder )
 	print file_store.ExtractFilesInDatabase()
 	#file_store.ExtractFilesInDirectory( "Patches" )
 	#if file_store.ExtractFile( PatchBinary ):
