@@ -13,7 +13,7 @@ div.Message
 {
 	width: expression(document.body.clientWidth > 1000) ? "1000px" : "auto";
 	max-width: 1000px;
-	overflow: scroll;
+	overflow: auto;
 	font-size: 10pt;
 }
 
@@ -34,7 +34,7 @@ table.Table tr {
 	border-color: gray;
 	background-color: rgb(f0, f0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 }
 
 table.Table td {
@@ -42,7 +42,7 @@ table.Table td {
 	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
-	overflow: hidden;
+	overflow: auto;
 	font-size: 10pt;
 	max-width: 800px;
 	width:expression(this.clientWidth > 800 ? "800px": "auto" );
@@ -66,7 +66,7 @@ table.FunctionMatchInfoTable thead tr th {
 	border: 1px solid #FFF;
 	font-size: 10pt;
 	width: auto;
-	overflow: hidden;
+	overflow: auto;
 	padding-right: 15px;
 }
 
@@ -104,7 +104,7 @@ table.TableTitleLine td {
 	border-color: gray;
 	background-color: rgb(60, a0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 	max-width: 1000px;
 	font-size: 10pt;
 }
@@ -128,7 +128,7 @@ table.Block tr {
 	border-color: gray;
 	background-color: rgb(f0, f0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 	max-width: 1000px;
 	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
 }
@@ -141,7 +141,7 @@ table.Block td {
 	border-style: dashed;
 	border-color: gray;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 	font-size: 10pt;
 }
 
@@ -155,7 +155,7 @@ td.UnidentifiedBlock {
 	color: white;
 	background-color:#ff9933;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 }
 
 td.UnidentifiedWithSecurityImplicationBlock {
@@ -168,7 +168,7 @@ td.UnidentifiedWithSecurityImplicationBlock {
 	color: gray;
 	background-color:#ff0000;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 }
 
 td.ModifiedBlock {
@@ -181,7 +181,7 @@ td.ModifiedBlock {
 	color: green;
 	background-color:#ffff00;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 }
 
 td.MatchedBlock {
@@ -194,7 +194,7 @@ td.MatchedBlock {
 	color: black;
 	background-color:#f1f1f1;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: hidden;
+	overflow: auto;
 }
 
 div.SecurityImplication {
@@ -238,6 +238,47 @@ table.tablesorter thead tr .headerSortDown {
 	background-image: url(/data/images/desc.gif);
 }
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
+}
+
+table.FunctionmatchInfo {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 10pt;
+	width: 100%;
+	text-align: left;
+}
+table.FunctionmatchInfo thead tr th, table.FunctionmatchInfo tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 10pt;
+	padding: 4px;
+	overflow: auto;
+}
+table.FunctionmatchInfo thead tr .header {
+	background-image: url(/data/images/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.FunctionmatchInfo tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+	overflow: auto;
+}
+table.FunctionmatchInfo tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.FunctionmatchInfo thead tr .headerSortUp {
+	background-image: url(/data/images/asc.gif);
+}
+table.FunctionmatchInfo thead tr .headerSortDown {
+	background-image: url(/data/images/desc.gif);
+}
+table.FunctionmatchInfo thead tr .headerSortDown, table.FunctionmatchInfo thead tr .headerSortUp {
 background-color: #8dbdd8;
 }
 

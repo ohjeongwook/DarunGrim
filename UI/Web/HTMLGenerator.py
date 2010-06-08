@@ -175,7 +175,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
-	<table id="mainTable" class="tablesorter">
+	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
 		<tr>
 			<th>Unpatched</th>
