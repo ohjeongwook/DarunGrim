@@ -174,7 +174,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 <p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
-&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
+&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
 		<tr>
@@ -231,7 +231,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 <p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
-&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
+&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
 &gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
 
 	<table class="Block">
@@ -396,6 +396,7 @@ class Worker:
 				download_id = download_id, 
 				download_label = self.Database.GetDownloadLabelByID( download_id),
 				file_id = file_id, 
+				file_name = self.Database.GetFileNameByID( file_id ),  
 				source_id=source_id, 
 				target_id = target_id, 
 				function_match_infos = function_match_infos 
@@ -450,7 +451,8 @@ class Worker:
 				patch_name = self.Database.GetPatchNameByID( patch_id ), 
 				download_id = download_id, 
 				download_label = self.Database.GetDownloadLabelByID( download_id),
-				file_id=file_id
+				file_id = file_id,
+				file_name = self.Database.GetFileNameByID( file_id ),  
 			)
 
 	def GetDisasmComparisonText( self, source_id, target_id ):
