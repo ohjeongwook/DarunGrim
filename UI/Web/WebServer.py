@@ -13,8 +13,14 @@ class WebServer(object):
 
 	def index(self):
 		worker = HTMLGenerator.Worker()
-		return worker.Patches()
+		return worker.Index()
 	index.exposed = True
+
+	def MSPatchList(self):
+		print 'MSPatchList'
+		worker = HTMLGenerator.Worker()
+		return worker.MSPatchList()
+	MSPatchList.exposed = True
 
 	def PatchInfo(self,id):
 		worker = HTMLGenerator.Worker()
@@ -50,10 +56,16 @@ if __name__ == '__main__':
 	cherrypy.config.update({'server.socket_host': '127.0.0.1',
                         'server.socket_port': 80,
                        })
-	config = {'/data': {'tools.staticdir.on': True,
-		'tools.staticdir.dir': os.path.join(os.getcwd(), 'data'),
-		'tools.staticdir.content_types': {'js': 'application/javascript',
-		'atom': 'application/atom+xml'}}}
+	config = {
+		'/data': {
+			'tools.staticdir.on': True,
+			'tools.staticdir.dir': os.path.join(os.getcwd(), 'data'),
+			'tools.staticdir.content_types': {
+				'js': 'application/javascript',
+				'atom': 'application/atom+xml'
+			}
+		}
+	}
 	
 	cherrypy.tree.mount( WebServer(), config=config )
 	cherrypy.engine.start()

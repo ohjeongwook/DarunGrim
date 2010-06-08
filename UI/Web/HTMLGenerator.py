@@ -27,6 +27,23 @@ HeadText = """
 </script>
 """
 
+IndexTemplateText = """<%def name="layoutdata()">
+	<table class="Table">
+		<tr>
+			<td><a href="/MSPatchList">Microsoft Patches List</a></td>
+		</tr>
+	</table>
+</%def>
+<html>
+""" + HeadText + """
+<body>
+<div id=Content>
+<%self:layoutdata args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
 PatchesTemplateText = """<%def name="layoutdata(somedata)">
 	<table class="Table">
 	% for item in somedata:
@@ -48,7 +65,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/">List</a>
+<p><a href="/MSPatchList">List</a>
 	<table class="Table">
 	% for item in somedata:
 		<tr>
@@ -69,7 +86,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/">List</a>
+<p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 	<table class="Table">
 	% for item in somedata:
@@ -91,7 +108,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FileInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/">List</a>
+<p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 	<table class="Table">
@@ -154,7 +171,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
-<p><a href="/">List</a>
+<p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
@@ -211,7 +228,7 @@ str( function_match_info.match_rate )
 
 
 ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, target_function_name, comparison_table)">
-<p><a href="/">List</a>
+<p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">Patch</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">Systems</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">Files</a>
@@ -283,7 +300,12 @@ class Worker:
 		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 
-	def Patches( self ):
+	def Index( self ):
+		mytemplate = Template( IndexTemplateText )
+		patches = self.Database.GetPatches()
+		return mytemplate.render()
+
+	def MSPatchList( self ):
 		mytemplate = Template( PatchesTemplateText )
 		patches = self.Database.GetPatches()
 		return mytemplate.render( patches=patches )
