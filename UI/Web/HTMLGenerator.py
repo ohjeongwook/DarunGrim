@@ -99,7 +99,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 		</tr>
 	% endfor
 	</table>
-	<a href="/DownloadInfo?patch_id=${patch_id}&id=${id}&operation=extract">Extract Archives Automatically</a>
+	<p><a href="/DownloadInfo?patch_id=${patch_id}&id=${id}&operation=extract">Download and Extract Patches Automatically</a> <p>(In case this fails, you need to extract and upload files manually)
 </%def>
 <html>
 """ + HeadText + """
