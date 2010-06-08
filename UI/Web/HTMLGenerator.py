@@ -201,7 +201,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 				<td>${function_match_info.non_match_count_for_the_target}</td>
 				<td>${function_match_info.match_count_for_the_source}</td>
 				<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-				<td>${'%d' % ( function_match_info.security_implication_score) }</td>
+				<td>${function_match_info.security_implications_score}</td>
 				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 			</tr>
 		% endfor
