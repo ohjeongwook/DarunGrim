@@ -192,7 +192,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 		</thead>
 
 		<tbody>
-		% for ( function_match_info, security_implication_score ) in function_match_infos:
+		% for function_match_info in function_match_infos:
 			<tr>
 				<td>${function_match_info.source_function_name}</td>
 				<td>${hex(function_match_info.source_address)[2:].upper()}</td>
@@ -202,7 +202,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 				<td>${function_match_info.non_match_count_for_the_target}</td>
 				<td>${function_match_info.match_count_for_the_source}</td>
 				<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
-				<td>${'%d' % ( security_implication_score) }</td>
+				<td>${'%d' % ( function_match_info.security_implication_score) }</td>
 				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 			</tr>
 		% endfor
@@ -370,9 +370,13 @@ class Worker:
 		databasename = self.GenerateDGFName( source_id, target_id )
 		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff: ', source_id,'/',target_id,'/', databasename
-		#mytemplate = Template( DiffInfoTemplateText )
-		#return mytemplate.render( databasename = databasename )
-		return self.GetFunctionMatchInfo( patch_id, download_id, file_id, source_id=source_id, target_id = target_id )
+		return self.GetFunctionMatchInfo( 
+			patch_id, 
+			download_id, 
+			file_id, 
+			source_id=source_id, 
+			target_id = target_id 
+			)
 
 	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
 		databasename = self.GenerateDGFName( source_id, target_id )
@@ -383,13 +387,7 @@ class Worker:
 				function_match_info.non_match_count_for_the_target > 0 or \
 				function_match_info.match_count_with_modificationfor_the_source > 0:
 
-				databasename = self.GenerateDGFName( source_id, target_id )
-				security_implications_score = self.PatternAnalyzer.GetSecurityImplicationsScore( 
-											databasename,
-											function_match_info.source_address, 
-											function_match_info.target_address )
-
-				function_match_infos.append( ( function_match_info, security_implications_score ) )
+				function_match_infos.append( function_match_info )
 				
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(  
