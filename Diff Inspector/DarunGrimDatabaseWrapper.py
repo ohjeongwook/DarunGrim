@@ -340,6 +340,9 @@ class Database:
 		match_map = self.GetMatchMapForAddresses( 1, source_disasm_lines_hash.keys() )
 		return self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
 
+	def Commit( self ):
+		self.SessionInstance.commit()
+
 if __name__ == '__main__':
 	import sys
 	filename = sys.argv[1]
