@@ -32,7 +32,7 @@ class MSFileProcessor:
 		if os.path.isfile( filename ) and filename[-4:]=='.exe':
 			print 'Filename', filename
 			if self.ExtractMSArchive( filename ):
-				self.ScapTemporaryExtractedFilesFolder( download )
+				self.ScrapTemporaryExtractedFilesFolder( download )
 				self.RemoveTemporaryFiles()
 
 	def ExtractMSArchive( self, filename ):		
@@ -45,7 +45,7 @@ class MSFileProcessor:
 			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
 				print full_path
 				if self.ExtractFile( full_path ):
-					self.ScapTemporaryExtractedFilesFolder( self.Download )
+					self.ScrapTemporaryExtractedFilesFolder( self.Download )
 					self.RemoveTemporaryFiles()
 
 	def ExtractFile( self, filename ):
@@ -78,7 +78,7 @@ class MSFileProcessor:
 						print "\t", s, value
 		return VersionInfo
 
-	def ScapTemporaryExtractedFilesFolder( self, download, dirname = None ):
+	def ScrapTemporaryExtractedFilesFolder( self, download, dirname = None ):
 		if not dirname:
 			dirname = self.TemporaryExtractedFilesFolderFolder
 
@@ -88,7 +88,7 @@ class MSFileProcessor:
 		for file in dircache.listdir( dirname ):
 			full_path = os.path.join( dirname, file )
 			if os.path.isdir( full_path ):
-				self.ScapTemporaryExtractedFilesFolder( download, full_path )
+				self.ScrapTemporaryExtractedFilesFolder( download, full_path )
 			else:
 				if self.DebugLevel > 2:
 					print full_path
@@ -119,7 +119,7 @@ class MSFileProcessor:
 						if ret and len(ret)>0 and 0:
 							print 'Already there:', full_path, version_info
 						else:
-							print 'New', full_path, version_info
+							print 'New', download, full_path, version_info, 'filename=',filename
 							self.Database.AddFile( 
 								download,
 								operating_system, 
@@ -207,5 +207,5 @@ if __name__=='__main__':
 	print file_store.ExtractFilesInDatabase()
 	#file_store.ExtractFilesInDirectory( "Patches" )
 	#if file_store.ExtractFile( PatchBinary ):
-	#	file_store.ScapTemporaryExtractedFilesFolder()
+	#	file_store.ScrapTemporaryExtractedFilesFolder()
 	#	file_store.RemoveTemporaryFiles()
