@@ -295,7 +295,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 """
 
 class Worker:
-	def __init__ ( self, database = os.path.join( TestDir, 'test.db' ) ):
+	def __init__ ( self, database = 'index.db' ):
 		self.DatabaseName = database
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
@@ -332,8 +332,8 @@ class Worker:
 			for download in self.Database.GetDownloadByID( id ):
 				print 'Extracting', download.filename, download.url
 				if not os.path.isfile( download.filename ):
-					patch_downloader.DownloadFileByLink( download.url )
-				file_store.ExtractDownload( download )
+					files = patch_downloader.DownloadFileByLink( download.url )
+				file_store.ExtractDownload( download, files[0] )
 
 		files = self.Database.GetFileByDownloadID( id )
 		mytemplate = Template( DownloadInfoTemplateText )
