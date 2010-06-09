@@ -24,7 +24,6 @@ class PatchDownloader:
 		return self.DownloadFileByConfirmationLink( 'http://www.microsoft.com/downloads/en/confirmation.aspx?familyId=' + family_id + '&displayLang=en' )
 		
 	def DownloadFileByConfirmationLink( self, link ):
-		print 'DownloadFileByLink', link
 		try:
 			data = self.BR.open( link ).get_data()
 		except:
@@ -182,10 +181,12 @@ class PatchDownloader:
 						if len( tr_members[0] ) > column:
 							column_text = tr_members[0][column]['text']
 					
+						family_id = self.GetFamilyID( link )
 						if download_patch_files:	
-							family_id = self.GetFamilyID( link )
 							if family_id:
 								td_member['files'] = self.DownloadFileByFamilyID( family_id )
+						elif family_id:
+							td_member['files'] = ( family_id )
 						td_member_hash[ column_text ] = td_member
 						column += 1
 
@@ -210,12 +211,15 @@ class PatchDownloader:
 						for name, link in a_tag.attrs:
 							if name == 'href':
 								td_member['url'] = link
+								family_id = self.GetFamilyID( link )
 								if download_patch_files:	
-									family_id = self.GetFamilyID( link )
-									print link
-									print family_id
+									if self.DebugLevel > 3:
+										print link
+										print family_id
 									if family_id:
 										td_member['files'] = self.DownloadFileByFamilyID( family_id )
+								elif family_id:
+									td_member['files'] = ( family_id )
 
 						td_member_hash['Data'] = td_member
 						td_member_hash['Maximum Security Impact']={}
@@ -226,13 +230,13 @@ class PatchDownloader:
 
 		return ( patch_info, patch_data )
 
-	def DownloadMSPatchAndIndex( self, Year, PatchNumber ):
+	def DownloadMSPatchAndIndex( self, Year, PatchNumber, download_patch_files = False ):
 		name = 'MS%.2d-%.3d' % ( Year, PatchNumber )
 		if self.Database.GetPatch( name ):
 			return ( {},{} )
 
 		print 'Downloading',name
-		ret = self.DownloadMSPatch( Year, PatchNumber )
+		ret = self.DownloadMSPatch( Year, PatchNumber, download_patch_files )
 
 		if not ret:
 			if self.ShowErrorMessage:
@@ -287,6 +291,8 @@ class PatchDownloader:
 					if td_member.has_key( 'files' ) and len(td_member['files']) > 0:
 						filename = td_member['files'][0]
 
+					if self.DebugLevel > 2:
+						print 'Calling AddDownload', patch, filename
 					self.Database.AddDownload( 
 						patch, 
 						operating_system, 
