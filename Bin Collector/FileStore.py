@@ -25,9 +25,10 @@ class MSFileProcessor:
 		for download in self.Database.GetDownloads():
 			self.ExtractDownload( download )
 
-	def ExtractDownload( self, download ):
-		print 'ExtractDownload', download
-		filename = download.filename
+	def ExtractDownload( self, download , filename = None ):
+		print 'ExtractDownload', download, filename
+		if not filename:
+			filename = download.filename
 		if os.path.isfile( filename ) and filename[-4:]=='.exe':
 			print 'Filename', filename
 			if self.ExtractMSArchive( filename ):
