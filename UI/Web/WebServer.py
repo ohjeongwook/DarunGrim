@@ -37,9 +37,9 @@ class WebServer(object):
 		return worker.FileInfo( patch_id, download_id, id )
 	FileInfo.exposed = True
 
-	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id ):
+	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
 		worker = HTMLGenerator.Worker()
-		return worker.StartDiff( patch_id, download_id, file_id, source_id, target_id )
+		return worker.StartDiff( patch_id, download_id, file_id, source_id, target_id, show_detail )
 	StartDiff.exposed = True
 
 	def ShowFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
