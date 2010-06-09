@@ -178,7 +178,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </body>
 </html>"""
 
-FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)">
+FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function_match_infos)">
 <p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
@@ -187,31 +187,56 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 		<thead>
 		<tr>
 			<th>Unpatched</th>
-			<th>Address</th>
-			<th>Unidentified</th>
+
+			% if show_detail > 1:
+				<th>Address</th>
+			% endif
+
+			% if show_detail > 0:
+				<th>Unidentified</th>
+			% endif
+
 			<th>Patched</th>
-			<th>Address</th>
-			<th>Unidentified</th>
-			<th>Matched</th>
-			<th>Modifications</th>
+			% if show_detail > 1:
+				<th>Address</th>
+			% endif
+		
+			% if show_detail > 0:
+				<th>Unidentified</th>
+				<th>Matched</th>
+				<th>Modifications</th>
+			% endif
+
 			<th>Security Implication Score</th>
-			<th>Operations</th>
 		</tr>
 		</thead>
 
 		<tbody>
 		% for function_match_info in function_match_infos:
 			<tr>
-				<td>${function_match_info.source_function_name}</td>
-				<td>${hex(function_match_info.source_address)[2:].upper()}</td>
-				<td>${function_match_info.non_match_count_for_the_source}</td>
-				<td>${function_match_info.target_function_name}</td>
-				<td>${hex(function_match_info.target_address)[2:].upper()}</td>
-				<td>${function_match_info.non_match_count_for_the_target}</td>
-				<td>${function_match_info.match_count_for_the_source}</td>
-				<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
+				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">${function_match_info.source_function_name}</a></td>
+				
+				% if show_detail > 1:
+					<td>${hex(function_match_info.source_address)[2:].upper()}</td>
+				% endif
+
+				% if show_detail > 0:
+					<td>${function_match_info.non_match_count_for_the_source}</td>
+				% endif
+
+				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">${function_match_info.target_function_name}</a></td>
+				
+				% if show_detail > 1:
+					<td>${hex(function_match_info.target_address)[2:].upper()}</td>
+				% endif
+
+				% if show_detail > 0:
+					<td>${function_match_info.non_match_count_for_the_target}</td>
+					<td>${function_match_info.match_count_for_the_source}</td>
+					<td>${function_match_info.match_count_with_modificationfor_the_source}</td>
+				% endif
+
 				<td>${function_match_info.security_implications_score}</td>
-				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">Show</a></td>
 			</tr>
 		% endfor
 		</tbody>
@@ -222,7 +247,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(function_match_infos)
 
 <body>
 <div id=Content>
-<%self:layoutdata function_match_infos="${function_match_infos}" args="col">\
+<%self:layoutdata show_detail="${show_detail}" function_match_infos="${function_match_infos}" args="col">\
 </%self:layoutdata>
 </div>
 </body>
@@ -249,11 +274,13 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 			% else:
 				<td><b>Unpatched</b></td>
 			% endif
+
 			% if target_function_name:
 				<td><b>Patched: ${target_function_name}<b></td>
 			% else:
 				<td><b>Patched</b></td>
 			% endif
+
 		</tr>
 	% for ( left_address, left_lines, right_address, right_lines, match_rate ) in comparison_table:
 		% if left_address != 0 or right_address != 0:
@@ -267,6 +294,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 						<td class="ModifiedBlock">
 					% endif
 				% endif
+
 				% if left_address != 0:
 					<b>[${hex(left_address)[2:].upper()}]</b>
 				% endif
@@ -281,9 +309,11 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 						<td class="ModifiedBlock">
 					% endif
 				% endif
+
 				% if right_address != 0:
 					<b>[${hex(right_address)[2:].upper()}]</b>
 				% endif
+
 				<p>${right_lines}</td>
 			</tr>
 		% endif
@@ -402,7 +432,7 @@ class Worker:
 	def GenerateDGFName( self, source_id, target_id ):
 		return os.path.join( self.DGFDirectory, str( source_id ) + '_' + str( target_id ) + '.dgf')
 
-	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id ):
+	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
 		print 'StartDiff', source_id,target_id
 		databasename = self.GenerateDGFName( source_id, target_id )
 		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
@@ -412,10 +442,11 @@ class Worker:
 			download_id, 
 			file_id, 
 			source_id=source_id, 
-			target_id = target_id 
+			target_id = target_id,
+			show_detail  = show_detail
 			)
 
-	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
+	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
@@ -436,7 +467,8 @@ class Worker:
 				file_name = self.Database.GetFileNameByID( file_id ),  
 				source_id=source_id, 
 				target_id = target_id, 
-				function_match_infos = function_match_infos 
+				function_match_infos = function_match_infos,
+				show_detail = 0
 			)
 
 	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, source_function_name = None, target_function_name = None ):
