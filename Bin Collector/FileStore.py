@@ -9,7 +9,7 @@ import PatchDatabaseWrapper
 
 class MSFileProcessor:
 	DebugLevel = 0
-	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll' ]
+	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll', 'HotFixInstallerUI.dll' ]
 	def __init__(self, source_binaries_folder, target_binaries_folder, database = None, databasename = 'test.db' ):
 		self.TemporaryExtractedFilesFolderFolder = source_binaries_folder
 		self.TargetBinariesFolder = target_binaries_folder
