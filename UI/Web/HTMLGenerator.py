@@ -10,6 +10,7 @@ import DarunGrimDatabaseWrapper
 import DarunGrimAnalyzers
 import DownloadMSPatches
 import FileStore
+import tempfile
 
 from mako.template import Template
 
@@ -99,7 +100,10 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 		</tr>
 	% endfor
 	</table>
-	<p><a href="/DownloadInfo?patch_id=${patch_id}&id=${id}&operation=extract">Download and Extract Patches Automatically</a> <p>(In case this fails, you need to extract and upload files manually)
+
+	% if len( somedata ) == 0:
+		<p><a href="/DownloadInfo?patch_id=${patch_id}&id=${id}&operation=extract">Download and Extract Patches Automatically</a> <p>(In case this fails, you need to extract and upload files manually)
+	% endif
 </%def>
 <html>
 """ + HeadText + """
@@ -327,13 +331,24 @@ class Worker:
 	
 	def DownloadInfo( self, patch_id, id, operation = '' ):
 		if operation == 'extract':
-			file_store = FileStore.MSFileProcessor( self.PatchTemporaryStore, self.BinariesStorage, database = self.Database )
-			patch_downloader = DownloadMSPatches.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
+			patch_temporary_folder = tempfile.mkdtemp()
+			patch_temporary_folder2 = tempfile.mkdtemp()
+			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.BinariesStorage, database = self.Database )
+			patch_downloader = DownloadMSPatches.PatchDownloader( patch_temporary_folder2, self.DatabaseName )
 			for download in self.Database.GetDownloadByID( id ):
 				print 'Extracting', download.filename, download.url
 				if not os.path.isfile( download.filename ):
 					files = patch_downloader.DownloadFileByLink( download.url )
 				file_store.ExtractDownload( download, files[0] )
+			try:
+				os.removedirs( patch_temporary_folder2 )
+			except:
+				pass
+
+			try:
+				os.removedirs( patch_temporary_folder )
+			except:
+				pass
 
 		files = self.Database.GetFileByDownloadID( id )
 		mytemplate = Template( DownloadInfoTemplateText )
@@ -355,8 +370,9 @@ class Worker:
 		source_id = 0
 		source_patch_name = 'Not Found'
 		source_filename = 'Not Found'
-		target_filename = 'Not Found'
+		target_filename = filename
 		target_id = 0
+		print 'FileInfo: filename=', filename
 		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename = filename, id = id, patch_name = target_patch_name ):
 			print '='*80
 			print target_patch_name,source_patch_name
