@@ -496,12 +496,12 @@ class Worker:
 			left_line_security_implications_score = 0
 			right_line_security_implications_score = 0
 			if (right_address == 0 and left_address !=0) or match_rate < 100 :
-				( left_line_security_implications_score, left_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( left_lines )
+				( left_line_security_implications_score, left_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( left_lines, right_address == 0 )
 			else:
 				left_line_text = "<p>".join( left_lines )
 
 			if (left_address == 0 and right_address !=0) or match_rate < 100 :
-				( right_line_security_implications_score, right_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( right_lines )
+				( right_line_security_implications_score, right_line_text ) = self.PatternAnalyzer.GetDisasmLinesWithSecurityImplications( right_lines, left_address == 0 )
 			else:
 				right_line_text = "<p>".join( right_lines )
 
