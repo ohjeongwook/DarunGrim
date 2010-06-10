@@ -105,7 +105,6 @@ table.TableTitleLine td {
 	background-color: rgb(60, a0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: auto;
-	max-width: 1000px;
 	font-size: 10pt;
 }
 
@@ -116,9 +115,8 @@ table.Block {
 	border-color: green;
 	border-collapse: separate;
 	background-color: white;
-	max-width: 1000px;
-	width:expression( this.clientWidth > 1000 ? "1000px": "auto" );
 	table-layout: auto;
+	word-wrap: break-word;
 }
 
 table.Block tr {
@@ -129,13 +127,11 @@ table.Block tr {
 	background-color: rgb(f0, f0, f0);
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: auto;
-	max-width: 1000px;
-	width:expression(this.clientWidth > 1000 ? "1000px": "auto" );
 }
 
 table.Block td {
-	max-width: 500px;
-	width:expression(this.clientWidth > 500 ? "500px": "auto" );
+	max-width: 400px;
+	width:expression(this.clientWidth > 200 ? "400px": "auto" );
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
@@ -146,21 +142,21 @@ table.Block td {
 }
 
 td.UnidentifiedBlock {
-	width: 500px;
-	max-width: 500px;
+	width: 400px;
+	max-width: 400px;
 	border-width: 3px;
 	padding: 2px;
 	border-style: solid;
 	border-color: green;
 	color: white;
-	background-color:#ff9933;
+	background-color:#ff3300;
 	-moz-border-radius: 0px 0px 0px 0px;
 	overflow: auto;
 }
 
 td.UnidentifiedWithSecurityImplicationBlock {
-	width: 500px;
-	max-width: 500px;
+	width: 400px;
+	max-width: 400px;
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
@@ -172,21 +168,19 @@ td.UnidentifiedWithSecurityImplicationBlock {
 }
 
 td.ModifiedBlock {
-	max-width: 500px;
-	width:expression(this.clientWidth > 500 ? "500px": "auto" );
+	max-width: 400px;
+	width:expression(this.clientWidth > 200 ? "400px": "auto" );
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
 	border-color: gray;
 	color: green;
-	background-color:#ffff00;
+	background-color:#ffff33;
 	-moz-border-radius: 0px 0px 0px 0px;
-	overflow: auto;
 }
 
 td.MatchedBlock {
-	width: 500px;
-	max-width: 500px;
+	max-width: 400px;
 	border-width: 1px;
 	padding: 2px;
 	border-style: dashed;
@@ -255,7 +249,7 @@ table.FunctionmatchInfo thead tr th, table.FunctionmatchInfo tfoot tr th {
 	font-size: 10pt;
 	padding: 4px;
 	overflow: auto;
-	max-width: 200px;
+	max-width: 400px;
 }
 table.FunctionmatchInfo thead tr .header {
 	background-image: url(/data/images/bg.gif);
@@ -268,7 +262,7 @@ table.FunctionmatchInfo tbody td {
 	padding: 4px;
 	background-color: #FFF;
 	vertical-align: top;
-	max-width: 300px;
+	max-width: 400px;
 	overflow: hidden;
 	word-wrap: break-word;
 }
