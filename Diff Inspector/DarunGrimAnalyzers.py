@@ -7,7 +7,8 @@ class PatternAnalyzer:
 			( "match", "wcslen", 2 ),
 			( "match", "strlen", 2 ),
 			( "match", "0xFFFFFFF", 3 ),
-			( "match", "StringCchCopyW", 2 )
+			( "match", "StringCchCopyW", 2 ),
+			( "match", "ULongLongToULong", 2 )
 	)
 	
 	def __init__( self ):
