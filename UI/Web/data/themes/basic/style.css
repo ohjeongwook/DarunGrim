@@ -191,8 +191,12 @@ td.MatchedBlock {
 	overflow: auto;
 }
 
-div.SecurityImplication {
-	color:#ff0000;
+div.SecurityImplicationInUnidentifiedBlock {
+	color:#99FF00;
+}
+
+div.SecurityImplicationInModifiedBlock {
+	color:#FF0000;
 }
 
 /* tables */
