@@ -13,7 +13,7 @@ import DarunGrimDatabaseWrapper
 class Manager:
 	DebugLevel = 3
 
-	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files (x86)\IDA\idag.exe' ):
+	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = r'C:\Program Files\IDA\idag.exe' ):
 		self.DatabaseFilename = databasename
 		self.OutputDirectory = output_directory
 		self.IDAPath = ida_path
