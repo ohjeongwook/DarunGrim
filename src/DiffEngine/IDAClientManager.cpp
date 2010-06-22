@@ -289,6 +289,15 @@ void IDAClientManager::ShowResultsOnIDA()
 	Exit( 0 );\n\
 }"
 
+#define CONNECT_TO_DARUNGRIM2_STR "static main()\n\
+{\n\
+	Wait();\n\
+	RunPlugin( \"DarunGrim2\", 1 );\n\
+	SetLogFile( \"%s\" );\n\
+	ConnectToDarunGrim2();\n\
+	Exit( 0 );\n\
+}"
+
 void IDAClientManager::SetIDAPath( const char *ParamIDAPath )
 {
 	if( IDAPath )
@@ -340,16 +349,35 @@ void IDAClientManager::SetLogFilename( char *LogFilename )
 	}
 }
 
-void IDAClientManager::RunIDAToGenerateDB( char *TheFilename, DWORD StartAddress, DWORD EndAddress )
+void IDAClientManager::RunIDAToGenerateDB( char *ida_filename, DWORD StartAddress, DWORD EndAddress )
 {
-	char *IDCFilename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, EscapedLogFilename?EscapedLogFilename:"", EscapedOutputFilename?EscapedOutputFilename:"", StartAddress, EndAddress );
+	char *idc_filename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, 
+		EscapedLogFilename?EscapedLogFilename:"", 
+		EscapedOutputFilename?EscapedOutputFilename:"", 
+		StartAddress, 
+		EndAddress );
 
-	if( IDCFilename )
+	if( idc_filename )
 	{
 		//Run IDA
-		Logger.Log( 10, "Analyzing [%s]( %s )\n", TheFilename, IDCFilename );
-		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, IDCFilename, TheFilename );
-		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, IDCFilename, TheFilename );
-		free( IDCFilename );
+		Logger.Log( 10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename );
+		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		free( idc_filename );
+	}
+}
+
+
+void IDAClientManager::ConnectToDarunGrim2( char *ida_filename )
+{
+	char *idc_filename=WriteToTemporaryFile( CONNECT_TO_DARUNGRIM2_STR, EscapedLogFilename?EscapedLogFilename:"");
+
+	if( idc_filename )
+	{
+		//Run IDA
+		Logger.Log( 10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename );
+		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		free( idc_filename );
 	}
 }

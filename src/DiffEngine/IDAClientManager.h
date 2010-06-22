@@ -39,4 +39,5 @@ public:
 	void SetOutputFilename( char *OutputFilename );
 	void SetLogFilename( char *LogFilename );
 	void RunIDAToGenerateDB( char *TheFilename, DWORD StartAddress, DWORD EndAddress );
+	void ConnectToDarunGrim2( char *ida_filename );
 };
