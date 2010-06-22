@@ -117,16 +117,19 @@ bool DarunGrim::Analyze()
 
 	if( pOneIDAClientManagerTheSource && pOneIDAClientManagerTheTarget )
 	{
-		pDiffMachine=new DiffMachine( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget );
+		pDiffMachine = new DiffMachine( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget );
 	}
-	else
+	else if( pStorageDB )
 	{
-		pDiffMachine=new DiffMachine();
+		pDiffMachine = new DiffMachine();
 		pDiffMachine->Retrieve( *pStorageDB,TRUE,TheSourceFileID,TheTargetFileID);
 	}
 
-	pDiffMachine->Analyze();
-	pDiffMachine->Save( *pStorageDB );
+	if( pDiffMachine )
+	{
+		pDiffMachine->Analyze();
+		pDiffMachine->Save( *pStorageDB );
+	}
 	return TRUE;
 }
 
