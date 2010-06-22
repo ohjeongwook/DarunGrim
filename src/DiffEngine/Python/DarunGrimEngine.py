@@ -2,21 +2,28 @@ import sys
 import DiffEngine
 import os
 
-def DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
-	TheSourceFilename = str(TheSourceFilename)
-	TheTargetFilename = str(TheTargetFilename)
-	#print 'Comparing',TheSourceFilename,TheTargetFilename
+class Differ:
+	def __init__ ( self ):
+		pass
 
-	StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
-	LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
+	def DiffFile( self, TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
+		TheSourceFilename = str(TheSourceFilename)
+		TheTargetFilename = str(TheTargetFilename)
+		#print 'Comparing',TheSourceFilename,TheTargetFilename
 
-	darun_grim = DiffEngine.DarunGrim()
-	darun_grim.SetIDAPath( IDAPath )
-	darun_grim.GenerateDB(
-		StorageFilename, LogFilename, 
-		TheSourceFilename, 0, 0,
-		TheTargetFilename, 0, 0)
-	darun_grim.Analyze()
+		StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
+		LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
+
+		self.DarunGrim = DiffEngine.DarunGrim()
+		self.DarunGrim.SetIDAPath( IDAPath )
+		self.DarunGrim.GenerateDB(
+			StorageFilename, LogFilename, 
+			TheSourceFilename, 0, 0,
+			TheTargetFilename, 0, 0)
+		self.DarunGrim.Analyze()
+
+	def SyncIDA( self ):
+		self.DarunGrim.AcceptIDAClientsFromSocket()
 
 if __name__ == '__main__':
 	"""
@@ -36,6 +43,6 @@ if __name__ == '__main__':
 	"""
 	
 	darun_grim = DiffEngine.DarunGrim()
-	storage_filename = os.path.join( os.getcwd(), str('test.dgf') )
+	storage_filename = os.path.join( os.getcwd(), str('test2.dgf') )
 	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
 	raw_input( 'Press any key to continue...' )
