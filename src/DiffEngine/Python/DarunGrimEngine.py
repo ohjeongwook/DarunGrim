@@ -36,5 +36,6 @@ if __name__ == '__main__':
 	"""
 	
 	darun_grim = DiffEngine.DarunGrim()
-	darun_grim.AcceptIDAClientsFromSocket()
+	storage_filename = os.path.join( os.getcwd(), str('test.dgf') )
+	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
 	raw_input( 'Press any key to continue...' )
