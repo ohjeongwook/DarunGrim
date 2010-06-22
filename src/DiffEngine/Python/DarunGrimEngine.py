@@ -8,14 +8,17 @@ class Differ:
 		self.TargetFilename = str(TargetFilename)
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetSourceFilename( self.SourceFilename )
-		self.DarunGrim.SetTargetFilename( self.TargetFilename ) 
+		self.DarunGrim.SetTargetFilename( self.TargetFilename )
+		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA\idag.exe' )
 
-	def DiffFile( self, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
+	def SetIDAPath( self, ida_path ):
+		self.DarunGrim.SetIDAPath( ida_path )
+
+	def DiffFile( self, StorageFilename, LogFilename ):
 		print 'Comparing',TheSourceFilename,TheTargetFilename
 		StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
 		LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
 
-		self.DarunGrim.SetIDAPath( IDAPath )
 		self.DarunGrim.GenerateDB(
 			StorageFilename, LogFilename, 
 			self.SourceFilename, 0, 0,
