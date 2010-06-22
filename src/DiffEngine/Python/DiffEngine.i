@@ -96,6 +96,6 @@ public:
 		char *LogFilename, 
 		char *TheSourceFilename, int StartAddressForSource, int EndAddressForSource, 
 		char *TheTargetFilename, int StartAddressForTarget, int EndAddressForTarget );
-	bool ConnectToIDA();
+	bool AcceptIDAClientsFromSocket();
 	bool Analyze();
 };
