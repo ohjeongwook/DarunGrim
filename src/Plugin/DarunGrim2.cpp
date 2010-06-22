@@ -92,11 +92,12 @@ static error_t idaapi SaveAnalysisData( value_t *argv, value_t *res )
 	return eOk;
 }
 
+BOOL ConnectToDarunGrimServer();
 static const char ConnectToDarunGrim2Args[]={0 };
 static error_t idaapi ConnectToDarunGrim2( value_t *argv, value_t *res )
 {
 	OutputFilename=NULL;
-	run( 2 );
+	ConnectToDarunGrimServer();
 	res->num=1;
 	return eOk;
 }
@@ -618,6 +619,20 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 	return 0;
 }
 
+BOOL ConnectToDarunGrimServer()
+{
+	SOCKET data_socket=ConnectToServer( "127.0.0.1", DARUNGRIM2_PORT );
+	if( data_socket != INVALID_SOCKET )
+	{
+		msg( "Connected to DarunGrim2 Main Program" );
+		hook_to_notification_point( HT_GRAPH, graph_callback, NULL );
+		SetSharedSocketDataReceiver( ProcessCommandFromDarunGrim );
+		PutSocketToWSAAsyncSelect( data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT );
+		return TRUE;
+	}
+	return FALSE;
+}
+
 #ifdef USE_ZLIB_WRAPPER_FOR_FILE
 bool ZlibWrapperFileWriterWrapper( PVOID Context, BYTE Type, PBYTE Data, DWORD Length )
 {
@@ -723,60 +738,50 @@ void idaapi run( int arg )
 	GetModuleFileName( ( HMODULE )&__ImageBase, dllname, sizeof( dllname ) );
 	LoadLibrary( dllname );
 
-	if( !OutputFilename )
+	if( !OutputFilename && !ConnectToDarunGrimServer() )
 	{
-		SOCKET data_socket=ConnectToServer( "127.0.0.1", DARUNGRIM2_PORT );
-		if( data_socket != INVALID_SOCKET )
-		{
-			msg( "Connected to DarunGrim2 Main Program" );
-			hook_to_notification_point( HT_GRAPH, graph_callback, NULL );
-			SetSharedSocketDataReceiver( ProcessCommandFromDarunGrim );
-			PutSocketToWSAAsyncSelect( data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT );
-		}else
-		{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-			char orignal_file_path[1024]={0, };
-			char root_file_path[1024]={0, };
+		char orignal_file_path[1024]={0, };
+		char root_file_path[1024]={0, };
 #else
-			char *orignal_file_path=strdup( get_input_file_path() );
-			char *root_file_path=get_root_filename();
+		char *orignal_file_path=strdup( get_input_file_path() );
+		char *root_file_path=get_root_filename();
 #endif
-			char *input_file_path=NULL;
+		char *input_file_path=NULL;
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-			get_input_file_path( orignal_file_path, sizeof( orignal_file_path )-1 );
-			get_root_filename( root_file_path, sizeof( root_file_path )-1 );
+		get_input_file_path( orignal_file_path, sizeof( orignal_file_path )-1 );
+		get_root_filename( root_file_path, sizeof( root_file_path )-1 );
 #endif
-			msg( "Ask Filepath\n" );
-			if( arg==0 )
+		msg( "Ask Filepath\n" );
+		if( arg==0 )
+		{
+			input_file_path=askfile_c( 1, "*.dgf", "Select DB File to Output" );
+			if( !input_file_path )
 			{
-				input_file_path=askfile_c( 1, "*.dgf", "Select DB File to Output" );
-				if( !input_file_path )
-				{
-					return;
-				}
+				return;
 			}
-			if( input_file_path && strlen( input_file_path )>0 )
+		}
+		if( input_file_path && strlen( input_file_path )>0 )
+		{
+			int OutputFilename_size=strlen( input_file_path )+5;
+			OutputFilename=( char * )calloc( 1, OutputFilename_size );
+			if( OutputFilename )
 			{
-				int OutputFilename_size=strlen( input_file_path )+5;
-				OutputFilename=( char * )calloc( 1, OutputFilename_size );
-				if( OutputFilename )
-				{
-					qstrncpy( OutputFilename, input_file_path, OutputFilename_size );
+				qstrncpy( OutputFilename, input_file_path, OutputFilename_size );
 #define DB_POSTFIX ".dgf"
-					if( stricmp( &input_file_path[strlen( input_file_path )-4], ".dgf" ) )
-					{
+				if( stricmp( &input_file_path[strlen( input_file_path )-4], ".dgf" ) )
+				{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-						qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
 #else
 #ifdef _USE_IDA_SDK_47_OR_LOWER
-						strncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					strncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
 #else
-						qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
 #endif
 #endif
-					}
-					msg( "Output file=[%s]\n", OutputFilename );
 				}
+				msg( "Output file=[%s]\n", OutputFilename );
 			}
 		}
 	}
