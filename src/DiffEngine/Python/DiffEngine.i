@@ -97,6 +97,6 @@ public:
 		char *LogFilename, 
 		char *TheSourceFilename, int StartAddressForSource, int EndAddressForSource, 
 		char *TheTargetFilename, int StartAddressForTarget, int EndAddressForTarget );
-	bool AcceptIDAClientsFromSocket();
+	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
 };
