@@ -3,23 +3,23 @@ import DiffEngine
 import os
 
 class Differ:
-	def __init__ ( self ):
-		pass
+	def __init__ ( self, SourceFilename, TargetFilename ):
+		self.SourceFilename = str(SourceFilename)
+		self.TargetFilename = str(TargetFilename)
+		self.DarunGrim = DiffEngine.DarunGrim()
+		self.DarunGrim.SetSourceFilename( self.SourceFilename )
+		self.DarunGrim.SetTargetFilename( self.TargetFilename ) 
 
-	def DiffFile( self, TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
-		TheSourceFilename = str(TheSourceFilename)
-		TheTargetFilename = str(TheTargetFilename)
-		#print 'Comparing',TheSourceFilename,TheTargetFilename
-
+	def DiffFile( self, StorageFilename, LogFilename, IDAPath = r'C:\Program Files (x86)\IDA\idag.exe' ):
+		print 'Comparing',TheSourceFilename,TheTargetFilename
 		StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
 		LogFilename = os.path.join( os.getcwd(), str(LogFilename) )
 
-		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetIDAPath( IDAPath )
 		self.DarunGrim.GenerateDB(
 			StorageFilename, LogFilename, 
-			TheSourceFilename, 0, 0,
-			TheTargetFilename, 0, 0)
+			self.SourceFilename, 0, 0,
+			self.TargetFilename, 0, 0)
 		self.DarunGrim.Analyze()
 
 	def SyncIDA( self ):
