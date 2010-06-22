@@ -912,9 +912,9 @@ public:
 		}
 		//IDA Interaction
 		//Create new thread?
-		//pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
-		//pOneClientManager->ShowResultsOnIDA();
-		//pOneClientManager->CreateIDACommandProcessor();
+		pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
+		pOneClientManager->ShowResultsOnIDA();
+		pOneClientManager->CreateIDACommandProcessorThread();
 	}
 
 	int AnalyzeIDAClientManagers(WORD,WORD,HWND,BOOL&)
@@ -944,9 +944,9 @@ public:
 			::MessageBox(m_hWnd,"Patched IDB is opened.\r\nIDA will be synced from now on.","Information",MB_OK);
 			IDAClientManager *pOneClientManager=new IDAClientManager();
 			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
-			//pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
-			//pOneClientManager->ShowResultsOnIDA();
-			//pOneClientManager->CreateIDACommandProcessor();
+			pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
+			pOneClientManager->ShowResultsOnIDA();
+			pOneClientManager->CreateIDACommandProcessorThread();
 		}
 		AssociateSocketCount++;
 		return 1;
