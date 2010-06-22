@@ -84,7 +84,6 @@ bool DarunGrim::AcceptIDAClientsFromSocket()
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pStorageDB? TRUE:FALSE );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pStorageDB? TRUE:FALSE );
 
-	DiffMachine *pDiffMachine = NULL;
 	pIDAClientManager->SetMembers( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget, pDiffMachine );
 	pIDAClientManager->CreateIDACommandProcessorThread();
 	pIDAClientManager->StopIDAListener();
