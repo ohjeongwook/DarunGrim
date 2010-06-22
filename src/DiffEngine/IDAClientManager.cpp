@@ -198,17 +198,17 @@ DWORD IDAClientManager::IDACommandProcessor()
 	return 1;
 }
 
-DWORD WINAPI CreateIDACommandProcessorCallback(LPVOID lpParameter)
+DWORD WINAPI CallIDACommandProcessorThread(LPVOID lpParameter)
 {
 	IDAClientManager *pIDAClientManager=(IDAClientManager *)lpParameter;
 	pIDAClientManager->IDACommandProcessor();
 	return 1;
 }
 
-DWORD IDAClientManager::CreateIDACommandProcessor()
+DWORD IDAClientManager::CreateIDACommandProcessorThread()
 {
 	DWORD dwThreadId;
-	CreateThread(NULL,0,CreateIDACommandProcessorCallback,(PVOID)this,0,&dwThreadId);
+	CreateThread(NULL,0,CallIDACommandProcessorThread,(PVOID)this,0,&dwThreadId);
 	return 1;
 }
 

@@ -31,7 +31,7 @@ public:
 	OneIDAClientManager *GetOneIDAClientManagerFromFile( char *DataFile );
 	DWORD SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine );
 	DWORD IDACommandProcessor();
-	DWORD CreateIDACommandProcessor();
+	DWORD CreateIDACommandProcessorThread();
 	void ShowResultsOnIDA();
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename( char *OutputFilename );
