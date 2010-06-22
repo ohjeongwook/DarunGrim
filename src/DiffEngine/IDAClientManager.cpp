@@ -41,7 +41,7 @@ bool IDAClientManager::StartIDAListener( unsigned short port )
 }
 
 bool IDAClientManager::StopIDAListener()
-{	
+{
 	if( ListeningSocket != INVALID_SOCKET )
 	{
 		closesocket( ListeningSocket );
