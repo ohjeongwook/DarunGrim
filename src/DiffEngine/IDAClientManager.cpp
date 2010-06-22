@@ -29,6 +29,7 @@ void IDAClientManager::SetDatabase( DBWrapper *OutputDB )
 
 bool IDAClientManager::StartIDAListener( unsigned short port )
 {	
+	StopIDAListener();
 	ListeningPort=port;
 	if( ListeningPort>0 )
 	{
@@ -39,10 +40,19 @@ bool IDAClientManager::StartIDAListener( unsigned short port )
 	return FALSE;
 }
 
+bool IDAClientManager::StopIDAListener()
+{	
+	if( ListeningSocket != INVALID_SOCKET )
+	{
+		closesocket( ListeningSocket );
+		return TRUE;
+	}
+	return FALSE;
+}
+
 IDAClientManager::~IDAClientManager()
 {
-	if( ListeningSocket != INVALID_SOCKET )
-		closesocket( ListeningSocket );
+	StopIDAListener();
 
 	if( IDAPath )
 		free( IDAPath );

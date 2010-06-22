@@ -84,6 +84,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket()
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, TRUE );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, TRUE );
 	pIDAClientManager->CreateIDACommandProcessorThread();
+	pIDAClientManager->StopIDAListener();
 
 	return TRUE;
 }

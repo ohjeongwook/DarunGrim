@@ -27,6 +27,7 @@ public:
 	IDAClientManager();
 	void SetDatabase( DBWrapper *OutputDB );
 	bool StartIDAListener( unsigned short port );
+	bool StopIDAListener();
 
 	~IDAClientManager();
 	BOOL AcceptIDAClient( OneIDAClientManager *pOneIDAClientManager, bool RetrieveData=FALSE );
