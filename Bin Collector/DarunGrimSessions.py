@@ -85,6 +85,8 @@ class Manager:
 		full_databasename =  os.path.join( self.OutputDirectory , databasename )
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
+		self.Differ = DarunGrimEngine.Differ( source_filename, target_filename )
+		self.Differ.SetIDAPath( self.IDAPath )
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
 		else:
@@ -92,8 +94,10 @@ class Manager:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
 				print 'databasename',databasename
-			DarunGrimEngine.DiffFile( source_filename, target_filename, full_databasename, log_filename, self.IDAPath )
+			self.Differ.DiffFile( full_databasename, log_filename  )
 			self.UpdateSecurityImplicationsScore( full_databasename )
+
+		self.Differ.SyncIDA();
 		return databasename
 
 	def UpdateSecurityImplicationsScore( self, databasename ):
@@ -103,7 +107,7 @@ class Manager:
 			if function_match_info.non_match_count_for_the_source > 0 or \
 				function_match_info.non_match_count_for_the_target > 0 or \
 				function_match_info.match_count_with_modificationfor_the_source > 0:
-	
+
 				function_match_info.security_implications_score = pattern_analyzer.GetSecurityImplicationsScore( 
 											databasename,
 											function_match_info.source_address, 
