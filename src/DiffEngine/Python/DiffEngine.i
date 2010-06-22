@@ -52,7 +52,8 @@ public:
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDB(char *TheFilename,unsigned long StartAddress,unsigned long EndAddress);
+	void RunIDAToGenerateDB(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
+	void ConnectToDarunGrim2(char *ida_filename);
 };
 
 class DiffMachine
