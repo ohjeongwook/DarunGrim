@@ -27,6 +27,7 @@ cflags=$(cflags) -I$(XGETOPT_DIR)
 cflags=$(cflags) $(cdebug) $(cvarsmt)
 #cflags=$(cflags) /FICommon.h
 cflags=$(cflags) /EHsc
+cflags=$(cflags) /Zi
 cflags=$(cflags) -Ic:\WTL\include
 cflags=$(cflags) /Ddprintf=printf
 cvars=
@@ -104,7 +105,7 @@ $(OUTDIR)\DiffEngine_wrap.obj: Python\DiffEngine_wrap.cxx
     $(cc) $(cflags) $(cvars) $(python_include) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" Python\DiffEngine_wrap.cxx
 
 $(OUTDIR)\_DiffEngine.pyd: $(OUTDIR) $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DiffEngine_wrap.obj $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\DarunGrim.obj
-    $(link) $(linkdebug) $(dlllflags) \
+    $(link) $(linkdebug) /DEBUG $(dlllflags) \
     -base:0x1C000000 \
     -out:$(OUTDIR)\_DiffEngine.pyd\
     $(python_lflags) \
