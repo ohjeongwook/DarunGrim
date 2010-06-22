@@ -25,7 +25,7 @@ public:
 		char *LogFilename, 
 		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
-	bool ConnectToIDA();
+	bool AcceptIDAClientsFromSocket();
 	bool Analyze();
 	bool ShowOnIDA();
 };

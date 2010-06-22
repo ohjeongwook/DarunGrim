@@ -149,7 +149,7 @@ void main(int argc,char *argv[])
 	}
 	else if( !( RetrieveFromFile || RetrieveFromDB ) )
 	{
-		pDarunGrim->ConnectToIDA();
+		pDarunGrim->AcceptIDAClientsFromSocket();
 	}
 
 	pDarunGrim->Analyze();

@@ -68,28 +68,23 @@ bool DarunGrim::GenerateDB(
 	return OpenDatabase();
 }
 
-bool DarunGrim::ConnectToIDA()
+bool DarunGrim::AcceptIDAClientsFromSocket()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	pIDAClientManager->SetDatabase( pStorageDB );
+
+	if( pStorageDB )
+	{
+		pIDAClientManager->SetDatabase( pStorageDB );
+	}
 	pIDAClientManager->StartIDAListener( DARUNGRIM2_PORT );
+
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
 
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, TRUE );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, TRUE );
+	pIDAClientManager->CreateIDACommandProcessorThread();
 
-	//Run idc for each file
-	/*
-	Create temporary IDC file: <idc filename>
-	"static main()
-	{
-		RunPlugin("DarunGrim2",1);
-		SendDiassemblyInfo("%s");
-		Exit(0);
-	}",StorageFilename
-	Execute "c:\program files\IDA\idag" -A -S<idc filename> <filename> for each file
-	*/
 	return TRUE;
 }
 
