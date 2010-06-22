@@ -99,4 +99,7 @@ public:
 		char *TheTargetFilename, int StartAddressForTarget, int EndAddressForTarget );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
+	
+	void SetSourceFilename( char *source_filename );
+	void SetTargetFilename( char *target_filename );	
 };

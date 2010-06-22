@@ -167,6 +167,8 @@ class DarunGrim(_object):
     def GenerateDB(self, *args): return _DiffEngine.DarunGrim_GenerateDB(self, *args)
     def AcceptIDAClientsFromSocket(self, storage_filename = None): return _DiffEngine.DarunGrim_AcceptIDAClientsFromSocket(self, storage_filename)
     def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
+    def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
+    def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)
