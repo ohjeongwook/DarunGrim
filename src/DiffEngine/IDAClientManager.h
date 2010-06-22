@@ -27,14 +27,14 @@ public:
 	bool StartIDAListener( unsigned short port );
 
 	~IDAClientManager();
-	BOOL AcceptIDAClient(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData=FALSE);
-	OneIDAClientManager *GetOneIDAClientManagerFromFile(char *DataFile);
-	DWORD SetMembers(OneIDAClientManager *OneIDAClientManagerTheSource,OneIDAClientManager *OneIDAClientManagerTheTarget,DiffMachine *pArgDiffMachine);
+	BOOL AcceptIDAClient( OneIDAClientManager *pOneIDAClientManager, bool RetrieveData=FALSE );
+	OneIDAClientManager *GetOneIDAClientManagerFromFile( char *DataFile );
+	DWORD SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine );
 	DWORD IDACommandProcessor();
 	DWORD CreateIDACommandProcessor();
 	void ShowResultsOnIDA();
 	void SetIDAPath( const char *ParamIDAPath );
-	void SetOutputFilename(char *OutputFilename);
-	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDB(char *TheFilename,DWORD StartAddress,DWORD EndAddress);
+	void SetOutputFilename( char *OutputFilename );
+	void SetLogFilename( char *LogFilename );
+	void RunIDAToGenerateDB( char *TheFilename, DWORD StartAddress, DWORD EndAddress );
 };
