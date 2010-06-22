@@ -9,7 +9,9 @@ DarunGrim::DarunGrim():
 	pOneIDAClientManagerTheSource(NULL),
 	pOneIDAClientManagerTheTarget(NULL),
 	pDiffMachine(NULL),
-	pIDAClientManager(NULL)
+	pIDAClientManager(NULL),
+	SourceFilename(NULL),
+	TargetFilename(NULL)
 {
 	Logger.SetLogOutputType( LogToStdout );
 	Logger.SetDebugLevel( 0 );
@@ -58,20 +60,56 @@ void DarunGrim::SetIDAPath( const char *path )
 bool DarunGrim::GenerateDB( 
 	char *ParamStorageFilename, 
 	char *LogFilename, 
-	char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
-	char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget )
+	char *source_filename, DWORD start_address_for_source, DWORD end_address_for_source, 
+	char *target_filename, DWORD start_address_for_target, DWORD end_address_for_target )
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	StorageFilename = ParamStorageFilename;
 
-	printf("TheSourceFilename=%s\nTheTargetFilename=%s\nStorageFilename=%s\n",
-		TheSourceFilename,TheTargetFilename,StorageFilename);
+	printf("source_filename=%s\ntarget_filename=%s\nStorageFilename=%s\n",
+		source_filename,target_filename,StorageFilename);
+
+	SetSourceFilename( source_filename );
+	SetTargetFilename( target_filename );
 
 	pIDAClientManager->SetOutputFilename(StorageFilename);
 	pIDAClientManager->SetLogFilename(LogFilename);
-	pIDAClientManager->RunIDAToGenerateDB(TheSourceFilename,StartAddressForSource,EndAddressForSource);
-	pIDAClientManager->RunIDAToGenerateDB(TheTargetFilename,StartAddressForTarget,EndAddressForTarget);
+	pIDAClientManager->RunIDAToGenerateDB( source_filename, start_address_for_source, end_address_for_source );
+	pIDAClientManager->RunIDAToGenerateDB( target_filename, start_address_for_target, end_address_for_target );
 	return OpenDatabase();
+}
+
+DWORD WINAPI ConnectToDarunGrim2Thread( LPVOID lpParameter )
+{
+	DarunGrim *pDarunGrim=( DarunGrim * )lpParameter;
+	IDAClientManager *pIDAClientManager;
+
+	if( pDarunGrim && (pIDAClientManager = pDarunGrim->GetIDAClientManager()) )
+	{
+		pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetSourceFilename() );
+		pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetTargetFilename() );
+	}
+	return 1;
+}
+
+char *DarunGrim::GetSourceFilename()
+{
+	return SourceFilename;
+}
+
+void DarunGrim::SetSourceFilename( char *source_filename )
+{
+	SourceFilename = source_filename;
+}
+
+char *DarunGrim::GetTargetFilename()
+{
+	return TargetFilename;
+}
+
+void DarunGrim::SetTargetFilename( char *target_filename )
+{
+	TargetFilename = target_filename;
 }
 
 bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
@@ -94,6 +132,10 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
+
+	//Create a thread that will call ConnectToDarunGrim2 one by one
+	DWORD dwThreadId;
+	CreateThread( NULL, 0, ConnectToDarunGrim2Thread, ( PVOID )this, 0, &dwThreadId );
 
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
@@ -168,4 +210,9 @@ bool DarunGrim::ShowOnIDA()
 		return TRUE;
 	}
 	return FALSE;
+}
+
+IDAClientManager *DarunGrim::GetIDAClientManager()
+{
+	return pIDAClientManager;
 }

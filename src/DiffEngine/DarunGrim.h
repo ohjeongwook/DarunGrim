@@ -16,6 +16,8 @@ private:
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase();
 	char *StorageFilename;
+	char *SourceFilename;
+	char *TargetFilename;
 public:
 	DarunGrim();
 	~DarunGrim();
@@ -28,4 +30,10 @@ public:
 	bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
 	bool ShowOnIDA();
+
+	char *GetSourceFilename();
+	void SetSourceFilename( char *source_filename );
+	char *GetTargetFilename();
+	void SetTargetFilename( char *target_filename );
+	IDAClientManager *GetIDAClientManager();
 };
