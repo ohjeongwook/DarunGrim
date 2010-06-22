@@ -41,34 +41,36 @@ OneIDAClientManager::~OneIDAClientManager()
 	if(m_OriginalFilePath)
 		free(m_OriginalFilePath);
 
-	ClientAnalysisInfo->name_hash_map.clear();
-
-	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
-	for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.begin();
-		map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-		map_info_hash_map_iter++)
-	{
-		if( map_info_hash_map_iter->second )
-			delete map_info_hash_map_iter->second;
-	}
-
-	ClientAnalysisInfo->map_info_hash_map.clear();
-
-	multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
-	for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-		address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
-		address_fingerprint_hash_map_Iter++)
-	{
-		if( address_fingerprint_hash_map_Iter->second )
-		{
-			free( address_fingerprint_hash_map_Iter->second );
-		}
-	}
-	ClientAnalysisInfo->address_fingerprint_hash_map.clear();
-	ClientAnalysisInfo->fingerprint_hash_map.clear();
-
 	if( ClientAnalysisInfo )
+	{
+		ClientAnalysisInfo->name_hash_map.clear();
+
+		multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
+		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.begin();
+			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_iter++)
+		{
+			if( map_info_hash_map_iter->second )
+				delete map_info_hash_map_iter->second;
+		}
+
+		ClientAnalysisInfo->map_info_hash_map.clear();
+
+		multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
+		for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
+			address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
+			address_fingerprint_hash_map_Iter++)
+		{
+			if( address_fingerprint_hash_map_Iter->second )
+			{
+				free( address_fingerprint_hash_map_Iter->second );
+			}
+		}
+		ClientAnalysisInfo->address_fingerprint_hash_map.clear();
+		ClientAnalysisInfo->fingerprint_hash_map.clear();
+
 		delete ClientAnalysisInfo;
+	}
 }
 
 PBYTE OneIDAClientManager::ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pType, DWORD *pLength)

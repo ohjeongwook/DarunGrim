@@ -182,7 +182,12 @@ DWORD IDAClientManager::IDACommandProcessor()
 								DWORD address=*( DWORD * )data;
 								Logger.Log( 10, "%s: Showing address=%x\n", __FUNCTION__, address );
 								//Get Matching Address
-								DWORD MatchingAddress=pDiffMachine->GetMatchAddr( i, address );
+
+								DWORD MatchingAddress = 0;
+								if( pDiffMachine )
+								{
+									MatchingAddress = pDiffMachine->GetMatchAddr( i, address );
+								}
 								if( MatchingAddress!=0 )
 								{
 									//Show using JUMP_TO_ADDR
