@@ -25,7 +25,7 @@ public:
 		char *LogFilename, 
 		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
 		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
-	bool AcceptIDAClientsFromSocket();
+	bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
 	bool ShowOnIDA();
 };

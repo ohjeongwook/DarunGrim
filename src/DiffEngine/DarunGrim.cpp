@@ -31,6 +31,12 @@ DarunGrim::~DarunGrim()
 
 	if( pIDAClientManager )
 		delete pIDAClientManager;
+
+	if( pOneIDAClientManagerTheSource )
+		delete pOneIDAClientManagerTheSource;
+
+	if( pOneIDAClientManagerTheTarget )
+		delete pOneIDAClientManagerTheTarget;
 }
 
 void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
@@ -68,9 +74,17 @@ bool DarunGrim::GenerateDB(
 	return OpenDatabase();
 }
 
-bool DarunGrim::AcceptIDAClientsFromSocket()
+bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
+
+	if( storage_filename )
+	{
+		if( pStorageDB )
+			delete pStorageDB;
+
+		pStorageDB = new DBWrapper( (char *) storage_filename );
+	}
 
 	if( pStorageDB )
 	{
@@ -81,8 +95,13 @@ bool DarunGrim::AcceptIDAClientsFromSocket()
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
 
-	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pStorageDB? TRUE:FALSE );
-	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pStorageDB? TRUE:FALSE );
+	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+
+	if( !pDiffMachine )
+	{
+		Analyze();
+	}
 
 	pIDAClientManager->SetMembers( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget, pDiffMachine );
 	pIDAClientManager->CreateIDACommandProcessorThread();
@@ -112,8 +131,8 @@ bool DarunGrim::OpenDatabase()
 bool DarunGrim::Analyze()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	int TheSourceFileID=1;
-	int TheTargetFileID=2;
+	int source_file_id=1;
+	int target_file_id=2;
 
 	if( pOneIDAClientManagerTheSource && pOneIDAClientManagerTheTarget )
 	{
@@ -122,7 +141,7 @@ bool DarunGrim::Analyze()
 	else if( pStorageDB )
 	{
 		pDiffMachine = new DiffMachine();
-		pDiffMachine->Retrieve( *pStorageDB,TRUE,TheSourceFileID,TheTargetFileID);
+		pDiffMachine->Retrieve( *pStorageDB,TRUE,source_file_id,target_file_id);
 	}
 
 	if( pDiffMachine )
