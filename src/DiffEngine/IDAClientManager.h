@@ -27,7 +27,7 @@ public:
 	bool StartIDAListener( unsigned short port );
 
 	~IDAClientManager();
-	BOOL AssociateSocket(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData=FALSE);
+	BOOL AcceptIDAClient(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData=FALSE);
 	OneIDAClientManager *GetOneIDAClientManagerFromFile(char *DataFile);
 	DWORD SetMembers(OneIDAClientManager *OneIDAClientManagerTheSource,OneIDAClientManager *OneIDAClientManagerTheTarget,DiffMachine *pArgDiffMachine);
 	DWORD IDACommandProcessor();

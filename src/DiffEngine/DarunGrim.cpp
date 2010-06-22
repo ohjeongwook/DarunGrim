@@ -76,8 +76,8 @@ bool DarunGrim::ConnectToIDA()
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
 
-	pIDAClientManager->AssociateSocket( pOneIDAClientManagerTheSource, TRUE );
-	pIDAClientManager->AssociateSocket( pOneIDAClientManagerTheTarget, TRUE );
+	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, TRUE );
+	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, TRUE );
 
 	//Run idc for each file
 	/*

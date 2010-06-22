@@ -31,8 +31,8 @@ bool IDAClientManager::StartIDAListener( unsigned short port )
 	ListeningPort=port;
 	if( ListeningPort>0 )
 	{
-		ListeningSocket = CreateListener(NULL,port);
-		Logger.Log( 10, "%s: ListeningSocket=%d\n",__FUNCTION__,ListeningSocket);
+		ListeningSocket = CreateListener( NULL, port );
+		Logger.Log( 10, "%s: ListeningSocket=%d\n", __FUNCTION__, ListeningSocket );
 		return TRUE;
 	}
 	return FALSE;
@@ -64,7 +64,7 @@ OneIDAClientManager *IDAClientManager::GetOneIDAClientManagerFromFile(char *Data
 	return pOneIDAClientManager;
 }
 
-BOOL IDAClientManager::AssociateSocket(OneIDAClientManager *pOneIDAClientManager,bool RetrieveData)
+BOOL IDAClientManager::AcceptIDAClient( OneIDAClientManager *pOneIDAClientManager, bool RetrieveData )
 {
 	SOCKET ClientSocket=accept(ListeningSocket,NULL,NULL);
 	Logger.Log( 10, "%s: accepting=%d\n",__FUNCTION__,ClientSocket);
@@ -78,12 +78,12 @@ BOOL IDAClientManager::AssociateSocket(OneIDAClientManager *pOneIDAClientManager
 		if(RetrieveData)
 		{
 			Logger.Log( 10, "%s: Calling RetrieveIDARawDataFromSocket\n",__FUNCTION__);
-			pOneIDAClientManager->RetrieveIDARawDataFromSocket(ClientSocket);
+			pOneIDAClientManager->RetrieveIDARawDataFromSocket( ClientSocket );
 		}
 		else
 		{
 			Logger.Log( 10, "%s: SetSocket\n",__FUNCTION__);
-			pOneIDAClientManager->SetSocket(ClientSocket);
+			pOneIDAClientManager->SetSocket( ClientSocket );
 		}
 		return TRUE;
 	}

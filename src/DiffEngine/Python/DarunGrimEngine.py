@@ -19,6 +19,7 @@ def DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename
 	darun_grim.Analyze()
 
 if __name__ == '__main__':
+	"""
 	TheSourceFilename = sys.argv[1]
 	TheTargetFilename = sys.argv[2]
 	StorageFilename = sys.argv[3]
@@ -27,4 +28,8 @@ if __name__ == '__main__':
 
 	IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 	DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
+	"""
 	
+	ida_client_manager = DiffEngine.IDAClientManager()
+	ida_client_manager.StartIDAListener( 1216 )
+	raw_input( 'Press any key to continue...' )
