@@ -9,16 +9,17 @@
 extern LogOperation Logger;
 
 #define DATA_BUFSIZE 4096
-#define DEFAULT_IDA_PATH TEXT("c:\\Program Files\\IDA\\idag.exe")
+#define DEFAULT_IDA_PATH TEXT( "c:\\Program Files\\IDA\\idag.exe" )
 
 IDAClientManager::IDAClientManager(): 
-	EscapedOutputFilename(NULL),
-	EscapedLogFilename(NULL),
-	ListeningSocket(INVALID_SOCKET),
-	TheSource(NULL),
-	TheTarget(NULL)
+	EscapedOutputFilename( NULL ), 
+	EscapedLogFilename( NULL ), 
+	ListeningSocket( INVALID_SOCKET ), 
+	TheSource( NULL ), 
+	TheTarget( NULL ),
+	IDACommandProcessorThreadId( -1 )
 {
-	IDAPath=_strdup(DEFAULT_IDA_PATH);
+	IDAPath=_strdup( DEFAULT_IDA_PATH );
 }
 
 void IDAClientManager::SetDatabase( DBWrapper *OutputDB )
@@ -43,12 +44,12 @@ IDAClientManager::~IDAClientManager()
 	if( ListeningSocket != INVALID_SOCKET )
 		closesocket( ListeningSocket );
 
-	if(IDAPath)
-		free(IDAPath);
-	if(EscapedOutputFilename)
-		free(EscapedOutputFilename);
-	if(EscapedLogFilename)
-		free(EscapedLogFilename);
+	if( IDAPath )
+		free( IDAPath );
+	if( EscapedOutputFilename )
+		free( EscapedOutputFilename );
+	if( EscapedLogFilename )
+		free( EscapedLogFilename );
 
 	if( TheSource )
 		delete TheSource;
@@ -57,32 +58,32 @@ IDAClientManager::~IDAClientManager()
 		delete TheTarget;
 }
 
-OneIDAClientManager *IDAClientManager::GetOneIDAClientManagerFromFile(char *DataFile)
+OneIDAClientManager *IDAClientManager::GetOneIDAClientManagerFromFile( char *DataFile )
 {
-	OneIDAClientManager *pOneIDAClientManager=new OneIDAClientManager(m_OutputDB);
-	pOneIDAClientManager->Retrieve(DataFile);
+	OneIDAClientManager *pOneIDAClientManager=new OneIDAClientManager( m_OutputDB );
+	pOneIDAClientManager->Retrieve( DataFile );
 	return pOneIDAClientManager;
 }
 
 BOOL IDAClientManager::AcceptIDAClient( OneIDAClientManager *pOneIDAClientManager, bool RetrieveData )
 {
-	SOCKET ClientSocket=accept(ListeningSocket,NULL,NULL);
-	Logger.Log( 10, "%s: accepting=%d\n",__FUNCTION__,ClientSocket);
-	if(ClientSocket==INVALID_SOCKET)
+	SOCKET ClientSocket=accept( ListeningSocket, NULL, NULL );
+	Logger.Log( 10, "%s: accepting=%d\n", __FUNCTION__, ClientSocket );
+	if( ClientSocket==INVALID_SOCKET )
 	{
 		int error=WSAGetLastError();
-		Logger.Log( 10, "Socket error=%d\n",error);
+		Logger.Log( 10, "Socket error=%d\n", error );
 		return FALSE;
 	}else
 	{
-		if(RetrieveData)
+		if( RetrieveData )
 		{
-			Logger.Log( 10, "%s: Calling RetrieveIDARawDataFromSocket\n",__FUNCTION__);
+			Logger.Log( 10, "%s: Calling RetrieveIDARawDataFromSocket\n", __FUNCTION__ );
 			pOneIDAClientManager->RetrieveIDARawDataFromSocket( ClientSocket );
 		}
 		else
 		{
-			Logger.Log( 10, "%s: SetSocket\n",__FUNCTION__);
+			Logger.Log( 10, "%s: SetSocket\n", __FUNCTION__ );
 			pOneIDAClientManager->SetSocket( ClientSocket );
 		}
 		return TRUE;
@@ -90,7 +91,7 @@ BOOL IDAClientManager::AcceptIDAClient( OneIDAClientManager *pOneIDAClientManage
 	return FALSE;
 }
 
-DWORD IDAClientManager::SetMembers(OneIDAClientManager *OneIDAClientManagerTheSource,OneIDAClientManager *OneIDAClientManagerTheTarget,DiffMachine *pArgDiffMachine)
+DWORD IDAClientManager::SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine )
 {
 	TheSource=OneIDAClientManagerTheSource;
 	TheTarget=OneIDAClientManagerTheTarget;
@@ -103,93 +104,96 @@ DWORD IDAClientManager::IDACommandProcessor()
 	SOCKET SocketArray[WSA_MAXIMUM_WAIT_EVENTS];
 	WSAEVENT EventArray[WSA_MAXIMUM_WAIT_EVENTS];
 	WSANETWORKEVENTS NetworkEvents;
-	DWORD EventTotal=0,index;
+	DWORD EventTotal=0, index;
 
 	SocketArray[0]=TheSource->GetSocket();
 	SocketArray[1]=TheTarget->GetSocket();
-	for(int i=0;i<2;i++)
+	for( int i=0;i<2;i++ )
 	{
 		WSAEVENT NewEvent=WSACreateEvent();
-		WSAEventSelect(SocketArray[i],NewEvent,FD_READ|FD_CLOSE);
+		WSAEventSelect( SocketArray[i], NewEvent, FD_READ|FD_CLOSE );
 		EventArray[EventTotal]=NewEvent;
 		EventTotal++;
 	}
-	while(1)
+	while( 1 )
 	{
-		index=WSAWaitForMultipleEvents(EventTotal,
-			EventArray,
-			FALSE,
-			WSA_INFINITE,
-			FALSE);
-		if(index<0)
+		index=WSAWaitForMultipleEvents( EventTotal, 
+			EventArray, 
+			FALSE, 
+			WSA_INFINITE, 
+			FALSE );
+
+		if( index<0 )
 			break;
 			
 		index=index-WSA_WAIT_EVENT_0;
 		//-------------------------
 		// Iterate through all events and enumerate
 		// if the wait does not fail.
-		for(DWORD i=index; i<EventTotal; i++)
+		for( DWORD i=index; i<EventTotal; i++ )
 		{
-			if(SocketArray[i]==WSA_INVALID_HANDLE)
+			if( SocketArray[i]==WSA_INVALID_HANDLE )
 				continue;
-			index=WSAWaitForMultipleEvents(1,
-				&EventArray[i],
-				TRUE,
-				1000,
-				FALSE);
-			if ((index !=WSA_WAIT_FAILED) && (index !=WSA_WAIT_TIMEOUT))
+
+			index=WSAWaitForMultipleEvents( 1, 
+				&EventArray[i], 
+				TRUE, 
+				1000, 
+				FALSE );
+			if ( ( index !=WSA_WAIT_FAILED ) && ( index !=WSA_WAIT_TIMEOUT ) )
 			{
-				if(WSAEnumNetworkEvents(SocketArray[i],EventArray[i],&NetworkEvents)==0)
+				if( WSAEnumNetworkEvents( SocketArray[i], EventArray[i], &NetworkEvents )==0 )
 				{
-					Logger.Log( 10, "Signal(%d - %d)\n",i,NetworkEvents.lNetworkEvents);
-					if(NetworkEvents.lNetworkEvents==FD_READ)
+					Logger.Log( 10, "Signal( %d - %d )\n", i, NetworkEvents.lNetworkEvents );
+					if( NetworkEvents.lNetworkEvents==FD_READ )
 					{
-						char buffer[DATA_BUFSIZE]={0,};
+						char buffer[DATA_BUFSIZE]={0, };
 						WSABUF DataBuf;
 						DataBuf.len=DATA_BUFSIZE;
 						DataBuf.buf=buffer;
 						/*
 						DWORD RecvBytes;
 						DWORD Flags=0;
-						if (WSARecv(SocketArray[i],&DataBuf,1,&RecvBytes,&Flags,NULL,NULL)==SOCKET_ERROR)
+						if ( WSARecv( SocketArray[i], &DataBuf, 1, &RecvBytes, &Flags, NULL, NULL )==SOCKET_ERROR )
 						{
-							Logger.Log( 10, "Error occurred at WSARecv()\n");
+							Logger.Log( 10, "Error occurred at WSARecv()\n" );
 						}else
 						{
-							Logger.Log( 10, "Read %d bytes\n",RecvBytes);
+							Logger.Log( 10, "Read %d bytes\n", RecvBytes );
 						}*/
 						char type;
 						DWORD length;
-						PBYTE data=RecvTLVData(SocketArray[i],&type,&length);
-						if(data)
+						PBYTE data=RecvTLVData( SocketArray[i], &type, &length );
+						if( data )
 						{
-							Logger.Log( 10, "%s: Type: %d Length: %d data:%x\n",__FUNCTION__,type,length,data);
-							if(type==SHOW_MATCH_ADDR && length>=4)
+							Logger.Log( 10, "%s: Type: %d Length: %d data:%x\n", __FUNCTION__, type, length, data );
+							if( type==SHOW_MATCH_ADDR && length>=4 )
 							{
-								DWORD address=*(DWORD *)data;
-								Logger.Log( 10, "%s: Showing address=%x\n",__FUNCTION__,address);
+								DWORD address=*( DWORD * )data;
+								Logger.Log( 10, "%s: Showing address=%x\n", __FUNCTION__, address );
 								//Get Matching Address
-								DWORD MatchingAddress=pDiffMachine->GetMatchAddr(i,address);
-								if(MatchingAddress!=0)
+								DWORD MatchingAddress=pDiffMachine->GetMatchAddr( i, address );
+								if( MatchingAddress!=0 )
 								{
 									//Show using JUMP_TO_ADDR
-									if(i==0)
+									if( i==0 )
 									{
-										TheTarget->ShowAddress(MatchingAddress);
+										TheTarget->ShowAddress( MatchingAddress );
 									}else
 									{
-										TheSource->ShowAddress(MatchingAddress);
+										TheSource->ShowAddress( MatchingAddress );
 									}
 								}
 							}
 						}						
-					}else if(NetworkEvents.lNetworkEvents==FD_CLOSE)
+					}else if( NetworkEvents.lNetworkEvents==FD_CLOSE )
 					{
-						closesocket(SocketArray[i]);
-						WSACloseEvent(EventArray[i]);
-						memcpy(SocketArray+i,SocketArray+i+1,EventTotal-i+1);
-						memcpy(EventArray+i,EventArray+i+1,EventTotal-i+1);
+						closesocket( SocketArray[i] );
+						WSACloseEvent( EventArray[i] );
+						memcpy( SocketArray+i, SocketArray+i+1, EventTotal-i+1 );
+						memcpy( EventArray+i, EventArray+i+1, EventTotal-i+1 );
 						EventTotal--;
+						break;
 					}
 				}
 			}
@@ -198,96 +202,112 @@ DWORD IDAClientManager::IDACommandProcessor()
 	return 1;
 }
 
-DWORD WINAPI CallIDACommandProcessorThread(LPVOID lpParameter)
+DWORD WINAPI IDACommandProcessorThread( LPVOID lpParameter )
 {
-	IDAClientManager *pIDAClientManager=(IDAClientManager *)lpParameter;
+	IDAClientManager *pIDAClientManager=( IDAClientManager * )lpParameter;
 	pIDAClientManager->IDACommandProcessor();
 	return 1;
 }
 
-DWORD IDAClientManager::CreateIDACommandProcessorThread()
+BOOL IDAClientManager::CreateIDACommandProcessorThread()
 {
-	DWORD dwThreadId;
-	CreateThread(NULL,0,CallIDACommandProcessorThread,(PVOID)this,0,&dwThreadId);
-	return 1;
+	if( IDACommandProcessorThreadId > 0 )
+	{
+		HANDLE hThread = OpenThread( THREAD_ALL_ACCESS, FALSE, IDACommandProcessorThreadId );
+		if( hThread )
+		{
+			CloseHandle( hThread );
+		}
+		else
+		{
+			IDACommandProcessorThreadId = -1;
+		}
+	}
+
+	if( IDACommandProcessorThreadId == -1 )
+	{
+		CreateThread( NULL, 0, IDACommandProcessorThread, ( PVOID )this, 0, &IDACommandProcessorThreadId );
+		return TRUE;
+	}
+	return FALSE;
 }
 
-void SendAddMatchAddrTLVData(FunctionMatchInfo &Data,PVOID Context)
+void SendAddMatchAddrTLVData( FunctionMatchInfo &Data, PVOID Context )
 {
-	OneIDAClientManager *TheSource=(OneIDAClientManager *)Context;
-	if(TheSource)
+	OneIDAClientManager *TheSource=( OneIDAClientManager * )Context;
+	if( TheSource )
 	{
-		TheSource->SendTLVData(
-			ADD_MATCH_ADDR,
-			(PBYTE)&(Data),
-			sizeof(Data));
+		TheSource->SendTLVData( 
+			ADD_MATCH_ADDR, 
+			( PBYTE )&( Data ), 
+			sizeof( Data ) );
 	}
 }
 
-void SendUnidentifiedAddrTLVData(DWORD Data,PVOID Context)
+void SendUnidentifiedAddrTLVData( DWORD Data, PVOID Context )
 {
-	OneIDAClientManager *TheSource=(OneIDAClientManager *)Context;
-	if(TheSource)
+	OneIDAClientManager *TheSource=( OneIDAClientManager * )Context;
+	if( TheSource )
 	{
-		TheSource->SendTLVData(
-			ADD_UNINDENTIFIED_ADDR,
-			(PBYTE)&(Data),
-			sizeof(Data));
+		TheSource->SendTLVData( 
+			ADD_UNINDENTIFIED_ADDR, 
+			( PBYTE )&( Data ), 
+			sizeof( Data ) );
 	}
 }
 
 void IDAClientManager::ShowResultsOnIDA()
 {
-	pDiffMachine->ExecuteOnFunctionMatchInfoList(SendAddMatchAddrTLVData,(PVOID)TheSource);
-	pDiffMachine->ExecuteOnTheSourceUnidentifedBlockHash(SendUnidentifiedAddrTLVData,(PVOID)TheSource);
-	pDiffMachine->ExecuteOnTheTargetUnidentifedBlockHash(SendUnidentifiedAddrTLVData,(PVOID)TheTarget);
+	pDiffMachine->ExecuteOnFunctionMatchInfoList( SendAddMatchAddrTLVData, ( PVOID )TheSource );
+	pDiffMachine->ExecuteOnTheSourceUnidentifedBlockHash( SendUnidentifiedAddrTLVData, ( PVOID )TheSource );
+	pDiffMachine->ExecuteOnTheTargetUnidentifedBlockHash( SendUnidentifiedAddrTLVData, ( PVOID )TheTarget );
 #ifdef TODO
-	for(iter=ReverseFunctionMatchInfoList.begin();iter!=ReverseFunctionMatchInfoList.end();iter++)
+	for( iter=ReverseFunctionMatchInfoList.begin();iter!=ReverseFunctionMatchInfoList.end();iter++ )
 	{
-		TheTarget->SendTLVData(
-			ADD_MATCH_ADDR,
-			(PBYTE)&(*iter),
-			sizeof(*iter));
+		TheTarget->SendTLVData( 
+			ADD_MATCH_ADDR, 
+			( PBYTE )&( *iter ), 
+			sizeof( *iter ) );
 	}
 #endif
-	TheSource->SendTLVData(
-		SHOW_DATA,
-		(PBYTE)"test",
-		4);
-	TheTarget->SendTLVData(
-		SHOW_DATA,
-		(PBYTE)"test",
-		4);	
+	TheSource->SendTLVData( 
+		SHOW_DATA, 
+		( PBYTE )"test", 
+		4 );
+	TheTarget->SendTLVData( 
+		SHOW_DATA, 
+		( PBYTE )"test", 
+		4 );	
 }
 
 #define RUN_DARUNGRIM2_PLUGIN_STR "static main()\n\
 {\n\
 	Wait();\n\
-	RunPlugin(\"DarunGrim2\",1);\n\
-	SetLogFile(\"%s\");\n\
-	SaveAnalysisData(\"%s\",%d,%d);\n\
-	Exit(0);\n\
+	RunPlugin( \"DarunGrim2\", 1 );\n\
+	SetLogFile( \"%s\" );\n\
+	SaveAnalysisData( \"%s\", %d, %d );\n\
+	Exit( 0 );\n\
 }"
 
 void IDAClientManager::SetIDAPath( const char *ParamIDAPath )
 {
-	if(IDAPath)
-		free(IDAPath);
-	IDAPath=_strdup(ParamIDAPath);
+	if( IDAPath )
+		free( IDAPath );
+	IDAPath=_strdup( ParamIDAPath );
 }
 
-void IDAClientManager::SetOutputFilename(char *OutputFilename)
+void IDAClientManager::SetOutputFilename( char *OutputFilename )
 {
 	//Create IDC file
-	EscapedOutputFilename=(char *)malloc(strlen(OutputFilename)*2+1);
+	EscapedOutputFilename=( char * )malloc( strlen( OutputFilename )*2+1 );
 
-	if(EscapedOutputFilename)
+	if( EscapedOutputFilename )
 	{
-		DWORD i=0,j=0;
-		for(;i<strlen(OutputFilename);i++,j++)
+		DWORD i=0, j=0;
+		for( ;i<strlen( OutputFilename );i++, j++ )
 		{
 			EscapedOutputFilename[j]=OutputFilename[i];
-			if(OutputFilename[i]=='\\')
+			if( OutputFilename[i]=='\\' )
 			{
 				j++;
 				EscapedOutputFilename[j]='\\';
@@ -297,19 +317,19 @@ void IDAClientManager::SetOutputFilename(char *OutputFilename)
 	}
 }
 
-void IDAClientManager::SetLogFilename(char *LogFilename)
+void IDAClientManager::SetLogFilename( char *LogFilename )
 {
 	EscapedLogFilename=NULL;
-	if(LogFilename)
+	if( LogFilename )
 	{
-		EscapedLogFilename=(char *)malloc(strlen(LogFilename)*2+1);
-		if(EscapedLogFilename)
+		EscapedLogFilename=( char * )malloc( strlen( LogFilename )*2+1 );
+		if( EscapedLogFilename )
 		{
-			DWORD i=0,j=0;
-			for(;i<strlen(LogFilename);i++,j++)
+			DWORD i=0, j=0;
+			for( ;i<strlen( LogFilename );i++, j++ )
 			{
 				EscapedLogFilename[j]=LogFilename[i];
-				if(LogFilename[i]=='\\')
+				if( LogFilename[i]=='\\' )
 				{
 					j++;
 					EscapedLogFilename[j]='\\';
@@ -320,16 +340,16 @@ void IDAClientManager::SetLogFilename(char *LogFilename)
 	}
 }
 
-void IDAClientManager::RunIDAToGenerateDB(char *TheFilename,DWORD StartAddress,DWORD EndAddress)
+void IDAClientManager::RunIDAToGenerateDB( char *TheFilename, DWORD StartAddress, DWORD EndAddress )
 {
-	char *IDCFilename=WriteToTemporaryFile(RUN_DARUNGRIM2_PLUGIN_STR,EscapedLogFilename?EscapedLogFilename:"",EscapedOutputFilename?EscapedOutputFilename:"",StartAddress,EndAddress);
+	char *IDCFilename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, EscapedLogFilename?EscapedLogFilename:"", EscapedOutputFilename?EscapedOutputFilename:"", StartAddress, EndAddress );
 
-	if(IDCFilename)
+	if( IDCFilename )
 	{
 		//Run IDA
-		Logger.Log( 10, "Analyzing [%s](%s)\n",TheFilename,IDCFilename);
-		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
-		Execute(TRUE,"\"%s\" -A -S\"%s\" \"%s\"",IDAPath,IDCFilename,TheFilename);
-		free(IDCFilename);
+		Logger.Log( 10, "Analyzing [%s]( %s )\n", TheFilename, IDCFilename );
+		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, IDCFilename, TheFilename );
+		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, IDCFilename, TheFilename );
+		free( IDCFilename );
 	}
 }

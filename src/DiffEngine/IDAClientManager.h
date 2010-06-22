@@ -21,6 +21,8 @@ private:
 	char *IDAPath;
 	char *EscapedOutputFilename;
 	char *EscapedLogFilename;
+	DWORD IDACommandProcessorThreadId;
+
 public:
 	IDAClientManager();
 	void SetDatabase( DBWrapper *OutputDB );
@@ -31,7 +33,7 @@ public:
 	OneIDAClientManager *GetOneIDAClientManagerFromFile( char *DataFile );
 	DWORD SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine );
 	DWORD IDACommandProcessor();
-	DWORD CreateIDACommandProcessorThread();
+	BOOL CreateIDACommandProcessorThread();
 	void ShowResultsOnIDA();
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename( char *OutputFilename );
