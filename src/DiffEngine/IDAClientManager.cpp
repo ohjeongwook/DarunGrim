@@ -392,7 +392,7 @@ void IDAClientManager::ConnectToDarunGrim2( char *ida_filename )
 		//Run IDA
 		Logger.Log( 10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename );
 		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
-		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		Execute( TRUE, "\"%s\" -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
 		free( idc_filename );
 	}
 }
