@@ -30,6 +30,11 @@ if __name__ == '__main__':
 	DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
 	"""
 	
+	"""
 	ida_client_manager = DiffEngine.IDAClientManager()
 	ida_client_manager.StartIDAListener( 1216 )
+	"""
+	
+	darun_grim = DiffEngine.DarunGrim()
+	darun_grim.AcceptIDAClientsFromSocket()
 	raw_input( 'Press any key to continue...' )
