@@ -336,7 +336,7 @@ class Worker:
 		
 		self.BinariesStorage = r"T:\mat\Projects\Binaries\Windows XP"
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
-		self.FileDiffer = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
+		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 		self.PatchTemporaryStore = 'Patches'
 
@@ -435,7 +435,7 @@ class Worker:
 	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
 		print 'StartDiff', source_id,target_id
 		databasename = self.GenerateDGFName( source_id, target_id )
-		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
+		self.DifferManager.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
 		return self.GetFunctionMatchInfo( 
 			patch_id, 
@@ -478,7 +478,7 @@ class Worker:
 		source_address = int(source_address)
 		target_address = int(target_address)
 
-		self.FileDiffer.ShowAddresses( source_id, target_id, source_address, target_address )
+		self.DifferManager.ShowAddresses( source_id, target_id, source_address, target_address )
 
 		if not source_function_name:
 			source_function_name = database.GetBlockName( 1, source_address )
