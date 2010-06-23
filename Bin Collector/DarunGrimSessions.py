@@ -89,6 +89,7 @@ class Manager:
 		self.Differ.SetIDAPath( self.IDAPath )
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
+			self.Differ.LoadDiffResults( databasename )
 		else:
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
