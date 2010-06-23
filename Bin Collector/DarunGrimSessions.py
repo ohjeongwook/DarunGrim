@@ -63,8 +63,22 @@ class Manager:
 
 		if not databasename:
 			databasename = str( source_id ) + '_' + str( target_id ) + ".dgf"
-		databasename = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
-		return databasename
+		differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
+		
+		print databasename,differ
+		self.SetDiffer( source_id, target_id, differ )
+
+		return differ
+
+	def SetDiffer( self, source_id, target_id, differ ):
+		self.Differs[ str( source_id ) + '_' + str( target_id ) ] = differ
+
+	def GetDiffer( self, source_id, target_id ):
+		key = str( source_id ) + '_' + str( target_id )
+		
+		if self.Differs.has_key( key ):
+			return self.Differs[ key ]
+		return None
 
 	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
 		if self.DebugLevel > 2:
@@ -87,7 +101,7 @@ class Manager:
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
 		differ = DarunGrimEngine.Differ( source_filename, target_filename )
-		self.Differs[databasename] = differ
+		
 		differ.SetIDAPath( self.IDAPath )
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
@@ -102,7 +116,13 @@ class Manager:
 
 		differ.SyncIDA();
 
-		return databasename
+		return differ
+		
+	def ShowAddresses( self, source_id, target_id, source_address, target_address ):
+		differ = self.GetDiffer( source_id, target_id )
+		print 'ShowAddresses', source_id, target_id, differ
+		if differ:
+			differ.ShowAddresses( source_address, target_address )
 
 	def UpdateSecurityImplicationsScore( self, databasename ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
