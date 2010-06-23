@@ -35,6 +35,9 @@ class Differ:
 	def ShowAddresses( self, source_address, target_address ):
 		self.DarunGrim.ShowAddresses( source_address, target_address )
 
+	def ColorAddress( self, index, start_address, end_address, color ):
+		self.DarunGrim.ColorAddress( index, start_address, end_address, color )
+
 if __name__ == '__main__':
 	"""
 	TheSourceFilename = sys.argv[1]
