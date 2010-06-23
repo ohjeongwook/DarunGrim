@@ -169,6 +169,7 @@ class DarunGrim(_object):
     def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
+    def LoadDiffResults(self, *args): return _DiffEngine.DarunGrim_LoadDiffResults(self, *args)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)

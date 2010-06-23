@@ -143,9 +143,11 @@ void main(int argc,char *argv[])
 	
 	if( RetrieveFromFile && TheSourceFilename && TheTargetFilename && StorageFilename )
 	{
+		pDarunGrim->SetSourceFilename( TheSourceFilename );
+		pDarunGrim->SetTargetFilename( TheTargetFilename );
 		pDarunGrim->GenerateDB( StorageFilename, LogFilename, 
-			TheSourceFilename,StartAddressForSource,EndAddressForSource,
-			TheTargetFilename,StartAddressForTarget,EndAddressForTarget );
+			StartAddressForSource,EndAddressForSource,
+			StartAddressForTarget,EndAddressForTarget );
 	}
 	else if( !( RetrieveFromFile || RetrieveFromDB ) )
 	{

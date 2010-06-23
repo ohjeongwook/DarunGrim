@@ -95,8 +95,8 @@ public:
 	bool GenerateDB(
 		char *StorageFilename, 
 		char *LogFilename, 
-		char *TheSourceFilename, int StartAddressForSource, int EndAddressForSource, 
-		char *TheTargetFilename, int StartAddressForTarget, int EndAddressForTarget );
+		int StartAddressForSource, int EndAddressForSource, 
+		int StartAddressForTarget, int EndAddressForTarget );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
 	
