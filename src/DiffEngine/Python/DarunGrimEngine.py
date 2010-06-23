@@ -16,7 +16,7 @@ class Differ:
 
 	def LoadDiffResults( self, storage_filename ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
-		self.DarunGrim.LoadDiffMachine( storage_filename )
+		self.DarunGrim.LoadDiffResults( storage_filename )
 		
 	def DiffFile( self, StorageFilename, LogFilename ):
 		print 'Comparing',TheSourceFilename,TheTargetFilename
