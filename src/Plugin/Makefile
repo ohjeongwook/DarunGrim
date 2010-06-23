@@ -12,7 +12,7 @@ LINK32=link.exe
 LINK32_FLAGS=kernel32.lib ws2_32.lib user32.lib advapi32.lib version.lib $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib "$(IDALIB)" $(LIBS) /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /nologo /dll /out:"$(BINARY)" /implib:$(F)$(PROC)$(A) /libpath:"$(L)" /export:PLUGIN /VERSION:0.1 /debug
 
 I=$(IDA_SDK_DIR)\include\\
-L=$(IDA_SDK_DIR)\libvc.w32\                   # libraries directory
+L=$(IDA_SDK_DIR)\lib\vc.w32\                   # libraries directory
 R=bin\                         # results directory
 F=.\vc.w32\                          # object files directory
 SUBDIR=
