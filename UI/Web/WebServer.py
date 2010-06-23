@@ -9,39 +9,47 @@ import os
 
 class WebServer(object):
 	def __init__(self):
-		self.HTMLWorker = HTMLGenerator.Worker()
+		pass
 
 	def index(self):
-		return self.HTMLWorker.Index()
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.Index()
 	index.exposed = True
 
 	def MSPatchList(self, operation = '' ):
 		print 'MSPatchList'
-		return self.HTMLWorker.MSPatchList( operation )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.MSPatchList( operation )
 	MSPatchList.exposed = True
 
 	def PatchInfo(self,id):
-		return self.HTMLWorker.PatchInfo( id )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.PatchInfo( id )
 	PatchInfo.exposed = True
 
 	def DownloadInfo(self, patch_id, id, operation = '' ):
-		return self.HTMLWorker.DownloadInfo( patch_id, id, operation )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.DownloadInfo( patch_id, id, operation )
 	DownloadInfo.exposed = True
 
 	def FileInfo(self, patch_id, download_id, id):
-		return self.HTMLWorker.FileInfo( patch_id, download_id, id )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.FileInfo( patch_id, download_id, id )
 	FileInfo.exposed = True
 
 	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
-		return self.HTMLWorker.StartDiff( patch_id, download_id, file_id, source_id, target_id, show_detail )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.StartDiff( patch_id, download_id, file_id, source_id, target_id, show_detail )
 	StartDiff.exposed = True
 
 	def ShowFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):
-		return self.HTMLWorker.GetFunctionMatchInfo( patch_id, download_id, file_id, source_id, target_id )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.GetFunctionMatchInfo( patch_id, download_id, file_id, source_id, target_id )
 	ShowFunctionMatchInfo.exposed = True
 
 	def ShowBasicBlockMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address ):
-		return self.HTMLWorker.GetDisasmComparisonTextByFunctionAddress( patch_id, download_id, file_id, source_id, target_id, source_address, target_address )
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.GetDisasmComparisonTextByFunctionAddress( patch_id, download_id, file_id, source_id, target_id, source_address, target_address )
 	ShowBasicBlockMatchInfo.exposed = True
 
 if __name__ == '__main__':
@@ -63,4 +71,3 @@ if __name__ == '__main__':
 	cherrypy.engine.start()
 	cherrypy.engine.block()
 
-	#cherrypy.quickstart( WebServer() )
