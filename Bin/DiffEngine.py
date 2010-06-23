@@ -126,6 +126,7 @@ class IDAClientManager(_object):
     def SetOutputFilename(self, *args): return _DiffEngine.IDAClientManager_SetOutputFilename(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.IDAClientManager_SetLogFilename(self, *args)
     def RunIDAToGenerateDB(self, *args): return _DiffEngine.IDAClientManager_RunIDAToGenerateDB(self, *args)
+    def ConnectToDarunGrim2(self, *args): return _DiffEngine.IDAClientManager_ConnectToDarunGrim2(self, *args)
     __swig_destroy__ = _DiffEngine.delete_IDAClientManager
     __del__ = lambda self : None;
 IDAClientManager_swigregister = _DiffEngine.IDAClientManager_swigregister
@@ -164,8 +165,13 @@ class DarunGrim(_object):
     def SetLogParameters(self, *args): return _DiffEngine.DarunGrim_SetLogParameters(self, *args)
     def SetIDAPath(self, *args): return _DiffEngine.DarunGrim_SetIDAPath(self, *args)
     def GenerateDB(self, *args): return _DiffEngine.DarunGrim_GenerateDB(self, *args)
-    def ConnectToIDA(self): return _DiffEngine.DarunGrim_ConnectToIDA(self)
+    def AcceptIDAClientsFromSocket(self, storage_filename = None): return _DiffEngine.DarunGrim_AcceptIDAClientsFromSocket(self, storage_filename)
     def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
+    def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
+    def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
+    def LoadDiffResults(self, *args): return _DiffEngine.DarunGrim_LoadDiffResults(self, *args)
+    def ShowAddresses(self, *args): return _DiffEngine.DarunGrim_ShowAddresses(self, *args)
+    def ColorAddress(self, *args): return _DiffEngine.DarunGrim_ColorAddress(self, *args)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)
