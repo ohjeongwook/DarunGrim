@@ -1541,7 +1541,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 			m_StorageDB->ExecuteStatement(ReadFunctionMembersResultsCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM OneLocationInfo WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
 	}
 
-	if(DoCallCheck)
+	if( DoCallCheck && ClientAnalysisInfo )
 	{
 		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
 			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
