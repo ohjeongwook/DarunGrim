@@ -11,7 +11,8 @@ DarunGrim::DarunGrim():
 	pDiffMachine(NULL),
 	pIDAClientManager(NULL),
 	SourceFilename(NULL),
-	TargetFilename(NULL)
+	TargetFilename(NULL),
+	IsLoadedSourceFile( FALSE )
 {
 	Logger.SetLogOutputType( LogToStdout );
 	Logger.SetDebugLevel( 0 );
@@ -80,8 +81,14 @@ DWORD WINAPI ConnectToDarunGrim2Thread( LPVOID lpParameter )
 
 	if( pDarunGrim && (pIDAClientManager = pDarunGrim->GetIDAClientManager()) )
 	{
-		pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetSourceFilename() );
-		pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetTargetFilename() );
+		if( !pDarunGrim->LoadedSourceFile() )
+		{
+			pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetSourceFilename() );
+		}
+		else
+		{
+			pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetTargetFilename() );
+		}
 	}
 	return 1;
 }
@@ -104,6 +111,16 @@ char *DarunGrim::GetTargetFilename()
 void DarunGrim::SetTargetFilename( char *target_filename )
 {
 	TargetFilename = target_filename;
+}
+
+bool DarunGrim::LoadedSourceFile()
+{
+	return IsLoadedSourceFile;
+}
+
+void DarunGrim::SetLoadedSourceFile( bool is_loaded )
+{
+	IsLoadedSourceFile = is_loaded;
 }
 
 bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
@@ -130,8 +147,10 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	//Create a thread that will call ConnectToDarunGrim2 one by one
 	DWORD dwThreadId;
 	CreateThread( NULL, 0, ConnectToDarunGrim2Thread, ( PVOID )this, 0, &dwThreadId );
-
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	SetLoadedSourceFile( TRUE );
+
+	CreateThread( NULL, 0, ConnectToDarunGrim2Thread, ( PVOID )this, 0, &dwThreadId );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 
 	if( !pDiffMachine )

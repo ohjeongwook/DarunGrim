@@ -18,6 +18,7 @@ private:
 	char *StorageFilename;
 	char *SourceFilename;
 	char *TargetFilename;
+	bool IsLoadedSourceFile;
 public:
 	DarunGrim();
 	~DarunGrim();
@@ -38,4 +39,7 @@ public:
 	char *GetTargetFilename();
 	void SetTargetFilename( char *target_filename );
 	IDAClientManager *GetIDAClientManager();
+
+	bool LoadedSourceFile();
+	void SetLoadedSourceFile( bool is_loaded );
 };
