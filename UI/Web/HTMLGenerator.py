@@ -436,7 +436,7 @@ class Worker:
 		print 'StartDiff', source_id,target_id
 		databasename = self.GenerateDGFName( source_id, target_id )
 		self.FileDiffer.InitFileDiffByID( source_id, target_id, databasename )
-		print 'StartDiff: ', source_id,'/',target_id,'/', databasename
+		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
 		return self.GetFunctionMatchInfo( 
 			patch_id, 
 			download_id, 
@@ -450,13 +450,13 @@ class Worker:
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
+		
 		for function_match_info in database.GetFunctionMatchInfo():
 			if function_match_info.non_match_count_for_the_source > 0 or \
 				function_match_info.non_match_count_for_the_target > 0 or \
 				function_match_info.match_count_with_modificationfor_the_source > 0:
-
 				function_match_infos.append( function_match_info )
-				
+
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(  
 				patch_id = patch_id, 
@@ -474,9 +474,11 @@ class Worker:
 	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, source_function_name = None, target_function_name = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
-		
+
 		source_address = int(source_address)
 		target_address = int(target_address)
+
+		self.FileDiffer.ShowAddresses( source_id, target_id, source_address, target_address )
 
 		if not source_function_name:
 			source_function_name = database.GetBlockName( 1, source_address )
