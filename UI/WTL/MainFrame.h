@@ -913,7 +913,6 @@ public:
 		//IDA Interaction
 		//Create new thread?
 		pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
-		pOneClientManager->ShowResultsOnIDA();
 		pOneClientManager->CreateIDACommandProcessorThread();
 	}
 
