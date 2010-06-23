@@ -1237,12 +1237,13 @@ void OneIDAClientManager::ShowAddress(unsigned long address)
 	SendTLVData(JUMP_TO_ADDR, (PBYTE)&address, sizeof(DWORD));
 }
 
-void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned long end_address)
+void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color)
 {
-	unsigned long addresses[2];
-	addresses[0] = start_address;
-	addresses[1] = end_address;
-	SendTLVData(COLOR_ADDRESS, (PBYTE)addresses, sizeof(addresses));
+	unsigned long data[3];
+	data[0] = start_address;
+	data[1] = end_address;
+	data[2] = color;
+	SendTLVData(COLOR_ADDRESS, (PBYTE)data, sizeof(data));
 }
 
 list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long address)

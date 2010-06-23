@@ -44,5 +44,5 @@ public:
 	void SetLoadedSourceFile( bool is_loaded );
 
 	void ShowAddresses( unsigned long source_address, unsigned long target_address );
-	void ColorAddress( int index, unsigned long start_address, unsigned long end_address );
+	void ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color );
 };
