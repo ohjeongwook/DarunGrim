@@ -333,7 +333,7 @@ class Worker:
 		self.DatabaseName = database
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
-		
+
 		self.BinariesStorage = r"T:\mat\Projects\Binaries\Windows XP"
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
 		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
@@ -381,11 +381,12 @@ class Worker:
 				pass
 
 		files = self.Database.GetFileByDownloadID( id )
+
 		mytemplate = Template( DownloadInfoTemplateText )
 		return mytemplate.render( 
 				patch_id = patch_id, 
 				patch_name = self.Database.GetPatchNameByID( patch_id ), 
-				id = id, 
+				id = id,
 				files = files 
 			)
 
@@ -510,6 +511,9 @@ class Worker:
 			left_line_security_implications_score_total += left_line_security_implications_score
 			right_line_security_implications_score_total += right_line_security_implications_score
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
+		
+		( source_address_infos, target_address_infos ) = database.GetBlockAddressMatchTableByFunctionAddress( source_address, target_address )
+		self.DifferManager.ColorAddresses( source_id, target_id, source_address_infos, target_address_infos )
 
 		mytemplate = Template( ComparisonTableTemplateText )
 		return mytemplate.render( 
