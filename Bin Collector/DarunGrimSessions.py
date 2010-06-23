@@ -13,6 +13,7 @@ import DarunGrimDatabaseWrapper
 class Manager:
 	DebugLevel = 3
 
+	Differs = {}
 	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
 		self.OutputDirectory = output_directory
@@ -85,11 +86,12 @@ class Manager:
 		full_databasename =  os.path.join( self.OutputDirectory , databasename )
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
-		self.Differ = DarunGrimEngine.Differ( source_filename, target_filename )
-		self.Differ.SetIDAPath( self.IDAPath )
+		differ = DarunGrimEngine.Differ( source_filename, target_filename )
+		Differs[databasename] = differ
+		differ.SetIDAPath( self.IDAPath )
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
-			self.Differ.LoadDiffResults( databasename )
+			differ.LoadDiffResults( databasename )
 		else:
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
@@ -98,7 +100,8 @@ class Manager:
 			self.Differ.DiffFile( full_databasename, log_filename  )
 			self.UpdateSecurityImplicationsScore( full_databasename )
 
-		self.Differ.SyncIDA();
+		differ.SyncIDA();
+
 		return databasename
 
 	def UpdateSecurityImplicationsScore( self, databasename ):
