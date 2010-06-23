@@ -10,13 +10,13 @@ import PatchDatabaseWrapper
 import DarunGrimAnalyzers
 import DarunGrimDatabaseWrapper
 
+Differs = {}
 class Manager:
 	DebugLevel = 3
 
 	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
 		self.OutputDirectory = output_directory
-		self.Differs = {}
 
 
 		if ida_path:
@@ -71,13 +71,15 @@ class Manager:
 		return differ
 
 	def SetDiffer( self, source_id, target_id, differ ):
-		self.Differs[ str( source_id ) + '_' + str( target_id ) ] = differ
+		global Differs
+		Differs[ str( source_id ) + '_' + str( target_id ) ] = differ
 
 	def GetDiffer( self, source_id, target_id ):
 		key = str( source_id ) + '_' + str( target_id )
 		
-		if self.Differs.has_key( key ):
-			return self.Differs[ key ]
+		global Differs
+		if Differs.has_key( key ):
+			return Differs[ key ]
 		return None
 
 	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
@@ -123,6 +125,26 @@ class Manager:
 		print 'ShowAddresses', source_id, target_id, differ
 		if differ:
 			differ.ShowAddresses( source_address, target_address )
+
+	def ColorAddresses( self, source_id, target_id, source_address_infos, target_address_infos ):
+		differ = self.GetDiffer( source_id, target_id )
+
+		if differ:
+			for (source_address_start, source_address_end, match_rate) in source_address_infos:
+				color = self.GetColorForMatchRate( match_rate )
+				differ.ColorAddress( 0, source_address_start, source_address_end, color )
+	
+			for (target_address_start, target_address_end, match_rate) in target_address_infos:	
+				color = self.GetColorForMatchRate( match_rate )
+				differ.ColorAddress( 1, target_address_start, target_address_end, color )
+
+	def GetColorForMatchRate( self, match_rate ):
+		if match_rate == 0:
+			return 0x0000ff
+		elif match_rate == 100:
+			return 0xffffff
+
+		return 0x00ffff
 
 	def UpdateSecurityImplicationsScore( self, databasename ):
 		database = DarunGrimDatabaseWrapper.Database( databasename )
