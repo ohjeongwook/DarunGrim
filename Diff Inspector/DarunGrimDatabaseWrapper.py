@@ -182,6 +182,20 @@ class Database:
 				disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
 		return disasm_lines_hash
 
+	def GetFunctionBlockAddresses( self, file_id, function_address ):
+		block_addresses = [ function_address ]
+
+		for block_address in block_addresses:
+			for map_info in self.SessionInstance.query( MapInfo ).filter_by( file_id=file_id, src_block=block_address, type = CREF_FROM ).all():
+				if not map_info.dst in block_addresses:
+					block_addresses.append( map_info.dst )
+
+		block_range_addresses = []
+		for block_address in block_addresses:
+			for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
+				block_range_addresses.append( ( one_location_info.start_address, one_location_info.end_address ) )
+		return block_range_addresses
+
 	def GetMatchMapForAddresses( self, file_id, block_addresses ):
 		match_hash = {}
 		for block_address in block_addresses:
@@ -339,6 +353,40 @@ class Database:
 		
 		match_map = self.GetMatchMapForAddresses( 1, source_disasm_lines_hash.keys() )
 		return self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
+
+	def GetBlockAddressMatchTableByFunctionAddress( self, source_function_address, target_function_address ):
+		source_block_addresses = self.GetFunctionBlockAddresses( 1, source_function_address )
+		target_block_addresses = self.GetFunctionBlockAddresses( 2, target_function_address )
+
+		print 'source_block_addresses', source_block_addresses 
+		print 'target_block_addresses', target_block_addresses 
+
+		source_block_start_addresses = []
+		for (start_address, end_address) in source_block_addresses:
+			source_block_start_addresses.append( start_address )
+		match_map = self.GetMatchMapForAddresses( 1, source_block_start_addresses )
+
+		source_address_match_rate_hash = {}
+		target_address_match_rate_hash = {}
+		for ( source_address, ( target_address, match_rate ) ) in match_map.items():
+			source_address_match_rate_hash[ source_address ] = match_rate
+			target_address_match_rate_hash[ target_address ] = match_rate
+
+		source_address_match_rate_infos = []
+		for ( start_address, end_address ) in source_block_addresses:
+			match_rate = 0
+			if source_address_match_rate_hash.has_key( start_address ):
+				match_rate = source_address_match_rate_hash[ start_address ] 
+			source_address_match_rate_infos.append( ( start_address, end_address+1, match_rate ) )
+
+		target_address_match_rate_infos = []
+		for ( start_address, end_address ) in target_block_addresses:
+			match_rate = 0
+			if target_address_match_rate_hash.has_key( start_address ):
+				match_rate = target_address_match_rate_hash[ start_address ] 
+			target_address_match_rate_infos.append( ( start_address, end_address+1, match_rate ) )
+
+		return ( source_address_match_rate_infos, target_address_match_rate_infos )
 
 	def Commit( self ):
 		self.SessionInstance.commit()
