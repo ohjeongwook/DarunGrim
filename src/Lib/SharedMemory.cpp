@@ -195,7 +195,9 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 		real_readable_buffer_size=p_data_sharer->MemoryHeaderPtr->BufferSize-real_read_point;
 		//Read
 		readable_buffer_size=p_data_sharer->MemoryHeaderPtr->WritePoint-p_data_sharer->MemoryHeaderPtr->ReadPoint;
+#if DEBUG_LEVEL > 3
 		dprintf(TEXT("Real RP: %d Size: %d readable_buffer_size: %d\n"),real_read_point,real_readable_buffer_size,readable_buffer_size);
+#endif
 		if(readable_buffer_size>0 && real_readable_buffer_size>0)
 		{
 			if(p_data_sharer->MemoryHeaderPtr->Data[real_read_point]==NULL_DATA)
