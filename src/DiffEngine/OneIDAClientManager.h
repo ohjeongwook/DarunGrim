@@ -71,6 +71,7 @@ public:
 	POneLocationInfo GetOneLocationInfo(DWORD address);
 	void FreeDisasmLines();
 	void ShowAddress(unsigned long address);
+	void ColorAddress(unsigned long start_address, unsigned long end_address);
 	list <DWORD> GetFunctionMemberBlocks(unsigned long address);
 	void GenerateFingerprintHashMap();
 	int GetFileID();

@@ -247,6 +247,18 @@ void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long targe
 	pOneIDAClientManagerTheTarget->ShowAddress( target_address );
 }
 
+void DarunGrim::ColorAddress( int index, unsigned long start_address, unsigned long end_address )
+{
+	if( index == 0 )
+	{
+		pOneIDAClientManagerTheSource->ColorAddress( start_address, end_address );
+	}
+	else
+	{
+		pOneIDAClientManagerTheTarget->ColorAddress( start_address, end_address );
+	}
+}
+
 IDAClientManager *DarunGrim::GetIDAClientManager()
 {
 	return pIDAClientManager;
