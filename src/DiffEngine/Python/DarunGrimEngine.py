@@ -14,6 +14,10 @@ class Differ:
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
 
+	def LoadDiffResults( self, storage_filename ):
+		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
+		self.DarunGrim.LoadDiffMachine( storage_filename )
+		
 	def DiffFile( self, StorageFilename, LogFilename ):
 		print 'Comparing',TheSourceFilename,TheTargetFilename
 		StorageFilename = os.path.join( os.getcwd(), str(StorageFilename) )
@@ -21,8 +25,8 @@ class Differ:
 
 		self.DarunGrim.GenerateDB(
 			StorageFilename, LogFilename, 
-			self.SourceFilename, 0, 0,
-			self.TargetFilename, 0, 0)
+			0, 0,
+			0, 0)
 		self.DarunGrim.Analyze()
 
 	def SyncIDA( self ):

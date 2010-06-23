@@ -25,9 +25,11 @@ public:
 	void SetIDAPath( const char *path );
 	bool GenerateDB( char *StorageFilename, 
 		char *LogFilename, 
-		char *TheSourceFilename, DWORD StartAddressForSource, DWORD EndAddressForSource, 
-		char *TheTargetFilename, DWORD StartAddressForTarget, DWORD EndAddressForTarget );
-	bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
+		DWORD StartAddressForSource, DWORD EndAddressForSource, 
+		DWORD StartAddressForTarget, DWORD EndAddressForTarget );
+	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
+
+	bool LoadDiffResults( const char *storage_filename );
 	bool Analyze();
 	bool ShowOnIDA();
 
