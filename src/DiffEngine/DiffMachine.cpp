@@ -51,8 +51,12 @@ void DiffMachine::ClearFunctionMatchInfoList()
 
 DiffMachine::~DiffMachine()
 {
-	DiffResults->MatchMap.clear();
-	DiffResults->ReverseAddressMap.clear();
+	if( DiffResults )
+	{
+		DiffResults->MatchMap.clear();
+		DiffResults->ReverseAddressMap.clear();
+	}
+
 	ClearFunctionMatchInfoList();
 	if( TheSource )
 		delete TheSource;
