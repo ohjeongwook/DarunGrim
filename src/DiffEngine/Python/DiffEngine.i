@@ -102,4 +102,6 @@ public:
 	
 	void SetSourceFilename( char *source_filename );
 	void SetTargetFilename( char *target_filename );	
+	
+	bool LoadDiffResults( const char *storage_filename );
 };
