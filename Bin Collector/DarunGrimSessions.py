@@ -41,7 +41,7 @@ class Manager:
 			source_filename = source_file_entry['full_path']
 			target_filename = target_file_entry['full_path']
 			print source_patch_name, source_filename, target_patch_name, target_filename 
-			self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
+			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
 	def InitFileDiffByID( self, source_id, target_id, databasename = None ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
@@ -62,13 +62,16 @@ class Manager:
 		target_filename = target_file_entries[0].full_path
 
 		if not databasename:
-			databasename = str( source_id ) + '_' + str( target_id ) + ".dgf"
+			databasename = self.GetDefaultDatabasename( source_id, target_id )
+
 		differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
-		
-		print databasename,differ
 		self.SetDiffer( source_id, target_id, differ )
 
 		return differ
+
+	def GetDefaultDatabasename( self, source_id, target_id ):
+		databasename = str( source_id ) + '_' + str( target_id ) + ".dgf"
+		return databasename
 
 	def SetDiffer( self, source_id, target_id, differ ):
 		global Differs
@@ -80,6 +83,7 @@ class Manager:
 		global Differs
 		if Differs.has_key( key ):
 			return Differs[ key ]
+
 		return None
 
 	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
@@ -90,25 +94,22 @@ class Manager:
 			print target_patch_name
 			print target_filename
 			print databasename
+
 		base_filename = os.path.basename( source_filename )
 		dot_pos = base_filename.find('.')
 		if dot_pos >= 0:
 			base_filename = base_filename[:dot_pos]
 		
 		prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
-
 		if not databasename:
 			databasename = prefix + ".dgf"
 		full_databasename =  os.path.join( self.OutputDirectory , databasename )
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
-		differ = DarunGrimEngine.Differ( source_filename, target_filename )
-		
-		differ.SetIDAPath( self.IDAPath )
-		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
-			print 'Already analyzed',databasename
-			differ.LoadDiffResults( databasename )
-		else:
+		differ = self.LoadDiffer( full_databasename, source_filename, target_filename )
+		if not differ:
+			differ = DarunGrimEngine.Differ( source_filename, target_filename )
+			differ.SetIDAPath( self.IDAPath )
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
@@ -116,10 +117,27 @@ class Manager:
 			differ.DiffFile( full_databasename, log_filename  )
 			self.UpdateSecurityImplicationsScore( full_databasename )
 
-		differ.SyncIDA();
-
 		return differ
-		
+
+	def LoadDiffer( self, databasename, source_filename = None, target_filename = None ):
+		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
+			differ = DarunGrimEngine.Differ( source_filename, target_filename )
+			differ.SetIDAPath( self.IDAPath )
+			print 'Already analyzed',databasename
+			differ.LoadDiffResults( databasename )
+			return differ
+		return None
+
+	def SyncIDA( self, source_id, target_id):
+		differ = self.GetDiffer( source_id, target_id )
+	
+		if not differ:
+			differ = self.InitFileDiffByID( source_id, target_id )
+
+		print 'SyncIDA', source_id,target_id, differ
+		if differ:
+			differ.SyncIDA();
+
 	def ShowAddresses( self, source_id, target_id, source_address, target_address ):
 		differ = self.GetDiffer( source_id, target_id )
 		print 'ShowAddresses', source_id, target_id, differ
