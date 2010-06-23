@@ -15,7 +15,7 @@ DarunGrim::DarunGrim():
 	IsLoadedSourceFile( FALSE )
 {
 	Logger.SetLogOutputType( LogToStdout );
-	Logger.SetDebugLevel( 0 );
+	Logger.SetDebugLevel( 100 );
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pIDAClientManager = new IDAClientManager();
 }
@@ -239,6 +239,12 @@ bool DarunGrim::ShowOnIDA()
 		return TRUE;
 	}
 	return FALSE;
+}
+
+void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long target_address )
+{
+	pOneIDAClientManagerTheSource->ShowAddress( source_address );
+	pOneIDAClientManagerTheTarget->ShowAddress( target_address );
 }
 
 IDAClientManager *DarunGrim::GetIDAClientManager()

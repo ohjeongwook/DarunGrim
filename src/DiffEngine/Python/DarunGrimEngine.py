@@ -31,6 +31,9 @@ class Differ:
 
 	def SyncIDA( self ):
 		self.DarunGrim.AcceptIDAClientsFromSocket()
+		
+	def ShowAddresses( self, source_address, target_address ):
+		self.DarunGrim.ShowAddresses( source_address, target_address )
 
 if __name__ == '__main__':
 	"""

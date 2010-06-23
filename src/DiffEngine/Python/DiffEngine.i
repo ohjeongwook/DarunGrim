@@ -104,4 +104,5 @@ public:
 	void SetTargetFilename( char *target_filename );	
 	
 	bool LoadDiffResults( const char *storage_filename );
+	void ShowAddresses( unsigned long source_address, unsigned long target_address );
 };

@@ -42,4 +42,6 @@ public:
 
 	bool LoadedSourceFile();
 	void SetLoadedSourceFile( bool is_loaded );
+
+	void ShowAddresses( unsigned long source_address, unsigned long target_address );
 };

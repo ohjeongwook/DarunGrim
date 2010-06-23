@@ -170,6 +170,7 @@ class DarunGrim(_object):
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
     def LoadDiffResults(self, *args): return _DiffEngine.DarunGrim_LoadDiffResults(self, *args)
+    def ShowAddresses(self, *args): return _DiffEngine.DarunGrim_ShowAddresses(self, *args)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)
