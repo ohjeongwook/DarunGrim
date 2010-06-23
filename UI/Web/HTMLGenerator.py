@@ -183,6 +183,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 &gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
+&nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
 		<tr>
@@ -544,6 +545,10 @@ class Worker:
 					target_function_name = function_match_info.target_function_name
 				) 
 		return ret
+
+	def SyncIDA( self, source_id, target_id ):
+		self.DifferManager.SyncIDA( source_id, target_id )
+		return "<body> Check your IDA </body>"
 
 if __name__ == '__main__':
 	worker = Worker()

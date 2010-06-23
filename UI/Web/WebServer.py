@@ -52,6 +52,11 @@ class WebServer(object):
 		return html_worker.GetDisasmComparisonTextByFunctionAddress( patch_id, download_id, file_id, source_id, target_id, source_address, target_address )
 	ShowBasicBlockMatchInfo.exposed = True
 
+	def SyncIDA( self, source_id, target_id ):
+		html_worker = HTMLGenerator.Worker()
+		return html_worker.SyncIDA( source_id, target_id )
+	SyncIDA.exposed = True
+
 if __name__ == '__main__':
 	cherrypy.config.update({'server.socket_host': '127.0.0.1',
                         'server.socket_port': 80,
