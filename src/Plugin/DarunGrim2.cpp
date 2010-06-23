@@ -476,9 +476,30 @@ static void idaapi line_callback_for_unidentified_block_choose_list( void *obj, 
 	}
 }
 
+int idaapi graph_viewer_callback( void *user_data, int notification_code, va_list va )
+{
+	msg( "graph_viewer_callback called with notification_code=%d\n", notification_code );
+	if( notification_code == grcode_dblclicked )
+	{
+		ea_t addr=get_screen_ea();
+
+		SOCKET socket = (SOCKET) user_data;
+		msg( "Showing Block %x(socket=%d)\n", addr, socket );
+		SendTLVData( 
+			socket,
+			SHOW_MATCH_ADDR, 
+			( PBYTE )&addr, 
+			sizeof( ea_t )
+		);
+	}
+	return 0;
+}
+
 ChooseListObj unidentified_block_choose_list_obj;
 EARangeList unidentified_block_choose_list;
 ChooseListObj matched_block_choose_list_obj;
+
+bool graph_viewer_callback_installed = FALSE;
 
 int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PBYTE data )
 {
@@ -554,6 +575,29 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 		{
 			set_item_color( ea, color );
 		}
+
+		if( !graph_viewer_callback_installed )
+		{
+			TForm *tform = find_tform( "IDA View-A" );
+			msg( "tform=0x%x\n", tform );
+			if( tform )
+			{
+				graph_viewer_t *graph_viewer = get_graph_viewer( tform );
+				msg( "graph_viewer=0x%x\n", graph_viewer );
+
+				if( graph_viewer )
+				{
+					mutable_graph_t *mutable_graph = get_viewer_graph( graph_viewer );
+					msg( "mutable_graph=0x%x\n", graph_viewer );
+					if( mutable_graph )
+					{
+						msg( "data_socket=%d\n", data_socket );
+						mutable_graph->set_callback( graph_viewer_callback, ( void * )data_socket );
+						graph_viewer_callback_installed = TRUE;
+					}
+				}
+			}
+		}
 	}
 	else if( type==GET_DISASM_LINES && length>=sizeof( CodeBlock ) )
 	{
@@ -627,8 +671,9 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 			NULL, 
 			NULL, 
 			NULL );
-
+#ifdef HT_GRAPH
 		hook_to_notification_point( HT_GRAPH, graph_callback, ( void * )&matched_block_choose_list_obj );
+#endif
 	}
 
 	return 0;
@@ -640,7 +685,6 @@ BOOL ConnectToDarunGrimServer()
 	if( data_socket != INVALID_SOCKET )
 	{
 		msg( "Connected to DarunGrim2 Main Program" );
-		hook_to_notification_point( HT_GRAPH, graph_callback, NULL );
 		SetSharedSocketDataReceiver( ProcessCommandFromDarunGrim );
 		PutSocketToWSAAsyncSelect( data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT );
 		return TRUE;
