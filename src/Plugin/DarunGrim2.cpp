@@ -540,6 +540,21 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 	{
 		jumpto( *( DWORD * )data );
 	}
+	else if( type==COLOR_ADDRESS && length>=sizeof(unsigned long)*3 )
+	{
+		unsigned long start_address = (( DWORD * )data)[0];
+		unsigned long end_address = (( DWORD * )data)[1];
+		unsigned long color = (( DWORD * )data)[2];
+
+		for( 
+			ea_t ea=start_address;
+			ea < end_address;
+			ea=nextthat( ea, end_address, f_isCode, NULL )
+		 )
+		{
+			set_item_color( ea, color );
+		}
+	}
 	else if( type==GET_DISASM_LINES && length>=sizeof( CodeBlock ) )
 	{
 		//dump disasmline
