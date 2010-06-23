@@ -548,7 +548,7 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 
 		for( 
 			ea_t ea=start_address;
-			ea < end_address;
+			ea <= end_address;
 			ea=nextthat( ea, end_address, f_isCode, NULL )
 		 )
 		{
