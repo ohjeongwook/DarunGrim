@@ -13,10 +13,10 @@ import DarunGrimDatabaseWrapper
 class Manager:
 	DebugLevel = 3
 
-	Differs = {}
 	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
 		self.OutputDirectory = output_directory
+		self.Differs = {}
 
 
 		if ida_path:
@@ -87,7 +87,7 @@ class Manager:
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
 		differ = DarunGrimEngine.Differ( source_filename, target_filename )
-		Differs[databasename] = differ
+		self.Differs[databasename] = differ
 		differ.SetIDAPath( self.IDAPath )
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			print 'Already analyzed',databasename
