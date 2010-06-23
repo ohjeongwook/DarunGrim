@@ -113,7 +113,7 @@ class Manager:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
 				print 'databasename',databasename
-			self.Differ.DiffFile( full_databasename, log_filename  )
+			differ.DiffFile( full_databasename, log_filename  )
 			self.UpdateSecurityImplicationsScore( full_databasename )
 
 		differ.SyncIDA();
