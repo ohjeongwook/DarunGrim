@@ -295,6 +295,7 @@ class Database:
 if __name__ == '__main__':
 	Tests = [ "AddPatch", "GetPatch" ]
 	database_name = 'adobe.db'
+	#database_name = r'..\UI\Web\index.db'
 
 	database = Database( database_name )
 	company_names = database.GetCompanyNames()
