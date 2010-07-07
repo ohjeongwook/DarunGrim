@@ -243,19 +243,23 @@ bool DarunGrim::ShowOnIDA()
 
 void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long target_address )
 {
-	pOneIDAClientManagerTheSource->ShowAddress( source_address );
-	pOneIDAClientManagerTheTarget->ShowAddress( target_address );
+	if( pOneIDAClientManagerTheSource )
+		pOneIDAClientManagerTheSource->ShowAddress( source_address );
+	if( pOneIDAClientManagerTheTarget )
+		pOneIDAClientManagerTheTarget->ShowAddress( target_address );
 }
 
 void DarunGrim::ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color )
 {
 	if( index == 0 )
 	{
-		pOneIDAClientManagerTheSource->ColorAddress( start_address, end_address, color );
+		if( pOneIDAClientManagerTheSource )
+			pOneIDAClientManagerTheSource->ColorAddress( start_address, end_address, color );
 	}
 	else
 	{
-		pOneIDAClientManagerTheTarget->ColorAddress( start_address, end_address, color );
+		if( pOneIDAClientManagerTheTarget )
+			pOneIDAClientManagerTheTarget->ColorAddress( start_address, end_address, color );
 	}
 }
 
