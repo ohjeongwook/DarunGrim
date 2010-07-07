@@ -254,7 +254,7 @@ class Database:
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 	def GetFileNames( self, company_name = None ):
-		if company_name:
+		if company_name != None:
 			return self.SessionInstance.query( FileIndex.filename ).filter( FileIndex.company_name==company_name ).distinct().all()
 		return self.SessionInstance.query( FileIndex.filename ).distinct().all()
 
@@ -262,7 +262,7 @@ class Database:
 		return self.SessionInstance.query( FileIndex.company_name ).distinct().all()
 
 	def GetVersionStrings( self, company_name = None, filename = None ):
-		if company_name or filename:
+		if company_name !=None and filename != None:
 			return self.SessionInstance.query( FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().all()
 			
 		return self.SessionInstance.query( FileIndex.version_string ).distinct().all()
