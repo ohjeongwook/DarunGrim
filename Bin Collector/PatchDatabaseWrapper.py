@@ -253,6 +253,19 @@ class Database:
 
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
+	def GetFileNames( self, company_name = None ):
+		if company_name:
+			return self.SessionInstance.query( FileIndex.filename ).filter( FileIndex.company_name==company_name ).distinct().all()
+		return self.SessionInstance.query( FileIndex.filename ).distinct().all()
+
+	def GetCompanyNames( self ):
+		return self.SessionInstance.query( FileIndex.company_name ).distinct().all()
+
+	def GetVersionStrings( self, company_name = None, filename = None ):
+		if company_name or filename:
+			return self.SessionInstance.query( FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().all()
+			
+		return self.SessionInstance.query( FileIndex.version_string ).distinct().all()
 
 	def GetFileByFileInfo( self, filename, company_name, version_string ):
 		return self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) ).all()
@@ -280,11 +293,21 @@ class Database:
 			return False
 
 if __name__ == '__main__':
-	TestInsert = False
-	TestSelect = True
+	Tests = [ "AddPatch", "GetPatch" ]
+	database_name = 'adobe.db'
 
-	database = Database( 'test.db' )
-	if TestInsert:
+	database = Database( database_name )
+	company_names = database.GetCompanyNames()
+	filenames = database.GetFileNames()
+	version_strings = database.GetVersionStrings()
+
+	for (company_name,) in company_names:
+		print company_name
+		for (filename, ) in database.GetFileNames( company_name ):
+			print '\t', filename
+			for (version_string, ) in database.GetVersionStrings( company_name, filename ):
+				print '\t\t',version_string
+	if "AddPatch" in Tests:
 		operating_system = "os"
 		service_pack = "sp"
 		filename = "fn"
@@ -308,7 +331,7 @@ if __name__ == '__main__':
 		database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 		database.Commit()
 
-	if TestSelect:
+	if "GetPatch" in Tests:
 		print 'MS09-018',database.GetPatch( 'MS09-018' )
 		print 'MS09-0999',database.GetPatch( 'MS09-099' )
 		
