@@ -52,6 +52,9 @@ class Analyzer:
 
 		return sorted_patch_infos
 
+	def GetFileHistory( self, filename ):
+		return self.Database.GetFileByFileName( filename )
+
 	def DumpPatchInfos( self, patch_infos ):
 		version_strings = patch_infos.keys()
 		version_strings.sort()
@@ -138,3 +141,27 @@ class Analyzer:
 				patch_pairs_for_analysis.append( ( current_patch_name, file_entry, matched_patch_name, matched_file_entry ) )
 
 		return patch_pairs_for_analysis
+
+if __name__ == '__main__':
+	import sys
+	filename = sys.argv[1]
+
+	test = [ 2 ]
+	if 1 in test:
+		#analyzer = Analyzer( database_name = r'..\UI\Web\index.db' )
+		analyzer = Analyzer( database_name = r'adobe.db' )
+		print 'filename=',filename
+		for row in analyzer.GetPatchHistory( filename ):
+			( patch_name, patch_infos ) = row
+			print patch_name
+			for patch_info in patch_infos:
+				print '-'*50
+				for (key,value) in patch_info.items():
+					print '\t',key,value
+	
+	elif 2 in test:
+		analyzer = Analyzer( database_name = r'adobe.db' )
+		
+		print 'filename=',filename
+		for row in analyzer.GetFileHistory( filename ):
+			print row
