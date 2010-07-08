@@ -223,6 +223,6 @@ if __name__=='__main__':
 		#	file_store.IndexFilesInFoler()
 		#	file_store.RemoveTemporaryFiles()
 	elif test == 2:
-		file_store = FileProcessor( databasename = 'adobe.db' )
-		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries\Adobe' )
+		file_store = FileProcessor( databasename = r'..\UI\Web\index.db' )
+		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries' )
 
