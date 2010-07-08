@@ -39,7 +39,7 @@ class FileProcessor:
 				filename = os.path.basename( current_path )
 				
 				if not filename in self.NotInterestedFiles:
-					if len(version_info) > 0:
+					if len(version_info) > 0 and version_info.has_key( 'CompanyName' ) and  version_info.has_key( 'FileVersion' ):
 						if self.DebugLevel > 2:
 							print version_info
 						
@@ -79,20 +79,21 @@ class FileProcessor:
 		VersionInfo = {}
 		info = win32ver.GetFileVersionInfo( filename )
 		if info:
-			lclist = win32ver.VerQueryValue( info )
-			if lclist:
-				if self.DebugLevel > 2:
-					print 'lclist', lclist
+			lclists = []
+			lclists.append( win32ver.VerQueryValue( info ) )
+			lclists.append( [(1033,0x04E4)] )
 
-				lclist = win32ver.VerQueryValue( info )
+			for lclist in lclists:
+				if self.DebugLevel > -2:
+					print 'lclist', lclist
 				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
-				for s in ( "CompanyName", "FileVersion", "ProductVersion" ):
+				print 'block=',block
+				for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
 					value = win32ver.VerQueryValue( info, block+s)
-					if not value:
-						value = ""
-					VersionInfo[s] = value
-					if self.DebugLevel > 2:
-						print "\t", s, value
+					if self.DebugLevel > -2:
+						print "\t", s,'=',value
+					if value and not VersionInfo.has_key( s ):
+						VersionInfo[s] = value
 		return VersionInfo
 
 class MSFileProcessor( FileProcessor ):
@@ -225,5 +226,6 @@ if __name__=='__main__':
 	elif test == 2:
 		file_store = FileProcessor( databasename = r'..\UI\Web\index.db' )
 		#file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries' )
-		file_store.IndexFilesInFoler( r'C:\Program Files (x86)\Adobe', target_dirname = r'T:\mat\Projects\Binaries\AdobePatch' )
-
+		#file_store.IndexFilesInFoler( r'C:\Program Files (x86)\Adobe', target_dirname = r'T:\mat\Projects\Binaries\AdobePatch' )
+		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries\AdobePatch' )
+		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries\Adobe' )
