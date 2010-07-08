@@ -267,6 +267,12 @@ class Database:
 			
 		return self.SessionInstance.query( FileIndex.version_string ).distinct().all()
 
+	def GetVersionStringsWithIDs( self, company_name = None, filename = None ):
+		if company_name !=None and filename != None:
+			return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().all()
+			
+		return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).distinct().all()
+
 	def GetFileByFileInfo( self, filename, company_name, version_string ):
 		return self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) ).all()
 
