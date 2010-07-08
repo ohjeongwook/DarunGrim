@@ -45,7 +45,7 @@ class FileProcessor:
 						
 						target_current_filename = current_path
 						if target_dirname and dirname != target_dirname:
-							target_directory = os.path.join( self.TargetBinariesFolder, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
+							target_directory = os.path.join( target_dirname, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
 							target_current_filename = os.path.join( target_directory, filename )
 
 							if not os.path.isdir( target_directory ):
@@ -59,7 +59,7 @@ class FileProcessor:
 						service_pack = ''
 
 						ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
-						if ret and len(ret)>0 and 0:
+						if ret and len(ret)>0:
 							print 'Already there:', current_path, version_info
 						else:
 							print 'New', download, current_path, version_info, 'filename=',filename
@@ -224,5 +224,6 @@ if __name__=='__main__':
 		#	file_store.RemoveTemporaryFiles()
 	elif test == 2:
 		file_store = FileProcessor( databasename = r'..\UI\Web\index.db' )
-		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries' )
+		#file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries' )
+		file_store.IndexFilesInFoler( r'C:\Program Files (x86)\Adobe', target_dirname = r'T:\mat\Projects\Binaries\AdobePatch' )
 
