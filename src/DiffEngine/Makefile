@@ -30,6 +30,7 @@ cflags=$(cflags) /EHsc
 cflags=$(cflags) /Zi
 cflags=$(cflags) -Ic:\WTL\include
 cflags=$(cflags) /Ddprintf=printf
+cflags=$(cflags) /D_SECURE_SCL=0 #Performance Improvement by turning off checked iterator
 cvars=
 
 conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib 
