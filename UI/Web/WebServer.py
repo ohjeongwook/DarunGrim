@@ -16,6 +16,11 @@ class WebServer(object):
 		return html_worker.Index()
 	index.exposed = True
 
+	def FileList(self, company_name = None, filename = None, version_string = None ):
+		html_worker = HTMLGenerator.Worker()	
+		return html_worker.FileList( company_name , filename , version_string )
+	FileList.exposed = True
+
 	def MSPatchList(self, operation = '' ):
 		print 'MSPatchList'
 		html_worker = HTMLGenerator.Worker()
@@ -37,7 +42,7 @@ class WebServer(object):
 		return html_worker.FileInfo( patch_id, download_id, id )
 	FileInfo.exposed = True
 
-	def StartDiff( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
+	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0 ):
 		html_worker = HTMLGenerator.Worker()
 		return html_worker.StartDiff( patch_id, download_id, file_id, source_id, target_id, show_detail )
 	StartDiff.exposed = True

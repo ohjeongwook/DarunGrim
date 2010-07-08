@@ -178,6 +178,69 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </body>
 </html>"""
 
+FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
+	<form name="input" action="StartDiff">
+		<table>
+		% for (name,id) in name_and_ids:
+		<tr>
+		<td>
+			<input type="radio" name="source_id" value="${id}" /> 
+		</td>
+		<td>
+			<input type="radio" name="target_id" value="${id}" />
+		</td>
+		<td>
+			${name}
+		</td>
+		</tr>
+		% endfor
+		</table>
+		<p><input type="submit" value="Start Diffing"/>
+	</form> 
+</%def>
+<html>
+""" + HeadText + """
+
+<body>
+<div id=Content>
+<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" name_and_ids="${name_and_ids}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
+FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
+	% for name in names:
+		<p><a href="/FileList?company_name=${name}">[${name}]</a>
+	% endfor
+</%def>
+<html>
+""" + HeadText + """
+
+<body>
+<div id=Content>
+<%self:layoutdata names="${names}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
+FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
+		% for name in names:
+			<a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a>&nbsp;&nbsp;
+		% endfor
+</%def>
+<html>
+""" + HeadText + """
+
+<body>
+<div id=Content>
+<%self:layoutdata company_name="${company_name}" names="${names}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function_match_infos)">
 <p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
@@ -259,7 +322,6 @@ str(function_match_info.block_type)
 str(function_match_info.type)
 str( function_match_info.match_rate )
 """
-
 
 ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, target_function_name, comparison_table)">
 <p><a href="/MSPatchList">List</a>
@@ -345,6 +407,42 @@ class Worker:
 		mytemplate = Template( IndexTemplateText )
 		patches = self.Database.GetPatches()
 		return mytemplate.render()
+
+	def FileList(self, company_name = None, filename = None, version_string = None ):
+		names = []
+		if company_name:
+			if filename:
+				if version_string:
+					#Show info
+					pass
+				else:
+					#List version strings
+					name_and_ids = []
+					for (id, name, ) in self.Database.GetVersionStringsWithIDs( company_name, filename ):
+						name_and_ids.append( (name,id) )
+					mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+					return mytemplate.render(  
+						company_name = company_name,
+						filename = filename,
+						name_and_ids = name_and_ids
+					)
+			else:
+				#List filenames
+				for (name, ) in self.Database.GetFileNames( company_name ):
+					names.append( name )
+
+				mytemplate = Template( FileListFileNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+				return mytemplate.render(  
+					company_name = company_name,
+					names = names
+				)
+		else:
+			#List company_names
+			for (name, ) in self.Database.GetCompanyNames():
+				names.append( name )
+			mytemplate = Template( FileListCompanyNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+			return mytemplate.render( names = names )
+
 
 	def MSPatchList( self, operation = '' ):
 		if operation == 'update':
