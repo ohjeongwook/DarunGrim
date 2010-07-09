@@ -21,6 +21,11 @@ class WebServer(object):
 		return html_worker.FileList( company_name , filename , version_string )
 	FileList.exposed = True
 
+	def FileImport( self, folder = None ):
+		html_worker = HTMLGenerator.Worker()	
+		return html_worker.FileImport( folder )
+	FileImport.exposed = True
+
 	def MSPatchList(self, operation = '' ):
 		print 'MSPatchList'
 		html_worker = HTMLGenerator.Worker()

@@ -241,6 +241,27 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </body>
 </html>"""
 
+FileImportTemplateText = """<%def name="layoutdata( folder )">
+	<form name="input" action="FileImport">
+		<input type="text" size="50" name="folder" value="" /> 
+		<input type="submit" value="Import"/>
+	</form>
+	
+	% if folder != None:
+		Import from ${folder}
+	% endif
+</%def>
+<html>
+""" + HeadText + """
+
+<body>
+<div id=Content>
+<%self:layoutdata folder = "${folder}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
 FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function_match_infos)">
 <p><a href="/MSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
@@ -443,6 +464,14 @@ class Worker:
 			mytemplate = Template( FileListCompanyNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
 			return mytemplate.render( names = names )
 
+	def FileImport( self, folder ):
+		mytemplate = Template( FileImportTemplateText )
+
+		if folder:
+			print 'folder=',folder
+			file_store = FileStore.FileProcessor( 'index.db' )
+			file_store.IndexFilesInFoler( folder , target_dirname = r'T:\mat\Projects\Binaries\NewFiles' )
+		return mytemplate.render( folder = folder )
 
 	def MSPatchList( self, operation = '' ):
 		if operation == 'update':
