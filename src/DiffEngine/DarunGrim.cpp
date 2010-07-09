@@ -10,8 +10,6 @@ DarunGrim::DarunGrim():
 	pOneIDAClientManagerTheTarget(NULL),
 	pDiffMachine(NULL),
 	pIDAClientManager(NULL),
-	SourceFilename(NULL),
-	TargetFilename(NULL),
 	IsLoadedSourceFile( FALSE )
 {
 	Logger.SetLogOutputType( LogToStdout );
@@ -69,8 +67,8 @@ bool DarunGrim::GenerateDB(
 
 	pIDAClientManager->SetOutputFilename(StorageFilename);
 	pIDAClientManager->SetLogFilename(LogFilename);
-	pIDAClientManager->RunIDAToGenerateDB( SourceFilename, start_address_for_source, end_address_for_source );
-	pIDAClientManager->RunIDAToGenerateDB( TargetFilename, start_address_for_target, end_address_for_target );
+	pIDAClientManager->RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
+	pIDAClientManager->RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
 	return OpenDatabase();
 }
 
@@ -81,36 +79,66 @@ DWORD WINAPI ConnectToDarunGrim2Thread( LPVOID lpParameter )
 
 	if( pDarunGrim && (pIDAClientManager = pDarunGrim->GetIDAClientManager()) )
 	{
+		const char *filename = NULL;
 		if( !pDarunGrim->LoadedSourceFile() )
-		{
-			pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetSourceFilename() );
+		{	
+			filename = pDarunGrim->GetSourceIDBFilename();
+			if( !filename )
+			{
+				filename = pDarunGrim->GetSourceFilename();
+			}				
 		}
 		else
 		{
-			pIDAClientManager->ConnectToDarunGrim2( pDarunGrim->GetTargetFilename() );
+			filename = pDarunGrim->GetTargetIDBFilename();
+			if( !filename )
+			{
+				filename = pDarunGrim->GetTargetFilename();
+			}
 		}
+
+		if( filename )
+			pIDAClientManager->ConnectToDarunGrim2( filename );
 	}
 	return 1;
 }
 
-char *DarunGrim::GetSourceFilename()
+const char *DarunGrim::GetSourceFilename()
 {
-	return SourceFilename;
+	return SourceFilename.c_str();
+}
+
+const char *DarunGrim::GetSourceIDBFilename()
+{
+	if( GetFileAttributes( SourceIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
+		return NULL;
+	return SourceIDBFilename.c_str();
 }
 
 void DarunGrim::SetSourceFilename( char *source_filename )
 {
 	SourceFilename = source_filename;
+	SourceIDBFilename = SourceFilename;
+	SourceIDBFilename = SourceIDBFilename.replace ( SourceIDBFilename.length() - 4 , SourceIDBFilename.length() - 1 , ".idb" );	
 }
 
-char *DarunGrim::GetTargetFilename()
+const char *DarunGrim::GetTargetFilename()
 {
-	return TargetFilename;
+	return TargetFilename.c_str();
+}
+
+const char *DarunGrim::GetTargetIDBFilename()
+{
+	if( GetFileAttributes( TargetIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
+		return NULL;
+	return TargetIDBFilename.c_str();
 }
 
 void DarunGrim::SetTargetFilename( char *target_filename )
 {
 	TargetFilename = target_filename;
+	TargetIDBFilename = TargetFilename;
+	TargetIDBFilename = TargetIDBFilename.replace ( TargetIDBFilename.length() - 4 , TargetIDBFilename.length() - 1 , ".idb" );	
 }
 
 bool DarunGrim::LoadedSourceFile()
