@@ -31,9 +31,13 @@ class FileProcessor:
 					target_current_path = os.path.join( target_dirname, file )
 				else:
 					target_current_path = None
-				self.IndexFilesInFoler( current_path, target_current_path, download )
+				try:
+					self.IndexFilesInFoler( current_path, target_current_path, download )
+				except:
+					pass
 			else:
-				if self.DebugLevel > 2:
+				#TODO: Check MZ at the start of the file
+				if self.DebugLevel > -2:
 					print current_path
 				version_info = self.QueryFile( current_path )
 				filename = os.path.basename( current_path )
@@ -43,36 +47,39 @@ class FileProcessor:
 						if self.DebugLevel > 2:
 							print version_info
 						
-						target_current_filename = current_path
-						if target_dirname and dirname != target_dirname:
-							target_directory = os.path.join( target_dirname, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-							target_current_filename = os.path.join( target_directory, filename )
+						try:
+							target_current_filename = current_path
+							if target_dirname and dirname != target_dirname:
+								target_directory = os.path.join( target_dirname, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
+								target_current_filename = os.path.join( target_directory, filename )
 
-							if not os.path.isdir( target_directory ):
-								os.makedirs( target_directory )
-							print 'Copy to ',target_current_filename
-							shutil.copyfile( current_path, target_current_filename )
+								if not os.path.isdir( target_directory ):
+									os.makedirs( target_directory )
+								print 'Copy to ',target_current_filename
+								shutil.copyfile( current_path, target_current_filename )
 
-						#TODO: Put to the Index Database
-						operating_system = 'Windows XP'
-						patch_identifier = ''
-						service_pack = ''
+							#TODO: Put to the Index Database
+							operating_system = 'Windows XP'
+							patch_identifier = ''
+							service_pack = ''
 
-						ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
-						if ret and len(ret)>0:
-							print 'Already there:', current_path, version_info
-						else:
-							print 'New', download, current_path, version_info, 'filename=',filename
-							self.Database.AddFile( 
-								download,
-								operating_system, 
-								service_pack, 
-								filename, 
-								version_info['CompanyName'], 
-								version_info['FileVersion'], 
-								patch_identifier, 
-								target_current_filename
-							)
+							ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
+							if ret and len(ret)>0:
+								print 'Already there:', current_path, version_info
+							else:
+								print 'New', download, current_path, version_info, 'filename=',filename
+								self.Database.AddFile( 
+									download,
+									operating_system, 
+									service_pack, 
+									filename, 
+									version_info['CompanyName'], 
+									version_info['FileVersion'], 
+									patch_identifier, 
+									target_current_filename
+								)
+						except:
+							pass
 		self.Database.Commit()
 
 	def QueryFile( self, filename ):
@@ -84,13 +91,13 @@ class FileProcessor:
 			lclists.append( [(1033,0x04E4)] )
 
 			for lclist in lclists:
-				if self.DebugLevel > -2:
+				if self.DebugLevel > 2:
 					print 'lclist', lclist
 				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
 				print 'block=',block
 				for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
 					value = win32ver.VerQueryValue( info, block+s)
-					if self.DebugLevel > -2:
+					if self.DebugLevel > 2:
 						print "\t", s,'=',value
 					if value and not VersionInfo.has_key( s ):
 						VersionInfo[s] = value
