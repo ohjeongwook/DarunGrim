@@ -39,6 +39,6 @@ public:
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename( char *OutputFilename );
 	void SetLogFilename( char *LogFilename );
-	void RunIDAToGenerateDB( char *TheFilename, DWORD StartAddress, DWORD EndAddress );
-	void ConnectToDarunGrim2( char *ida_filename );
+	void RunIDAToGenerateDB( const char *TheFilename, DWORD StartAddress, DWORD EndAddress );
+	void ConnectToDarunGrim2( const char *ida_filename );
 };
