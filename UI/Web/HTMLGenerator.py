@@ -278,7 +278,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function
 		<tbody>
 		% for function_match_info in function_match_infos:
 			<tr>
-				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">${function_match_info.source_function_name}</a></td>
+				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}" target="${source_id}+${target_id}+source_address=${function_match_info.source_address}+target_address=${function_match_info.target_address}">${function_match_info.source_function_name}</a></td>
 				
 				% if show_detail > 1:
 					<td>${hex(function_match_info.source_address)[2:].upper()}</td>
@@ -288,7 +288,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function
 					<td>${function_match_info.non_match_count_for_the_source}</td>
 				% endif
 
-				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}">${function_match_info.target_function_name}</a></td>
+				<td><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${function_match_info.source_address}&target_address=${function_match_info.target_address}" target="${source_id}+${target_id}+source_address=${function_match_info.source_address}+target_address=${function_match_info.target_address}">${function_match_info.target_function_name}</a></td>
 				
 				% if show_detail > 1:
 					<td>${hex(function_match_info.target_address)[2:].upper()}</td>
