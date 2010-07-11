@@ -178,37 +178,6 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </body>
 </html>"""
 
-FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
-	<form name="input" action="StartDiff">
-		<table>
-		% for (name,id) in name_and_ids:
-		<tr>
-		<td>
-			<input type="radio" name="source_id" value="${id}" /> 
-		</td>
-		<td>
-			<input type="radio" name="target_id" value="${id}" />
-		</td>
-		<td>
-			${name}
-		</td>
-		</tr>
-		% endfor
-		</table>
-		<p><input type="submit" value="Start Diffing"/>
-	</form> 
-</%def>
-<html>
-""" + HeadText + """
-
-<body>
-<div id=Content>
-<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" name_and_ids="${name_and_ids}" args="col">\
-</%self:layoutdata>
-</div>
-</body>
-</html>"""
-
 FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 	% for name in names:
 		<p><a href="/FileList?company_name=${name}">[${name}]</a>
@@ -241,6 +210,37 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </body>
 </html>"""
 
+FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
+	<form name="input" action="StartDiff">
+		<table>
+		% for (name,id) in name_and_ids:
+		<tr>
+		<td>
+			<input type="radio" name="source_id" value="${id}" /> 
+		</td>
+		<td>
+			<input type="radio" name="target_id" value="${id}" />
+		</td>
+		<td>
+			${name}
+		</td>
+		</tr>
+		% endfor
+		</table>
+		<p><input type="submit" value="Start Diffing"/>
+	</form> 
+</%def>
+<html>
+""" + HeadText + """
+
+<body>
+<div id=Content>
+<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" name_and_ids="${name_and_ids}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
 FileImportTemplateText = """<%def name="layoutdata( folder )">
 	<form name="input" action="FileImport">
 		<input type="text" size="50" name="folder" value="" /> 
@@ -262,12 +262,28 @@ FileImportTemplateText = """<%def name="layoutdata( folder )">
 </body>
 </html>"""
 
-FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function_match_infos)">
-<p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
-&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
-&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
+FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name, 
+	source_file_version_string, 
+	target_file_name, 
+	target_file_version_string, 
+	show_detail, function_match_infos)">
+%if patch_name:
+	<p><a href="/MSPatchList">List</a>
+	&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
+%endif
+
+%if download_label:
+	&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
+%endif
+
+%if file_name:
+	&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
+%endif
+
 &nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
+
+<p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
+
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
 		<tr>
@@ -332,7 +348,14 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(show_detail, function
 
 <body>
 <div id=Content>
-<%self:layoutdata show_detail="${show_detail}" function_match_infos="${function_match_infos}" args="col">\
+<%self:layoutdata 
+	source_file_name = "${source_file_name}"
+	source_file_version_string = "${source_file_version_string}"
+	target_file_name = "${target_file_name}"
+	target_file_version_string = "${target_file_version_string}"
+	show_detail="${show_detail}" 
+	function_match_infos="${function_match_infos}" 
+	args="col">\
 </%self:layoutdata>
 </div>
 </body>
@@ -343,13 +366,30 @@ str(function_match_info.block_type)
 str(function_match_info.type)
 str( function_match_info.match_rate )
 """
+	
+ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name, 
+	source_file_version_string, 
+	target_file_name, 
+	target_file_version_string, 
+	source_function_name, 
+	target_function_name, comparison_table)">
 
-ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, target_function_name, comparison_table)">
-<p><a href="/MSPatchList">List</a>
-&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
-&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
-&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
+%if patch_name:
+	<p><a href="/MSPatchList">List</a>
+	&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
+%endif
+
+%if download_label:
+	&gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
+%endif
+
+%if file_name:
+	&gt;<a href="FileInfo?patch_id=${patch_id}&download_id=${download_id}&id=${file_id}">${file_name}</a>
+%endif
+
 &gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
+
+<p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
 
 	<table class="Block">
 		<tr>
@@ -406,7 +446,15 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_function_name, ta
 </%def>
 """ + HeadText + """
 <div id=Content>
-<%self:layoutdata source_function_name="${source_function_name}" target_function_name="${target_function_name}" comparison_table="${comparison_table}" args="col">\
+<%self:layoutdata 
+	source_file_name = "${source_file_name}"
+	source_file_version_string = "${source_file_version_string}"
+	target_file_name = "${target_file_name}"
+	target_file_version_string = "${target_file_version_string}"
+	source_function_name="${source_function_name}" 
+	target_function_name="${target_function_name}" 
+	comparison_table="${comparison_table}" 
+	args="col">\
 </%self:layoutdata>
 </div>
 </div>
@@ -586,8 +634,15 @@ class Worker:
 				function_match_info.match_count_with_modificationfor_the_source > 0:
 				function_match_infos.append( function_match_info )
 
+		source_file = self.Database.GetFileByID( source_id )[0]
+		target_file = self.Database.GetFileByID( target_id )[0]
+
 		mytemplate = Template( FunctionmatchInfosTemplateText )
-		return mytemplate.render(  
+		return mytemplate.render(
+				source_file_name = source_file.filename,
+				source_file_version_string = source_file.version_string,
+				target_file_name = target_file.filename,
+				target_file_version_string = target_file.version_string,		
 				patch_id = patch_id, 
 				patch_name = self.Database.GetPatchNameByID( patch_id ), 
 				download_id = download_id, 
@@ -600,7 +655,14 @@ class Worker:
 				show_detail = 0
 			)
 
-	def GetDisasmComparisonTextByFunctionAddress( self, patch_id, download_id, file_id, source_id, target_id, source_address, target_address, source_function_name = None, target_function_name = None ):
+	def GetDisasmComparisonTextByFunctionAddress( self, 
+			patch_id, download_id, file_id, 
+			source_id, target_id, source_address, target_address, 
+			source_function_name = None, target_function_name = None ):
+
+		source_file = self.Database.GetFileByID( source_id )[0]
+		target_file = self.Database.GetFileByID( target_id )[0]
+	
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 
@@ -614,9 +676,6 @@ class Worker:
 
 		if not target_function_name:
 			target_function_name = database.GetBlockName( 2, target_address )
-
-		print 'source_function_name', source_function_name
-		print 'target_function_name', target_function_name
 		
 		comparison_table = database.GetDisasmComparisonTextByFunctionAddress( source_address, target_address )
 		text_comparison_table = []
@@ -644,7 +703,11 @@ class Worker:
 		self.DifferManager.ColorAddresses( source_id, target_id, source_address_infos, target_address_infos )
 
 		mytemplate = Template( ComparisonTableTemplateText )
-		return mytemplate.render( 
+		return mytemplate.render(
+				source_file_name = source_file.filename,
+				source_file_version_string = source_file.version_string,
+				target_file_name = target_file.filename,
+				target_file_version_string = target_file.version_string,
 				source_function_name = source_function_name, 
 				target_function_name = target_function_name,
 				comparison_table = text_comparison_table, 
