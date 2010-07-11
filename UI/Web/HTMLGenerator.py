@@ -282,6 +282,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 
 &nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
 
+<title>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string} Functions</title>
 <p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
 
 	<table id="mainTable" class="FunctionmatchInfo">
@@ -389,6 +390,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 
 &gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
 
+<title>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string} Blocks</title>
 <p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
 
 	<table class="Block">
