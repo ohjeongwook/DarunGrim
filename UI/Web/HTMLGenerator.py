@@ -20,7 +20,6 @@ HeadText = """
 <script type="text/javascript" src="/data/jquery-ui.min.js"></script>
 <script type="text/javascript" src="/data/tablesorter/jquery-latest.js"></script> 
 <script type="text/javascript" src="/data/tablesorter/jquery.tablesorter.js"></script> 
-<script type="text/javascript" src="/data/jsTree.v.1.0rc2/jquery.jstree.js"></script> 
 
 <link rel="stylesheet" href="/data/themes/basic/style.css" type="text/css" media="print, projection, screen" />
 	
@@ -182,9 +181,18 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
+	<% i = 0 %>
+	<table class="Table">
+	<tr>
 	% for name in names:
-		<p><a href="/FileList?company_name=${name}">[${name}]</a>
+		% if i % 5 == 4:
+			</tr><tr>
+		% endif
+		<td><a href="/FileList?company_name=${name}">${name}</a></td>
+		<% i += 1 %>
 	% endfor
+	</tr>
+	</table>
 </%def>
 <html>
 """ + HeadText + """
@@ -198,9 +206,19 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 </html>"""
 
 FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
-		% for name in names:
-			<a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a>&nbsp;&nbsp;
-		% endfor
+	<a href="/FileList">Company Names</a>
+	<% i = 0 %>
+	<table class="Table">
+	<tr>
+	% for name in names:
+		% if i % 5 == 4:
+			</tr><tr>
+		% endif
+		<td><a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a></td>
+		<% i += 1 %>
+	% endfor
+	</tr>
+	</table>
 </%def>
 <html>
 """ + HeadText + """
@@ -214,8 +232,14 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </html>"""
 
 FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
+	<p><a href="/FileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="StartDiff">
-		<table>
+		<table class="Table">
+		<tr>
+			<th>Unpatched</th>
+			<th>Patched</th>
+			<th>Version String</th>
+		</tr>
 		% for (name,id) in name_and_ids:
 		<tr>
 		<td>
