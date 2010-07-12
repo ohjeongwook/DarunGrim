@@ -21,6 +21,16 @@ class WebServer(object):
 		return html_worker.FileList( company_name , filename , version_string )
 	FileList.exposed = True
 
+	def FileTree(self, company_name = None, filename = None, version_string = None ):
+		html_worker = HTMLGenerator.Worker()	
+		return html_worker.FileTree( company_name , filename , version_string )
+	FileTree.exposed = True
+
+	def FileTreeJSON(self, company_name = None, filename = None, version_string = None ):
+		html_worker = HTMLGenerator.Worker()	
+		return html_worker.FileTreeJSON( company_name , filename , version_string )
+	FileTreeJSON.exposed = True
+
 	def FileImport( self, folder = None ):
 		html_worker = HTMLGenerator.Worker()	
 		return html_worker.FileImport( folder )

@@ -11,6 +11,7 @@ import DarunGrimAnalyzers
 import DownloadMSPatches
 import FileStore
 import tempfile
+import json
 
 from mako.template import Template
 
@@ -19,6 +20,8 @@ HeadText = """
 <script type="text/javascript" src="/data/jquery-ui.min.js"></script>
 <script type="text/javascript" src="/data/tablesorter/jquery-latest.js"></script> 
 <script type="text/javascript" src="/data/tablesorter/jquery.tablesorter.js"></script> 
+<script type="text/javascript" src="/data/jsTree.v.1.0rc2/jquery.jstree.js"></script> 
+
 <link rel="stylesheet" href="/data/themes/basic/style.css" type="text/css" media="print, projection, screen" />
 	
 <script type="text/javascript">
@@ -513,6 +516,89 @@ class Worker:
 				names.append( name )
 			mytemplate = Template( FileListCompanyNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
 			return mytemplate.render( names = names )
+
+	def FileTreeJSON(self, company_name , filename , version_string ):
+		print 'FileTreeJSON', company_name , filename , version_string
+		names = []
+		if company_name:
+			if filename:
+				if version_string:
+					#Show info
+					pass
+				else:
+					#List version strings
+					print 'List version strings'
+					#List filenames
+					version_strings = []
+					for (id, name, ) in self.Database.GetVersionStringsWithIDs( company_name, filename ):
+						tree_data = {}
+						tree_data[ "data" ] = name
+						tree_data[ "attr" ] = { "company_name": company_name, "filename": name }
+
+						version_strings.append( tree_data )
+					version_strings_json = json.dumps( version_strings )
+					return version_strings_json
+			else:
+				print 'List filenames'
+				#List filenames
+				file_names = []
+				for (name, ) in self.Database.GetFileNames( company_name ):
+					tree_data = {}
+					tree_data[ "data" ] = name
+					tree_data[ "attr" ] = { "company_name": company_name, "filename": name }
+					tree_data[ "state" ] = "closed"
+
+					file_names.append( tree_data )
+				file_names_json = json.dumps( file_names )
+				return file_names_json
+		else:
+			company_names = []
+			for (name, ) in self.Database.GetCompanyNames():
+				tree_data = {}
+				tree_data[ "data" ] = name
+				tree_data[ "attr" ] = { "company_name": name, "rel": "drive" }
+				tree_data[ "state" ] = "closed"
+
+				company_names.append( tree_data )
+			company_names_json = json.dumps( company_names )
+			return company_names_json
+
+	def FileTree(self, company_name = None, filename = None, version_string = None ):
+		return """<html>
+<head>	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.cookie.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.hotkeys.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.jstree.js"></script>
+</head> 
+
+<body>
+<div id="demo1" class="demo"></div>
+<script type="text/javascript">
+$(function () {
+	$("#demo1").jstree({
+		"json_data" : 
+			{ 
+				// I chose an ajax enabled tree - again - as this is most common, and maybe a bit more complex
+				// All the options are the same as jQuery's except for `data` which CAN (not should) be a function
+				"ajax" : {
+					// the URL to fetch the data
+					"url" : "FileTreeJSON",
+					// this function is executed in the instance's scope (this refers to the tree instance)
+					// the parameter is the node being loaded (may be -1, 0, or undefined when loading the root nodes)
+					"data" : function (n) { 
+						// the result is fed to the AJAX request `data` option
+						return { 
+							"company_name" : n.attr ? n.attr("company_name"): "",
+							"filename" : n.attr ? n.attr("filename"): "",
+							"version_string" : n.attr ? n.attr("version_string"): ""
+						}; 
+					}
+				}
+			}
+		,
+		"plugins" : [ "themes", "json_data", "checkbox" ]
+	});
+});
+</script>
+</body>
+</html>"""
 
 	def FileImport( self, folder ):
 		mytemplate = Template( FileImportTemplateText )
