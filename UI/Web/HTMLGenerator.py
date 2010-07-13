@@ -35,6 +35,12 @@ HeadText = """
 IndexTemplateText = """<%def name="layoutdata()">
 	<table class="Table">
 		<tr>
+			<td><a href="/FileList">Files List</a></td>
+		</tr>
+		<tr>
+			<td><a href="/FileImport">Files Import</a></td>
+		</tr>
+		<tr>
 			<td><a href="/MSPatchList">Microsoft Patches List</a></td>
 		</tr>
 	</table>
