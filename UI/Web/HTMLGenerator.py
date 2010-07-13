@@ -187,6 +187,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
+<title>Company Names</title>
 	<% i = 0 %>
 	<table class="Table">
 	<tr>
@@ -212,6 +213,7 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 </html>"""
 
 FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
+<title>File Names for ${company_name}</title>
 	<a href="/FileList">Company Names</a>
 	<% i = 0 %>
 	<table class="Table">
@@ -238,6 +240,7 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </html>"""
 
 FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
+<title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/FileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="StartDiff">
 		<table class="Table">
