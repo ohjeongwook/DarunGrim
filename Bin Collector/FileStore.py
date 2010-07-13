@@ -10,13 +10,16 @@ import PatchDatabaseWrapper
 class FileProcessor:
 	DebugLevel = 0
 	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll', 'HotFixInstallerUI.dll' ]
+	Database = None
 
 	def __init__( self, databasename = None, database = None ):
+		print 'FileProcessor', databasename, database
 		self.DatabaseName = databasename
 		if database:
 			self.Database = database
 		else:
 			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		print 'Database', self.Database
 
 	def IndexFilesInFoler( self, dirname, target_dirname = None, download = None ):
 		if not os.path.isdir( dirname ):
@@ -109,7 +112,7 @@ class MSFileProcessor( FileProcessor ):
 		self.TemporaryExtractedFilesFolderFolder = source_binaries_folder
 		self.TargetBinariesFolder = target_binaries_folder
 
-		FileProcessor( databasename = databasename, database = database )
+		self.file_processor = FileProcessor( databasename = databasename, database = database )
 		self.Download = None
 
 	def ExtractFilesInDatabase( self ):
@@ -123,7 +126,7 @@ class MSFileProcessor( FileProcessor ):
 		if os.path.isfile( filename ) and filename[-4:]=='.exe':
 			print 'Filename', filename
 			if self.ExtractMSArchive( filename ):
-				self.IndexFilesInFoler( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
+				self.file_processor.IndexFilesInFoler( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
 				self.RemoveTemporaryFiles()
 
 	def ExtractMSArchive( self, filename ):		
