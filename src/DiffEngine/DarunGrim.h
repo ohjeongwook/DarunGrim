@@ -5,6 +5,10 @@
 #include "DiffMachine.h"
 #include "DataBaseWriter.h"
 
+#include <string>
+using namespace std;
+using namespace stdext;
+
 class DarunGrim
 {
 private:
@@ -16,8 +20,10 @@ private:
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase();
 	char *StorageFilename;
-	char *SourceFilename;
-	char *TargetFilename;
+	string SourceFilename;
+	string SourceIDBFilename;
+	string TargetFilename;
+	string TargetIDBFilename;
 	bool IsLoadedSourceFile;
 public:
 	DarunGrim();
@@ -34,9 +40,11 @@ public:
 	bool Analyze();
 	bool ShowOnIDA();
 
-	char *GetSourceFilename();
+	const char *GetSourceFilename();
+	const char *GetSourceIDBFilename();
 	void SetSourceFilename( char *source_filename );
-	char *GetTargetFilename();
+	const char *GetTargetFilename();
+	const char *GetTargetIDBFilename();
 	void SetTargetFilename( char *target_filename );
 	IDAClientManager *GetIDAClientManager();
 

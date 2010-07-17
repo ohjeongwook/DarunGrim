@@ -30,6 +30,7 @@ cflags=$(cflags) /EHsc
 cflags=$(cflags) /Zi
 cflags=$(cflags) -Ic:\WTL\include
 cflags=$(cflags) /Ddprintf=printf
+cflags=$(cflags) /D_SECURE_SCL=0 #Performance Improvement by turning off checked iterator
 cvars=
 
 conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib 
@@ -89,7 +90,7 @@ $(OUTDIR)\DatabaseWriter.obj: $(LIB_DIR)\DataBaseWriter.cpp
 $(OUTDIR)\XGetopt.obj: $(XGETOPT_DIR)\XGetopt.cpp
     $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" $(XGETOPT_DIR)\XGetopt.cpp
 
-$(OUTDIR)\DarunGrim.obj: DarunGrim.cpp
+$(OUTDIR)\DarunGrim.obj: DarunGrim.cpp DarunGrim.h
     $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" DarunGrim.cpp
 
 $(OUTDIR)\DarunGrim2C.obj: $(DIFF_ENGINE)\DarunGrim2C.cpp $(DIFF_ENGINE)\DataStructure.h DiffMachine.h DiffMachine.cpp

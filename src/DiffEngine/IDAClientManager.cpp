@@ -363,7 +363,7 @@ void IDAClientManager::SetLogFilename( char *LogFilename )
 	}
 }
 
-void IDAClientManager::RunIDAToGenerateDB( char *ida_filename, DWORD StartAddress, DWORD EndAddress )
+void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, DWORD StartAddress, DWORD EndAddress )
 {
 	char *idc_filename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, 
 		EscapedLogFilename?EscapedLogFilename:"", 
@@ -382,7 +382,7 @@ void IDAClientManager::RunIDAToGenerateDB( char *ida_filename, DWORD StartAddres
 }
 
 
-void IDAClientManager::ConnectToDarunGrim2( char *ida_filename )
+void IDAClientManager::ConnectToDarunGrim2( const char *ida_filename )
 {
 	char *idc_filename=WriteToTemporaryFile( CONNECT_TO_DARUNGRIM2_STR, EscapedLogFilename?EscapedLogFilename:"");
 

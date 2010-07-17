@@ -269,7 +269,7 @@ class Database:
 
 	def GetVersionStringsWithIDs( self, company_name = None, filename = None ):
 		if company_name !=None and filename != None:
-			return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().all()
+			return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().order_by( FileIndex.version_string ).all()
 			
 		return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).distinct().all()
 
