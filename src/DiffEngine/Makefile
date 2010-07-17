@@ -42,7 +42,7 @@ conlibs=$(conlibs) LIBCMTD.LIB /NODEFAULTLIB:Libcmt.lib
 !ENDIF
 
 python_include=-IC:\Python26\include -D__WIN32__
-python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib
+python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib /DEBUG
 
 all: $(OUTDIR) $(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\_DiffEngine.pyd $(OUTDIR)\Test.exe
 
