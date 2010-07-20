@@ -253,6 +253,10 @@ class Database:
 
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
+
+	def GetFiles( self ):
+		return self.SessionInstance.query( FileIndex ).all()
+
 	def GetFileNames( self, company_name = None ):
 		if company_name != None:
 			return self.SessionInstance.query( FileIndex.filename ).filter( FileIndex.company_name==company_name ).distinct().all()
@@ -299,21 +303,23 @@ class Database:
 			return False
 
 if __name__ == '__main__':
-	Tests = [ "AddPatch", "GetPatch" ]
-	database_name = 'adobe.db'
-	#database_name = r'..\UI\Web\index.db'
+	Tests = [ "RenameFiles" ]
+
+	#database_name = 'adobe.db'
+	database_name = r'..\UI\Web\index.db'
 
 	database = Database( database_name )
-	company_names = database.GetCompanyNames()
-	filenames = database.GetFileNames()
-	version_strings = database.GetVersionStrings()
-
-	for (company_name,) in company_names:
-		print company_name
-		for (filename, ) in database.GetFileNames( company_name ):
-			print '\t', filename
-			for (version_string, ) in database.GetVersionStrings( company_name, filename ):
-				print '\t\t',version_string
+	if "DumpFiles" in Tests:
+		company_names = database.GetCompanyNames()
+		filenames = database.GetFileNames()
+		version_strings = database.GetVersionStrings()
+	
+		for (company_name,) in company_names:
+			print company_name
+			for (filename, ) in database.GetFileNames( company_name ):
+				print '\t', filename
+				for (version_string, ) in database.GetVersionStrings( company_name, filename ):
+					print '\t\t',version_string
 	if "AddPatch" in Tests:
 		operating_system = "os"
 		service_pack = "sp"
@@ -342,3 +348,13 @@ if __name__ == '__main__':
 		print 'MS09-018',database.GetPatch( 'MS09-018' )
 		print 'MS09-0999',database.GetPatch( 'MS09-099' )
 		
+	if "RenameFiles" in Tests:
+		for file in database.GetFiles():
+			try:
+				#file.full_path = file.full_path.replace( "T:\\mat\\Projects\\", "" )
+				file.full_path = file.full_path.replace( "Binaries\\", "" )
+			except:
+				pass
+		database.Commit()
+
+

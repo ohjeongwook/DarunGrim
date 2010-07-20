@@ -504,9 +504,11 @@ class Worker:
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
 
-		self.BinariesStorage = r"T:\mat\Projects\Binaries\Windows XP"
+		self.BinariesStorageDirectory = r'C:\mat\Projects\Binaries'
+		self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory + r"\Windows XP"
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
-		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
+
+		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 		self.PatchTemporaryStore = 'Patches'
 
@@ -660,7 +662,7 @@ $(function () {
 		if operation == 'extract':
 			patch_temporary_folder = tempfile.mkdtemp()
 			patch_temporary_folder2 = tempfile.mkdtemp()
-			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.BinariesStorage, database = self.Database )
+			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.MicrosoftBinariesStorageDirectory, database = self.Database )
 			patch_downloader = DownloadMSPatches.PatchDownloader( patch_temporary_folder2, self.DatabaseName )
 			for download in self.Database.GetDownloadByID( id ):
 				print 'Extracting', download.filename, download.url

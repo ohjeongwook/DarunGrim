@@ -51,15 +51,16 @@ class FileProcessor:
 							print version_info
 						
 						try:
-							target_current_filename = current_path
+							target_filename = current_path							
 							if target_dirname and dirname != target_dirname:
-								target_directory = os.path.join( target_dirname, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-								target_current_filename = os.path.join( target_directory, filename )
+								target_filename = version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' )
+								target_directory = os.path.join( target_dirname, target_filename )
+								target_full_filename = os.path.join( target_directory, filename )
 
 								if not os.path.isdir( target_directory ):
 									os.makedirs( target_directory )
-								print 'Copy to ',target_current_filename
-								shutil.copyfile( current_path, target_current_filename )
+								print 'Copy to ',target_full_filename
+								shutil.copyfile( current_path, target_full_filename )
 
 							#TODO: Put to the Index Database
 							operating_system = 'Windows XP'
@@ -79,7 +80,7 @@ class FileProcessor:
 									version_info['CompanyName'], 
 									version_info['FileVersion'], 
 									patch_identifier, 
-									target_current_filename
+									target_filename
 								)
 						except:
 							pass
