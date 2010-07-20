@@ -21,26 +21,20 @@ class FileProcessor:
 			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		print 'Database', self.Database
 
-	def IndexFilesInFoler( self, dirname, target_dirname = None, download = None ):
-		if not os.path.isdir( dirname ):
+	def IndexFilesInFoler( self, src_dirname, target_dirname = None, download = None ):
+		if not os.path.isdir( src_dirname ):
 			return 
 
-		for file in dircache.listdir( dirname ):
-			current_path = os.path.join( dirname, file )
+		for file in dircache.listdir( src_dirname ):
+			current_path = os.path.join( src_dirname, file )
 			if os.path.isdir( current_path ):
-				current_path = os.path.join( dirname, file )
-
-				if target_dirname:
-					target_current_path = os.path.join( target_dirname, file )
-				else:
-					target_current_path = None
 				try:
-					self.IndexFilesInFoler( current_path, target_current_path, download )
+					self.IndexFilesInFoler( os.path.join( src_dirname, file ), target_dirname, download )
 				except:
 					pass
 			else:
 				#TODO: Check MZ at the start of the file
-				if self.DebugLevel > -2:
+				if self.DebugLevel > 2:
 					print current_path
 				version_info = self.QueryFile( current_path )
 				filename = os.path.basename( current_path )
@@ -51,15 +45,23 @@ class FileProcessor:
 							print version_info
 						
 						try:
-							target_current_filename = current_path
-							if target_dirname and dirname != target_dirname:
-								target_directory = os.path.join( target_dirname, version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-								target_current_filename = os.path.join( target_directory, filename )
+							if target_dirname:
+								target_relative_directory = os.path.join( version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
+								target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
+								
+								target_full_directory = os.path.join( target_dirname, target_relative_directory )
+								target_full_filename = os.path.join( target_dirname, target_relative_filename )
 
-								if not os.path.isdir( target_directory ):
-									os.makedirs( target_directory )
-								print 'Copy to ',target_current_filename
-								shutil.copyfile( current_path, target_current_filename )
+								print 'target_relative_directory', target_relative_directory
+								print 'target_relative_filename', target_relative_filename
+								print 'target_full_filename',target_full_filename
+
+								if not os.path.isdir( target_full_directory ):
+									os.makedirs( target_full_directory )
+								print 'Copy to ',target_full_filename
+								shutil.copyfile( current_path, target_full_filename )
+							else:
+								target_relative_filename = current_path
 
 							#TODO: Put to the Index Database
 							operating_system = 'Windows XP'
@@ -69,6 +71,17 @@ class FileProcessor:
 							ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
 							if ret and len(ret)>0:
 								print 'Already there:', current_path, version_info
+								self.Database.UpdateFile( 
+									download,
+									operating_system, 
+									service_pack, 
+									filename, 
+									version_info['CompanyName'], 
+									version_info['FileVersion'], 
+									patch_identifier, 
+									target_relative_filename
+								)
+								
 							else:
 								print 'New', download, current_path, version_info, 'filename=',filename
 								self.Database.AddFile( 
@@ -79,7 +92,7 @@ class FileProcessor:
 									version_info['CompanyName'], 
 									version_info['FileVersion'], 
 									patch_identifier, 
-									target_current_filename
+									target_relative_filename
 								)
 						except:
 							pass
@@ -97,7 +110,6 @@ class FileProcessor:
 				if self.DebugLevel > 2:
 					print 'lclist', lclist
 				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
-				print 'block=',block
 				for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
 					value = win32ver.VerQueryValue( info, block+s)
 					if self.DebugLevel > 2:

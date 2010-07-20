@@ -14,10 +14,10 @@ Differs = {}
 class Manager:
 	DebugLevel = 3
 
-	def __init__( self, databasename = 'test.db', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
+	def __init__( self, databasename = 'test.db', binary_store_directory = r'c:\mat\Projects\Binaries', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
+		self.BinariesStorageDirectory = binary_store_directory
 		self.OutputDirectory = output_directory
-
 
 		if ida_path:
 			self.IDAPath = ida_path
@@ -51,7 +51,7 @@ class Manager:
 		source_patch_name = 'None'
 		if source_file_entries[0].downloads and source_file_entries[0].downloads.patches.name:
 			source_patch_name = source_file_entries[0].downloads.patches.name
-		source_filename = source_file_entries[0].full_path
+		source_filename = os.path.join( self.BinariesStorageDirectory, source_file_entries[0].full_path )
 
 		target_file_entries = database.GetFileByID( target_id )
 		print target_id, target_file_entries 
@@ -59,7 +59,7 @@ class Manager:
 		target_patch_name = 'None'
 		if target_file_entries[0].downloads and target_file_entries[0].downloads.patches.name:
 			target_patch_name = target_file_entries[0].downloads.patches.name
-		target_filename = target_file_entries[0].full_path
+		target_filename = os.path.join( self.BinariesStorageDirectory, target_file_entries[0].full_path )
 
 		if not databasename:
 			databasename = self.GetDefaultDatabasename( source_id, target_id )

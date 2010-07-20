@@ -498,17 +498,40 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 </div>
 """
 
+import ConfigParser
+import io
+
+
 class Worker:
-	def __init__ ( self, database = 'index.db' ):
+	def __init__ ( self, database = 'index.db', config_file = 'DarunGrim3.cfg' ):
+		#Something Configurable
+		self.BinariesStorageDirectory = r'C:\mat\Projects\Binaries'
+		self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory + r"\Windows XP"
+		self.DGFDirectory = r'C:\mat\Projects\DGFs'
+		self.IDAPath = None
 		self.DatabaseName = database
+		self.PatchTemporaryStore = 'Patches'
+
+		if os.path.exists( config_file ):
+			fd = open( config_file )
+			config_data = fd.read()
+			fd.close()
+			config = ConfigParser.RawConfigParser()
+			config.readfp(io.BytesIO( config_data ))
+					
+			self.BinariesStorageDirectory = config.get("Directories", "BinariesStorage")
+			self.MicrosoftBinariesStorageDirectory = config.get("Directories", "MicrosoftBinariesStorage")
+			self.DGFDirectory = config.get("Directories", "DGFDirectory")
+			self.IDAPath = config.get("Directories", "IDAPath")
+			self.DatabaseName = config.get("Directories", "DatabaseName")
+			self.PatchTemporaryStore = config.get("Directories", "PatchTemporaryStore")
+		
+		#Operation
 		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
 
-		self.BinariesStorage = r"T:\mat\Projects\Binaries\Windows XP"
-		self.DGFDirectory = r'C:\mat\Projects\DGFs'
-		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.DGFDirectory )
+		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
-		self.PatchTemporaryStore = 'Patches'
 
 	def Index( self ):
 		mytemplate = Template( IndexTemplateText )
@@ -639,7 +662,7 @@ $(function () {
 		if folder:
 			print 'folder=',folder
 			file_store = FileStore.FileProcessor( 'index.db' )
-			file_store.IndexFilesInFoler( folder , target_dirname = r'T:\mat\Projects\Binaries\NewFiles' )
+			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
 		return mytemplate.render( folder = folder )
 
 	def MSPatchList( self, operation = '' ):
@@ -660,7 +683,7 @@ $(function () {
 		if operation == 'extract':
 			patch_temporary_folder = tempfile.mkdtemp()
 			patch_temporary_folder2 = tempfile.mkdtemp()
-			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.BinariesStorage, database = self.Database )
+			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.MicrosoftBinariesStorageDirectory, database = self.Database )
 			patch_downloader = DownloadMSPatches.PatchDownloader( patch_temporary_folder2, self.DatabaseName )
 			for download in self.Database.GetDownloadByID( id ):
 				print 'Extracting', download.filename, download.url
