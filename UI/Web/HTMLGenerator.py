@@ -498,19 +498,40 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 </div>
 """
 
-class Worker:
-	def __init__ ( self, database = 'index.db' ):
-		self.DatabaseName = database
-		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
+import ConfigParser
+import io
 
+
+class Worker:
+	def __init__ ( self, database = 'index.db', config_file = 'DarunGrim3.cfg' ):
+		#Something Configurable
 		self.BinariesStorageDirectory = r'C:\mat\Projects\Binaries'
 		self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory + r"\Windows XP"
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
-
-		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory )
-		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
+		self.IDAPath = None
+		self.DatabaseName = database
 		self.PatchTemporaryStore = 'Patches'
+
+		if os.path.exists( config_file ):
+			fd = open( config_file )
+			config_data = fd.read()
+			fd.close()
+			config = ConfigParser.RawConfigParser()
+			config.readfp(io.BytesIO( config_data ))
+					
+			self.BinariesStorageDirectory = config.get("Directories", "BinariesStorage")
+			self.MicrosoftBinariesStorageDirectory = config.get("Directories", "MicrosoftBinariesStorage")
+			self.DGFDirectory = config.get("Directories", "DGFDirectory")
+			self.IDAPath = config.get("Directories", "IDAPath")
+			self.DatabaseName = config.get("Directories", "DatabaseName")
+			self.PatchTemporaryStore = config.get("Directories", "PatchTemporaryStore")
+		
+		#Operation
+		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
+
+		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
+		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 
 	def Index( self ):
 		mytemplate = Template( IndexTemplateText )
