@@ -641,7 +641,7 @@ $(function () {
 		if folder:
 			print 'folder=',folder
 			file_store = FileStore.FileProcessor( 'index.db' )
-			file_store.IndexFilesInFoler( folder , target_dirname = r'T:\mat\Projects\Binaries\NewFiles' )
+			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
 		return mytemplate.render( folder = folder )
 
 	def MSPatchList( self, operation = '' ):

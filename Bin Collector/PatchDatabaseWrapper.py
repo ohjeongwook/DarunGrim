@@ -291,6 +291,22 @@ class Database:
 			self.SessionInstance.add( fileindex )
 		return fileindex
 
+	def UpdateFile(self, download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
+		for file in self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) ).all():
+			file.operating_system = operating_system
+			file.service_pack = service_pack
+			file.filename = filename
+			file.company_name = company_name
+			file.version_string = version_string 
+			file.patch_identifier = patch_identifier
+			file.full_path = full_path
+
+		if download:
+			download.fileindexes.append( fileindex )
+		else:
+			self.SessionInstance.add( fileindex )
+		return fileindex
+
 	def Commit( self ):
 		try:
 			self.SessionInstance.commit()
