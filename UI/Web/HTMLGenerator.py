@@ -318,8 +318,17 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 
 &nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
 
-<title>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string} Functions</title>
-<p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
+<title>${source_file_name}: ${source_file_version_string} vs 
+% if source_file_name != target_file_name:
+	${target_file_name}: 
+% endif
+${target_file_version_string} Functions
+</title>
+<p><a href="http://127.0.0.1/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} vs 
+% if source_file_name != target_file_name:
+	${target_file_name}: 
+% endif
+${target_file_version_string}</a>
 
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
@@ -409,7 +418,9 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 	target_file_name, 
 	target_file_version_string, 
 	source_function_name, 
-	target_function_name, comparison_table)">
+	target_function_name, comparison_table,
+	source_address,
+	target_address)">
 
 %if patch_name:
 	<p><a href="/MSPatchList">List</a>
@@ -426,8 +437,19 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 
 &gt;<a href="ShowFunctionMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}">Functions</a>
 
-<title>${source_file_name}: ${source_file_version_string}:${source_function_name} vs ${target_file_name}: ${target_file_version_string}:${target_function_name} Blocks</title>
-<p><b>${source_file_name}: ${source_file_version_string} vs ${target_file_name}: ${target_file_version_string}</b>
+<title>${source_file_name}: ${source_file_version_string}:${source_function_name} vs 
+% if source_file_name != target_file_name:
+	${target_file_name}: 
+% endif
+${target_file_version_string}:${target_function_name} Blocks</title>
+
+<p><a href="ShowBasicBlockMatchInfo?patch_id=${patch_id}&download_id=${download_id}&file_id=${file_id}&source_id=${source_id}&target_id=${target_id}&source_address=${source_address}&target_address=${target_address}">
+${source_file_name}: ${source_file_version_string}: ${source_function_name} vs 
+% if source_file_name != target_file_name:
+	${target_file_name}: 
+% endif
+${target_file_version_string}: ${target_function_name}
+</a>
 
 	<table class="Block">
 		<tr>
@@ -492,6 +514,8 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 	source_function_name="${source_function_name}" 
 	target_function_name="${target_function_name}" 
 	comparison_table="${comparison_table}" 
+	source_address="${source_address}"
+	target_address="${target_address}"
 	args="col">\
 </%self:layoutdata>
 </div>
@@ -857,6 +881,8 @@ $(function () {
 				comparison_table = text_comparison_table, 
 				source_id = source_id, 
 				target_id = target_id, 
+				source_address = source_address,
+				target_address = target_address,
 				patch_id = patch_id, 
 				patch_name = self.Database.GetPatchNameByID( patch_id ), 
 				download_id = download_id, 
