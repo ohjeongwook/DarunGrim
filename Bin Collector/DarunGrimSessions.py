@@ -1,5 +1,6 @@
 import sys
-sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin')
+sys.path.append(r'..\DarunGrim2')
+sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin\DarunGrim2')
 sys.path.append(r'..')
 sys.path.append(r'..\Diff Inspector')
 import os
@@ -19,9 +20,13 @@ class Manager:
 		self.BinariesStorageDirectory = binary_store_directory
 		self.OutputDirectory = output_directory
 
+		self.IDAPath = None
 		if ida_path:
-			self.IDAPath = ida_path
-		else:
+			
+			if os.path.isfile( ida_path ):
+				self.IDAPath = ida_path
+	
+		if not self.IDAPath:
 			for filename in ( r'C:\Program Files\IDA\idag.exe', r'C:\Program Files (x86)\IDA\idag.exe' ):
 				if os.path.isfile( filename ):
 					self.IDAPath = filename
@@ -87,13 +92,13 @@ class Manager:
 		return None
 
 	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
-		if self.DebugLevel > 2:
+		if self.DebugLevel > 10:
 			print '='*80
-			print source_patch_name
-			print source_filename
-			print target_patch_name
-			print target_filename
-			print databasename
+			print 'source_patch_name=',source_patch_name
+			print 'source_filename=',source_filename
+			print 'target_patch_name=',target_patch_name
+			print 'target_filename=',target_filename
+			print 'databasename=',databasename
 
 		base_filename = os.path.basename( source_filename )
 		dot_pos = base_filename.find('.')
@@ -103,7 +108,10 @@ class Manager:
 		prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
 		if not databasename:
 			databasename = prefix + ".dgf"
-		full_databasename =  os.path.join( self.OutputDirectory , databasename )
+			full_databasename = os.path.join( self.OutputDirectory , databasename )
+		else:
+			full_databasename = databasename
+		
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
 		differ = self.LoadDiffer( full_databasename, source_filename, target_filename )

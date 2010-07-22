@@ -543,9 +543,9 @@ class Worker:
 			config = ConfigParser.RawConfigParser()
 			config.readfp(io.BytesIO( config_data ))
 					
-			self.BinariesStorageDirectory = config.get("Directories", "BinariesStorage")
-			self.MicrosoftBinariesStorageDirectory = config.get("Directories", "MicrosoftBinariesStorage")
-			self.DGFDirectory = config.get("Directories", "DGFDirectory")
+			self.BinariesStorageDirectory = os.path.join( os.getcwd(), config.get("Directories", "BinariesStorage") )
+			self.MicrosoftBinariesStorageDirectory = os.path.join( os.getcwd(), config.get("Directories", "MicrosoftBinariesStorage") )
+			self.DGFDirectory = os.path.join( os.getcwd(), config.get("Directories", "DGFDirectory") )
 			self.IDAPath = config.get("Directories", "IDAPath")
 			self.DatabaseName = config.get("Directories", "DatabaseName")
 			self.PatchTemporaryStore = config.get("Directories", "PatchTemporaryStore")
