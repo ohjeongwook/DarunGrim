@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'..\DarunGrim2')
+sys.path.append(r'.')
 sys.path.append(r'T:\mat\Projects\ResearchTools\Binary\StaticAnalysis\DarunGrim2\Bin\DarunGrim2')
 sys.path.append(r'..')
 sys.path.append(r'..\Diff Inspector')
@@ -22,7 +22,6 @@ class Manager:
 
 		self.IDAPath = None
 		if ida_path:
-			
 			if os.path.isfile( ida_path ):
 				self.IDAPath = ida_path
 	
@@ -34,8 +33,33 @@ class Manager:
 
 		if not os.path.isdir( self.OutputDirectory ):
 			os.makedirs( self.OutputDirectory )
-		
+	
+		self.InstallPlugin()
+	
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.DatabaseFilename )
+
+	def InstallPlugin( self ):
+		plugins_dst_dir = os.path.join( os.path.dirname( self.IDAPath ), "plugins" )
+		if not os.path.isdir( plugins_dst_dir ):
+			plugins_dst_dir = None
+			for one_plugins_dst_dir in ( r'C:\Program Files\IDA\plugins', r'C:\Program Files (x86)\IDA\plugins' ):
+				if os.path.isdir( one_plugins_dst_dir ):
+					plugins_dst_dir = one_plugins_dst_dir
+					break
+
+		if plugins_dst_dir:
+			#copy r'Plugin\*.plw -> plugins_dst_dir
+			plugins_src_dir = 'Plugin'
+			plugin_file = 'DarunGrim2.plw'
+
+			src_file = os.path.join( plugins_src_dir, plugin_file ) 
+			dst_file = os.path.join( plugins_dst_dir, plugin_file ) 
+
+			print src_file,'->',dst_file
+			if os.path.isfile( src_file ) and not os.path.isfile( dst_file ):
+				import shutil
+				shutil.copyfile( src_file, dst_file )
+
 
 	def InitMSFileDiff( self, patch_name, filename ):
 		print 'Analyzing', patch_name, filename
