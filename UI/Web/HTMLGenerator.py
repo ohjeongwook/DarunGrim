@@ -324,7 +324,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 % endif
 ${target_file_version_string} Functions
 </title>
-<p><a href="http://127.0.0.1/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} vs 
+<p><a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} vs 
 % if source_file_name != target_file_name:
 	${target_file_name}: 
 % endif

@@ -78,8 +78,20 @@ class WebServer(object):
 	SyncIDA.exposed = True
 
 if __name__ == '__main__':
+	import ConfigParser
+	import io
+
+	config_file = 'DarunGrim3.cfg'
+	fd = open( config_file )
+	config_data = fd.read()
+	fd.close()
+	config = ConfigParser.RawConfigParser()
+	config.readfp(io.BytesIO( config_data ))
+					
+	port = int( config.get("Global", "Port") )
+
 	cherrypy.config.update({'server.socket_host': '127.0.0.1',
-                        'server.socket_port': 80,
+                        'server.socket_port': port,
                        })
 	config = {
 		'/data': {
