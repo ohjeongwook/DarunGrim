@@ -192,10 +192,10 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 	<table class="Table">
 	<tr>
 	% for name in names:
+		<td><a href="/FileList?company_name=${name}">${name}</a></td>
 		% if i % 5 == 4:
 			</tr><tr>
 		% endif
-		<td><a href="/FileList?company_name=${name}">${name}</a></td>
 		<% i += 1 %>
 	% endfor
 	</tr>
@@ -219,10 +219,10 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 	<table class="Table">
 	<tr>
 	% for name in names:
+		<td><a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a></td>
 		% if i % 5 == 4:
 			</tr><tr>
 		% endif
-		<td><a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a></td>
 		<% i += 1 %>
 	% endfor
 	</tr>
