@@ -13,7 +13,7 @@ DarunGrim::DarunGrim():
 	IsLoadedSourceFile( FALSE )
 {
 	Logger.SetLogOutputType( LogToStdout );
-	Logger.SetDebugLevel( 100 );
+	Logger.SetDebugLevel( 5 );
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pIDAClientManager = new IDAClientManager();
 }
