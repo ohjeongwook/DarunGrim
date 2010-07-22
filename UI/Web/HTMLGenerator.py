@@ -15,6 +15,54 @@ import json
 
 from mako.template import Template
 
+MainMenu = """
+<P>[ <a href="/FileImport">Files Import</a> / <a href="/FileList">Files List</a> / <a href="/MSPatchList">Microsoft Patches List</a> / <a href="/">About</a> ]
+<P>
+"""
+
+BannerText = """
+<PRE>
+      ___           ___           ___           ___           ___
+     /\  \         /\  \         /\  \         /\__\         /\__\    
+    /::\  \       /::\  \       /::\  \       /:/  /        /::|  |   
+   /:/\:\  \     /:/\:\  \     /:/\:\  \     /:/  /        /:|:|  |   
+  /:/  \:\__\   /::\~\:\  \   /::\~\:\  \   /:/  /  ___   /:/|:|  |__ 
+ /:/__/ \:|__| /:/\:\ \:\__\ /:/\:\ \:\__\ /:/__/  /\__\ /:/ |:| /\__\ 
+ \:\  \ /:/  / \/__\:\/:/  / \/_|::\/:/  / \:\  \ /:/  / \/__|:|/:/  /
+  \:\  /:/  /       \::/  /     |:|::/  /   \:\  /:/  /      |:/:/  / 
+   \:\/:/  /        /:/  /      |:|\/__/     \:\/:/  /       |::/  /  
+    \::/__/        /:/  /       |:|  |        \::/  /        /:/  /   
+     ~~            \/__/         \|__|         \/__/         \/__/    
+      ___           ___                       ___     
+     /\  \         /\  \          ___        /\__\    
+    /::\  \       /::\  \        /\  \      /::|  |   
+   /:/\:\  \     /:/\:\  \       \:\  \    /:|:|  |   
+  /:/  \:\  \   /::\~\:\  \      /::\__\  /:/|:|__|__ 
+ /:/__/_\:\__\ /:/\:\ \:\__\  __/:/\/__/ /:/ |::::\__\ 
+ \:\  /\ \/__/ \/_|::\/:/  / /\/:/  /    \/__/~~/:/  /
+  \:\ \:\__\      |:|::/  /  \::/__/           /:/  / 
+   \:\/:/  /      |:|\/__/    \:\__\          /:/  /  
+    \::/  /       |:|  |       \/__/         /:/  /   
+     \/__/         \|__|                     \/__/    
+
+
+</PRE>
+
+<P ALIGN="RIGHT">
+Made by <a href="http://twitter.com/ohjeongwook" target="_new">Jeongwook "Matt" Oh<a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</P>
+<p ALIGN="RIGHT">
+<a href="mailto:oh.jeongwook@gmail.com">Bug Reporting & Feature Requests<a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</P>
+<p ALIGN="RIGHT">
+<a href="http://darungrim.org" target="_new">DarunGrim Main Site<a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</P>
+
+"""
+
 HeadText = """
 <link rel="stylesheet" type="text/css" href="/data/jquery-ui.css" media="screen" />
 <script type="text/javascript" src="/data/jquery-ui.min.js"></script>
@@ -33,25 +81,17 @@ HeadText = """
 """
 
 IndexTemplateText = """<%def name="layoutdata()">
-	<table class="Table">
-		<tr>
-			<td><a href="/FileList">Files List</a></td>
-		</tr>
-		<tr>
-			<td><a href="/FileImport">Files Import</a></td>
-		</tr>
-		<tr>
-			<td><a href="/MSPatchList">Microsoft Patches List</a></td>
-		</tr>
-	</table>
 </%def>
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata args="col">\
 </%self:layoutdata>
 </div>
+
+""" + BannerText + """
 </body>
 </html>"""
 
@@ -69,6 +109,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata somedata="${patches}" args="col">\
 </%self:layoutdata>
@@ -90,6 +131,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata somedata="${downloads}" args="col">\
 </%self:layoutdata>
@@ -116,6 +158,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata somedata="${files}" args="col">\
 </%self:layoutdata>
@@ -157,6 +200,7 @@ FileInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
 </%self:layoutdata>
@@ -179,6 +223,7 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 <html>
 """ + HeadText + """
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata somedata="${file_index_entry}" args="col">\
 </%self:layoutdata>
@@ -205,6 +250,7 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 """ + HeadText + """
 
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata names="${names}" args="col">\
 </%self:layoutdata>
@@ -232,6 +278,7 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 """ + HeadText + """
 
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata company_name="${company_name}" names="${names}" args="col">\
 </%self:layoutdata>
@@ -270,6 +317,7 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 """ + HeadText + """
 
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" name_and_ids="${name_and_ids}" args="col">\
 </%self:layoutdata>
@@ -291,6 +339,7 @@ FileImportTemplateText = """<%def name="layoutdata( folder )">
 """ + HeadText + """
 
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata folder = "${folder}" args="col">\
 </%self:layoutdata>
@@ -393,6 +442,7 @@ ${target_file_version_string}</a>
 """ + HeadText + """
 
 <body>
+""" + MainMenu + """
 <div id=Content>
 <%self:layoutdata 
 	source_file_name = "${source_file_name}"
@@ -649,6 +699,7 @@ class Worker:
 </head> 
 
 <body>
+""" + MainMenu + """
 <div id="demo1" class="demo"></div>
 <script type="text/javascript">
 $(function () {
