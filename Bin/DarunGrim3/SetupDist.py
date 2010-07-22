@@ -2,7 +2,7 @@ from distutils.core import setup
 import py2exe
 
 setup(
-	console=[ {"script" : 'WebServer.py' } ],
+	console=[ {"script" : 'DarunGrim3Server.py' } ],
 	options =  {
 		"py2exe": {
 			"includes": "mechanize",
