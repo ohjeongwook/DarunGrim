@@ -1,2 +1,2 @@
-copy *.py ..\..\..\Bin
+copy *.py ..\..\..\Bin\DarunGrim3
 pause
