@@ -21,7 +21,7 @@ class FileProcessor:
 			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		print 'Database', self.Database
 
-	def IndexFilesInFoler( self, src_dirname, target_dirname = None, download = None ):
+	def IndexFilesInFoler( self, src_dirname, target_dirname = None, download = None, copy_file = True ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -58,8 +58,14 @@ class FileProcessor:
 
 								if not os.path.isdir( target_full_directory ):
 									os.makedirs( target_full_directory )
-								print 'Copy to ',target_full_filename
-								shutil.copyfile( current_path, target_full_filename )
+
+								if current_path != target_full_filename:
+									if copy_file:
+										print 'Copy to',target_full_filename
+										shutil.copyfile( current_path, target_full_filename )
+									else:
+										print 'Move to',target_full_filename
+										shutil.move( current_path, target_full_filename )
 							else:
 								target_relative_filename = current_path
 
