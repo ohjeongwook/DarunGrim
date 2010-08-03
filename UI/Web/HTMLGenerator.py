@@ -580,7 +580,7 @@ class Worker:
 	def __init__ ( self, database = 'index.db', config_file = 'DarunGrim3.cfg' ):
 		#Something Configurable
 		self.BinariesStorageDirectory = r'C:\mat\Projects\Binaries'
-		self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory + r"\Windows XP"
+		self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory
 		self.DGFDirectory = r'C:\mat\Projects\DGFs'
 		self.IDAPath = None
 		self.DatabaseName = database
@@ -594,7 +594,7 @@ class Worker:
 			config.readfp(io.BytesIO( config_data ))
 					
 			self.BinariesStorageDirectory = os.path.join( os.getcwd(), config.get("Directories", "BinariesStorage") )
-			self.MicrosoftBinariesStorageDirectory = os.path.join( os.getcwd(), config.get("Directories", "MicrosoftBinariesStorage") )
+			self.MicrosoftBinariesStorageDirectory = self.BinariesStorageDirectory
 			self.DGFDirectory = os.path.join( os.getcwd(), config.get("Directories", "DGFDirectory") )
 			self.IDAPath = config.get("Directories", "IDAPath")
 			self.DatabaseName = config.get("Directories", "DatabaseName")
