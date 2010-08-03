@@ -1,11 +1,11 @@
 call "%ProgramFiles%\Microsoft Visual Studio 9.0\VC\bin\vcvars32.bat"
 nmake nodebug=1
-copy WIN2000_RETAIL\*.pyd ..\..\Bin\
-copy WIN2000_RETAIL\*.exe ..\..\Bin\
-copy Python\*.py ..\..\Bin\
+copy WIN2000_RETAIL\*.pyd ..\..\Bin\DarunGrim2
+copy WIN2000_RETAIL\*.exe ..\..\Bin\DarunGrim2
+copy Python\*.py ..\..\Bin\DarunGrim2
 
 nmake WIN2000_DEBUG\DarunGrim2C.exe 
-copy WIN2000_DEBUG\DarunGrim2C.exe  ..\..\Bin\DarunGrim2CDebug.exe 
-copy WIN2000_DEBUG\DarunGrim2C.pdb  ..\..\Bin\DarunGrim2CDebug.pdb
+copy WIN2000_DEBUG\DarunGrim2C.exe  ..\..\Bin\DarunGrim2\DarunGrim2CDebug.exe 
+copy WIN2000_DEBUG\DarunGrim2C.pdb  ..\..\Bin\DarunGrim2\DarunGrim2CDebug.pdb
 
 pause
