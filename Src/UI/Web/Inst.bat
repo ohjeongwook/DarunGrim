@@ -1,6 +1,6 @@
-mkdir ..\..\Bin\DarunGrim3
-copy *.py ..\..\Bin\DarunGrim3
-copy *.bat ..\..\Bin\DarunGrim3
+mkdir ..\..\..\Bin\DarunGrim3
+copy *.py ..\..\..\Bin\DarunGrim3
+copy *.bat ..\..\..\Bin\DarunGrim3
 copy "DarunGrim3Sample01.cfg"  ..\..\..\Bin\DarunGrim3\DarunGrim3.cfg
 xcopy /s /I data ..\..\..\Bin\DarunGrim3\data
 copy "..\..\Bin Collector\*.py" ..\..\..\Bin\DarunGrim3
