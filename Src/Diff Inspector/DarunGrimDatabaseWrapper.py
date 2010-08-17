@@ -15,9 +15,9 @@ class OneLocationInfo(Base):
 	flag = Column( Integer, name = "Flag" )
 	function_address = Column( Integer, name = "FunctionAddress" )
 	block_type = Column( Integer, name = "BlockType" )
-	name = Column( Integer, name = "Name" )
-	disasm_lines = Column( Integer, name = "DisasmLines" )
-	fingerprint = Column( Integer, name = "Fingerprint" )
+	name = Column( String, name = "Name" )
+	disasm_lines = Column( String, name = "DisasmLines" )
+	fingerprint = Column( String, name = "Fingerprint" )
 
 	def __init__( self ):
 		pass
