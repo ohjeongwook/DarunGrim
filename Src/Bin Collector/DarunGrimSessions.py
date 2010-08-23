@@ -77,24 +77,28 @@ class Manager:
 		source_file_entries = database.GetFileByID( source_id )
 		print 'source', source_id, source_file_entries
 
-		source_patch_name = 'None'
-		if source_file_entries[0].downloads and source_file_entries[0].downloads.patches.name:
-			source_patch_name = source_file_entries[0].downloads.patches.name
-		source_filename = os.path.join( self.BinariesStorageDirectory, source_file_entries[0].full_path )
+		if source_file_entries and len(source_file_entries) > 0:
+			source_patch_name = 'None'
+			if source_file_entries[0].downloads and source_file_entries[0].downloads.patches.name:
+				source_patch_name = source_file_entries[0].downloads.patches.name
+			source_filename = os.path.join( self.BinariesStorageDirectory, source_file_entries[0].full_path )
 
 		target_file_entries = database.GetFileByID( target_id )
 		print target_id, target_file_entries 
 
 		target_patch_name = 'None'
-		if target_file_entries[0].downloads and target_file_entries[0].downloads.patches.name:
-			target_patch_name = target_file_entries[0].downloads.patches.name
-		target_filename = os.path.join( self.BinariesStorageDirectory, target_file_entries[0].full_path )
+		if target_file_entries and len(target_file_entries) > 0:
+			if target_file_entries[0].downloads and target_file_entries[0].downloads.patches.name:
+				target_patch_name = target_file_entries[0].downloads.patches.name
+			target_filename = os.path.join( self.BinariesStorageDirectory, target_file_entries[0].full_path )
 
 		if not databasename:
 			databasename = self.GetDefaultDatabasename( source_id, target_id )
 
-		differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
-		self.SetDiffer( source_id, target_id, differ )
+		diff = None
+		if source_patch_name and source_filename and target_patch_name and target_filename and databasename:
+			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
+			self.SetDiffer( source_id, target_id, differ )
 
 		return differ
 
