@@ -38,5 +38,5 @@ REM move bin directory location
 mv Src\bin Bin
 
 REM zip a package
-zip DarunGrim3.zip Bin\*
+zip -r DarunGrim3.zip Bin\*
 pause
