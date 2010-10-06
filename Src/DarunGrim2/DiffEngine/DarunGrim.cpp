@@ -12,8 +12,8 @@ DarunGrim::DarunGrim():
 	pIDAClientManager(NULL),
 	IsLoadedSourceFile( FALSE )
 {
-	Logger.SetLogOutputType( LogToStdout );
-	Logger.SetDebugLevel( 5 );
+	LogOperation::InitLog();
+	Logger.SetCategory( "DarunGrim" );
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pIDAClientManager = new IDAClientManager();
 }
@@ -43,7 +43,7 @@ DarunGrim::~DarunGrim()
 void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	Logger.SetLogOutputType( ParamLogOutputType );
+	Logger.SetOutputType( ParamLogOutputType );
 	if( LogFile )
 		Logger.SetLogFilename( LogFile );
 	Logger.SetDebugLevel( ParamDebugLevel );
