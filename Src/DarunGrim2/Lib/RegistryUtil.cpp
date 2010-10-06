@@ -1,61 +1,95 @@
 #include "RegistryUtil.h"
 
-char *GetRegValueString( const char *KeyName, const char *ValueName )
+char *GetRegValue( const char *key_name, const char *value_name, DWORD &type, DWORD &data_length )
 {
-	HKEY RootKey ;
+	HKEY root_key ;
 
-	if( !_strnicmp( KeyName, "HKEY_LOCAL_MACHINE", 18 ) )
+	if( !_strnicmp( key_name, "HKEY_LOCAL_MACHINE", 18 ) )
 	{
-		RootKey = HKEY_LOCAL_MACHINE;
+		root_key = HKEY_LOCAL_MACHINE;
 	}
-	else if( !_strnicmp( KeyName, "HKEY_CLASSES_ROOT", 17 ) )
+	else if( !_strnicmp( key_name, "HKEY_CLASSES_ROOT", 17 ) )
 	{
-		RootKey = HKEY_CLASSES_ROOT;
+		root_key = HKEY_CLASSES_ROOT;
 	}
-	else if( !_strnicmp( KeyName, "HKEY_CURRENT_USER", 17 ) )
+	else if( !_strnicmp( key_name, "HKEY_CURRENT_USER", 17 ) )
 	{
-		RootKey = HKEY_CURRENT_USER;
+		root_key = HKEY_CURRENT_USER;
 	}
-	else if( !_strnicmp( KeyName, "HKEY_USERS", 10 ) )
+	else if( !_strnicmp( key_name, "HKEY_USERS", 10 ) )
 	{
-		RootKey = HKEY_USERS;
+		root_key = HKEY_USERS;
 	}
-	else if( !_strnicmp( KeyName, "HKEY_CURRENT_CONFIG", 19 ) )
+	else if( !_strnicmp( key_name, "HKEY_CURRENT_CONFIG", 19 ) )
 	{
-		RootKey = HKEY_CURRENT_CONFIG;
+		root_key = HKEY_CURRENT_CONFIG;
 	}
 
-	char *SubKeyName = (char *)strstr( KeyName, "\\" );
-	SubKeyName++;
-	HKEY hkResult;
-	if( RegOpenKey( RootKey, SubKeyName, &hkResult ) == ERROR_SUCCESS )
+	char *subkey_name = (char *)strstr( key_name, "\\" );
+	subkey_name++;
+	HKEY hk_result;
+	if( RegOpenKey( root_key, subkey_name, &hk_result ) == ERROR_SUCCESS )
 	{
-		BYTE *Data;
-		DWORD cbData = 1;
-		DWORD Type;
-		
-		Data = (BYTE *) malloc( cbData );
+		BYTE *data;
+		data_length = 1;
+
+		data = (BYTE *) malloc( data_length );
 		while( 1 )
 		{
-			LONG Ret = RegQueryValueEx( hkResult, ValueName, 0, &Type, Data, &cbData );
+			LONG Ret = RegQueryValueEx( hk_result, value_name, 0, &type, data, &data_length );
 			if( Ret == ERROR_MORE_DATA )
 			{
-				cbData += 1;
-				Data = (BYTE *) realloc( Data, cbData );
+				data_length += 1;
+				data = (BYTE *) realloc( data, data_length );
 				continue;
 			}
 			if( Ret == ERROR_SUCCESS )
-			{				
-				if( Type == REG_SZ )
-				{
-					printf(" Data = %s\n", Data );
-					return (char *)Data;					
-				}
+			{
+				return (char *)data;	
 			}
+			break;
 		}
-		free( Data );
-		RegCloseKey( hkResult );
+		free( data );
+		RegCloseKey( hk_result );
 	}
 
 	return NULL;
 }
+
+
+char *GetRegValueString( const char *key_name, const char *value_name )
+{
+	DWORD type;
+	DWORD data_length;
+	char *data = GetRegValue( key_name, value_name, type, data_length );
+
+	if( data )
+	{
+		if( type == REG_SZ )
+		{
+			return data;
+		}
+		free(data);
+	}
+	return NULL;
+}
+
+bool GetRegValueInteger( const char *key_name, const char *value_name, DWORD &value )
+{
+	DWORD type;
+	DWORD data_length;
+
+	char *data = GetRegValue( key_name, value_name, type, data_length );
+
+	if( data )
+	{
+		if( type == REG_DWORD && data_length == sizeof( DWORD ) )
+		{
+			memcpy( &value, data, data_length );
+			return true;
+		}
+		free(data);
+	}
+	return false;
+}
+
