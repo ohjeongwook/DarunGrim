@@ -16,9 +16,9 @@ import json
 from mako.template import Template
 
 MainMenu = """
-<P>[ <a href="/FileImport">Files Import</a> / 
-<a href="/FileList">Files List</a> / 
-<a href="/MSPatchList">Microsoft Patches List</a> / 
+<P>[ <a href="/ShowFileImport">Files Import</a> / 
+<a href="/ShowFileList">Files List</a> / 
+<a href="/ShowMSPatchList">Microsoft Patches List</a> / 
 <a href="/ShowProjects">Projects</a> / 
 <a href="/">About</a> 
 ]
@@ -109,7 +109,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 		</tr>
 	% endfor
 	</table>
-	<a href="/MSPatchList?operation=update">Check for MS Patches Updates</a>
+	<a href="/ShowMSPatchList?operation=update">Check for MS Patches Updates</a>
 </%def>
 <html>
 """ + HeadText + """
@@ -123,7 +123,7 @@ PatchesTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/MSPatchList">List</a>
+<p><a href="/ShowMSPatchList">List</a>
 	<table class="Table">
 	% for item in somedata:
 		<tr>
@@ -145,7 +145,7 @@ PatchInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/MSPatchList">List</a>
+<p><a href="/ShowMSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 	<table class="Table">
 	% for item in somedata:
@@ -172,7 +172,7 @@ DownloadInfoTemplateText = """<%def name="layoutdata(somedata)">
 </html>"""
 
 FileInfoTemplateText = """<%def name="layoutdata(somedata)">
-<p><a href="/MSPatchList">List</a>
+<p><a href="/ShowMSPatchList">List</a>
 &gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 &gt;<a href="DownloadInfo?patch_id=${patch_id}&id=${download_id}">${download_label}</a>
 	<table class="Table">
@@ -242,7 +242,7 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 	<table class="Table">
 	<tr>
 	% for name in names:
-		<td><a href="/FileList?company_name=${name}">${name}</a></td>
+		<td><a href="/ShowFileList?company_name=${name}">${name}</a></td>
 		% if i % 5 == 4:
 			</tr><tr>
 		% endif
@@ -265,12 +265,12 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 
 FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 <title>File Names for ${company_name}</title>
-	<a href="/FileList">Company Names</a>
+	<a href="/ShowFileList">Company Names</a>
 	<% i = 0 %>
 	<table class="Table">
 	<tr>
 	% for name in names:
-		<td><a href="/FileList?company_name=${company_name}&filename=${name}">${name}</a></td>
+		<td><a href="/ShowFileList?company_name=${company_name}&filename=${name}">${name}</a></td>
 		% if i % 5 == 4:
 			</tr><tr>
 		% endif
@@ -293,7 +293,7 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 
 FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
 <title>Version String for ${company_name}:${filename}</title>
-	<p><a href="/FileList?company_name=${company_name}">${company_name}</a>
+	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="StartDiff">
 		<table class="Table">
 		<tr>
@@ -344,7 +344,7 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 </html>"""
 
 FileImportTemplateText = """<%def name="layoutdata( folder )">
-	<form name="input" action="FileImport">
+	<form name="input" action="ShowFileImport">
 		<input type="text" size="50" name="folder" value="" /> 
 		<input type="submit" value="Import"/>
 	</form>
@@ -371,7 +371,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 	target_file_version_string, 
 	show_detail, function_match_infos)">
 %if patch_name:
-	<p><a href="/MSPatchList">List</a>
+	<p><a href="/ShowMSPatchList">List</a>
 	&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 %endif
 
@@ -491,7 +491,7 @@ ComparisonTableTemplateText = """<%def name="layoutdata(source_file_name,
 	target_address)">
 
 %if patch_name:
-	<p><a href="/MSPatchList">List</a>
+	<p><a href="/ShowMSPatchList">List</a>
 	&gt;<a href="PatchInfo?id=${patch_id}">${patch_name}</a>
 %endif
 
@@ -629,7 +629,7 @@ class Worker:
 		patches = self.Database.GetPatches()
 		return mytemplate.render()
 
-	def FileList(self, company_name = None, filename = None, version_string = None ):
+	def ShowFileList(self, company_name = None, filename = None, version_string = None ):
 		names = []
 		if company_name:
 			if filename:
@@ -753,7 +753,7 @@ $(function () {
 </body>
 </html>"""
 
-	def FileImport( self, folder ):
+	def ShowFileImport( self, folder ):
 		mytemplate = Template( FileImportTemplateText )
 
 		if folder:
@@ -762,7 +762,7 @@ $(function () {
 			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
 		return mytemplate.render( folder = folder )
 
-	def MSPatchList( self, operation = '' ):
+	def ShowMSPatchList( self, operation = '' ):
 		if operation == 'update':
 			patch_downloader = DownloadMSPatches.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
 			patch_downloader.DownloadCurrentYearPatches()

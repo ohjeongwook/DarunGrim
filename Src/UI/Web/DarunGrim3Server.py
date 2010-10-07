@@ -18,10 +18,10 @@ class WebServer(object):
 		return html_worker.Index()
 	index.exposed = True
 
-	def FileList(self, company_name = None, filename = None, version_string = None ):
+	def ShowFileList(self, company_name = None, filename = None, version_string = None ):
 		html_worker = HTMLGenerator.Worker( config_file = config_file )	
-		return html_worker.FileList( company_name , filename , version_string )
-	FileList.exposed = True
+		return html_worker.ShowFileList( company_name , filename , version_string )
+	ShowFileList.exposed = True
 
 	def FileTree(self, company_name = None, filename = None, version_string = None ):
 		html_worker = HTMLGenerator.Worker( config_file = config_file )	
@@ -33,16 +33,16 @@ class WebServer(object):
 		return html_worker.FileTreeJSON( company_name , filename , version_string )
 	FileTreeJSON.exposed = True
 
-	def FileImport( self, folder = None ):
+	def ShowFileImport( self, folder = None ):
 		html_worker = HTMLGenerator.Worker( config_file = config_file )	
-		return html_worker.FileImport( folder )
-	FileImport.exposed = True
+		return html_worker.ShowFileImport( folder )
+	ShowFileImport.exposed = True
 
-	def MSPatchList(self, operation = '' ):
-		print 'MSPatchList'
+	def ShowMSPatchList(self, operation = '' ):
+		print 'ShowMSPatchList'
 		html_worker = HTMLGenerator.Worker( config_file = config_file )
-		return html_worker.MSPatchList( operation )
-	MSPatchList.exposed = True
+		return html_worker.ShowMSPatchList( operation )
+	ShowMSPatchList.exposed = True
 
 	def PatchInfo(self,id):
 		html_worker = HTMLGenerator.Worker( config_file = config_file )
