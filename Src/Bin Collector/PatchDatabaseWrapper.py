@@ -285,7 +285,7 @@ class Database:
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
 	def GetFileByFileNameWildMatch( self, filename ):
-		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( '%'+filename+'%' ) ).all()
+		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( '%'+filename+'%' ) ).order_by(FileIndex.filename).all()
 
 	def GetFiles( self ):
 		return self.SessionInstance.query( FileIndex ).all()
