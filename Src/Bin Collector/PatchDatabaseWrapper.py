@@ -173,6 +173,36 @@ class FileIndex(Base):
 	def __repr__( self ):
 		return "<FileIndex('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )>" % ( self.operating_system, self.service_pack, self.filename, self.company_name, self.version_string, self.patch_identifier, self.version_number, self.release_plan, self.full_path )
 
+class Project(Base):
+	__tablename__ = 'projects'
+	id = Column( Integer, primary_key = True )
+	name = Column( String )	
+	description = Column( String )		
+
+	def __init__( self, name, description ):
+		self.name = name
+		self.description = description
+		
+	def __repr__( self ):
+		return "<Projects('%s','%s')>" % ( self.name, self.description )
+
+class ProjectMember(Base):
+	__tablename__ = 'project_members'
+	id = Column( Integer, primary_key = True )
+
+	project_id = Column( Integer, ForeignKey('projects.id'))
+	projects = relationship(Project, backref=backref('project_members', order_by=id))
+
+	file_id = Column( Integer, ForeignKey('fileindexes.id'))
+	fileindexes = relationship(FileIndex, backref=backref('project_members', order_by=id))
+
+	def __init__( self, project_id, file_id ):
+		self.project_id = project_id
+		self.file_id = file_id
+		
+	def __repr__( self ):
+		return "<ProjectMember('%d','%d')>" % ( self.project_id, self.file_id )
+
 class Database:
 	DebugLevel = 2
 	def __init__( self, filename ):
@@ -306,6 +336,25 @@ class Database:
 		else:
 			self.SessionInstance.add( fileindex )
 		return fileindex
+
+	def AddProject( self, name, description = '' ):
+		project = Project( name, description )
+		self.SessionInstance.add( project )
+		return project
+
+	def GetProjectNames( self ):
+		return self.SessionInstance.query( Project.name ).all()
+
+	def GetProjects( self ):
+		return self.SessionInstance.query( Project ).order_by( Project.id ).all()
+		
+	def AddToProject( self, project_id, id ):
+		project_members = ProjectMember( project_id, id )
+		ret = self.SessionInstance.add( project_members )
+		print 'Added', project_id, id, ret
+
+	def GetProjectMembers( self, project_id ):
+		return self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).all()
 
 	def Commit( self ):
 		try:

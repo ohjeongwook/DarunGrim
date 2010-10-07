@@ -301,7 +301,9 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 			<th>Patched&nbsp;&nbsp;</th>
 			<th>Filename</th>
 			<th>Version String</th>
-			<th>Add to queue</th>
+			% if show_add_to_queue == True:
+				<th>Add to queue</th>
+			% endif
 		</tr>
 		% for (name,id,filename) in file_information_list:
 			<tr>
@@ -320,9 +322,11 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 				${filename}
 			</td>
 
-			<td>
-				<a href=AddToProject?project_id=0&id=${id} target=_new>Add to Project</a>
-			</td>
+			% if show_add_to_queue == True:
+				<td>
+					<a href=AddToProject?id=${id} target=_new>Add to Project</a>
+				</td>
+			% endif
 
 			</tr>
 		% endfor
@@ -982,6 +986,23 @@ $(function () {
 	def SyncIDA( self, source_id, target_id ):
 		self.DifferManager.SyncIDA( source_id, target_id )
 		return "<body> Check your IDA </body>"
+
+	def AddProject( self, name, description = '' ):
+		self.Database.AddProject( name, description )
+		self.Database.Commit()
+
+	def GetProjectNames( self ):
+		return self.Database.GetProjectNames()
+
+	def GetProjects( self ):
+		return self.Database.GetProjects()
+		
+	def AddToProject( self, project_id, id ):
+		self.Database.AddToProject( project_id, id )
+		self.Database.Commit()
+
+	def GetProjectMembers( self, project_id ):
+		return self.Database.GetProjectMembers( project_id )
 
 if __name__ == '__main__':
 	worker = Worker()
