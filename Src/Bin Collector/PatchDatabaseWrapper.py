@@ -350,8 +350,12 @@ class Database:
 		
 	def AddToProject( self, project_id, id ):
 		project_members = ProjectMember( project_id, id )
-		ret = self.SessionInstance.add( project_members )
-		print 'Added', project_id, id, ret
+		ret = self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).filter_by( file_id=id ).all()
+		if len( ret ) == 0:
+			self.SessionInstance.add( project_members )
+			print 'Added', project_id, id, ret
+		else:
+			print 'Duplicate', project_id, id, ret
 
 	def GetProjectMembers( self, project_id ):
 		return self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).all()
