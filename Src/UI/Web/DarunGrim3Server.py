@@ -441,8 +441,9 @@ $(function () {
 				function_match_info.match_count_with_modificationfor_the_source > 0:
 				function_match_infos.append( function_match_info )
 
-		source_file = self.Database.GetFileByID( source_id )[0]
-		target_file = self.Database.GetFileByID( target_id )[0]
+		patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		source_file = patch_database.GetFileByID( source_id )[0]
+		target_file = patch_database.GetFileByID( target_id )[0]
 
 		mytemplate = Template( FunctionmatchInfosTemplateText )
 		return mytemplate.render(
@@ -451,11 +452,11 @@ $(function () {
 				target_file_name = target_file.filename,
 				target_file_version_string = target_file.version_string,		
 				patch_id = patch_id, 
-				patch_name = self.Database.GetPatchNameByID( patch_id ), 
+				patch_name = patch_database.GetPatchNameByID( patch_id ), 
 				download_id = download_id, 
-				download_label = self.Database.GetDownloadLabelByID( download_id),
+				download_label = patch_database.GetDownloadLabelByID( download_id),
 				file_id = file_id, 
-				file_name = self.Database.GetFileNameByID( file_id ),  
+				file_name = patch_database.GetFileNameByID( file_id ),  
 				source_id=source_id, 
 				target_id = target_id, 
 				function_match_infos = function_match_infos,
