@@ -1,6 +1,7 @@
 MainMenu = """
 <P>[ <a href="/ShowFileImport">Files Import</a> / 
 <a href="/ShowFileList">Files List</a> / 
+<a href="/ShowFileSearch">File Search</a> / 
 <a href="/ShowMSPatchList">Microsoft Patches List</a> / 
 <a href="/ShowProjects">Projects</a> / 
 <a href="/">About</a> 
@@ -320,7 +321,6 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 </%def>
 <html>
 """ + HeadText + """
-
 <body>
 """ + MainMenu + """
 <div id=Content>

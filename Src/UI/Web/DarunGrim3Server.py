@@ -67,8 +67,8 @@ class WebServer(object):
 					#List version strings
 					file_information_list = []
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
-					for (id, name ) in database.GetVersionStringsWithIDs( company_name, filename ):
-						file_information_list.append( (name,id,filename) )
+					for (id, version_string ) in database.GetVersionStringsWithIDs( company_name, filename ):
+						file_information_list.append( (version_string,id,filename) )
 					mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
 					return mytemplate.render(  
 						company_name = company_name,
@@ -195,6 +195,38 @@ $(function () {
 			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
+
+	def ShowFileSearch( self, filename = None ):
+		mytemplate = Template( """<%def name="layoutdata()">
+			<form name="input" action="ShowFileSearch">
+				<table>
+				<tr>
+					<td>Filename:&nbsp;&nbsp;</td>
+					<td><input type="text" size="50" name="filename" value="" /> </td>
+				</tr>
+				<table>
+				<p><input type="submit" value="Search"/>
+			</form>
+		</%def>
+		""" + BodyHTML )
+
+		if filename:
+			database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			file_info_list = database.GetFileByFileNameWildMatch( filename )
+			file_information_list = []
+			for file_info in file_info_list:
+				file_information_list.append( (file_info.filename,file_info.id,file_info.version_string) )
+
+			mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+			return mytemplate.render(  
+				company_name = "",
+				filename = "",
+				file_information_list = file_information_list,
+				show_add_to_queue = True
+			)
+			
+		return mytemplate.render()
+	ShowFileSearch.exposed = True
 
 	def ShowMSPatchList( self, operation = '' ):
 		if operation == 'update':
