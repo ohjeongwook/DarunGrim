@@ -16,7 +16,12 @@ import json
 from mako.template import Template
 
 MainMenu = """
-<P>[ <a href="/FileImport">Files Import</a> / <a href="/FileList">Files List</a> / <a href="/MSPatchList">Microsoft Patches List</a> / <a href="/">About</a> ]
+<P>[ <a href="/FileImport">Files Import</a> / 
+<a href="/FileList">Files List</a> / 
+<a href="/MSPatchList">Microsoft Patches List</a> / 
+<a href="/ShowProjects">Projects</a> / 
+<a href="/">About</a> 
+]
 <P>
 """
 
@@ -286,29 +291,42 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </body>
 </html>"""
 
-FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, name_and_ids)">
+FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
 <title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/FileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="StartDiff">
 		<table class="Table">
 		<tr>
 			<th>Unpatched</th>
-			<th>Patched</th>
+			<th>Patched&nbsp;&nbsp;</th>
+			<th>Filename</th>
 			<th>Version String</th>
+			<th>Add to queue</th>
 		</tr>
-		% for (name,id) in name_and_ids:
-		<tr>
-		<td>
-			<input type="radio" name="source_id" value="${id}" /> 
-		</td>
-		<td>
-			<input type="radio" name="target_id" value="${id}" />
-		</td>
-		<td>
-			${name}
-		</td>
-		</tr>
+		% for (name,id,filename) in file_information_list:
+			<tr>
+			<td>
+				<input type="radio" name="source_id" value="${id}" />
+			</td>	
+			<td>
+				<input type="radio" name="target_id" value="${id}" />
+			</td>
+
+			<td>
+				${name}
+			</td>
+
+			<td>
+				${filename}
+			</td>
+
+			<td>
+				<a href=AddToProject?project_id=0&id=${id} target=_new>Add to Project</a>
+			</td>
+
+			</tr>
 		% endfor
+
 		</table>
 		<p><input type="submit" value="Start Diffing"/>
 	</form> 
@@ -319,7 +337,7 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 <body>
 """ + MainMenu + """
 <div id=Content>
-<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" name_and_ids="${name_and_ids}" args="col">\
+<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" file_information_list="${file_information_list}" args="col">\
 </%self:layoutdata>
 </div>
 </body>
@@ -575,7 +593,6 @@ ${target_file_version_string}: ${target_function_name}
 import ConfigParser
 import io
 
-
 class Worker:
 	def __init__ ( self, database = 'index.db', config_file = 'DarunGrim3.cfg' ):
 		#Something Configurable
@@ -621,14 +638,14 @@ class Worker:
 					pass
 				else:
 					#List version strings
-					name_and_ids = []
-					for (id, name, ) in self.Database.GetVersionStringsWithIDs( company_name, filename ):
-						name_and_ids.append( (name,id) )
+					file_information_list = []
+					for (id, name ) in self.Database.GetVersionStringsWithIDs( company_name, filename ):
+						file_information_list.append( (name,id,filename) )
 					mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
 					return mytemplate.render(  
 						company_name = company_name,
 						filename = filename,
-						name_and_ids = name_and_ids
+						file_information_list = file_information_list
 					)
 			else:
 				#List filenames
@@ -695,7 +712,12 @@ class Worker:
 
 	def FileTree(self, company_name = None, filename = None, version_string = None ):
 		return """<html>
-<head>	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.cookie.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.hotkeys.js"></script>	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.jstree.js"></script>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.js"></script>
+	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.cookie.js"></script>
+	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.hotkeys.js"></script>
+	<script type="text/javascript" src="http://static.jstree.com/v.1.0rc2/jquery.jstree.js"></script>
 </head> 
 
 <body>
