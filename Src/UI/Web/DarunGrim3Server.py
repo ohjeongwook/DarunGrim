@@ -42,10 +42,9 @@ class WebServer(object):
 			self.PatchTemporaryStore = config.get("Directories", "PatchTemporaryStore")
 		
 		#Operation
-		self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = self.Database )
-
-		self.DifferManager = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = database )
+		self.DarunGrimSessionsInstance = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
 		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
 
 	def index(self):
@@ -418,7 +417,7 @@ $(function () {
 	
 	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0 ):
 		databasename = self.GenerateDGFName( source_id, target_id )
-		self.DifferManager.InitFileDiffByID( source_id, target_id, databasename )
+		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
 		return self.GetFunctionMatchInfo( 
 			patch_id, 
@@ -486,7 +485,7 @@ $(function () {
 		source_address = int(source_address)
 		target_address = int(target_address)
 
-		self.DifferManager.ShowAddresses( source_id, target_id, source_address, target_address )
+		self.DarunGrimSessionsInstance.ShowAddresses( source_id, target_id, source_address, target_address )
 
 		if not source_function_name:
 			source_function_name = darungrim_database.GetBlockName( 1, source_address )
@@ -517,7 +516,7 @@ $(function () {
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 		
 		( source_address_infos, target_address_infos ) = darungrim_database.GetBlockAddressMatchTableByFunctionAddress( source_address, target_address )
-		self.DifferManager.ColorAddresses( source_id, target_id, source_address_infos, target_address_infos )
+		self.DarunGrimSessionsInstance.ColorAddresses( source_id, target_id, source_address_infos, target_address_infos )
 
 		mytemplate = Template( ComparisonTableTemplateText )
 		return mytemplate.render(
@@ -541,9 +540,27 @@ $(function () {
 			)
 
 	def SyncIDA( self, source_id, target_id ):
-		self.DifferManager.SyncIDA( source_id, target_id )
+		self.DarunGrimSessionsInstance.SyncIDA( source_id, target_id )
 		return "<body> Check your IDA </body>"
 	SyncIDA.exposed = True
+	
+	def OpenInIDA( self, id ):
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		file_path = ''
+		for file in database.GetFileByID( id ):
+			file_path = file.full_path
+			
+		file_path = os.path.join( self.BinariesStorageDirectory, file_path )
+		target_file_path = file_path
+		
+		idb_file_path = file_path[:-4] + '.idb'
+		if os.path.exists( idb_file_path ):
+			target_file_path = idb_file_path
+		import subprocess
+		subprocess.Popen( [ self.IDAPath, target_file_path ] )
+
+		return "<body> Check your IDA %s %s </body>" % ( self.IDAPath, target_file_path )
+	OpenInIDA.exposed = True
 
 if __name__ == '__main__':
 	import ConfigParser

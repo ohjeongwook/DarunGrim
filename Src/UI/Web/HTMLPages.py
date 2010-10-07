@@ -285,8 +285,9 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 			<th>Patched&nbsp;&nbsp;</th>
 			<th>Filename</th>
 			<th>Version String</th>
+			<th>IDA</th>
 			% if show_add_to_queue == True:
-				<th>Add to queue</th>
+				<th>Operation</th>
 			% endif
 		</tr>
 		% for (name,id,filename) in file_information_list:
@@ -304,6 +305,10 @@ FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, fil
 
 			<td>
 				${filename}
+			</td>
+
+			<td>
+				<a href=OpenInIDA?id=${id} target=_new>Open</a>
 			</td>
 
 			% if show_add_to_queue == True:
