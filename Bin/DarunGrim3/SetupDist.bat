@@ -9,6 +9,7 @@ copy ..\..\Publish\Docs\*.pdf Src\bin
 
 call CopySrc.bat
 
+del Src\*.pyc
 REM Generate binaries
 pushd Src
 c:\python26\python SetupDist.py py2exe
