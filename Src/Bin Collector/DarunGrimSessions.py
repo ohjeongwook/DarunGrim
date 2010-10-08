@@ -60,7 +60,6 @@ class Manager:
 				import shutil
 				shutil.copyfile( src_file, dst_file )
 
-
 	def InitMSFileDiff( self, patch_name, filename ):
 		print 'Analyzing', patch_name, filename
 		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
@@ -170,13 +169,11 @@ class Manager:
 		if not differ:
 			differ = self.InitFileDiffByID( source_id, target_id )
 
-		print 'SyncIDA', source_id,target_id, differ
 		if differ:
 			differ.SyncIDA();
 
 	def ShowAddresses( self, source_id, target_id, source_address, target_address ):
 		differ = self.GetDiffer( source_id, target_id )
-		print 'ShowAddresses', source_id, target_id, differ
 		if differ:
 			differ.ShowAddresses( source_address, target_address )
 
