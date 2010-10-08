@@ -67,8 +67,8 @@ class WebServer(object):
 					file_information_list = []
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
 					for (id, version_string ) in database.GetVersionStringsWithIDs( company_name, filename ):
-						file_information_list.append( (version_string,id,filename) )
-					mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+						file_information_list.append( ( version_string, id, filename, None ) )
+					mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 					return mytemplate.render(  
 						company_name = company_name,
 						filename = filename,
@@ -214,9 +214,9 @@ $(function () {
 			file_info_list = database.GetFileByFileNameWildMatch( filename )
 			file_information_list = []
 			for file_info in file_info_list:
-				file_information_list.append( (file_info.filename,file_info.id,file_info.version_string) )
+				file_information_list.append( (file_info.filename, file_info.id, file_info.version_string, None ) )
 
-			mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+			mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 			return mytemplate.render(  
 				company_name = "",
 				filename = "",
@@ -326,14 +326,89 @@ $(function () {
 		#Show Add form
 		mytemplate = Template( """<%def name="layoutdata()">
 			<table class="Table">
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Edit</th>
+					<th>Remove</th>
+				</tr>
 			% for item in items:
 				<tr>
 					<td><a href="ShowProject?project_id=${item.id}">${item.name}</a></td>
-					<td>${item.name}</td>
+					<td>${item.description}</td>
+					<td><a href="ShowEditProject?project_id=${item.id}">Edit</a></td>
+					<td><a href="RemoveProject?project_id=${item.id}">Remove</a></td>
 				</tr>
 			% endfor
 			</table>
 
+			<hr>
+			<a href="ShowAddProjectPage">New Project</a>
+		</%def>
+		""" + BodyHTML )
+
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		items = []
+		try:
+			items = database.GetProjects()
+		except:
+			pass
+		return mytemplate.render( items = items )
+	ShowProjects.exposed = True
+
+	def ShowEditProject( self, project_id ):
+		#Show Add form
+		mytemplate = Template( """<%def name="layoutdata()">
+			<form name="input" action="UpdateProject">
+				<table>
+				<tr>
+					<td>Name</td>
+					<td><input type="text" size="50" name="name" value="${name}" /></td>
+				</tr>
+				<tr>
+					<td>Description</td>
+					<td><input type="text" size="50" name="description" value="${description}" /></td>
+				</tr>
+				<table>
+				<input type="hidden" name="project_id" value=${project_id} />
+				<p><input type="submit" value="Update"/>
+			</form>
+		</%def>
+		""" + BodyHTML )
+		
+		#pass project_id name, description info
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		project = database.GetProject( project_id )	
+		return mytemplate.render( project_id = project_id, name = project.name, description = project.description )		
+
+	ShowEditProject.exposed = True
+	
+	def UpdateProject( self, project_id, name, description ):
+		#Edit project by project_id
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database.UpdateProject( project_id, name, description )
+		return self.ShowProjects()
+	UpdateProject.exposed = True
+
+	def RemoveProject( self, project_id ):
+		#Remove project by project_id
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database.RemoveProject( project_id )
+		return self.ShowProjects()
+	RemoveProject.exposed = True
+	
+	def RemoveFromProject( self, project_member_id, project_id ):
+		#Remove project_member_id from project		
+		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		
+		for one_project_member_id in project_member_id:
+			database.RemoveProjectMember( one_project_member_id )
+		return self.ShowProject( project_id )
+	RemoveFromProject.exposed = True
+
+	def ShowAddProjectPage( self ):
+		#Show Add form
+		mytemplate = Template( """<%def name="layoutdata()">
 			<form name="input" action="AddProject">
 				<table>
 				<tr>
@@ -350,33 +425,38 @@ $(function () {
 		</%def>
 		""" + BodyHTML )
 
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		items = database.GetProjects()	
-		return mytemplate.render( items = items )
-	ShowProjects.exposed = True
+		return mytemplate.render()
+	ShowAddProjectPage.exposed = True
 
 	def AddProject( self, name, description = '' ):
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		database.AddProject( name, description )
-		database.Commit()		
-		return self.ShowProjects()
+		if name:
+			database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			database.AddProject( name, description )
+			database.Commit()
+			return self.ShowProjects()
+		else:
+			#TODO: Show error message
+			return self.ShowAddProjectPage()		
 	AddProject.exposed = True
 
 	def ShowProject( self, project_id = None ):
-		print 'ShowProject', project_id
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		project_members = database.GetProjectMembers( project_id )
 
 		file_information_list = []
 		for project_member in project_members:
-			print project_member.projects.name, project_member.fileindexes.filename
-			file_information_list.append( (project_member.fileindexes.filename,project_member.fileindexes.id,project_member.fileindexes.version_string) )
+			if project_member.fileindexes:
+				file_information_list.append( (project_member.fileindexes.filename,
+									project_member.fileindexes.id,
+									project_member.fileindexes.version_string,
+									project_member.id ) )
 
-		mytemplate = Template( FileListVersionStringsTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
+		mytemplate = Template( ProjectContentTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 		return mytemplate.render(  
 			company_name = "",
 			filename = "",
 			file_information_list = file_information_list,
+			project_id = project_id,
 			show_add_to_queue = False
 		)
 	ShowProject.exposed = True
@@ -396,17 +476,22 @@ $(function () {
 						<option value=${item.id}>${item.name}</option>
 					% endfor
 					</select>
-					<input type="hidden" name="id" value="${id}"/>
+					
+					% for one_id in ids:
+						<input type="hidden" name="id" value="${one_id}"/>
+					% endfor
 					<input type="submit" value="Choose"/>
 				</form>
 			</%def>
 			""" + BodyHTML )
 
-			return mytemplate.render( id = id, items = items )
+			print 'ids=',id
+			return mytemplate.render( ids = id, items = items )
 		else:
-			#TODO Add to project
-			database.AddToProject( project_id, id )
-			database.Commit()			
+			#Add to project
+			for one_id in id:
+				database.AddToProject( project_id, one_id )
+				database.Commit()
 			return self.ShowProject( project_id )
 
 	AddToProject.exposed = True
@@ -414,9 +499,25 @@ $(function () {
 	
 	def GenerateDGFName( self, source_id, target_id ):
 		return os.path.join( self.DGFDirectory, str( source_id ) + '_' + str( target_id ) + '.dgf')
-	
+
+	def ProcessProjectContent( self, source_id = None, target_id = None, operation = None, project_member_id = None,  patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, project_id = None ):
+		print 'operation=',operation
+		print 'project_member_id=',project_member_id
+
+		if operation == "Start Diffing":
+			return self.StartDiff( source_id, target_id, patch_id, download_id, file_id, show_detail )
+		elif operation == "Remove From Project":
+			return self.RemoveFromProject( project_member_id, project_id )
+		
+		#TODO: Put a better error page
+		return "Error"
+
+	ProcessProjectContent.exposed = True
+
 	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0 ):
 		databasename = self.GenerateDGFName( source_id, target_id )
+		#TODO: Add or Update Project
+
 		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename )
 		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
 		return self.GetFunctionMatchInfo( 

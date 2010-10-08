@@ -275,53 +275,98 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </body>
 </html>"""
 
-FileListVersionStringsTemplateText = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
+FileListTemplate = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
 <title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
-	<form name="input" action="StartDiff">
+	<form name="input" action="AddToProject">
 		<table class="Table">
 		<tr>
+			<th></th>
+			<th>Filename</th>
+			<th>Version String</th>
+			<th>IDA</th>
+		</tr>
+		% for (name,id,filename,project_member_id) in file_information_list:
+			<tr>
+				<td>
+					<input type="checkbox" name="id" value="${id}" />
+				</td>
+			
+				<td>
+					${name}
+				</td>
+
+				<td>
+					${filename}
+				</td>
+
+				<td>
+					<a href=OpenInIDA?id=${id} target=_new>Open</a>
+				</td>
+			</tr>
+		% endfor
+
+		</table>
+		<p><input type="submit" value="Add to Project"/>
+	</form> 
+</%def>
+<html>
+""" + HeadText + """
+<body>
+""" + MainMenu + """
+<div id=Content>
+<%self:layoutdata company_name="${company_name}" filename="${filename}" version_string="${version_string}" file_information_list="${file_information_list}" args="col">\
+</%self:layoutdata>
+</div>
+</body>
+</html>"""
+
+ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
+<title>Version String for ${company_name}:${filename}</title>
+	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
+	<form name="input" action="ProcessProjectContent">
+		<table class="Table">
+		<tr>
+			<th></th>
 			<th>Unpatched</th>
 			<th>Patched&nbsp;&nbsp;</th>
 			<th>Filename</th>
 			<th>Version String</th>
 			<th>IDA</th>
-			% if show_add_to_queue == True:
-				<th>Operation</th>
-			% endif
+			<th>Operation</th>
 		</tr>
-		% for (name,id,filename) in file_information_list:
+		% for (name,id,filename,project_member_id) in file_information_list:
 			<tr>
-			<td>
-				<input type="radio" name="source_id" value="${id}" />
-			</td>	
-			<td>
-				<input type="radio" name="target_id" value="${id}" />
-			</td>
-
-			<td>
-				${name}
-			</td>
-
-			<td>
-				${filename}
-			</td>
-
-			<td>
-				<a href=OpenInIDA?id=${id} target=_new>Open</a>
-			</td>
-
-			% if show_add_to_queue == True:
 				<td>
-					<a href=AddToProject?id=${id} target=_new>Add to Project</a>
+					<input type="checkbox" name="project_member_id" value="${project_member_id}" />
 				</td>
-			% endif
+				<td>
+					<input type="radio" name="source_id" value="${id}" />
+				</td>	
+				<td>
+					<input type="radio" name="target_id" value="${id}" />
+				</td>
 
+				<td>
+					${name}
+				</td>
+
+				<td>
+					${filename}
+				</td>
+
+				<td>
+					<a href=OpenInIDA?id=${id} target=_new>Open</a>
+				</td>
 			</tr>
 		% endfor
-
 		</table>
-		<p><input type="submit" value="Start Diffing"/>
+
+		<input type="hidden" name="project_id" value="${project_id}"/>
+		<p>
+		<input type="submit" name="operation" value="Start Diffing"/>
+		<input type="submit" name="operation" value="Remove From Project"/>
+		
 	</form> 
 </%def>
 <html>
