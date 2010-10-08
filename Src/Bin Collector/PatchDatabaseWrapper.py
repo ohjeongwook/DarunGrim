@@ -177,14 +177,16 @@ class Project(Base):
 	__tablename__ = 'projects'
 	id = Column( Integer, primary_key = True )
 	name = Column( String )	
-	description = Column( String )		
+	description = Column( String )
+	filepath = Column( String )
 
-	def __init__( self, name, description ):
+	def __init__( self, name, description, filepath = '' ):
 		self.name = name
 		self.description = description
+		self.filepath = filepath
 		
 	def __repr__( self ):
-		return "<Projects('%s','%s')>" % ( self.name, self.description )
+		return "<Projects('%s','%s','%s')>" % ( self.name, self.description, self.filepath )
 
 class ProjectMember(Base):
 	__tablename__ = 'project_members'
@@ -340,6 +342,7 @@ class Database:
 			self.SessionInstance.add( fileindex )
 		return fileindex
 
+	##### Project related methods #####
 	def AddProject( self, name, description = '' ):
 		project = Project( name, description )
 		self.SessionInstance.add( project )
@@ -350,18 +353,38 @@ class Database:
 
 	def GetProjects( self ):
 		return self.SessionInstance.query( Project ).order_by( Project.id ).all()
+
+	def GetProject( self, project_id ):
+		return self.SessionInstance.query( Project ).filter_by( id=project_id ).first()
+
+	def RemoveProject( self, project_id ):
+		project = self.SessionInstance.query( Project ).filter_by( id=project_id ).first()
+		self.SessionInstance.delete( project )
+		self.Commit()
+		return project
+
+	def UpdateProject( self, project_id, name, description ):
+		project = self.SessionInstance.query( Project ).filter_by( id=project_id ).first()
+		project.name = name
+		project.description = description
+		self.Commit()
+		return project
 		
 	def AddToProject( self, project_id, id ):
 		project_members = ProjectMember( project_id, id )
 		ret = self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).filter_by( file_id=id ).all()
 		if len( ret ) == 0:
 			self.SessionInstance.add( project_members )
-			print 'Added', project_id, id, ret
 		else:
 			print 'Duplicate', project_id, id, ret
 
 	def GetProjectMembers( self, project_id ):
 		return self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).all()
+
+	def RemoveProjectMember (self, project_member_id ):
+		project_member = self.SessionInstance.query( ProjectMember ).filter_by( id=project_member_id ).first()
+		self.SessionInstance.delete( project_member )
+		self.Commit()
 
 	def Commit( self ):
 		try:
@@ -428,5 +451,3 @@ if __name__ == '__main__':
 			except:
 				pass
 		database.Commit()
-
-
