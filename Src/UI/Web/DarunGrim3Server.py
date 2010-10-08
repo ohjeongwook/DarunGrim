@@ -642,7 +642,7 @@ $(function () {
 
 	def SyncIDA( self, source_id, target_id ):
 		self.DarunGrimSessionsInstance.SyncIDA( source_id, target_id )
-		return "<body> Check your IDA </body>"
+		return SyncIDAHTML % CloseButtonHTML
 	SyncIDA.exposed = True
 	
 	def OpenInIDA( self, id ):
@@ -660,7 +660,7 @@ $(function () {
 		import subprocess
 		subprocess.Popen( [ self.IDAPath, target_file_path ] )
 
-		return "<body> Check your IDA %s %s </body>" % ( self.IDAPath, target_file_path )
+		return OpenInIDAHTML % ( self.IDAPath, target_file_path, CloseButtonHTML )
 	OpenInIDA.exposed = True
 
 if __name__ == '__main__':

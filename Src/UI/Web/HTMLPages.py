@@ -640,3 +640,11 @@ BodyHTML = """
 """ + HeadText + """
 <body>
 """ + MainMenu + MainBody 
+
+CloseButtonHTML = """<form method="post">
+<input type="button" value="Close Window"
+onclick="window.close()">
+</form>"""
+
+SyncIDAHTML="<html><body> Check your IDA %s </body></html>"
+OpenInIDAHTML="<html><body> Check your IDA <p> Running %s %s <p>%s</body></html>"
