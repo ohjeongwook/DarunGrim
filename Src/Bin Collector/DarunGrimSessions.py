@@ -71,7 +71,7 @@ class Manager:
 			print source_patch_name, source_filename, target_patch_name, target_filename 
 			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
-	def InitFileDiffByID( self, source_id, target_id, databasename = None ):
+	def InitFileDiffByID( self, source_id, target_id, databasename = None, reset_database = False ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
 		print 'source', source_id, source_file_entries
@@ -94,9 +94,12 @@ class Manager:
 		if not databasename:
 			databasename = self.GetDefaultDatabasename( source_id, target_id )
 
+		if reset_database:
+			self.RemoveDiffer( source_id, target_id )
+
 		diff = None
 		if source_patch_name and source_filename and target_patch_name and target_filename and databasename:
-			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename )
+			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename, reset_database )
 			self.SetDiffer( source_id, target_id, differ )
 
 		return differ
@@ -109,6 +112,13 @@ class Manager:
 		global Differs
 		Differs[ str( source_id ) + '_' + str( target_id ) ] = differ
 
+	def RemoveDiffer( self, source_id, target_id ):
+		key = str( source_id ) + '_' + str( target_id )
+		
+		global Differs
+		if Differs.has_key( key ):
+			del Differs[ key ]
+		
 	def GetDiffer( self, source_id, target_id ):
 		key = str( source_id ) + '_' + str( target_id )
 		
@@ -118,7 +128,7 @@ class Manager:
 
 		return None
 
-	def InitFileDiff( self, source_patch_name, source_filename, target_patch_name, target_filename, databasename = None ):
+	def InitFileDiff( self, source_patch_name = '', source_filename = '', target_patch_name = '', target_filename = '', databasename = '', reset_database = False ):
 		if self.DebugLevel > 10:
 			print '='*80
 			print 'source_patch_name=',source_patch_name
@@ -141,7 +151,12 @@ class Manager:
 		
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
+		if reset_database:
+			print 'Removing', full_databasename
+			os.remove( full_databasename )
+
 		differ = self.LoadDiffer( full_databasename, source_filename, target_filename )
+
 		if not differ:
 			differ = DarunGrimEngine.Differ( source_filename, target_filename )
 			differ.SetIDAPath( self.IDAPath )
@@ -150,7 +165,7 @@ class Manager:
 				print 'target_filename',target_filename
 				print 'databasename',databasename
 			differ.DiffFile( full_databasename, log_filename  )
-			self.UpdateSecurityImplicationsScore( full_databasename )
+		self.UpdateSecurityImplicationsScore( full_databasename )
 
 		return differ
 
@@ -219,4 +234,3 @@ class Manager:
 if __name__ == '__main__':
 	file_differ = Manager()
 	file_differ.InitMSFileDiffAll()
-
