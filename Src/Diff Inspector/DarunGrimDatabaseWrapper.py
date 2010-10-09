@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine,Table,Column,Integer,String,ForeignKey,MetaData
+from sqlalchemy import create_engine,Table,Column,Integer,String,Text,ForeignKey,MetaData,BLOB,CLOB
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import engine
 
 Base=declarative_base()
 
@@ -141,6 +142,7 @@ class Database:
 		echo = False
 		if self.DebugLevel > 2:
 			echo = True
+
 		self.Engine = create_engine( 'sqlite:///' + filename, echo = echo )
 
 		metadata = Base.metadata
@@ -164,7 +166,6 @@ class Database:
 	def GetFunctionDisasmLinesMapOrig( self, file_id, function_address):
 		disasm_lines_hash={}
 		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, function_address=function_address ).all():
-			print 'one_location_info',one_location_info
 			disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
 		return disasm_lines_hash
 
@@ -178,8 +179,12 @@ class Database:
 					block_addresses.append( map_info.dst )
 
 		for block_address in block_addresses:
-			for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
-				disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
+			try:
+				for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
+					disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
+			except:
+				pass
+
 		return disasm_lines_hash
 
 	def GetFunctionBlockAddresses( self, file_id, function_address ):
