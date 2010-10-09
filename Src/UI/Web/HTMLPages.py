@@ -1,9 +1,10 @@
 MainMenu = """
-<P>[ <a href="/ShowFileImport">Files Import</a> / 
+<P>[ 
+<a href="/ShowProjects">Projects</a> / 
+<a href="/ShowFileImport">Files Import</a> / 
 <a href="/ShowFileList">Files List</a> / 
 <a href="/ShowFileSearch">File Search</a> / 
 <a href="/ShowMSPatchList">Microsoft Patches List</a> / 
-<a href="/ShowProjects">Projects</a> / 
 <a href="/">About</a> 
 ]
 <P>
