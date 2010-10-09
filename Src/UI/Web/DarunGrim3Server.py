@@ -514,11 +514,16 @@ $(function () {
 
 	ProcessProjectContent.exposed = True
 
-	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0 ):
+	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, reset = 'no' ):
 		databasename = self.GenerateDGFName( source_id, target_id )
+
 		#TODO: Add or Update Project
 
-		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename )
+		reset_database = False
+		if reset == 'yes':
+			reset_database = True
+
+		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename, reset_database )
 		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
 		return self.GetFunctionMatchInfo( 
 			patch_id, 

@@ -421,18 +421,21 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 %endif
 
 &nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
-
+&nbsp; [<a href="/StartDiff?source_id=${source_id}&target_id=${target_id}&reset=yes">Reanalyze</a>]
 <title>${source_file_name}: ${source_file_version_string} vs 
 % if source_file_name != target_file_name:
 	${target_file_name}: 
 % endif
 ${target_file_version_string} Functions
 </title>
-<p><a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} vs 
+
+<p>LINK to this page: <a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} VS 
 % if source_file_name != target_file_name:
 	${target_file_name}: 
 % endif
 ${target_file_version_string}</a>
+
+
 
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
