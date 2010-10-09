@@ -451,7 +451,7 @@ $(function () {
 									project_member.fileindexes.version_string,
 									project_member.id ) )
 
-		project_results = database.GetProjectResults()
+		project_results = database.GetProjectResults( project_id = project_id )
 		print 'project_results=',project_results
 		
 		project_result_list = []
