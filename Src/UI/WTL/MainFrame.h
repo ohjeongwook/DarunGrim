@@ -847,12 +847,18 @@ public:
 		{
 			IDAClientManager *pOneClientManager=new IDAClientManager();
 			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
-			if(pOneClientManager->AssociateSocket(((CMainFrame *)pParam)->GetOneClientManagerTheSource(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
+
+			if(pOneClientManager->AcceptIDAClient(
+				(
+						(CMainFrame *)pParam)->GetOneClientManagerTheSource(),
+						((CMainFrame *)pParam)->RetrieveClientManagersDatabase()
+				)
+			)
 			{
 				((CMainFrame *)pParam)->PostMessage(
 					WM_COMMAND,
 					ID_ASSOCIATE_SOCKET_COMPLETE,NULL);
-				if(pOneClientManager->AssociateSocket(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
+				if(pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
 				{
 					((CMainFrame *)pParam)->PostMessage(
 						WM_COMMAND,
