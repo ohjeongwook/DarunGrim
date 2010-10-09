@@ -12,7 +12,7 @@ call CopySrc.bat
 del Src\*.pyc
 REM Generate binaries
 pushd Src
-c:\python26\python SetupDist.py py2exe
+c:\python26\python ..\SetupDist.py py2exe
 popd
 
 REM Prepare binary directory
@@ -34,5 +34,6 @@ REM move bin directory location
 mv Src\bin Bin
 
 REM zip a package
-zip -r DarunGrim3.zip Bin\*
+pushd Bin
+zip -r ..\DarunGrim3.zip *
 pause
