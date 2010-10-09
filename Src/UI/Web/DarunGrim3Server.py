@@ -451,13 +451,34 @@ $(function () {
 									project_member.fileindexes.version_string,
 									project_member.id ) )
 
+		project_results = database.GetProjectResults()
+		print 'project_results=',project_results
+		
+		project_result_list = []
+		for project_result in project_results:
+			print '\t', project_result.project_id, project_result.projects.name, project_result.source_file_id, project_result.target_file_id
+			
+			source_file = database.GetFileByID( project_result.source_file_id )[0]
+			target_file = database.GetFileByID( project_result.target_file_id )[0]
+			project_result_list.append(
+				(
+					project_result.source_file_id,
+					project_result.target_file_id,
+					source_file.filename,
+					source_file.version_string,
+					target_file.filename,
+					target_file.version_string
+				)
+			)
+		
 		mytemplate = Template( ProjectContentTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 		return mytemplate.render(  
 			company_name = "",
 			filename = "",
 			file_information_list = file_information_list,
 			project_id = project_id,
-			show_add_to_queue = False
+			show_add_to_queue = False,
+			project_result_list = project_result_list
 		)
 	ShowProject.exposed = True
 
@@ -505,7 +526,7 @@ $(function () {
 		print 'project_member_id=',project_member_id
 
 		if operation == "Start Diffing":
-			return self.StartDiff( source_id, target_id, patch_id, download_id, file_id, show_detail )
+			return self.StartDiff( source_id, target_id, patch_id, download_id = download_id, file_id = file_id, show_detail = show_detail, project_id = project_id )
 		elif operation == "Remove From Project":
 			return self.RemoveFromProject( project_member_id, project_id )
 		
@@ -514,28 +535,31 @@ $(function () {
 
 	ProcessProjectContent.exposed = True
 
-	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, reset = 'no' ):
+	def StartDiff( self, source_id, target_id, patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, reset = 'no', project_id = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
-
-		#TODO: Add or Update Project
 
 		reset_database = False
 		if reset == 'yes':
 			reset_database = True
 
 		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename, reset_database )
-		print 'StartDiff Results: ', source_id,'/',target_id,'/', databasename
+		#Add or Update Project
+		if project_id:
+			patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			patch_database.AddProjectResult( project_id, source_id, target_id, databasename)
+
 		return self.GetFunctionMatchInfo( 
 			patch_id, 
 			download_id, 
 			file_id, 
 			source_id=source_id, 
 			target_id = target_id,
-			show_detail  = show_detail
+			show_detail  = show_detail,
+			project_id = project_id
 			)
 	StartDiff.exposed = True
 
-	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0 ):
+	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0, project_id = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 		function_match_infos = []
@@ -565,7 +589,8 @@ $(function () {
 				source_id=source_id, 
 				target_id = target_id, 
 				function_match_infos = function_match_infos,
-				show_detail = 0
+				show_detail = 0,
+				project_id = project_id
 			)
 
 	def ShowFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id ):

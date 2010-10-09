@@ -367,8 +367,17 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 		<p>
 		<input type="submit" name="operation" value="Start Diffing"/>
 		<input type="submit" name="operation" value="Remove From Project"/>
-		
-	</form> 
+	</form>
+
+	<hr>
+	<h2> Results </h2>
+	% for (source_id, target_id, source_file_name, source_file_version_string, target_file_name, target_file_version_string) in project_result_list:
+		<p><a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} VS 
+		% if source_file_name != target_file_name:
+			${target_file_name}: 
+		% endif
+		${target_file_version_string}</a>
+	% endfor
 </%def>
 <html>
 """ + HeadText + """
@@ -422,7 +431,7 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 %endif
 
 &nbsp; [<a href="SyncIDA?source_id=${source_id}&target_id=${target_id}" target="sync_ida">Open IDA</a>]
-&nbsp; [<a href="/StartDiff?source_id=${source_id}&target_id=${target_id}&reset=yes">Reanalyze</a>]
+&nbsp; [<a href="/StartDiff?source_id=${source_id}&target_id=${target_id}&reset=yes&project_id=${project_id}">Reanalyze</a>]
 <title>${source_file_name}: ${source_file_version_string} vs 
 % if source_file_name != target_file_name:
 	${target_file_name}: 
