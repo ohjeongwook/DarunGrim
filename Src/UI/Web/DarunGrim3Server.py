@@ -335,7 +335,7 @@ $(function () {
 			% for item in items:
 				<tr>
 					<td><a href="ShowProject?project_id=${item.id}">${item.name}</a></td>
-					<td>${item.description}</td>
+					<td>${item.description}&nbsp;</td>
 					<td><a href="ShowEditProject?project_id=${item.id}">Edit</a></td>
 					<td><a href="RemoveProject?project_id=${item.id}">Remove</a></td>
 				</tr>
@@ -367,7 +367,7 @@ $(function () {
 				</tr>
 				<tr>
 					<td>Description</td>
-					<td><input type="text" size="50" name="description" value="${description}" /></td>
+					<td><input type="text" size="50" name="description" value="${description}" />&nbsp;</td>
 				</tr>
 				<table>
 				<input type="hidden" name="project_id" value=${project_id} />
