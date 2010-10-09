@@ -334,7 +334,6 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 			<th>Filename</th>
 			<th>Version String</th>
 			<th>IDA</th>
-			<th>Operation</th>
 		</tr>
 		% for (name,id,filename,project_member_id) in file_information_list:
 			<tr>
