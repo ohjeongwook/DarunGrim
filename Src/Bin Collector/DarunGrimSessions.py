@@ -55,7 +55,6 @@ class Manager:
 			src_file = os.path.join( plugins_src_dir, plugin_file ) 
 			dst_file = os.path.join( plugins_dst_dir, plugin_file ) 
 
-			print src_file,'->',dst_file
 			if os.path.isfile( src_file ) and not os.path.isfile( dst_file ):
 				import shutil
 				shutil.copyfile( src_file, dst_file )
@@ -224,7 +223,6 @@ class Manager:
 											databasename,
 											function_match_info.source_address, 
 											function_match_info.target_address )
-				print function_match_info.security_implications_score
 		database.Commit()
 
 	def InitMSFileDiffAll( self ):
