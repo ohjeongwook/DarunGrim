@@ -178,15 +178,13 @@ class Project(Base):
 	id = Column( Integer, primary_key = True )
 	name = Column( String )	
 	description = Column( String )
-	filepath = Column( String )
 
-	def __init__( self, name, description, filepath = '' ):
+	def __init__( self, name, description ):
 		self.name = name
 		self.description = description
-		self.filepath = filepath
 		
 	def __repr__( self ):
-		return "<Projects('%s','%s','%s')>" % ( self.name, self.description, self.filepath )
+		return "<Project('%s','%s')>" % ( self.name, self.description )
 
 class ProjectMember(Base):
 	__tablename__ = 'project_members'
@@ -205,12 +203,38 @@ class ProjectMember(Base):
 	def __repr__( self ):
 		return "<ProjectMember('%d','%d')>" % ( self.project_id, self.file_id )
 
+class ProjectResult(Base):
+	__tablename__ = 'project_results'
+	id = Column( Integer, primary_key = True )
+
+	project_id = Column( Integer, ForeignKey('projects.id'))
+	projects = relationship(Project, backref=backref('project_results', order_by=id))
+
+	source_file_id = Column( Integer, ForeignKey('fileindexes.id'))
+	#fileindexes = relationship(FileIndex, backref=backref('project_results', order_by=id))
+
+	target_file_id = Column( Integer, ForeignKey('fileindexes.id'))
+	#target_file = relationship(FileIndex, backref=backref('project_results', order_by=id))
+
+	database_name = Column( String )
+
+	def __init__( self, project_id, source_file_id, target_file_id, database_name ):
+		self.project_id = project_id
+		self.source_file_id = source_file_id
+		self.target_file_id = target_file_id
+		self.database_name = database_name
+		
+	def __repr__( self ):
+		return "<ProjectMember('%d','%d','%d','%s')>" % ( self.project_id, self.source_file_id, self.target_file_id, self.database_name )
+
 class Database:
 	DebugLevel = 2
 	def __init__( self, filename ):
 		echo = False
 		if self.DebugLevel > 2:
 			echo = True
+			
+		print 'filename=',filename
 		self.Engine = sqlalchemy.create_engine( 'sqlite:///' + filename, echo = echo )
 
 		metadata = Base.metadata
@@ -385,6 +409,18 @@ class Database:
 		project_member = self.SessionInstance.query( ProjectMember ).filter_by( id=project_member_id ).first()
 		self.SessionInstance.delete( project_member )
 		self.Commit()
+
+	def AddProjectResult( self, project_id, source_file_id, target_file_id, database_name ):
+		project_result = ProjectResult( project_id, source_file_id, target_file_id, database_name )
+		ret = self.SessionInstance.query( ProjectResult ).filter( and_( ProjectResult.project_id == project_id, ProjectResult.source_file_id == source_file_id, ProjectResult.target_file_id == target_file_id, ProjectResult.database_name == database_name ) ).all()
+		if len( ret ) == 0:
+			self.SessionInstance.add( project_result )
+			self.Commit()
+		else:
+			print 'Duplicate', project_id, source_file_id, target_file_id, databasename, ret
+
+	def GetProjectResults( self ):
+		return self.SessionInstance.query( ProjectResult ).all()
 
 	def Commit( self ):
 		try:
