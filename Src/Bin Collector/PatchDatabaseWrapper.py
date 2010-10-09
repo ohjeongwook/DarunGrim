@@ -417,10 +417,13 @@ class Database:
 			self.SessionInstance.add( project_result )
 			self.Commit()
 		else:
-			print 'Duplicate', project_id, source_file_id, target_file_id, databasename, ret
+			print 'Duplicate', project_id, source_file_id, target_file_id, database_name, ret
 
-	def GetProjectResults( self ):
-		return self.SessionInstance.query( ProjectResult ).all()
+	def GetProjectResults( self, project_id = None ):
+		if project_id:
+			return self.SessionInstance.query( ProjectResult ).filter_by( project_id=project_id ).all()
+		else:
+			return self.SessionInstance.query( ProjectResult ).all()
 
 	def Commit( self ):
 		try:
