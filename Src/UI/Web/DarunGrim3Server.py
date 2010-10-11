@@ -373,7 +373,7 @@ $(function () {
 				</tr>
 				<tr>
 					<td>Description</td>
-					<td><input type="text" size="50" name="description" value="${description}" />&nbsp;</td>
+					<td><textarea cols="80" rows="10" name="description"/>${description}</textarea></td>
 				</tr>
 				<table>
 				<input type="hidden" name="project_id" value=${project_id} />
