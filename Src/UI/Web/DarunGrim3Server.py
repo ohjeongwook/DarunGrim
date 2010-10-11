@@ -12,6 +12,7 @@ import DarunGrimSessions
 import DarunGrimDatabaseWrapper
 import DarunGrimAnalyzers
 import DownloadMSPatches
+import FileStore
 
 from mako.template import Template
 from HTMLPages import *
@@ -193,7 +194,6 @@ $(function () {
 		mytemplate = Template( FileImportTemplateText )
 
 		if folder:
-			print 'folder=',folder
 			file_store = FileStore.FileProcessor( 'index.db' )
 			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
 		return mytemplate.render( folder = folder )
