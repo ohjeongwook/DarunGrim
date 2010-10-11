@@ -423,7 +423,7 @@ $(function () {
 				</tr>
 				<tr>
 					<td>Description</td>
-					<td><input type="text" size="50" name="description" value="" /></td>
+					<td><textarea cols="80" rows="10" name="description"/></textarea></td>
 				</tr>
 				<table>
 				<p><input type="submit" value="Add"/>
