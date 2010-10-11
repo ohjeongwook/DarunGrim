@@ -410,15 +410,17 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 		<input type="submit" name="operation" value="Start Diffing"/>		
 	</form>
 
-	<hr>
-	<h2> Results </h2>
-	% for (source_id, target_id, source_file_name, source_file_version_string, target_file_name, target_file_version_string) in project_result_list:
-		<p><a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} VS 
-		% if source_file_name != target_file_name:
-			${target_file_name}: 
-		% endif
-		${target_file_version_string}</a>
-	% endfor
+	% if len( project_result_list ) > 0:
+		<hr>
+		<h2> Results </h2>
+		% for (source_id, target_id, source_file_name, source_file_version_string, target_file_name, target_file_version_string) in project_result_list:
+			<p><a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} VS 
+			% if source_file_name != target_file_name:
+				${target_file_name}: 
+			% endif
+			${target_file_version_string}</a>
+		% endfor
+	% endif
 </%def>
 <html>
 """ + HeadText + """
