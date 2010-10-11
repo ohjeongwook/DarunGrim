@@ -68,12 +68,16 @@ class WebServer(object):
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
 					for (id, version_string ) in database.GetVersionStringsWithIDs( company_name, filename ):
 						file_information_list.append( ( version_string, id, filename, None ) )
+						
+					projects = database.GetProjects()
+
 					mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 					return mytemplate.render(  
 						company_name = company_name,
 						filename = filename,
 						file_information_list = file_information_list,
-						show_add_to_queue = True
+						show_add_to_queue = True,
+						projects = projects
 					)
 			else:
 				#List filenames
@@ -216,12 +220,14 @@ $(function () {
 			for file_info in file_info_list:
 				file_information_list.append( (file_info.filename, file_info.id, file_info.version_string, None ) )
 
+			projects = database.GetProjects()
 			mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
 			return mytemplate.render(  
 				company_name = "",
 				filename = "",
 				file_information_list = file_information_list,
-				show_add_to_queue = True
+				show_add_to_queue = True,
+				projects = projects
 			)
 			
 		return mytemplate.render()
@@ -332,12 +338,12 @@ $(function () {
 					<th>Edit</th>
 					<th>Remove</th>
 				</tr>
-			% for item in items:
+			% for project in projects:
 				<tr>
-					<td><a href="ShowProject?project_id=${item.id}">${item.name}</a></td>
-					<td>${item.description}&nbsp;</td>
-					<td><a href="ShowEditProject?project_id=${item.id}">Edit</a></td>
-					<td><a href="RemoveProject?project_id=${item.id}">Remove</a></td>
+					<td><a href="ShowProject?project_id=${project.id}">${project.name}</a></td>
+					<td>${project.description}&nbsp;</td>
+					<td><a href="ShowEditProject?project_id=${project.id}">Edit</a></td>
+					<td><a href="RemoveProject?project_id=${project.id}">Remove</a></td>
 				</tr>
 			% endfor
 			</table>
@@ -350,10 +356,10 @@ $(function () {
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		items = []
 		try:
-			items = database.GetProjects()
+			projects = database.GetProjects()
 		except:
 			pass
-		return mytemplate.render( items = items )
+		return mytemplate.render( projects = projects )
 	ShowProjects.exposed = True
 
 	def ShowEditProject( self, project_id ):
@@ -482,32 +488,15 @@ $(function () {
 		)
 	ShowProject.exposed = True
 
-	def AddToProject( self, id, project_id = None ):
+	def AddToProject( self, id, project_id = None, allbox = None ):
 		#Display project choose list
 		items = []
 		
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		if not project_id:
-			items = database.GetProjects()
-
-			mytemplate = Template( """<%def name="layoutdata()">
-				<form name="input" action="AddToProject">
-					<select name="project_id">
-					% for item in items:
-						<option value=${item.id}>${item.name}</option>
-					% endfor
-					</select>
-					
-					% for one_id in ids:
-						<input type="hidden" name="id" value="${one_id}"/>
-					% endfor
-					<input type="submit" value="Choose"/>
-				</form>
-			</%def>
-			""" + BodyHTML )
-
-			print 'ids=',id
-			return mytemplate.render( ids = id, items = items )
+			projects = database.GetProjects()
+			mytemplate = Template( ProjectSelectionTemplate + BodyHTML )
+			return mytemplate.render( ids = id, projects = projects )
 		else:
 			#Add to project
 			for one_id in id:
@@ -521,7 +510,7 @@ $(function () {
 	def GenerateDGFName( self, source_id, target_id ):
 		return os.path.join( self.DGFDirectory, str( source_id ) + '_' + str( target_id ) + '.dgf')
 
-	def ProcessProjectContent( self, source_id = None, target_id = None, operation = None, project_member_id = None,  patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, project_id = None ):
+	def ProcessProjectContent( self, source_id = None, target_id = None, operation = None, project_member_id = None,  patch_id = 0, download_id = 0, file_id = 0, show_detail = 0, project_id = None, allbox = None ):
 		print 'operation=',operation
 		print 'project_member_id=',project_member_id
 

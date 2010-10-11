@@ -67,6 +67,17 @@ HeadText = """
 			$("#mainTable").tablesorter( {sortList:[[0,0],[2,1]], widgets: ['zebra']} ); 
 		} 
 	); 
+
+	function checkAll(){
+		for (var i=0;i<document.forms[0].elements.length;i++)
+		{
+			var e=document.forms[0].elements[i];
+			if ((e.name != 'allbox') && (e.type=='checkbox'))
+			{
+				e.checked=document.forms[0].allbox.checked;
+			}
+		}
+	}
 </script>
 """
 
@@ -276,6 +287,27 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 </body>
 </html>"""
 
+ProjectSelectionListTemplate = """
+		<select name="project_id">
+		% for project in projects:
+			<option value=${project.id}>${project.name}</option>
+		% endfor
+		</select>
+"""
+
+ProjectSelectionTemplate = """<%def name="layoutdata()">
+	<form name="input" action="AddToProject">
+""" + ProjectSelectionListTemplate + """
+
+		% for one_id in ids:
+			<input type="hidden" name="id" value="${one_id}"/>
+		% endfor
+
+		<input type="submit" value="Choose"/>
+	</form>
+</%def>
+"""
+
 FileListTemplate = """<%def name="layoutdata(company_name, filename, version_string, file_information_list)">
 <title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
@@ -286,6 +318,11 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 			<th>Filename</th>
 			<th>Version String</th>
 			<th>IDA</th>
+		</tr>
+
+		<tr>
+			<td><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/></td>
+			<td colspan=3>Check all</td>
 		</tr>
 		% for (name,id,filename,project_member_id) in file_information_list:
 			<tr>
@@ -306,9 +343,10 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 				</td>
 			</tr>
 		% endfor
-
 		</table>
-		<p><input type="submit" value="Add to Project"/>
+		<input type="submit" value="Add to Project"/>
+		
+""" + ProjectSelectionListTemplate + """		
 	</form> 
 </%def>
 <html>
@@ -334,6 +372,11 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 			<th>Filename</th>
 			<th>Version String</th>
 			<th>IDA</th>
+		</tr>
+
+		<tr>
+				<td><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/></td>
+				<td colspan=5>Check all</td>				
 		</tr>
 		% for (name,id,filename,project_member_id) in file_information_list:
 			<tr>
@@ -361,11 +404,10 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 			</tr>
 		% endfor
 		</table>
-
 		<input type="hidden" name="project_id" value="${project_id}"/>
 		<p>
-		<input type="submit" name="operation" value="Start Diffing"/>
-		<input type="submit" name="operation" value="Remove From Project"/>
+		<input type="submit" name="operation" value="Remove From Project"/>		
+		<input type="submit" name="operation" value="Start Diffing"/>		
 	</form>
 
 	<hr>
@@ -437,15 +479,6 @@ FunctionmatchInfosTemplateText = """<%def name="layoutdata(source_file_name,
 % endif
 ${target_file_version_string} Functions
 </title>
-
-<p>LINK to this page: <a href="/StartDiff?source_id=${source_id}&target_id=${target_id}">${source_file_name}: ${source_file_version_string} VS 
-% if source_file_name != target_file_name:
-	${target_file_name}: 
-% endif
-${target_file_version_string}</a>
-
-
-
 	<table id="mainTable" class="FunctionmatchInfo">
 		<thead>
 		<tr>
