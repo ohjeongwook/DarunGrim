@@ -279,6 +279,49 @@ table.FunctionmatchInfo thead tr .headerSortDown {
 	background-image: url(/data/images/desc.gif);
 }
 table.FunctionmatchInfo thead tr .headerSortDown, table.FunctionmatchInfo thead tr .headerSortUp {
-background-color: #8dbdd8;
+	background-color: #8dbdd8;
 }
 
+table.SortedTable {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 10pt;
+	width: 100%;
+	text-align: left;
+}
+table.SortedTable thead tr th, table.SortedTable tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 10pt;
+	padding: 4px;
+	overflow: auto;
+	max-width: 400px;
+}
+table.SortedTable thead tr .header {
+	background-image: url(/data/images/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.SortedTable tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+	max-width: 400px;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+table.SortedTable tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.SortedTable thead tr .headerSortUp {
+	background-image: url(/data/images/asc.gif);
+}
+table.SortedTable thead tr .headerSortDown {
+	background-image: url(/data/images/desc.gif);
+}
+table.SortedTable thead tr .headerSortDown, table.SortedTable thead tr .headerSortUp {
+	background-color: #8dbdd8;
+}

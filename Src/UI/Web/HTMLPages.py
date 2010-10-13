@@ -312,38 +312,44 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 <title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="AddToProject">
-		<table class="Table">
+		<table id="mainTable" class="SortedTable">
+
+		<thead>
 		<tr>
 			<th></th>
 			<th>Filename</th>
 			<th>Version String</th>
-			<th>IDA</th>
+			<th>Creation</th>
+			<th>Modification</th>
+			<th>Addition Time</th>
+			<th>Operation</th>
 		</tr>
+		</thead>
 
-		<tr>
-			<td><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/></td>
-			<td colspan=3>Check all</td>
-		</tr>
-		% for (name,id,filename,project_member_id) in file_information_list:
+		<tbody>
+		% for (name,ctime_str,mtime_str,add_time_str,id,version_str,project_member_id) in file_information_list:
 			<tr>
 				<td>
 					<input type="checkbox" name="id" value="${id}" />
 				</td>
 			
-				<td>
-					${name}
-				</td>
-
-				<td>
-					${filename}
-				</td>
+				<td>${name}</td>
+				<td>${version_str}</td>
+				<td>${ctime_str}</td>
+				<td>${mtime_str}</td>
+				<td>${add_time_str}</td>
 
 				<td>
 					<a href=OpenInIDA?id=${id} target=_new>Open</a>
 				</td>
 			</tr>
 		% endfor
+
+		</tr>
+		</tbody>
 		</table>
+		
+		<p><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/>Check all		
 		<input type="submit" value="Add to Project"/>
 		
 """ + ProjectSelectionListTemplate + """		
@@ -364,21 +370,24 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 <title>Version String for ${company_name}:${filename}</title>
 	<p><a href="/ShowFileList?company_name=${company_name}">${company_name}</a>
 	<form name="input" action="ProcessProjectContent">
-		<table class="Table">
+		<table id="mainTable" class="SortedTable">
+
+		<thead>
 		<tr>
 			<th></th>
 			<th>Unpatched</th>
 			<th>Patched&nbsp;&nbsp;</th>
 			<th>Filename</th>
 			<th>Version String</th>
-			<th>IDA</th>
+			<th>Creation</th>
+			<th>Modification</th>
+			<th>Addition Time</th>			
+			<th>Operation</th>
 		</tr>
+		</thead>
 
-		<tr>
-				<td><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/></td>
-				<td colspan=5>Check all</td>				
-		</tr>
-		% for (name,id,filename,project_member_id) in file_information_list:
+		<tbody>
+		% for (name,ctime_str,mtime_str,add_time_str,id,version_str,project_member_id) in file_information_list:
 			<tr>
 				<td>
 					<input type="checkbox" name="project_member_id" value="${project_member_id}" />
@@ -390,27 +399,28 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 					<input type="radio" name="target_id" value="${id}" />
 				</td>
 
-				<td>
-					${name}
-				</td>
-
-				<td>
-					${filename}
-				</td>
+				<td>${name}</td>
+				<td>${version_str}</td>
+				<td>${ctime_str}</td>
+				<td>${mtime_str}</td>
+				<td>${add_time_str}</td>
 
 				<td>
 					<a href=OpenInIDA?id=${id} target=_new>Open</a>
 				</td>
 			</tr>
 		% endfor
+		</tbody>
+		
 		</table>
 		<input type="hidden" name="project_id" value="${project_id}"/>
 		<p>
+		<p><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/>Check all
 		<input type="submit" name="operation" value="Remove From Project"/>		
 		<input type="submit" name="operation" value="Start Diffing"/>		
 	</form>
 
-	% if len( project_result_list ) > 0:
+	% if project_result_list and len( project_result_list ) > 0:
 		<hr>
 		<h2> Results </h2>
 		% for (source_id, target_id, source_file_name, source_file_version_string, target_file_name, target_file_version_string) in project_result_list:

@@ -67,8 +67,8 @@ class WebServer(object):
 					#List version strings
 					file_information_list = []
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
-					for (id, version_string ) in database.GetVersionStringsWithIDs( company_name, filename ):
-						file_information_list.append( ( version_string, id, filename, None ) )
+					for file_info in database.GetFileByCompanyFileName( company_name, filename ):
+						file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, None ) )
 						
 					projects = database.GetProjects()
 
@@ -221,7 +221,7 @@ $(function () {
 			file_info_list = database.GetFileByFileNameWildMatch( filename )
 			file_information_list = []
 			for file_info in file_info_list:
-				file_information_list.append( (file_info.filename, file_info.id, file_info.version_string, None ) )
+				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, None ) )
 
 			projects = database.GetProjects()
 			mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
@@ -334,21 +334,26 @@ $(function () {
 	def ShowProjects( self ):
 		#Show Add form
 		mytemplate = Template( """<%def name="layoutdata()">
-			<table class="Table">
+			<table id="mainTable" class="SortedTable">
+				<thead>
 				<tr>
 					<th>Name</th>
 					<th>Description</th>
 					<th>Edit</th>
 					<th>Remove</th>
 				</tr>
-			% for project in projects:
-				<tr>
-					<td><a href="ShowProject?project_id=${project.id}">${project.name}</a></td>
-					<td>${project.description}&nbsp;</td>
-					<td><a href="ShowEditProject?project_id=${project.id}">Edit</a></td>
-					<td><a href="RemoveProject?project_id=${project.id}">Remove</a></td>
-				</tr>
-			% endfor
+				</thead>
+				
+				<tbody>
+				% for project in projects:
+					<tr>
+						<td><a href="ShowProject?project_id=${project.id}">${project.name}</a></td>
+						<td>${project.description}&nbsp;</td>
+						<td><a href="ShowEditProject?project_id=${project.id}">Edit</a></td>
+						<td><a href="RemoveProject?project_id=${project.id}">Remove</a></td>
+					</tr>
+				% endfor
+				</tbody>
 			</table>
 
 			<hr>
@@ -455,10 +460,8 @@ $(function () {
 		file_information_list = []
 		for project_member in project_members:
 			if project_member.fileindexes:
-				file_information_list.append( (project_member.fileindexes.filename,
-									project_member.fileindexes.id,
-									project_member.fileindexes.version_string,
-									project_member.id ) )
+				file_info  = project_member.fileindexes
+				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, project_member.id ) )
 
 		project_results = database.GetProjectResults( project_id = project_id )
 		print 'project_results=',project_results
