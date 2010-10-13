@@ -436,7 +436,8 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 FileImportTemplateText = """<%def name="layoutdata( folder )">
 	<form name="input" action="ShowFileImport">
 		<input type="text" size="50" name="folder" value="" /> 
-		<input type="submit" value="Import"/>
+		<p><input type="checkbox" name="move_file" value="yes" /> Move Files&nbsp;<B><font color="red">(WARNING: This will remove the source files)</font></B>
+		<p><input type="submit" value="Import"/>
 	</form>
 	
 	% if folder != None:
