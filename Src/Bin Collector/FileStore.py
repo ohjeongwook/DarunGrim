@@ -47,7 +47,7 @@ class FileProcessor:
 		s.update( data )
 		return s.hexdigest()
 
-	def IndexFilesInFolder( self, src_dirname, target_dirname = None, download = None, copy_file = True ):
+	def IndexFilesInFolder( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -55,7 +55,7 @@ class FileProcessor:
 			current_path = os.path.join( src_dirname, file )
 			if os.path.isdir( current_path ):
 				try:
-					self.IndexFilesInFolder( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file )
+					self.IndexFilesInFolder( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode )
 				except:
 					import traceback
 					traceback.print_exc()
@@ -105,18 +105,6 @@ class FileProcessor:
 						if not target_dirname:
 							target_dirname = os.getcwd()
 
-						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
-						target_full_directory = os.path.join( target_dirname, target_relative_directory )
-						target_full_filename = os.path.join( target_dirname, target_relative_filename )
-						
-						if self.DebugLevel > 2:
-							print 'target_relative_directory', target_relative_directory
-							print 'target_relative_filename', target_relative_filename
-							print 'target_full_filename',target_full_filename
-
-						if not os.path.isdir( target_full_directory ):
-							os.makedirs( target_full_directory )
-
 						#Put to the Index Database
 						operating_system = 'Windows XP'
 						patch_identifier = ''
@@ -127,16 +115,67 @@ class FileProcessor:
 							company_name = version_info['CompanyName']
 							file_version = version_info['FileVersion']
 
+						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
 						files = self.Database.GetFileBySHA1( sha1 )
 
+						if not files or len(files) == 0 or overwrite_mode:
+							if self.DebugLevel > 2:
+								print 'New', download, current_path, version_info, 'filename=',filename,sha1
+
+							target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
+							target_full_directory = os.path.join( target_dirname, target_relative_directory )
+							target_full_filename = os.path.join( target_dirname, target_relative_filename )
+							
+							if self.DebugLevel > 2:
+								print 'target_relative_directory', target_relative_directory
+								print 'target_relative_filename', target_relative_filename
+								print 'target_full_filename',target_full_filename
+
+							if not os.path.isdir( target_full_directory ):
+								os.makedirs( target_full_directory )
+
+							if current_path.lower() != target_full_filename.lower():
+								if self.DebugLevel > 1:
+									print "Different src and target:",current_path, target_full_filename
+
+								if os.path.exists( target_full_filename ):
+									target_relative_directory = os.path.join( target_relative_directory, sha1 )
+									target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
+									target_full_directory = os.path.join( target_dirname, target_relative_directory )
+									target_full_filename = os.path.join( target_dirname, target_relative_filename )
+
+									if self.DebugLevel > 2:
+										print 'target_relative_directory', target_relative_directory
+										print 'target_relative_filename', target_relative_filename
+										print 'target_full_filename',target_full_filename
+
+									if not os.path.isdir( target_full_directory ):
+										os.makedirs( target_full_directory )
+
+								if not os.path.exists( target_full_filename ):
+									try:
+										if copy_file:
+											if self.DebugLevel > 1:
+												print 'Copy from ', current_path ,'to',target_full_filename
+											shutil.copyfile( current_path, target_full_filename )
+										else:
+											if self.DebugLevel > 1:
+												print 'Move to',target_full_filename
+											shutil.move( current_path, target_full_filename )
+									except:
+										import traceback
+										traceback.print_exc()
+
 						if files and len(files)>0:
+							#Update
 							if self.DebugLevel > 2:
 								print 'Already there:', current_path, version_info,sha1,files
 							for file in files:
 								# timestamp comparision and update
-								if file.mtime < mtime_dt:
+								if file.mtime < mtime_dt or overwrite_mode:
 									if self.DebugLevel > 2:
 										print 'Updating with older data:', current_path, version_info
+								
 									self.Database.UpdateFileByObject(
 										file,
 										download,
@@ -155,31 +194,7 @@ class FileProcessor:
 										sha1 = sha1
 									)
 						else:
-							if self.DebugLevel > 2:
-								print 'New', download, current_path, version_info, 'filename=',filename,sha1
-
-							if current_path.lower() != target_full_filename.lower():
-								if self.DebugLevel > 1:
-									print "Different src and target:",current_path, target_full_filename
-
-								if os.path.exists( target_full_filename ):
-									postfix = '-' + sha1
-									target_full_filename += postfix
-									target_relative_filename += postfix
-
-								try:
-									if copy_file:
-										if self.DebugLevel > 1:
-											print 'Copy from ', current_path ,'to',target_full_filename
-										shutil.copyfile( current_path, target_full_filename )
-									else:
-										if self.DebugLevel > 1:
-											print 'Move to',target_full_filename
-										shutil.move( current_path, target_full_filename )
-								except:
-									import traceback
-									traceback.print_exc()
-
+							#New
 							self.Database.AddFile( 
 								download,
 								operating_system, 
