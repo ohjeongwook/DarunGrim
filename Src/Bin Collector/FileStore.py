@@ -47,6 +47,31 @@ class FileProcessor:
 		s.update( data )
 		return s.hexdigest()
 
+	def SanitizeForFilename( self, name ):
+		ret = ''
+		only_spaces = True
+
+		for ch in name:
+			n = ord(ch)
+			if ( ord('a') <= n and n <= ord('z') ) or \
+					( ord('A') <= n and n <= ord('Z') ) or \
+					( ord('0') <= n and n <= ord('9') ) or \
+					ch == ' ' or \
+					ch == '(' or \
+					ch == ')' or \
+					ch == ',' or \
+					ch == '.':
+				ret += ch
+			else:
+				ret += '_'
+				
+			if ch != ' ':
+				only_spaces = False
+		
+		if only_spaces:
+			ret = '_'
+		return ret
+
 	def IndexFilesInFolder( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False ):
 		if not os.path.isdir( src_dirname ):
 			return 
@@ -97,14 +122,6 @@ class FileProcessor:
 						if not sha1:
 							continue
 
-						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
-							target_relative_directory = os.path.join( version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-						else:
-							target_relative_directory = "etc"
-
-						if not target_dirname:
-							target_dirname = os.getcwd()
-
 						#Put to the Index Database
 						operating_system = 'Windows XP'
 						patch_identifier = ''
@@ -114,6 +131,12 @@ class FileProcessor:
 						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
 							company_name = version_info['CompanyName']
 							file_version = version_info['FileVersion']
+							target_relative_directory = os.path.join( self.SanitizeForFilename( company_name ), self.SanitizeForFilename( filename ) , self.SanitizeForFilename( file_version ) )
+						else:
+							target_relative_directory = "etc"
+
+						if not target_dirname:
+							target_dirname = os.getcwd()
 
 						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
 						files = self.Database.GetFileBySHA1( sha1 )
@@ -132,7 +155,11 @@ class FileProcessor:
 								print 'target_full_filename',target_full_filename
 
 							if not os.path.isdir( target_full_directory ):
-								os.makedirs( target_full_directory )
+								try:
+									os.makedirs( target_full_directory )
+								except:
+									print 'Failed to make',target_full_directory
+									print 'target_full_filename=',target_full_filename
 
 							if current_path.lower() != target_full_filename.lower():
 								if self.DebugLevel > 1:
@@ -156,7 +183,7 @@ class FileProcessor:
 									try:
 										if copy_file:
 											if self.DebugLevel > 1:
-												print 'Copy from ', current_path ,'to',target_full_filename
+												print 'Copy from', current_path ,'to',target_full_filename
 											shutil.copyfile( current_path, target_full_filename )
 										else:
 											if self.DebugLevel > 1:
