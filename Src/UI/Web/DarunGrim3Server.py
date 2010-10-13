@@ -190,12 +190,15 @@ $(function () {
 			return company_names_json
 	FileTreeJSON.exposed = True
 
-	def ShowFileImport( self, folder = None ):
+	def ShowFileImport( self, folder = None, move_file = None ):
 		mytemplate = Template( FileImportTemplateText )
 
 		if folder:
-			file_store = FileStore.FileProcessor( 'index.db' )
-			file_store.IndexFilesInFoler( folder , target_dirname = self.BinariesStorageDirectory )
+			file_store = FileStore.FileProcessor( self.DatabaseName )
+			copy_file = True
+			if move_file == 'yes':
+				copy_file = False
+			file_store.IndexFilesInFolder( folder , target_dirname = self.BinariesStorageDirectory, copy_file = copy_file )
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 
