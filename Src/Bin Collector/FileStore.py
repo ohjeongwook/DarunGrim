@@ -25,12 +25,16 @@ class FileProcessor:
 			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
 
 	def IsExecutable( self , filename ):
-		fd = open( filename, "rb" )
-		header = fd.read(2)
-		fd.close()
-		
-		if header == 'MZ':
-			return True
+		try:
+			fd = open( filename, "rb" )
+			header = fd.read(2)
+			fd.close()
+			
+			if header == 'MZ':
+				return True
+		except:
+			pass
+
 		return False
 
 	def GetMD5( self , data ):
@@ -66,32 +70,33 @@ class FileProcessor:
 				
 				if not filename in self.NotInterestedFiles:
 					version_info = self.QueryFile( current_path )
-					statinfo = os.stat( current_path )
-					if self.DebugLevel > 2:
-						print "%s=%s,%s" % ( file, time.ctime(statinfo.st_ctime), time.ctime(statinfo.st_mtime) )
-
-					ctime = time.localtime( statinfo.st_ctime )
-					ctime_dt = datetime.datetime( ctime.tm_year, ctime.tm_mon, ctime.tm_mday, ctime.tm_hour, ctime.tm_min, ctime.tm_sec )
-
-					mtime = time.localtime( statinfo.st_mtime )
-					mtime_dt = datetime.datetime( mtime.tm_year, mtime.tm_mon, mtime.tm_mday, mtime.tm_hour, mtime.tm_min, mtime.tm_sec )
-
-					added_time = time.localtime( time.time() )
-					added_time_dt = datetime.datetime( added_time.tm_year, added_time.tm_mon, added_time.tm_mday, added_time.tm_hour, added_time.tm_min, added_time.tm_sec )
-
-					fd = open( current_path, "rb" )
-					data = fd.read()
-					fd.close()
-					md5 = self.GetMD5( data )
-					sha1 = self.GetSHA1( data )
-
-					if self.DebugLevel > 2:
-						print version_info
-
-					if not sha1:
-						continue
-
+					
 					try:
+						statinfo = os.stat( current_path )
+						if self.DebugLevel > 2:
+							print "%s=%s,%s" % ( file, time.ctime(statinfo.st_ctime), time.ctime(statinfo.st_mtime) )
+
+						ctime = time.localtime( statinfo.st_ctime )
+						ctime_dt = datetime.datetime( ctime.tm_year, ctime.tm_mon, ctime.tm_mday, ctime.tm_hour, ctime.tm_min, ctime.tm_sec )
+
+						mtime = time.localtime( statinfo.st_mtime )
+						mtime_dt = datetime.datetime( mtime.tm_year, mtime.tm_mon, mtime.tm_mday, mtime.tm_hour, mtime.tm_min, mtime.tm_sec )
+
+						added_time = time.localtime( time.time() )
+						added_time_dt = datetime.datetime( added_time.tm_year, added_time.tm_mon, added_time.tm_mday, added_time.tm_hour, added_time.tm_min, added_time.tm_sec )
+
+						fd = open( current_path, "rb" )
+						data = fd.read()
+						fd.close()
+						md5 = self.GetMD5( data )
+						sha1 = self.GetSHA1( data )
+
+						if self.DebugLevel > 2:
+							print version_info
+
+						if not sha1:
+							continue
+
 						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
 							target_relative_directory = os.path.join( version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
 						else:
