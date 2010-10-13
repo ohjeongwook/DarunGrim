@@ -11,8 +11,9 @@ call CopySrc.bat
 
 del Src\*.pyc
 REM Generate binaries
+cp SetupDist.py Src
 pushd Src
-c:\python26\python ..\SetupDist.py py2exe
+c:\python26\python SetupDist.py py2exe
 popd
 
 REM Prepare binary directory
