@@ -1,8 +1,8 @@
-ZIP_FILENAME = "DarunGrim 3.1 Beta.zip"
+set ZIP_FILENAME=DarunGrim 3.1 Beta.zip
 REM Clean Up
 rmdir /Q /S Src
 rmdir /Q /S Bin
-del /Q %ZIP_FILENAME%
+del /Q "%ZIP_FILENAME%"
 
 mkdir Src\bin
 copy ..\DarunGrim2\* Src\bin\
@@ -33,7 +33,8 @@ REM Put data directory to binary directory
 xcopy /y /s /I ..\..\Src\UI\Web\data Src\bin\data
 
 REM move bin directory location
-mv Src\bin Bin
+rmdir /Q /S Bin
+mv Src\Bin Bin
 
 REM zip a package
 pushd Bin
