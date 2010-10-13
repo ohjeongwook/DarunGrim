@@ -322,12 +322,14 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 			<th>Creation</th>
 			<th>Modification</th>
 			<th>Addition Time</th>
+			<th>MD5</th>
+			<th>SHA1</th>
 			<th>Operation</th>
 		</tr>
 		</thead>
 
 		<tbody>
-		% for (name,ctime_str,mtime_str,add_time_str,id,version_str,project_member_id) in file_information_list:
+		% for (name,ctime_str,mtime_str,add_time_str,md5,sha1,id,version_str,project_member_id) in file_information_list:
 			<tr>
 				<td>
 					<input type="checkbox" name="id" value="${id}" />
@@ -338,6 +340,8 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 				<td>${ctime_str}</td>
 				<td>${mtime_str}</td>
 				<td>${add_time_str}</td>
+				<td>${md5}</td>
+				<td>${sha1}</td>
 
 				<td>
 					<a href=OpenInIDA?id=${id} target=_new>Open</a>
@@ -381,13 +385,15 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 			<th>Version String</th>
 			<th>Creation</th>
 			<th>Modification</th>
-			<th>Addition Time</th>			
+			<th>Addition Time</th>
+			<th>MD5</th>
+			<th>SHA1</th>
 			<th>Operation</th>
 		</tr>
 		</thead>
 
 		<tbody>
-		% for (name,ctime_str,mtime_str,add_time_str,id,version_str,project_member_id) in file_information_list:
+		% for (name,ctime_str,mtime_str,add_time_str,md5,sha1,id,version_str,project_member_id) in file_information_list:
 			<tr>
 				<td>
 					<input type="checkbox" name="project_member_id" value="${project_member_id}" />
@@ -404,7 +410,8 @@ ProjectContentTemplate = """<%def name="layoutdata(company_name, filename, versi
 				<td>${ctime_str}</td>
 				<td>${mtime_str}</td>
 				<td>${add_time_str}</td>
-
+				<td>${md5}</td>
+				<td>${sha1}</td>
 				<td>
 					<a href=OpenInIDA?id=${id} target=_new>Open</a>
 				</td>
@@ -447,6 +454,7 @@ FileImportTemplateText = """<%def name="layoutdata( folder )">
 	<form name="input" action="ShowFileImport">
 		<input type="text" size="50" name="folder" value="" /> 
 		<p><input type="checkbox" name="move_file" value="yes" /> Move Files&nbsp;<B><font color="red">(WARNING: This will remove the source files)</font></B>
+		<p><input type="checkbox" name="overwrite_mode" value="yes" /> Overwrite old entry
 		<p><input type="submit" value="Import"/>
 	</form>
 	

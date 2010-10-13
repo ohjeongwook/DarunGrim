@@ -68,7 +68,7 @@ class WebServer(object):
 					file_information_list = []
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
 					for file_info in database.GetFileByCompanyFileName( company_name, filename ):
-						file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, None ) )
+						file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.md5, file_info.sha1, file_info.id, file_info.version_string, None ) )
 						
 					projects = database.GetProjects()
 
@@ -190,7 +190,7 @@ $(function () {
 			return company_names_json
 	FileTreeJSON.exposed = True
 
-	def ShowFileImport( self, folder = None, move_file = None ):
+	def ShowFileImport( self, folder = None, move_file = None, overwrite_mode = None ):
 		mytemplate = Template( FileImportTemplateText )
 
 		if folder:
@@ -198,7 +198,12 @@ $(function () {
 			copy_file = True
 			if move_file == 'yes':
 				copy_file = False
-			file_store.IndexFilesInFolder( folder , target_dirname = self.BinariesStorageDirectory, copy_file = copy_file )
+
+			overwrite_mode_val = False
+			if overwrite_mode and overwrite_mode == 'yes':
+				overwrite_mode_val = True
+
+			file_store.IndexFilesInFolder( folder , target_dirname = self.BinariesStorageDirectory, copy_file = copy_file, overwrite_mode = overwrite_mode_val )
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 
@@ -216,7 +221,7 @@ $(function () {
 
 			file_information_list = []
 			for file_info in file_infos:
-				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, None ) )
+				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.md5, file_info.sha1, file_info.id, file_info.version_string, None ) )
 
 			projects = database.GetProjects()
 			mytemplate = Template( FileListTemplate, input_encoding='utf-8' , output_encoding='utf-8' )
@@ -475,7 +480,7 @@ $(function () {
 		for project_member in project_members:
 			if project_member.fileindexes:
 				file_info  = project_member.fileindexes
-				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, project_member.id ) )
+				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.md5, file_info.sha1, file_info.id, file_info.version_string, project_member.id ) )
 
 		project_results = database.GetProjectResults( project_id = project_id )
 		print 'project_results=',project_results
