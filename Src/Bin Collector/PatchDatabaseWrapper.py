@@ -80,16 +80,18 @@ class FileIndex(Base):
 	patch_identifier = Column( String ) #ex) MS09-011
 	version_number = Column( String )
 	release_plan = Column( String )
+	src_full_path = Column( String, index=True )
 	full_path = Column( String )
 	ctime = Column( DateTime, index=True )
 	mtime = Column( DateTime, index=True )
+	added_time = Column( DateTime, index=True )
 	md5 = Column( String(length=16), index=True )
 	sha1 = Column( String(length=20), index=True )
 
 	download_id = Column( Integer, ForeignKey('downloads.id'))
 	downloads = relationship(Download, backref=backref('fileindexes', order_by=id))
 
-	def __init__( self, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path, ctime, mtime, md5, sha1 ):
+	def __init__( self, operating_system, service_pack, filename, company_name, version_string, patch_identifier, src_full_path, full_path, ctime, mtime, added_time, md5, sha1 ):
 		self.operating_system = operating_system
 		self.service_pack = service_pack
 		self.filename = filename
@@ -112,9 +114,11 @@ class FileIndex(Base):
 					elif part2[0:2] == 'sp':
 						self.service_pack = part2
 
+		self.src_full_path = src_full_path
 		self.full_path = full_path
 		self.ctime = ctime
 		self.mtime = mtime
+		self.added_time = added_time
 		self.md5 = md5
 		self.sha1 = sha1
 
@@ -362,13 +366,15 @@ class Database:
 					company_name = '',
 					version_string = '',
 					patch_identifier = '',
+					src_full_path = '',
 					full_path = '',
 					ctime = 0,
 					mtime = 0,
+					added_time = 0,
 					md5 ='',
 					sha1 =''
 					):
-		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path, ctime, mtime, md5, sha1 )
+		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, src_full_path, full_path, ctime, mtime, added_time, md5, sha1 )
 		if download:
 			download.fileindexes.append( fileindex )
 		else:
@@ -383,9 +389,11 @@ class Database:
 					company_name = '',
 					version_string = '',
 					patch_identifier = '',
+					src_full_path = '',
 					full_path = '',
 					ctime = 0,
 					mtime = 0,
+					added_time = 0,					
 					md5 ='',
 					sha1 =''
 					):
@@ -397,9 +405,11 @@ class Database:
 			file.company_name = company_name
 			file.version_string = version_string
 			file.patch_identifier = patch_identifier
+			file.src_full_path = src_full_path
 			file.full_path = full_path
 			file.ctime = ctime
 			file.mtime = mtime
+			file.added_time = added_time
 			file.md5 = md5
 			file.sha1 = sha1
 		self.Commit()
@@ -413,9 +423,11 @@ class Database:
 					company_name = '',
 					version_string = '',
 					patch_identifier = '',
+					src_full_path = '',
 					full_path = '',
 					ctime = 0,
 					mtime = 0,
+					added_time = 0,
 					md5 ='',
 					sha1 =''
 					):
@@ -426,9 +438,11 @@ class Database:
 		file.company_name = company_name
 		file.version_string = version_string
 		file.patch_identifier = patch_identifier
+		file.src_full_path = src_full_path
 		file.full_path = full_path
 		file.ctime = ctime
 		file.mtime = mtime
+		file.added_time = added_time
 		file.md5 = md5
 		file.sha1 = sha1
 		self.Commit()

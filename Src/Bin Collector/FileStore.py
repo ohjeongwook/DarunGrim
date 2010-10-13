@@ -76,6 +76,9 @@ class FileProcessor:
 					mtime = time.localtime( statinfo.st_mtime )
 					mtime_dt = datetime.datetime( mtime.tm_year, mtime.tm_mon, mtime.tm_mday, mtime.tm_hour, mtime.tm_min, mtime.tm_sec )
 
+					added_time = time.localtime( time.time() )
+					added_time_dt = datetime.datetime( added_time.tm_year, added_time.tm_mon, added_time.tm_mday, added_time.tm_hour, added_time.tm_min, added_time.tm_sec )
+
 					fd = open( current_path, "rb" )
 					data = fd.read()
 					fd.close()
@@ -137,10 +140,12 @@ class FileProcessor:
 										filename, 
 										company_name, 
 										file_version, 
-										patch_identifier, 
+										patch_identifier,
+										current_path,
 										target_relative_filename,
 										ctime = ctime_dt,
 										mtime = mtime_dt,
+										added_time = added_time_dt,
 										md5 = md5,
 										sha1 = sha1
 									)
@@ -177,10 +182,12 @@ class FileProcessor:
 								filename, 
 								company_name, 
 								file_version, 
-								patch_identifier, 
+								patch_identifier,
+								current_path,
 								target_relative_filename,
 								ctime = ctime_dt,
 								mtime = mtime_dt,
+								added_time = added_time_dt,
 								md5 = md5,
 								sha1 = sha1
 							)
