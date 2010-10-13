@@ -1,7 +1,8 @@
+ZIP_FILENAME = "DarunGrim 3.1 Beta.zip"
 REM Clean Up
 rmdir /Q /S Src
 rmdir /Q /S Bin
-del /Q DarunGrim3.zip
+del /Q %ZIP_FILENAME%
 
 mkdir Src\bin
 copy ..\DarunGrim2\* Src\bin\
@@ -36,5 +37,5 @@ mv Src\bin Bin
 
 REM zip a package
 pushd Bin
-zip -r ..\DarunGrim3.zip *
+zip -r "..\%ZIP_FILENAME%" *
 pause
