@@ -4,24 +4,46 @@ import win32ver
 import dircache
 import shutil
 import string
+import time
+import datetime
+import hashlib
 
 import PatchDatabaseWrapper
 
 class FileProcessor:
-	DebugLevel = 0
+	DebugLevel = 2
 	NotInterestedFiles = [ 'spmsg.dll', 'spuninst.exe', 'spcustom.dll', 'update.exe', 'updspapi.dll', 'HotFixInstallerUI.dll' ]
 	Database = None
 
 	def __init__( self, databasename = None, database = None ):
-		print 'FileProcessor', databasename, database
+		if self.DebugLevel > 3:
+			print 'FileProcessor', databasename, database
 		self.DatabaseName = databasename
 		if database:
 			self.Database = database
 		else:
 			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		print 'Database', self.Database
 
-	def IndexFilesInFoler( self, src_dirname, target_dirname = None, download = None, copy_file = True ):
+	def IsExecutable( self , filename ):
+		fd = open( filename, "rb" )
+		header = fd.read(2)
+		fd.close()
+		
+		if header == 'MZ':
+			return True
+		return False
+
+	def GetMD5( self , data ):
+		m = hashlib.md5()
+		m.update( data )
+		return m.hexdigest()		
+
+	def GetSHA1( self , data ):
+		s = hashlib.sha1()
+		s.update( data )
+		return s.hexdigest()
+
+	def IndexFilesInFolder( self, src_dirname, target_dirname = None, download = None, copy_file = True ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -29,79 +51,143 @@ class FileProcessor:
 			current_path = os.path.join( src_dirname, file )
 			if os.path.isdir( current_path ):
 				try:
-					self.IndexFilesInFoler( os.path.join( src_dirname, file ), target_dirname, download )
+					self.IndexFilesInFolder( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file )
 				except:
-					pass
-			else:
-				#TODO: Check MZ at the start of the file
+					import traceback
+					traceback.print_exc()
+					continue
+
+			elif self.IsExecutable( current_path ):
+				#Check MZ at the start of the file
 				if self.DebugLevel > 2:
 					print current_path
-				version_info = self.QueryFile( current_path )
+
 				filename = os.path.basename( current_path )
 				
 				if not filename in self.NotInterestedFiles:
-					if len(version_info) > 0 and version_info.has_key( 'CompanyName' ) and  version_info.has_key( 'FileVersion' ):
-						if self.DebugLevel > 2:
-							print version_info
+					version_info = self.QueryFile( current_path )
+					statinfo = os.stat( current_path )
+					if self.DebugLevel > 2:
+						print "%s=%s,%s" % ( file, time.ctime(statinfo.st_ctime), time.ctime(statinfo.st_mtime) )
+
+					ctime = time.localtime( statinfo.st_ctime )
+					ctime_dt = datetime.datetime( ctime.tm_year, ctime.tm_mon, ctime.tm_mday, ctime.tm_hour, ctime.tm_min, ctime.tm_sec )
+
+					mtime = time.localtime( statinfo.st_mtime )
+					mtime_dt = datetime.datetime( mtime.tm_year, mtime.tm_mon, mtime.tm_mday, mtime.tm_hour, mtime.tm_min, mtime.tm_sec )
+
+					fd = open( current_path, "rb" )
+					data = fd.read()
+					fd.close()
+					md5 = self.GetMD5( data )
+					sha1 = self.GetSHA1( data )
+
+					if self.DebugLevel > 2:
+						print version_info
+
+					if not sha1:
+						continue
+
+					try:
+						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
+							target_relative_directory = os.path.join( version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
+						else:
+							target_relative_directory = "etc"
+
+						if not target_dirname:
+							target_dirname = os.getcwd()
+
+						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
+						target_full_directory = os.path.join( target_dirname, target_relative_directory )
+						target_full_filename = os.path.join( target_dirname, target_relative_filename )
 						
-						try:
-							if target_dirname:
-								target_relative_directory = os.path.join( version_info['CompanyName'], filename , string.replace( version_info['FileVersion'], ':', '_' ) )
-								target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
-								
-								target_full_directory = os.path.join( target_dirname, target_relative_directory )
-								target_full_filename = os.path.join( target_dirname, target_relative_filename )
+						if self.DebugLevel > 2:
+							print 'target_relative_directory', target_relative_directory
+							print 'target_relative_filename', target_relative_filename
+							print 'target_full_filename',target_full_filename
 
-								print 'target_relative_directory', target_relative_directory
-								print 'target_relative_filename', target_relative_filename
-								print 'target_full_filename',target_full_filename
+						if not os.path.isdir( target_full_directory ):
+							os.makedirs( target_full_directory )
 
-								if not os.path.isdir( target_full_directory ):
-									os.makedirs( target_full_directory )
+						#Put to the Index Database
+						operating_system = 'Windows XP'
+						patch_identifier = ''
+						service_pack = ''
+						company_name = ''
+						file_version = ''
+						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
+							company_name = version_info['CompanyName']
+							file_version = version_info['FileVersion']
 
-								if current_path != target_full_filename:
+						files = self.Database.GetFileBySHA1( sha1 )
+
+						if files and len(files)>0:
+							if self.DebugLevel > 2:
+								print 'Already there:', current_path, version_info,sha1,files
+							for file in files:
+								# timestamp comparision and update
+								if file.mtime < mtime_dt:
+									if self.DebugLevel > 2:
+										print 'Updating with older data:', current_path, version_info
+									self.Database.UpdateFileByObject(
+										file,
+										download,
+										operating_system, 
+										service_pack, 
+										filename, 
+										company_name, 
+										file_version, 
+										patch_identifier, 
+										target_relative_filename,
+										ctime = ctime_dt,
+										mtime = mtime_dt,
+										md5 = md5,
+										sha1 = sha1
+									)
+						else:
+							if self.DebugLevel > 2:
+								print 'New', download, current_path, version_info, 'filename=',filename,sha1
+
+							if current_path.lower() != target_full_filename.lower():
+								if self.DebugLevel > 1:
+									print "Different src and target:",current_path, target_full_filename
+
+								if os.path.exists( target_full_filename ):
+									postfix = '-' + sha1
+									target_full_filename += postfix
+									target_relative_filename += postfix
+
+								try:
 									if copy_file:
-										print 'Copy to',target_full_filename
+										if self.DebugLevel > 1:
+											print 'Copy from ', current_path ,'to',target_full_filename
 										shutil.copyfile( current_path, target_full_filename )
 									else:
-										print 'Move to',target_full_filename
+										if self.DebugLevel > 1:
+											print 'Move to',target_full_filename
 										shutil.move( current_path, target_full_filename )
-							else:
-								target_relative_filename = current_path
+								except:
+									import traceback
+									traceback.print_exc()
 
-							#TODO: Put to the Index Database
-							operating_system = 'Windows XP'
-							patch_identifier = ''
-							service_pack = ''
+							self.Database.AddFile( 
+								download,
+								operating_system, 
+								service_pack, 
+								filename, 
+								company_name, 
+								file_version, 
+								patch_identifier, 
+								target_relative_filename,
+								ctime = ctime_dt,
+								mtime = mtime_dt,
+								md5 = md5,
+								sha1 = sha1
+							)
+					except:
+						import traceback
+						traceback.print_exc()
 
-							ret = self.Database.GetFileByFileInfo( filename, version_info['CompanyName'], version_info['FileVersion'] )
-							if ret and len(ret)>0:
-								print 'Already there:', current_path, version_info
-								self.Database.UpdateFile( 
-									download,
-									operating_system, 
-									service_pack, 
-									filename, 
-									version_info['CompanyName'], 
-									version_info['FileVersion'], 
-									patch_identifier, 
-									target_relative_filename
-								)
-								
-							else:
-								print 'New', download, current_path, version_info, 'filename=',filename
-								self.Database.AddFile( 
-									download,
-									operating_system, 
-									service_pack, 
-									filename, 
-									version_info['CompanyName'], 
-									version_info['FileVersion'], 
-									patch_identifier, 
-									target_relative_filename
-								)
-						except:
-							pass
 		self.Database.Commit()
 
 	def QueryFile( self, filename ):
@@ -113,12 +199,12 @@ class FileProcessor:
 			lclists.append( [(1033,0x04E4)] )
 
 			for lclist in lclists:
-				if self.DebugLevel > 2:
+				if self.DebugLevel > 5:
 					print 'lclist', lclist
 				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
 				for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
 					value = win32ver.VerQueryValue( info, block+s)
-					if self.DebugLevel > 2:
+					if self.DebugLevel > 5:
 						print "\t", s,'=',value
 					if value and not VersionInfo.has_key( s ):
 						VersionInfo[s] = value
@@ -138,13 +224,15 @@ class MSFileProcessor( FileProcessor ):
 			self.ExtractDownload( download )
 
 	def ExtractDownload( self, download , filename = None ):
-		print 'ExtractDownload', download, filename
+		if self.DebugLevel > 1:
+			print 'ExtractDownload', download, filename
 		if not filename:
 			filename = download.filename
 		if os.path.isfile( filename ) and filename[-4:]=='.exe':
-			print 'Filename', filename
+			if self.DebugLevel > 1:
+				print 'Filename', filename
 			if self.ExtractMSArchive( filename ):
-				self.file_processor.IndexFilesInFoler( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
+				self.file_processor.IndexFilesInFolder( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
 				self.RemoveTemporaryFiles()
 
 	def ExtractMSArchive( self, filename ):		
@@ -155,16 +243,19 @@ class MSFileProcessor( FileProcessor ):
 		for file in dircache.listdir( dirname ):
 			full_path = os.path.join( dirname, file )
 			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
-				print full_path
+				if self.DebugLevel > 1:
+					print full_path
 				if self.ExtractFile( full_path ):
-					self.IndexFilesInFoler( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, self.Download )
+					self.IndexFilesInFolder( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, self.Download )
 					self.RemoveTemporaryFiles()
 
 	def ExtractFile( self, filename ):
 		#Filename
-		print 'Filename', filename
+		if self.DebugLevel > 1:
+			print 'Filename', filename
 		self.Download = self.Database.GetDownloadByFilename( filename )
-		print 'Download', self.Download
+		if self.DebugLevel > 1:
+			print 'Download', self.Download
 		if self.Download:
 			self.ExtractMSArchive( filename )
 			return True
@@ -237,6 +328,7 @@ class Win32VerTest(unittest.TestCase):
 
 if __name__=='__main__':
 	#unittest.main()
+	import sys
 
 	test = 2
 	if test == 1:
@@ -249,11 +341,11 @@ if __name__=='__main__':
 		print file_store.ExtractFilesInDatabase()
 		#file_store.ExtractFilesInDirectory( "Patches" )
 		#if file_store.ExtractFile( PatchBinary ):
-		#	file_store.IndexFilesInFoler()
+		#	file_store.IndexFilesInFolder()
 		#	file_store.RemoveTemporaryFiles()
 	elif test == 2:
-		file_store = FileProcessor( databasename = r'..\UI\Web\index.db' )
-		#file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries' )
-		#file_store.IndexFilesInFoler( r'C:\Program Files (x86)\Adobe', target_dirname = r'T:\mat\Projects\Binaries\AdobePatch' )
-		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries\AdobePatch' )
-		file_store.IndexFilesInFoler( r'T:\mat\Projects\Binaries\Adobe' )
+		file_store = FileProcessor( databasename = r'index.db' )
+
+		folder_name = sys.argv[1]
+		target_dirname = sys.argv[2]
+		file_store.IndexFilesInFolder( folder_name, target_dirname = target_dirname )
