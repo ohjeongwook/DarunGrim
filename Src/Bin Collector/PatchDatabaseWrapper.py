@@ -318,6 +318,9 @@ class Database:
 	def GetFileBySHA1( self, sha1 ):
 		return self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 ).all()
 
+	def GetFileByMD5( self, md5 ):
+		return self.SessionInstance.query( FileIndex ).filter_by( md5=md5 ).all()
+	
 	def GetFileNameByID( self, id ):
 		for file_index in self.SessionInstance.query( FileIndex ).filter_by( id=id ).all():
 			return file_index.filename

@@ -202,25 +202,20 @@ $(function () {
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 
-	def ShowFileSearch( self, filename = None ):
-		mytemplate = Template( """<%def name="layoutdata()">
-			<form name="input" action="ShowFileSearch">
-				<table>
-				<tr>
-					<td>Filename:&nbsp;&nbsp;</td>
-					<td><input type="text" size="50" name="filename" value="" /> </td>
-				</tr>
-				<table>
-				<p><input type="submit" value="Search"/>
-			</form>
-		</%def>
-		""" + BodyHTML )
-
-		if filename:
+	def ShowFileSearch( self, type = None, search_str = None ):
+		if type and search_str:
 			database = PatchDatabaseWrapper.Database( self.DatabaseName )
-			file_info_list = database.GetFileByFileNameWildMatch( filename )
+			
+			file_infos = []
+			if type == 'Filename':
+				file_infos = database.GetFileByFileNameWildMatch( search_str )
+			elif type == 'MD5':
+				file_infos = database.GetFileByMD5( search_str )
+			elif type == 'SHA1':
+				file_infos = database.GetFileBySHA1( search_str )
+
 			file_information_list = []
-			for file_info in file_info_list:
+			for file_info in file_infos:
 				file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.id, file_info.version_string, None ) )
 
 			projects = database.GetProjects()
@@ -232,8 +227,27 @@ $(function () {
 				show_add_to_queue = True,
 				projects = projects
 			)
-			
-		return mytemplate.render()
+		else:
+			mytemplate = Template( """<%def name="layoutdata()">
+				<form name="input" action="ShowFileSearch">
+					<table>
+					<tr>
+						<td>
+						<select name="type">
+							<option value="Filename">Filename</option>
+							<option value="MD5">MD5</option>
+							<option value="SHA1">SHA1</option>
+						</select>
+						</td>
+						<td><input type="text" size="50" name="search_str" value="" /> </td>
+					</tr>
+					<table>
+					<p><input type="submit" value="Search"/>
+				</form>
+			</%def>
+			""" + BodyHTML )
+
+			return mytemplate.render()
 	ShowFileSearch.exposed = True
 
 	def ShowMSPatchList( self, operation = '' ):
