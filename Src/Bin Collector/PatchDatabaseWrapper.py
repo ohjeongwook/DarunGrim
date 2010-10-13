@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Table, Column, Integer, String, Binary, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, Binary, DateTime, MetaData, ForeignKey
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
@@ -12,7 +12,7 @@ class Patch(Base):
 	__tablename__ = 'patches'
 	
 	id = Column( Integer, primary_key = True )
-	name = Column( String )
+	name = Column( String, index=True )
 	title = Column( String )
 	url = Column( String )
 	html_data = Column( Binary ) 
@@ -29,7 +29,7 @@ class Patch(Base):
 class CVE(Base):
 	__tablename__ = 'cves'
 	id = Column( Integer, primary_key = True )
-	cve_string = Column( String )	
+	cve_string = Column( String, index=True )	
 	name = Column( String )	
 
 	patch_id = Column( Integer, ForeignKey('patches.id'))
@@ -74,24 +74,29 @@ class FileIndex(Base):
 	id = Column( Integer, primary_key = True )
 	operating_system = Column( String )
 	service_pack = Column( String )
-	filename = Column( String )
+	filename = Column( String, index=True )
 	company_name = Column( String )
 	version_string = Column( String )
 	patch_identifier = Column( String ) #ex) MS09-011
 	version_number = Column( String )
 	release_plan = Column( String )
 	full_path = Column( String )
+	ctime = Column( DateTime, index=True )
+	mtime = Column( DateTime, index=True )
+	md5 = Column( String(length=16), index=True )
+	sha1 = Column( String(length=20), index=True )
 
 	download_id = Column( Integer, ForeignKey('downloads.id'))
 	downloads = relationship(Download, backref=backref('fileindexes', order_by=id))
 
-	def __init__( self, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
+	def __init__( self, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path, ctime, mtime, md5, sha1 ):
 		self.operating_system = operating_system
 		self.service_pack = service_pack
 		self.filename = filename
 		self.company_name = company_name
 		self.version_string = version_string
 		self.patch_identifier = patch_identifier
+
 		#Parser version_string
 		version_string_parted = version_string.split(" (")
 		if len( version_string_parted ) == 2:
@@ -108,6 +113,10 @@ class FileIndex(Base):
 						self.service_pack = part2
 
 		self.full_path = full_path
+		self.ctime = ctime
+		self.mtime = mtime
+		self.md5 = md5
+		self.sha1 = sha1
 
 	def GetVersionDetailList( self ):
 		(os_string, sp_string, os_type, os_code, build_number) = self.ParseVersionString( self.version_string )
@@ -233,8 +242,8 @@ class Database:
 		echo = False
 		if self.DebugLevel > 2:
 			echo = True
-			
-		print 'filename=',filename
+			print 'filename=',filename
+
 		self.Engine = sqlalchemy.create_engine( 'sqlite:///' + filename, echo = echo )
 
 		metadata = Base.metadata
@@ -302,6 +311,9 @@ class Database:
 	def GetFileByID( self, id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
 
+	def GetFileBySHA1( self, sha1 ):
+		return self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 ).all()
+
 	def GetFileNameByID( self, id ):
 		for file_index in self.SessionInstance.query( FileIndex ).filter_by( id=id ).all():
 			return file_index.filename
@@ -342,29 +354,84 @@ class Database:
 	def GetFileByDownloadID( self, download_id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( download_id=download_id ).all()
 
-	def AddFile(self, download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
-		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
+	def AddFile(self, 
+					download = None,
+					operating_system = '',
+					service_pack = '',
+					filename = '',
+					company_name = '',
+					version_string = '',
+					patch_identifier = '',
+					full_path = '',
+					ctime = 0,
+					mtime = 0,
+					md5 ='',
+					sha1 =''
+					):
+		fileindex = FileIndex( operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path, ctime, mtime, md5, sha1 )
 		if download:
 			download.fileindexes.append( fileindex )
 		else:
 			self.SessionInstance.add( fileindex )
 		return fileindex
 
-	def UpdateFile(self, download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path ):
-		for file in self.SessionInstance.query( FileIndex ).filter( and_( FileIndex.filename==filename, FileIndex.company_name==company_name, FileIndex.version_string==version_string ) ).all():
+	def UpdateFile(self, 
+					download = None,
+					operating_system = '',
+					service_pack = '',
+					filename = '',
+					company_name = '',
+					version_string = '',
+					patch_identifier = '',
+					full_path = '',
+					ctime = 0,
+					mtime = 0,
+					md5 ='',
+					sha1 =''
+					):
+		for file in self.SessionInstance.query( FileIndex ).filter( FileIndex.sha1==sha1 ).all():
+			file.download = download
 			file.operating_system = operating_system
 			file.service_pack = service_pack
 			file.filename = filename
 			file.company_name = company_name
-			file.version_string = version_string 
+			file.version_string = version_string
 			file.patch_identifier = patch_identifier
 			file.full_path = full_path
+			file.ctime = ctime
+			file.mtime = mtime
+			file.md5 = md5
+			file.sha1 = sha1
+		self.Commit()
 
-		if download:
-			download.fileindexes.append( fileindex )
-		else:
-			self.SessionInstance.add( fileindex )
-		return fileindex
+	def UpdateFileByObject(self,
+					file,
+					download = None,
+					operating_system = '',
+					service_pack = '',
+					filename = '',
+					company_name = '',
+					version_string = '',
+					patch_identifier = '',
+					full_path = '',
+					ctime = 0,
+					mtime = 0,
+					md5 ='',
+					sha1 =''
+					):
+		file.download = download
+		file.operating_system = operating_system
+		file.service_pack = service_pack
+		file.filename = filename
+		file.company_name = company_name
+		file.version_string = version_string
+		file.patch_identifier = patch_identifier
+		file.full_path = full_path
+		file.ctime = ctime
+		file.mtime = mtime
+		file.md5 = md5
+		file.sha1 = sha1
+		self.Commit()
 
 	##### Project related methods #####
 	def AddProject( self, name, description = '' ):
@@ -400,7 +467,8 @@ class Database:
 		if len( ret ) == 0:
 			self.SessionInstance.add( project_members )
 		else:
-			print 'Duplicate', project_id, id, ret
+			if self.DebugLevel > 1:
+				print 'Duplicate', project_id, id, ret
 
 	def GetProjectMembers( self, project_id ):
 		return self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).all()
@@ -417,7 +485,8 @@ class Database:
 			self.SessionInstance.add( project_result )
 			self.Commit()
 		else:
-			print 'Duplicate', project_id, source_file_id, target_file_id, database_name, ret
+			if self.DebugLevel > 1:
+				print 'Duplicate', project_id, source_file_id, target_file_id, database_name, ret
 
 	def GetProjectResults( self, project_id = None ):
 		if project_id:
@@ -430,9 +499,10 @@ class Database:
 			self.SessionInstance.commit()
 			return True
 		except:
-			print 'Failed to Commit'
-			import traceback
-			traceback.print_exc()
+			if self.DebugLevel > -1:
+				print 'Failed to Commit'
+				import traceback
+				traceback.print_exc()
 			self.SessionInstance.rollback()
 			return False
 
