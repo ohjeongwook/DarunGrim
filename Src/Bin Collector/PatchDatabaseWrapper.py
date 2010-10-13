@@ -323,6 +323,9 @@ class Database:
 			return file_index.filename
 		return ''
 
+	def GetFileByCompanyFileName( self, company_name, filename):
+		return self.SessionInstance.query( FileIndex ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).all()
+
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
