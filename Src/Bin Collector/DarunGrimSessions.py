@@ -146,14 +146,14 @@ class Manager:
 		if dot_pos >= 0:
 			base_filename = base_filename[:dot_pos]
 		
-		prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
 		if not databasename:
+			prefix = target_patch_name + '-' + source_patch_name + '-' + base_filename
 			databasename = prefix + ".dgf"
 			full_databasename = os.path.join( self.OutputDirectory , databasename )
+			log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 		else:
 			full_databasename = databasename
-		
-		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
+			log_filename = full_databasename + ".log"
 
 		if reset_database:
 			if self.DebugLevel > 0:
