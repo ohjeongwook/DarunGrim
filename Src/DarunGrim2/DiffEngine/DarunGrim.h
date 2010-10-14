@@ -30,10 +30,13 @@ public:
 	~DarunGrim();
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 	void SetIDAPath( const char *path );
-	bool GenerateDB( char *StorageFilename, 
-		char *LogFilename, 
-		DWORD StartAddressForSource, DWORD EndAddressForSource, 
-		DWORD StartAddressForTarget, DWORD EndAddressForTarget );
+	bool GenerateDB( 
+		char *storage_filename, 
+		char *log_filename, 
+		char *ida_log_filename_for_source,
+		char *ida_log_filename_for_target,
+		unsigned long start_address_for_source, unsigned long end_address_for_source, 
+		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 
 	bool LoadDiffResults( const char *storage_filename );

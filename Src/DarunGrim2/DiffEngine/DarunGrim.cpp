@@ -57,17 +57,21 @@ void DarunGrim::SetIDAPath( const char *path )
 }
 
 bool DarunGrim::GenerateDB( 
-	char *ParamStorageFilename, 
-	char *LogFilename, 
-	DWORD start_address_for_source, DWORD end_address_for_source, 
-	DWORD start_address_for_target, DWORD end_address_for_target )
+	char *storage_filename, 
+	char *log_filename, 
+	char *ida_log_filename_for_source,
+	char *ida_log_filename_for_target,
+	unsigned long start_address_for_source, unsigned long end_address_for_source, 
+	unsigned long start_address_for_target, unsigned long end_address_for_target )
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	StorageFilename = ParamStorageFilename;
+	StorageFilename = storage_filename;
 
-	pIDAClientManager->SetOutputFilename(StorageFilename);
-	pIDAClientManager->SetLogFilename(LogFilename);
+	pIDAClientManager->SetOutputFilename( StorageFilename );
+	pIDAClientManager->SetLogFilename( log_filename );
+	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_source );
 	pIDAClientManager->RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
+	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_target );
 	pIDAClientManager->RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
 	return OpenDatabase();
 }
