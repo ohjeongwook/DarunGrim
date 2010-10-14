@@ -481,14 +481,18 @@ class Database:
 		self.Commit()
 		return project
 		
-	def AddToProject( self, project_id, id ):
-		project_members = ProjectMember( project_id, id )
-		ret = self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).filter_by( file_id=id ).all()
-		if len( ret ) == 0:
-			self.SessionInstance.add( project_members )
-		else:
-			if self.DebugLevel > 1:
-				print 'Duplicate', project_id, id, ret
+	def AddToProject( self, project_id, id = None ):
+		if self.DebugLevel > 2:
+			print 'AddToProject', project_id, id
+	
+		if id:
+			project_members = ProjectMember( project_id, id )
+			ret = self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).filter_by( file_id=id ).all()
+			if len( ret ) == 0:
+				self.SessionInstance.add( project_members )
+			else:
+				if self.DebugLevel > 1:
+					print 'Duplicate', project_id, id, ret
 
 	def GetProjectMembers( self, project_id ):
 		return self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).all()
