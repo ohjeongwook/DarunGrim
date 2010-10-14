@@ -54,6 +54,7 @@ public:
 	void SetLogFilename(char *LogFilename);
 	void RunIDAToGenerateDB(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
 	void ConnectToDarunGrim2(char *ida_filename);
+	const char *GetIDALogFilename();
 };
 
 class DiffMachine
@@ -92,11 +93,13 @@ class DarunGrim
 public:
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 	void SetIDAPath( const char *path );
-	bool GenerateDB(
-		char *StorageFilename, 
-		char *LogFilename, 
-		int StartAddressForSource, int EndAddressForSource, 
-		int StartAddressForTarget, int EndAddressForTarget );
+	bool GenerateDB( 
+		char *storage_filename, 
+		char *log_filename, 
+		char *ida_log_filename_for_source,
+		char *ida_log_filename_for_target,
+		unsigned long start_address_for_source, unsigned long end_address_for_source, 
+		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool Analyze();
 	
