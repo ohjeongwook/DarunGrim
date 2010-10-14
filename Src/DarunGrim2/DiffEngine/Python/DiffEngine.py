@@ -127,6 +127,7 @@ class IDAClientManager(_object):
     def SetLogFilename(self, *args): return _DiffEngine.IDAClientManager_SetLogFilename(self, *args)
     def RunIDAToGenerateDB(self, *args): return _DiffEngine.IDAClientManager_RunIDAToGenerateDB(self, *args)
     def ConnectToDarunGrim2(self, *args): return _DiffEngine.IDAClientManager_ConnectToDarunGrim2(self, *args)
+    def GetIDALogFilename(self): return _DiffEngine.IDAClientManager_GetIDALogFilename(self)
     __swig_destroy__ = _DiffEngine.delete_IDAClientManager
     __del__ = lambda self : None;
 IDAClientManager_swigregister = _DiffEngine.IDAClientManager_swigregister
