@@ -215,9 +215,9 @@ $(function () {
 			if type == 'Filename':
 				file_infos = database.GetFileByFileNameWildMatch( search_str )
 			elif type == 'MD5':
-				file_infos = database.GetFileByMD5( search_str )
+				file_infos = database.GetFileByMD5( search_str.lower() )
 			elif type == 'SHA1':
-				file_infos = database.GetFileBySHA1( search_str )
+				file_infos = database.GetFileBySHA1( search_str.lower() )
 
 			file_information_list = []
 			for file_info in file_infos:
@@ -434,6 +434,10 @@ $(function () {
 		#Remove project_member_id from project		
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		
+		#Add to project
+		if type(project_member_id)!=type(list()):
+			project_member_id = [project_member_id]
+		
 		for one_project_member_id in project_member_id:
 			database.RemoveProjectMember( one_project_member_id )
 		return self.ShowProject( project_id )
@@ -513,9 +517,19 @@ $(function () {
 		)
 	ShowProject.exposed = True
 
-	def AddToProject( self, id, project_id = None, allbox = None ):
+	def AddToProject( self, id = None, project_id = None, allbox = None ):
 		#Display project choose list
 		items = []
+		
+		if not project_id:
+			return ""
+
+		if not id:
+			return self.ShowProject( project_id )
+
+		#Add to project
+		if type(id)!=type(list()):
+			id = [id]
 		
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		if not project_id:
@@ -523,7 +537,6 @@ $(function () {
 			mytemplate = Template( ProjectSelectionTemplate + BodyHTML )
 			return mytemplate.render( ids = id, projects = projects )
 		else:
-			#Add to project
 			for one_id in id:
 				database.AddToProject( project_id, one_id )
 				database.Commit()
