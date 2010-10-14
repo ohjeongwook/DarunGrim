@@ -20,6 +20,7 @@ from HTMLPages import *
 config_file = 'DarunGrim3.cfg'
 
 class WebServer(object):
+	DebugLevel = 0
 	def __init__(self):
 		#Something Configurable
 		self.BinariesStorageDirectory = r'C:\mat\Projects\Binaries'
@@ -570,25 +571,104 @@ $(function () {
 			reset_database = True
 
 		self.DarunGrimSessionsInstance.InitFileDiffByID( source_id, target_id, databasename, reset_database )
+
 		#Add or Update Project
 		if project_id:
 			patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
 			patch_database.AddProjectResult( project_id, source_id, target_id, databasename)
 
-		return self.GetFunctionMatchInfo( 
-			patch_id, 
-			download_id, 
-			file_id, 
-			source_id=source_id, 
-			target_id = target_id,
-			show_detail  = show_detail,
-			project_id = project_id
+		databasename = self.GenerateDGFName( source_id, target_id )
+		database = DarunGrimDatabaseWrapper.Database( databasename )
+
+		#TODO: Check if dgf if correct? check size entries in GetFunctionMatchInfoCount?.
+		if database.GetFunctionMatchInfoCount() == 0:
+			#Remove DatabaseName
+			del database
+			self.DarunGrimSessionsInstance.RemoveDiffer ( source_id, target_id )
+			try:
+				os.remove( self.DarunGrimSessionsInstance.DatabaseName )
+			except:
+				print 'Error removing database file', self.DarunGrimSessionsInstance.DatabaseName
+			#Show error page?
+
+			if self.DebugLevel > 3:
+				print 'LogFilename', self.DarunGrimSessionsInstance.LogFilename
+				print 'LogFilenameForSource', self.DarunGrimSessionsInstance.LogFilenameForSource
+				print 'LogFilenameForTarget', self.DarunGrimSessionsInstance.LogFilenameForTarget
+
+			log = ''
+			log_for_source = ''
+			log_for_target = ''
+			try:
+				fd = open( self.DarunGrimSessionsInstance.LogFilename )
+				log = fd.read()
+				fd.close()
+			except:
+				pass
+
+			try:
+				fd = open( self.DarunGrimSessionsInstance.LogFilenameForSource )
+				log_for_source = fd.read()
+				fd.close()
+			except:
+				pass
+
+			try:
+				fd = open( self.DarunGrimSessionsInstance.LogFilenameForTarget )
+				log_for_target = fd.read()
+				fd.close()
+			except:
+				pass
+
+			mytemplate = Template( """<%def name="layoutdata()">
+					<title>Something is wrong with IDA execution.</title>
+					<table>
+					<tr>
+						<td><b>Log for Source(${source_filename})</b></td>
+					</tr>
+					<tr>
+						<td><pre>${log_for_source}</pre></td>
+					</tr>
+
+					<tr>
+						<td><b>Log for Target(${target_filename})</b></td>
+					</tr>
+					<tr>
+						<td><pre>${log_for_target}</pre></td>
+					</tr>
+
+					<tr>
+						<td><b>Darungrim Plugin Log</b></td>
+					</tr>
+					<tr>
+						<td><pre>${log}</pre></td>
+					</tr>
+					<table>
+			</%def>
+			""" + BodyHTML )
+
+			return mytemplate.render( log = log,
+				log_for_source = log_for_source,
+				log_for_target = log_for_target,
+				source_filename = self.DarunGrimSessionsInstance.SourceFileName,
+				target_filename = self.DarunGrimSessionsInstance.TargetFileName
 			)
+		else:
+			return self.GetFunctionMatchInfo( 
+				patch_id, 
+				download_id, 
+				file_id, 
+				source_id=source_id,
+				target_id = target_id,
+				show_detail  = show_detail,
+				project_id = project_id
+				)
 	StartDiff.exposed = True
 
 	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0, project_id = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
+
 		function_match_infos = []
 		
 		for function_match_info in database.GetFunctionMatchInfo():
