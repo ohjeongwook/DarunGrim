@@ -13,7 +13,7 @@ import DarunGrimDatabaseWrapper
 
 Differs = {}
 class Manager:
-	DebugLevel = 3
+	DebugLevel = 1
 
 	def __init__( self, databasename = 'test.db', binary_store_directory = r'c:\mat\Projects\Binaries', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
@@ -60,20 +60,24 @@ class Manager:
 				shutil.copyfile( src_file, dst_file )
 
 	def InitMSFileDiff( self, patch_name, filename ):
-		print 'Analyzing', patch_name, filename
+		if self.DebugLevel > 0:
+			print 'Analyzing', patch_name, filename
 		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
-			print '='*80
-			print target_patch_name,source_patch_name
+			if self.DebugLevel > 0:
+				print '='*80
+				print target_patch_name,source_patch_name
 	
 			source_filename = source_file_entry['full_path']
 			target_filename = target_file_entry['full_path']
-			print source_patch_name, source_filename, target_patch_name, target_filename 
+			if self.DebugLevel > 0:
+				print source_patch_name, source_filename, target_patch_name, target_filename 
 			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
 	def InitFileDiffByID( self, source_id, target_id, databasename = None, reset_database = False ):
 		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
-		print 'source', source_id, source_file_entries
+		if self.DebugLevel > 0:
+			print 'source', source_id, source_file_entries
 
 		if source_file_entries and len(source_file_entries) > 0:
 			source_patch_name = 'None'
@@ -82,7 +86,8 @@ class Manager:
 			source_filename = os.path.join( self.BinariesStorageDirectory, source_file_entries[0].full_path )
 
 		target_file_entries = database.GetFileByID( target_id )
-		print target_id, target_file_entries 
+		if self.DebugLevel > 0:
+			print target_id, target_file_entries 
 
 		target_patch_name = 'None'
 		if target_file_entries and len(target_file_entries) > 0:
@@ -151,7 +156,8 @@ class Manager:
 		log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
 
 		if reset_database:
-			print 'Removing', full_databasename
+			if self.DebugLevel > 0:
+				print 'Removing', full_databasename
 			os.remove( full_databasename )
 
 		differ = self.LoadDiffer( full_databasename, source_filename, target_filename )
@@ -172,7 +178,8 @@ class Manager:
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
 			differ = DarunGrimEngine.Differ( source_filename, target_filename )
 			differ.SetIDAPath( self.IDAPath )
-			print 'Already analyzed',databasename
+			if self.DebugLevel > 0:
+				print 'Already analyzed',databasename
 			differ.LoadDiffResults( databasename )
 			return differ
 		return None
