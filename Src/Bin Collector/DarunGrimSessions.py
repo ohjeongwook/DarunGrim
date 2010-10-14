@@ -14,6 +14,11 @@ import DarunGrimDatabaseWrapper
 Differs = {}
 class Manager:
 	DebugLevel = 1
+	SourceFileName = ''
+	TargetFileName = ''
+	LogFilename = None
+	LogFilenameForSource = None
+	LogFilenameForTarget = None
 
 	def __init__( self, databasename = 'test.db', binary_store_directory = r'c:\mat\Projects\Binaries', output_directory = r'C:\mat\Projects\DGFs',ida_path = None ):
 		self.DatabaseFilename = databasename
@@ -103,6 +108,8 @@ class Manager:
 
 		diff = None
 		if source_patch_name and source_filename and target_patch_name and target_filename and databasename:
+			self.SourceFileName = source_filename
+			self.TargetFileName = target_filename
 			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename, databasename, reset_database )
 			self.SetDiffer( source_id, target_id, differ )
 
@@ -121,6 +128,9 @@ class Manager:
 		
 		global Differs
 		if Differs.has_key( key ):
+			print 'Removing', key
+			differ = Differs[ key ]
+			del differ
 			del Differs[ key ]
 		
 	def GetDiffer( self, source_id, target_id ):
@@ -151,9 +161,13 @@ class Manager:
 			databasename = prefix + ".dgf"
 			full_databasename = os.path.join( self.OutputDirectory , databasename )
 			log_filename = os.path.join( self.OutputDirectory , prefix + ".log" )
+			ida_log_filename_for_source = os.path.join( self.OutputDirectory , prefix + "-source.log" )
+			ida_logfilename_for_target = os.path.join( self.OutputDirectory , prefix + "-target.log" )
 		else:
 			full_databasename = databasename
 			log_filename = full_databasename + ".log"
+			ida_log_filename_for_source = full_databasename + "-source.log"
+			ida_logfilename_for_target = full_databasename + "-target.log"
 
 		if reset_database:
 			if self.DebugLevel > 0:
@@ -162,6 +176,7 @@ class Manager:
 
 		differ = self.LoadDiffer( full_databasename, source_filename, target_filename )
 
+		self.DatabaseName = full_databasename
 		if not differ:
 			differ = DarunGrimEngine.Differ( source_filename, target_filename )
 			differ.SetIDAPath( self.IDAPath )
@@ -169,19 +184,31 @@ class Manager:
 				print 'source_filename',source_filename
 				print 'target_filename',target_filename
 				print 'databasename',databasename
-			differ.DiffFile( full_databasename, log_filename  )
+				print 'log_filename', log_filename
+				print 'ida_log_filename_for_source', ida_log_filename_for_source
+				print 'ida_logfilename_for_target', ida_logfilename_for_target
+			differ.DiffFile( full_databasename, log_filename, ida_log_filename_for_source, ida_logfilename_for_target )
+			self.LogFilename = log_filename
+			self.LogFilenameForSource = ida_log_filename_for_source
+			self.LogFilenameForTarget = ida_logfilename_for_target
+
 		self.UpdateSecurityImplicationsScore( full_databasename )
 
 		return differ
 
 	def LoadDiffer( self, databasename, source_filename = None, target_filename = None ):
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
-			differ = DarunGrimEngine.Differ( source_filename, target_filename )
-			differ.SetIDAPath( self.IDAPath )
-			if self.DebugLevel > 0:
-				print 'Already analyzed',databasename
-			differ.LoadDiffResults( databasename )
-			return differ
+			database = DarunGrimDatabaseWrapper.Database( databasename )
+			function_match_info_count = database.GetFunctionMatchInfoCount()
+			del database
+
+			if function_match_info_count > 0:
+				differ = DarunGrimEngine.Differ( source_filename, target_filename )
+				differ.SetIDAPath( self.IDAPath )
+				if self.DebugLevel > 0:
+					print 'Already analyzed',databasename
+				differ.LoadDiffResults( databasename )
+				return differ
 		return None
 
 	def SyncIDA( self, source_id, target_id):
