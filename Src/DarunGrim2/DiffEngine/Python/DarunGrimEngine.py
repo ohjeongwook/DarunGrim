@@ -17,13 +17,15 @@ class Differ:
 	def LoadDiffResults( self, storage_filename ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		self.DarunGrim.LoadDiffResults( storage_filename )
-		
-	def DiffFile( self, storage_filename, log_filename ):
+
+	def DiffFile( self, storage_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
 
 		self.DarunGrim.GenerateDB(
 			storage_filename, log_filename, 
+			ida_log_filename_for_source,
+			ida_logfilename_for_target,
 			0, 0,
 			0, 0)
 		self.DarunGrim.Analyze()
