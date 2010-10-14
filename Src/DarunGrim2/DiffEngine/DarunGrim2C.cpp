@@ -145,7 +145,7 @@ void main(int argc,char *argv[])
 	{
 		pDarunGrim->SetSourceFilename( TheSourceFilename );
 		pDarunGrim->SetTargetFilename( TheTargetFilename );
-		pDarunGrim->GenerateDB( StorageFilename, LogFilename, 
+		pDarunGrim->GenerateDB( StorageFilename, LogFilename, NULL, NULL,
 			StartAddressForSource,EndAddressForSource,
 			StartAddressForTarget,EndAddressForTarget );
 	}
