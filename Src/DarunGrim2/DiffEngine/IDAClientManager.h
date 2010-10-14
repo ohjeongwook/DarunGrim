@@ -22,6 +22,9 @@ private:
 	char *EscapedOutputFilename;
 	char *EscapedLogFilename;
 	DWORD IDACommandProcessorThreadId;
+	char IDALogFilename[MAX_PATH+1];
+
+	bool GenerateIDALogFilename();
 
 public:
 	IDAClientManager();
@@ -39,6 +42,8 @@ public:
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename( char *OutputFilename );
 	void SetLogFilename( char *LogFilename );
-	void RunIDAToGenerateDB( const char *TheFilename, DWORD StartAddress, DWORD EndAddress );
+	void RunIDAToGenerateDB( const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress );
 	void ConnectToDarunGrim2( const char *ida_filename );
+	void SetIDALogFilename( const char *ida_log_filename );
+	const char *GetIDALogFilename();
 };

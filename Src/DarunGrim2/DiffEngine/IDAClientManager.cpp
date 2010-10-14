@@ -20,6 +20,7 @@ IDAClientManager::IDAClientManager():
 	IDACommandProcessorThreadId( -1 )
 {
 	IDAPath=_strdup( DEFAULT_IDA_PATH );
+	GenerateIDALogFilename();
 }
 
 void IDAClientManager::SetDatabase( DBWrapper *OutputDB )
@@ -363,7 +364,7 @@ void IDAClientManager::SetLogFilename( char *LogFilename )
 	}
 }
 
-void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, DWORD StartAddress, DWORD EndAddress )
+void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress )
 {
 	char *idc_filename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, 
 		EscapedLogFilename?EscapedLogFilename:"", 
@@ -375,8 +376,16 @@ void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, DWORD Start
 	{
 		//Run IDA
 		Logger.Log( 10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename );
-		Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
-		Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		if( IDALogFilename[0] )
+		{
+			Logger.Log( 10, "Executing \"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename );
+			Execute( TRUE, "\"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename );
+		}
+		else
+		{
+			Logger.Log( 10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+			Execute( TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		}
 		free( idc_filename );
 	}
 }
@@ -390,8 +399,54 @@ void IDAClientManager::ConnectToDarunGrim2( const char *ida_filename )
 	{
 		//Run IDA
 		Logger.Log( 10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename );
-		Logger.Log( 10, "Executing \"%s\" -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
-		Execute( TRUE, "\"%s\" -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		Logger.Log( 10, "\"%s\" -S\"%s\" \"%s\"", IDAPath, EscapedLogFilename, idc_filename, ida_filename );
+
+		if( IDALogFilename[0] )
+		{
+			Execute( TRUE, "\"%s\" -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename );
+		}else
+		{
+			Execute( TRUE, "\"%s\" -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename );
+		}
 		free( idc_filename );
 	}
+}
+
+bool IDAClientManager::GenerateIDALogFilename()
+{
+	char temporary_path[MAX_PATH+1];
+
+	IDALogFilename[0] = NULL;
+	// Get the temp path.
+	DWORD ret_val =GetTempPath( sizeof(temporary_path) , temporary_path);
+	if( ret_val <= sizeof(temporary_path) && (ret_val!=0) )
+	{
+		ret_val = GetTempFileName( temporary_path,
+							  TEXT("IDALOG"),
+							  0,
+							  IDALogFilename );
+		if( ret_val != 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void IDAClientManager::SetIDALogFilename( const char *ida_log_filename )
+{
+	if( ida_log_filename )
+	{
+		strncpy( IDALogFilename, ida_log_filename, sizeof( IDALogFilename ) - 1 );
+		IDALogFilename[ sizeof(IDALogFilename) - 1 ] = NULL;
+	}
+	else
+	{
+		IDALogFilename[0] = NULL;
+	}
+}
+
+const char *IDAClientManager::GetIDALogFilename()
+{
+	return IDALogFilename;
 }
