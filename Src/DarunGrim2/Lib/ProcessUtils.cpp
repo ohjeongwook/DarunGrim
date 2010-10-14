@@ -80,11 +80,10 @@ void *realloc(void *memblock,size_t old_size,size_t size)
 
 char *WriteToTemporaryFile(const char *format,...)
 {
-#define BUFSIZE 512
 	HANDLE temporary_file_handle;
-	char temporary_filename[BUFSIZE];  
-	char temporary_path[BUFSIZE];
-	DWORD buffer_size=BUFSIZE;
+	char temporary_filename[MAX_PATH+1];  
+	char temporary_path[MAX_PATH+1];
+	DWORD buffer_size=MAX_PATH+1;
 
 	// Get the temp path.
 	DWORD return_value=GetTempPath(buffer_size,	// length of the buffer
