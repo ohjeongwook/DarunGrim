@@ -580,7 +580,7 @@ $(function () {
 		databasename = self.GenerateDGFName( source_id, target_id )
 		database = DarunGrimDatabaseWrapper.Database( databasename )
 
-		#TODO: Check if dgf if correct? check size entries in GetFunctionMatchInfoCount?.
+		#Check if dgf if correct? check size entries in GetFunctionMatchInfoCount?.
 		if database.GetFunctionMatchInfoCount() == 0:
 			#Remove DatabaseName
 			del database
