@@ -335,6 +335,9 @@ class Database:
 	def GetFileByFileNameWildMatch( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( '%'+filename+'%' ) ).order_by(FileIndex.filename).all()
 
+	def GetFileBySrcFullPathWildMatch( self, filename ):
+		return self.SessionInstance.query( FileIndex ).filter( FileIndex.src_full_path.like( '%'+filename+'%' ) ).order_by(FileIndex.src_full_path).all()
+
 	def GetFiles( self ):
 		return self.SessionInstance.query( FileIndex ).all()
 

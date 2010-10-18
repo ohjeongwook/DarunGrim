@@ -219,6 +219,8 @@ $(function () {
 				file_infos = database.GetFileByMD5( search_str.lower() )
 			elif type == 'SHA1':
 				file_infos = database.GetFileBySHA1( search_str.lower() )
+			elif type == 'File Path':
+				file_infos = database.GetFileBySrcFullPathWildMatch( search_str.lower() )
 
 			file_information_list = []
 			for file_info in file_infos:
@@ -243,6 +245,7 @@ $(function () {
 							<option value="Filename">Filename</option>
 							<option value="MD5">MD5</option>
 							<option value="SHA1">SHA1</option>
+							<option value="File Path">File Path</option>
 						</select>
 						</td>
 						<td><input type="text" size="50" name="search_str" value="" /> </td>
