@@ -54,19 +54,24 @@ Made by <a href="http://twitter.com/ohjeongwook" target="_new">Jeongwook "Matt" 
 """
 
 HeadText = """
-<link rel="stylesheet" type="text/css" href="/data/jquery-ui.css" media="screen" />
-<script type="text/javascript" src="/data/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/data/tablesorter/jquery-latest.js"></script> 
-<script type="text/javascript" src="/data/tablesorter/jquery.tablesorter.js"></script> 
+	<link rel="stylesheet" href="/data/themes/smoothness/jquery-ui-1.8.5.custom.css">
+	<link rel="stylesheet" href="/data/themes/basic/style.css"/>
 
-<link rel="stylesheet" href="/data/themes/basic/style.css" type="text/css" media="print, projection, screen" />
-	
+    <script src="/data/jquery/jquery-1.4.3.min.js"></script>
+    <script src="/data/jquery/ui/jquery.ui.core.js"></script>
+    <script src="/data/jquery/ui/jquery.ui.widget.js"></script>
+    <script src="/data/jquery/ui/jquery.ui.datepicker.js"></script>
+    
+    <script type="text/javascript" src="/data/jquery/tablesorter/jquery.tablesorter.js"></script> 
+
 <script type="text/javascript">
 	$(document).ready(function() 
 		{ 
-			$("#mainTable").tablesorter( {sortList:[[0,0],[2,1]], widgets: ['zebra']} ); 
+			$("#datepicker_from").datepicker();
+			$("#datepicker_to").datepicker();
+			$("#mainTable").tablesorter( {sortList:[[0,0],[2,1]], widgets: ['zebra']} ); 			
 		} 
-	); 
+	);
 
 	function checkAll(){
 		for (var i=0;i<document.forms[0].elements.length;i++)

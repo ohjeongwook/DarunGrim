@@ -208,10 +208,11 @@ $(function () {
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 
-	def ShowFileSearch( self, type = None, search_str = None ):
+	def ShowFileSearch( self, type = None, search_str = None,date_type = None, datepicker_from = None, datepicker_to = None ):
 		if type and search_str:
 			database = PatchDatabaseWrapper.Database( self.DatabaseName )
 			
+			print date_type, datepicker_from, datepicker_to
 			file_infos = []
 			if type == 'Filename':
 				file_infos = database.GetFileByFileNameWildMatch( search_str )
@@ -248,11 +249,32 @@ $(function () {
 							<option value="File Path">File Path</option>
 						</select>
 						</td>
-						<td><input type="text" size="50" name="search_str" value="" /> </td>
+
+						<td colspan=2>
+							<input type="text" size="50" name="search_str" value=""/>
+						</td>
+					</tr>
+
+					<tr>
+						<td>
+							<select name="date_type">
+								<option value="CreatedDate">Created Date</option>
+								<option value="ModifiedDate">Modified Date</option>
+								<option value="AddedDate">Added Date</option>
+							</select>
+						</td>
+
+						<td>
+							<input id="datepicker_from" type="text" name="datepicker_from" value="">
+						</td>
+						
+						<td>
+							<input id="datepicker_to" type="text" name="datepicker_to" value="">
+						</td>
 					</tr>
 					<table>
 					<p><input type="submit" value="Search"/>
-				</form>
+				</form>		
 			</%def>
 			""" + BodyHTML )
 
