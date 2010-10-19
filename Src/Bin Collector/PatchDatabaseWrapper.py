@@ -318,15 +318,16 @@ class Database:
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
 
 	def SelectBySubType( self, query, sub_type, sub_search_str ):
-		if sub_search_str == '*':
-			search_str = '%'
-		elif sub_search_str:
-			search_str = '%'+sub_search_str+'%'	
+		if sub_type and search_str:
+			if sub_search_str == '*':
+				search_str = '%'
+			elif sub_search_str:
+				search_str = '%'+sub_search_str+'%'	
 
-		if sub_type == 'CompanyName':
-			return query.filter( FileIndex.company_name.like( search_str ) )
+			if sub_type == 'CompanyName':
+				return query.filter( FileIndex.company_name.like( search_str ) )
 
-		return None
+		return query
 
 	def SelectByDateRange( self, query, date_type, from_date_string, to_date_string ):
 		print from_date_string[6:10], from_date_string[0:2], from_date_string[3:5]
@@ -344,7 +345,7 @@ class Database:
 	def GetFileBySHA1( self, sha1, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 )
 		
-		if sub_type:
+		if sub_type and sub_search_str:
 			query = self.SelectBySubType( query, sub_type, sub_search_str )
 
 		if date_type and from_date_string and to_date_string:
@@ -354,7 +355,7 @@ class Database:
 	def GetFileByMD5( self, md5, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter_by( md5=md5 )
 		
-		if sub_type:
+		if sub_type and sub_search_str:
 			query = self.SelectBySubType( query, sub_type, sub_search_str )
 
 		if date_type and from_date_string and to_date_string:
@@ -382,7 +383,7 @@ class Database:
 		if search_str:
 			query = self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( search_str ) )
 
-			if sub_type:
+			if sub_type and sub_search_str:
 				query = self.SelectBySubType( query, sub_type, sub_search_str )
 
 			if date_type and from_date_string and to_date_string:
@@ -394,7 +395,7 @@ class Database:
 	def GetFileBySrcFullPathWildMatch( self, filename, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter( FileIndex.src_full_path.like( '%'+filename+'%' ) )
 
-		if sub_type:
+		if sub_type and sub_search_str:
 			query = self.SelectBySubType( query, sub_type, sub_search_str )
 
 		if date_type and from_date_string and to_date_string:
