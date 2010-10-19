@@ -211,17 +211,16 @@ $(function () {
 	def ShowFileSearch( self, type = None, search_str = None,date_type = None, datepicker_from = None, datepicker_to = None ):
 		if type and search_str:
 			database = PatchDatabaseWrapper.Database( self.DatabaseName )
-			
-			print date_type, datepicker_from, datepicker_to
+
 			file_infos = []
 			if type == 'Filename':
-				file_infos = database.GetFileByFileNameWildMatch( search_str )
+				file_infos = database.GetFileByFileNameWildMatch( search_str, date_type, datepicker_from, datepicker_to )
 			elif type == 'MD5':
-				file_infos = database.GetFileByMD5( search_str.lower() )
+				file_infos = database.GetFileByMD5( search_str.lower(), date_type, datepicker_from, datepicker_to )
 			elif type == 'SHA1':
-				file_infos = database.GetFileBySHA1( search_str.lower() )
+				file_infos = database.GetFileBySHA1( search_str.lower(), date_type, datepicker_from, datepicker_to )
 			elif type == 'File Path':
-				file_infos = database.GetFileBySrcFullPathWildMatch( search_str.lower() )
+				file_infos = database.GetFileBySrcFullPathWildMatch( search_str.lower(), date_type, datepicker_from, datepicker_to )
 
 			file_information_list = []
 			for file_info in file_infos:
