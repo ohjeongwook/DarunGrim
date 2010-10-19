@@ -31,6 +31,7 @@ rmdir /Q /S Src\Bin\tcl
 
 REM Put data directory to binary directory
 xcopy /y /s /I ..\..\Src\UI\Web\data Src\bin\data
+xcopy /D /S /I /Y ..\Plugin Src\bin\Plugin\
 
 REM move bin directory location
 rmdir /Q /S Bin
