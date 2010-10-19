@@ -4,33 +4,35 @@ from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import and_
+from sqlalchemy import and_, between
+
+import datetime
 
 Base = declarative_base()
 
 class Patch(Base):
 	__tablename__ = 'patches'
-	
+
 	id = Column( Integer, primary_key = True )
 	name = Column( String, index=True )
 	title = Column( String )
 	url = Column( String )
-	html_data = Column( Binary ) 
+	html_data = Column( Binary )
 
 	def __init__( self, name, title, url, html_data ):
 		self.name = name
 		self.title = title
 		self.url = url
 		self.html_data = html_data
-		
+
 	def __repr__( self ):
 		return "<Patches('%s','%s','%s')>" % ( self.name, self.title, self.url )
 
 class CVE(Base):
 	__tablename__ = 'cves'
 	id = Column( Integer, primary_key = True )
-	cve_string = Column( String, index=True )	
-	name = Column( String )	
+	cve_string = Column( String, index=True )
+	name = Column( String )
 
 	patch_id = Column( Integer, ForeignKey('patches.id'))
 	patches = relationship(Patch, backref=backref('cves', order_by=id))
@@ -38,7 +40,7 @@ class CVE(Base):
 	def __init__( self, cve_string, name ):
 		self.cve_string = cve_string
 		self.name = name
-		
+
 	def __repr__( self ):
 		return "<CVEs('%s','%s')>" % ( self.cve_string, self.name )
 
@@ -46,7 +48,7 @@ class Download(Base):
 	__tablename__ = 'downloads'
 	id = Column( Integer, primary_key = True )
 	operating_system = Column( String )
-	label = Column( String )	
+	label = Column( String )
 	url = Column( String )
 	filename = Column( String )
 	maximum_security_impact = Column( String )
@@ -64,13 +66,13 @@ class Download(Base):
 		self.maximum_security_impact = maximum_security_impact
 		self.aggregate_severity_rating = aggregate_severity_rating
 		self.bulletins_replaced = bulletins_replaced
-		
+
 	def __repr__( self ):
 		return "<Downloads('%s','%s','%s')>" % ( self.label, self.url, self.filename )
- 
+
 class FileIndex(Base):
 	__tablename__ = 'fileindexes'
-	
+
 	id = Column( Integer, primary_key = True )
 	operating_system = Column( String )
 	service_pack = Column( String )
@@ -150,14 +152,14 @@ class FileIndex(Base):
 
 		#### Version
 		version_parts = version.split('.')
-		
+
 		os_code = ''
 		build_number = ''
 		if len( version_parts ) > 3:
 			os_code = version_parts[0]+'.'+version_parts[1]+'.'+version_parts[2]
 			build_number = version_parts[3]
 
-		
+
 		#### Distro
 		dot_pos = identifier.find(".")
 		distro=''
@@ -189,13 +191,13 @@ class FileIndex(Base):
 class Project(Base):
 	__tablename__ = 'projects'
 	id = Column( Integer, primary_key = True )
-	name = Column( String )	
+	name = Column( String )
 	description = Column( String )
 
 	def __init__( self, name, description ):
 		self.name = name
 		self.description = description
-		
+
 	def __repr__( self ):
 		return "<Project('%s','%s')>" % ( self.name, self.description )
 
@@ -212,7 +214,7 @@ class ProjectMember(Base):
 	def __init__( self, project_id, file_id ):
 		self.project_id = project_id
 		self.file_id = file_id
-		
+
 	def __repr__( self ):
 		return "<ProjectMember('%d','%d')>" % ( self.project_id, self.file_id )
 
@@ -236,7 +238,7 @@ class ProjectResult(Base):
 		self.source_file_id = source_file_id
 		self.target_file_id = target_file_id
 		self.database_name = database_name
-		
+
 	def __repr__( self ):
 		return "<ProjectMember('%d','%d','%d','%s')>" % ( self.project_id, self.source_file_id, self.target_file_id, self.database_name )
 
@@ -254,7 +256,7 @@ class Database:
 		metadata.create_all( self.Engine )
 
 		self.Session = sessionmaker()
-		self.Session.configure( bind = self.Engine )	
+		self.Session.configure( bind = self.Engine )
 		self.SessionInstance = self.Session()
 
 	def AddPatch( self, name, title, url, html_data = '' ):
@@ -263,7 +265,7 @@ class Database:
 		return patch
 
 	def GetPatch( self, name ):
-		return self.SessionInstance.query( Patch ).filter_by( name=name ).first() 
+		return self.SessionInstance.query( Patch ).filter_by( name=name ).first()
 
 	def GetPatches( self ):
 		return self.SessionInstance.query( Patch ).order_by( Patch.name ).all()
@@ -293,8 +295,8 @@ class Database:
 		return download
 
 	def GetDownloadByFilename( self , filename ):
-		return self.SessionInstance.query( Download ).filter_by( filename=filename ).first() 
-	
+		return self.SessionInstance.query( Download ).filter_by( filename=filename ).first()
+
 	def GetDownloadByPatchID( self , patch_id ):
 		return self.SessionInstance.query( Download ).filter_by( patch_id=patch_id ).all()
 
@@ -302,10 +304,10 @@ class Database:
 		return self.SessionInstance.query( Download ).filter(~Download.id.in_(self.SessionInstance.query(FileIndex.download_id)))
 
 	def GetDownloadID( self, id ):
-		return self.SessionInstance.query( Download ).filter_by( id=id ).all() 
+		return self.SessionInstance.query( Download ).filter_by( id=id ).all()
 
 	def GetDownloadByID( self, id ):
-		return self.SessionInstance.query( Download ).filter_by( id=id ).all() 
+		return self.SessionInstance.query( Download ).filter_by( id=id ).all()
 
 	def GetDownloadLabelByID( self, id ):
 		for download in self.GetDownloadID( id ):
@@ -315,12 +317,31 @@ class Database:
 	def GetFileByID( self, id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
 
-	def GetFileBySHA1( self, sha1 ):
-		return self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 ).all()
+	def SelectByDateRange( self, query, date_type, from_date_string, to_date_string ):
+		print from_date_string[6:10], from_date_string[0:2], from_date_string[3:5]
+		from_date = datetime.date( int(from_date_string[6:10]), int(from_date_string[0:2]), int(from_date_string[3:5]) )
+		to_date = datetime.date( int(to_date_string[6:10]), int(to_date_string[0:2]), int(to_date_string[3:5]) )
 
-	def GetFileByMD5( self, md5 ):
-		return self.SessionInstance.query( FileIndex ).filter_by( md5=md5 ).all()
-	
+		if date_type == 'CreatedDate':
+			return query.filter( between( FileIndex.ctime, from_date, to_date ) )
+		elif date_type == 'ModifiedDate':
+			return query.filter( between( FileIndex.mtime, from_date, to_date ) )
+		elif date_type == 'AddedDate':
+			return query.filter( between( FileIndex.added_time, from_date, to_date ) )
+		return query	
+
+	def GetFileBySHA1( self, sha1, date_type, from_date_string, to_date_string ):
+		query = self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 )
+		if date_type and from_date_string and to_date_string:
+			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
+		return query.all()
+
+	def GetFileByMD5( self, md5, date_type, from_date_string, to_date_string ):
+		query = self.SessionInstance.query( FileIndex ).filter_by( md5=md5 )
+		if date_type and from_date_string and to_date_string:
+			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
+		return query.all()
+
 	def GetFileNameByID( self, id ):
 		for file_index in self.SessionInstance.query( FileIndex ).filter_by( id=id ).all():
 			return file_index.filename
@@ -332,11 +353,26 @@ class Database:
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
-	def GetFileByFileNameWildMatch( self, filename ):
-		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( '%'+filename+'%' ) ).order_by(FileIndex.filename).all()
+	def GetFileByFileNameWildMatch( self, filename, date_type, from_date_string, to_date_string ):
+		search_str = None
+		if filename == '*':
+			search_str = '%'
+		elif filename:
+			search_str = '%'+filename+'%'
 
-	def GetFileBySrcFullPathWildMatch( self, filename ):
-		return self.SessionInstance.query( FileIndex ).filter( FileIndex.src_full_path.like( '%'+filename+'%' ) ).order_by(FileIndex.src_full_path).all()
+		if search_str:
+			query = self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( search_str ) )
+			if date_type and from_date_string and to_date_string:
+				query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
+
+			return query.order_by(FileIndex.filename)
+		return None
+
+	def GetFileBySrcFullPathWildMatch( self, filename, date_type, from_date_string, to_date_string ):
+		query = self.SessionInstance.query( FileIndex ).filter( FileIndex.src_full_path.like( '%'+filename+'%' ) )
+		if date_type and from_date_string and to_date_string:
+			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
+		return query.order_by(FileIndex.src_full_path).all()
 
 	def GetFiles( self ):
 		return self.SessionInstance.query( FileIndex ).all()
@@ -352,13 +388,13 @@ class Database:
 	def GetVersionStrings( self, company_name = None, filename = None ):
 		if company_name !=None and filename != None:
 			return self.SessionInstance.query( FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().all()
-			
+	
 		return self.SessionInstance.query( FileIndex.version_string ).distinct().all()
 
 	def GetVersionStringsWithIDs( self, company_name = None, filename = None ):
 		if company_name !=None and filename != None:
 			return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).filter( and_(FileIndex.company_name==company_name, FileIndex.filename==filename) ).distinct().order_by( FileIndex.version_string ).all()
-			
+	
 		return self.SessionInstance.query( FileIndex.id, FileIndex.version_string ).distinct().all()
 
 	def GetFileByFileInfo( self, filename, company_name, version_string ):
@@ -367,7 +403,7 @@ class Database:
 	def GetFileByDownloadID( self, download_id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( download_id=download_id ).all()
 
-	def AddFile(self, 
+	def AddFile(self,
 					download = None,
 					operating_system = '',
 					service_pack = '',
@@ -390,7 +426,7 @@ class Database:
 			self.SessionInstance.add( fileindex )
 		return fileindex
 
-	def UpdateFile(self, 
+	def UpdateFile(self,
 					download = None,
 					operating_system = '',
 					service_pack = '',
@@ -402,7 +438,7 @@ class Database:
 					full_path = '',
 					ctime = 0,
 					mtime = 0,
-					added_time = 0,					
+					added_time = 0,			
 					md5 ='',
 					sha1 =''
 					):
@@ -483,11 +519,11 @@ class Database:
 		project.description = description
 		self.Commit()
 		return project
-		
+
 	def AddToProject( self, project_id, id = None ):
 		if self.DebugLevel > 2:
 			print 'AddToProject', project_id, id
-	
+
 		if id:
 			project_members = ProjectMember( project_id, id )
 			ret = self.SessionInstance.query( ProjectMember ).filter_by( project_id=project_id ).filter_by( file_id=id ).all()
@@ -544,7 +580,7 @@ if __name__ == '__main__':
 		company_names = database.GetCompanyNames()
 		filenames = database.GetFileNames()
 		version_strings = database.GetVersionStrings()
-	
+
 		for (company_name,) in company_names:
 			print company_name
 			for (filename, ) in database.GetFileNames( company_name ):
@@ -558,7 +594,7 @@ if __name__ == '__main__':
 		company_name = "company"
 		version_string = "version"
 		patch_identifier = "patch"
-		full_path = "full"	
+		full_path = "full"
 
 		maximum_security_impact = 'Remote Code Execution'
 		aggregate_severity_rating = 'Critical'
@@ -567,7 +603,7 @@ if __name__ == '__main__':
 		patch = database.AddPatch( 'MS09-011', 'Vulnerability in Microsoft DirectShow Could Allow Remote Code Execution (961373)', 'http://www.microsoft.com/technet/security/bulletin/ms09-011.mspx' )
 		download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4', 'DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 		database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
-		
+
 		download = database.AddDownload( patch, 'Microsoft Windows 2000 Service Pack 4','DirectX 8.1', 'http://download.microsoft.com/download/5/1/A/51A85157-C145-4C4C-8F15-546A564EA841/Windows2000-DirectX8-KB961373-x86-ENU.exe', 'Patches/Windows2000-DirectX8-KB961373-x86-ENU.exe', maximum_security_impact, aggregate_severity_rating, bulletins_replaced )
 		database.AddFile( download, operating_system, service_pack, filename, company_name, version_string, patch_identifier, full_path )
 
@@ -578,7 +614,7 @@ if __name__ == '__main__':
 	if "GetPatch" in Tests:
 		print 'MS09-018',database.GetPatch( 'MS09-018' )
 		print 'MS09-0999',database.GetPatch( 'MS09-099' )
-		
+
 	if "RenameFiles" in Tests:
 		for file in database.GetFiles():
 			try:
@@ -587,3 +623,4 @@ if __name__ == '__main__':
 			except:
 				pass
 		database.Commit()
+
