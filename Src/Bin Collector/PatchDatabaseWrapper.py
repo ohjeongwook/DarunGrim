@@ -317,6 +317,17 @@ class Database:
 	def GetFileByID( self, id ):
 		return self.SessionInstance.query( FileIndex ).filter_by( id=id ).all()
 
+	def SelectBySubType( self, query, sub_type, sub_search_str ):
+		if sub_search_str == '*':
+			search_str = '%'
+		elif sub_search_str:
+			search_str = '%'+sub_search_str+'%'	
+
+		if sub_type == 'CompanyName':
+			return query.filter( FileIndex.company_name.like( search_str ) )
+
+		return None
+
 	def SelectByDateRange( self, query, date_type, from_date_string, to_date_string ):
 		print from_date_string[6:10], from_date_string[0:2], from_date_string[3:5]
 		from_date = datetime.date( int(from_date_string[6:10]), int(from_date_string[0:2]), int(from_date_string[3:5]) )
@@ -330,14 +341,22 @@ class Database:
 			return query.filter( between( FileIndex.added_time, from_date, to_date ) )
 		return query	
 
-	def GetFileBySHA1( self, sha1, date_type, from_date_string, to_date_string ):
+	def GetFileBySHA1( self, sha1, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter_by( sha1=sha1 )
+		
+		if sub_type:
+			query = self.SelectBySubType( query, sub_type, sub_search_str )
+
 		if date_type and from_date_string and to_date_string:
 			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
 		return query.all()
 
-	def GetFileByMD5( self, md5, date_type, from_date_string, to_date_string ):
+	def GetFileByMD5( self, md5, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter_by( md5=md5 )
+		
+		if sub_type:
+			query = self.SelectBySubType( query, sub_type, sub_search_str )
+
 		if date_type and from_date_string and to_date_string:
 			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
 		return query.all()
@@ -353,7 +372,7 @@ class Database:
 	def GetFileByFileName( self, filename ):
 		return self.SessionInstance.query( FileIndex ).filter( FileIndex.filename==filename ).all()
 
-	def GetFileByFileNameWildMatch( self, filename, date_type, from_date_string, to_date_string ):
+	def GetFileByFileNameWildMatch( self, filename, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		search_str = None
 		if filename == '*':
 			search_str = '%'
@@ -362,14 +381,22 @@ class Database:
 
 		if search_str:
 			query = self.SessionInstance.query( FileIndex ).filter( FileIndex.filename.like( search_str ) )
+
+			if sub_type:
+				query = self.SelectBySubType( query, sub_type, sub_search_str )
+
 			if date_type and from_date_string and to_date_string:
 				query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
 
 			return query.order_by(FileIndex.filename)
 		return None
 
-	def GetFileBySrcFullPathWildMatch( self, filename, date_type, from_date_string, to_date_string ):
+	def GetFileBySrcFullPathWildMatch( self, filename, sub_type , sub_search_str, date_type, from_date_string, to_date_string ):
 		query = self.SessionInstance.query( FileIndex ).filter( FileIndex.src_full_path.like( '%'+filename+'%' ) )
+
+		if sub_type:
+			query = self.SelectBySubType( query, sub_type, sub_search_str )
+
 		if date_type and from_date_string and to_date_string:
 			query = self.SelectByDateRange( query, date_type, from_date_string, to_date_string )
 		return query.order_by(FileIndex.src_full_path).all()
