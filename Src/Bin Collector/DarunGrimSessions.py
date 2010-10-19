@@ -29,17 +29,22 @@ class Manager:
 		if ida_path:
 			if os.path.isfile( ida_path ):
 				self.IDAPath = ida_path
-	
+
 		if not self.IDAPath:
 			for filename in ( r'C:\Program Files\IDA\idag.exe', r'C:\Program Files (x86)\IDA\idag.exe' ):
 				if os.path.isfile( filename ):
 					self.IDAPath = filename
 					break
+		self.InstallPlugin()
 
 		if not os.path.isdir( self.OutputDirectory ):
 			os.makedirs( self.OutputDirectory )
 	
-		self.InstallPlugin()
+		if self.DebugLevel > 2:
+			print 'DatabaseFilename=', self.DatabaseFilename
+			print 'BinariesStorageDirectory=', self.BinariesStorageDirectory
+			print 'OutputDirectory=', self.OutputDirectory
+			print 'IDAPath=', self.IDAPath
 	
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.DatabaseFilename )
 
@@ -50,8 +55,9 @@ class Manager:
 			for one_plugins_dst_dir in ( r'C:\Program Files\IDA\plugins', r'C:\Program Files (x86)\IDA\plugins' ):
 				if os.path.isdir( one_plugins_dst_dir ):
 					plugins_dst_dir = one_plugins_dst_dir
-					break
 
+		if self.DebugLevel > 2:
+			print 'plugins_dst_dir=',plugins_dst_dir
 		if plugins_dst_dir:
 			#copy r'Plugin\*.plw -> plugins_dst_dir
 			plugins_src_dir = 'Plugin'
@@ -60,7 +66,11 @@ class Manager:
 			src_file = os.path.join( plugins_src_dir, plugin_file ) 
 			dst_file = os.path.join( plugins_dst_dir, plugin_file ) 
 
+			if self.DebugLevel > 2:
+				print 'Checking', src_file, '->', dst_file
 			if os.path.isfile( src_file ) and not os.path.isfile( dst_file ):
+				if self.DebugLevel > 0:
+					print 'Copying', src_file, '->', dst_file
 				import shutil
 				shutil.copyfile( src_file, dst_file )
 
