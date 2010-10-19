@@ -208,19 +208,19 @@ $(function () {
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 
-	def ShowFileSearch( self, type = None, search_str = None,date_type = None, datepicker_from = None, datepicker_to = None ):
+	def ShowFileSearch( self, type = None, search_str = None,sub_type = None, sub_search_str = None, date_type = None, datepicker_from = None, datepicker_to = None ):
 		if type and search_str:
 			database = PatchDatabaseWrapper.Database( self.DatabaseName )
 
 			file_infos = []
 			if type == 'Filename':
-				file_infos = database.GetFileByFileNameWildMatch( search_str, date_type, datepicker_from, datepicker_to )
+				file_infos = database.GetFileByFileNameWildMatch( search_str, sub_type , sub_search_str.lower(), date_type, datepicker_from, datepicker_to )
 			elif type == 'MD5':
-				file_infos = database.GetFileByMD5( search_str.lower(), date_type, datepicker_from, datepicker_to )
+				file_infos = database.GetFileByMD5( search_str.lower(), sub_type , sub_search_str.lower(), date_type, datepicker_from, datepicker_to )
 			elif type == 'SHA1':
-				file_infos = database.GetFileBySHA1( search_str.lower(), date_type, datepicker_from, datepicker_to )
+				file_infos = database.GetFileBySHA1( search_str.lower(), sub_type , sub_search_str.lower(), date_type, datepicker_from, datepicker_to )
 			elif type == 'File Path':
-				file_infos = database.GetFileBySrcFullPathWildMatch( search_str.lower(), date_type, datepicker_from, datepicker_to )
+				file_infos = database.GetFileBySrcFullPathWildMatch( search_str.lower(), sub_type , sub_search_str.lower(), date_type, datepicker_from, datepicker_to )
 
 			file_information_list = []
 			for file_info in file_infos:
@@ -251,6 +251,18 @@ $(function () {
 
 						<td colspan=2>
 							<input type="text" size="50" name="search_str" value=""/>
+						</td>
+					</tr>
+
+					<tr>
+						<td>
+						<select name="sub_type">
+							<option value="CompanyName">Company Name</option>
+						</select>
+						</td>
+
+						<td colspan=2>
+							<input type="text" size="50" name="sub_search_str" value=""/>
 						</td>
 					</tr>
 
