@@ -502,11 +502,15 @@ $(function () {
 		return mytemplate.render()
 	ShowAddProjectPage.exposed = True
 
+	def AddProjectImpl( self, name, description = '' ):
+			database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			project = database.AddProject( name, description )
+			database.Commit()
+			return project
+
 	def AddProject( self, name, description = '' ):
 		if name:
-			database = PatchDatabaseWrapper.Database( self.DatabaseName )
-			database.AddProject( name, description )
-			database.Commit()
+			self.AddProjectImpl( name, description )
 			return self.ShowProjects()
 		else:
 			#TODO: Show error message
@@ -554,10 +558,16 @@ $(function () {
 		)
 	ShowProject.exposed = True
 
-	def AddToProject( self, id = None, project_id = None, allbox = None ):
+	def AddToProject( self, id = None, project_id = None, new_project_name = None, allbox = None ):
 		#Display project choose list
 		items = []
 		
+		if new_project_name and new_project_name != "":
+			#Create new project
+			project = self.AddProjectImpl( new_project_name, "" )
+			#assign project_id = project.id
+			project_id = project.id
+
 		if not project_id:
 			return ""
 

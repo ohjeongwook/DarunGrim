@@ -361,7 +361,8 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 		<p><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/>Check all		
 		<input type="submit" value="Add to Project"/>
 		
-""" + ProjectSelectionListTemplate + """		
+""" + ProjectSelectionListTemplate + """
+	or new project: &nbsp; <input type="text" name="new_project_name" value=""/>
 	</form> 
 </%def>
 <html>
