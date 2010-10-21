@@ -358,11 +358,11 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 		</tbody>
 		</table>
 		
-		<p><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/>Check all		
-		<input type="submit" value="Add to Project"/>
+		<p><input type="checkbox" value="on" name="allbox" onclick="checkAll();"/>Check All Items
+		<p><input type="submit" value="Add Checked Files To "/> Existing Project: 
 		
 """ + ProjectSelectionListTemplate + """
-	or new project: &nbsp; <input type="text" name="new_project_name" value=""/>
+	or New Project: &nbsp; <input type="text" name="new_project_name" value=""/>
 	</form> 
 </%def>
 <html>
