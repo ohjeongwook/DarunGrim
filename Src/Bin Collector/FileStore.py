@@ -139,7 +139,7 @@ class FileProcessor:
 							target_dirname = os.getcwd()
 
 						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
-						files = self.Database.GetFileBySHA1( sha1 )
+						files = self.Database.GetFileBySHA1( sha1, None,None,None,None,None )
 
 						if not files or len(files) == 0 or overwrite_mode:
 							if self.DebugLevel > 2:
