@@ -237,17 +237,15 @@ DiffInfoTemplateText = """<%def name="layoutdata(somedata)">
 </body>
 </html>"""
 
-FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
+FileListCompanyNamesTemplateText = """<%def name="layoutdata( filenames )">
 <title>Company Names</title>
-	<% i = 0 %>
 	<table class="Table">
 	<tr>
-	% for name in names:
-		<td><a href="/ShowFileList?company_name=${name}">${name}</a></td>
+	% for i, filename in enumerate(filenames):
+		<td><a href="/ShowFileList?company_name=${filename}">${filename}</a></td>
 		% if i % 5 == 4:
 			</tr><tr>
 		% endif
-		<% i += 1 %>
 	% endfor
 	</tr>
 	</table>
@@ -258,26 +256,27 @@ FileListCompanyNamesTemplateText = """<%def name="layoutdata( names )">
 <body>
 """ + MainMenu + """
 <div id=Content>
-<%self:layoutdata names="${names}" args="col">\
+<%self:layoutdata filenames="${filenames}" args="col">\
 </%self:layoutdata>
 </div>
 </body>
 </html>"""
 
-FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
+FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, filenames, numVersions)">
 <title>File Names for ${company_name}</title>
-	<a href="/ShowFileList">Company Names</a>
-	<% i = 0 %>
+    Total <b>${len(filenames)}</b> files for <b>${company_name}</b><br>
+	Back to <a href="/ShowFileList">Company Names</a>
 	<table class="Table">
-	<tr>
-	% for name in names:
-		<td><a href="/ShowFileList?company_name=${company_name}&filename=${name}">${name}</a></td>
-		% if i % 5 == 4:
-			</tr><tr>
-		% endif
-		<% i += 1 %>
+    <tr>
+        <th>FILENAME</th>
+        <th># of versions</th>
+    </tr>
+	% for i, filename in enumerate(filenames):
+        <tr>
+            <td><a href="/ShowFileList?company_name=${company_name}&filename=${filename}">${filename}</a></td>
+            <td>${numVersions[i]}</td>
+        </tr>
 	% endfor
-	</tr>
 	</table>
 </%def>
 <html>
@@ -286,7 +285,7 @@ FileListFileNamesTemplateText = """<%def name="layoutdata(company_name, names)">
 <body>
 """ + MainMenu + """
 <div id=Content>
-<%self:layoutdata company_name="${company_name}" names="${names}" args="col">\
+<%self:layoutdata company_name="${company_name}" filenames="${filenames}" numVersions="${numVersions}" args="col">\
 </%self:layoutdata>
 </div>
 </body>
@@ -329,12 +328,13 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 			<th>Addition Time</th>
 			<th>MD5</th>
 			<th>SHA1</th>
+			<th>Arch.</th>
 			<th>Operation</th>
 		</tr>
 		</thead>
 
 		<tbody>
-		% for (name,ctime_str,mtime_str,add_time_str,md5,sha1,id,version_str,project_member_id) in file_information_list:
+		% for (name,ctime_str,mtime_str,add_time_str,md5,sha1,id,version_str,project_member_id, arch_info) in file_information_list:
 			<tr>
 				<td>
 					<input type="checkbox" name="id" value="${id}" />
@@ -347,7 +347,7 @@ FileListTemplate = """<%def name="layoutdata(company_name, filename, version_str
 				<td>${add_time_str}</td>
 				<td>${md5}</td>
 				<td>${sha1}</td>
-
+				<td>${arch_info}</td>
 				<td>
 					<a href=OpenInIDA?id=${id} target=_new>Open</a>
 				</td>
