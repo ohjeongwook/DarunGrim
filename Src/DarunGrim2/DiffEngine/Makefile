@@ -35,14 +35,14 @@ conlibs=$(conlibs) user32.lib odbc32.lib odbccp32.lib comctl32.lib advapi32.lib
 dlllflags=$(dlllflags) advapi32.lib
 
 !IFDEF NODEBUG
-conlibs=$(conlibs) LIBCMT.LIB
+conlibs=$(conlibs) LIBCMT.LIB /NODEFAULTLIB:msvcrt.lib
 !ELSE
 conflags=$(conflags) /DEBUG
-conlibs=$(conlibs) LIBCMTD.LIB /NODEFAULTLIB:Libcmt.lib
+conlibs=$(conlibs) LIBCMTD.LIB /NODEFAULTLIB:Libcmt.lib /NODEFAULTLIB:msvcrt.lib
 !ENDIF
 
 python_include=-IC:\Python26\include -D__WIN32__
-python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib /DEBUG
+python_lflags =/LIBPATH:C:\Python26\libs ws2_32.lib user32.lib /DEBUG /NODEFAULTLIB:msvcrt.lib
 
 all: $(OUTDIR) $(OUTDIR)\DarunGrim2C.exe $(OUTDIR)\_DiffEngine.pyd $(OUTDIR)\Test.exe
 
