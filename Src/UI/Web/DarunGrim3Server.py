@@ -57,7 +57,7 @@ class WebServer(object):
 	index.exposed = True
 
 	def ShowFileList(self, company_name = None, filename = None, version_string = None ):
-		names = []
+		filenames = []
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		if company_name:
 			if filename:
@@ -69,7 +69,10 @@ class WebServer(object):
 					file_information_list = []
 					database = PatchDatabaseWrapper.Database( self.DatabaseName )
 					for file_info in database.GetFileByCompanyFileName( company_name, filename ):
-						file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.md5, file_info.sha1, file_info.id, file_info.version_string, None ) )
+						fullFilename = os.path.join( self.BinariesStorageDirectory, file_info.full_path)
+						archInfo = self.Is32bitExecutable( fullFilename)
+
+						file_information_list.append( (file_info.filename, file_info.ctime, file_info.mtime, file_info.added_time, file_info.md5, file_info.sha1, file_info.id, file_info.version_string, None, archInfo ) )
 						
 					projects = database.GetProjects()
 
@@ -83,22 +86,36 @@ class WebServer(object):
 					)
 			else:
 				#List filenames
-				
-				for (name, ) in database.GetFileNames( company_name ):
-					names.append( name )
+				numVersions = []
+				for (filename, ) in database.GetFileNames( company_name ):
+					numVersion = len(database.GetFileByCompanyFileName( company_name, filename))
+					filenames.append( filename )
+					numVersions.append(numVersion)
 
 				mytemplate = Template( FileListFileNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
 				return mytemplate.render(  
 					company_name = company_name,
-					names = names
+					filenames = filenames,
+					numVersions = numVersions
 				)
 		else:
 			#List company_names
-			for (name, ) in database.GetCompanyNames():
-				names.append( name )
+			for (filename, ) in database.GetCompanyNames():
+				filenames.append( filename )
 			mytemplate = Template( FileListCompanyNamesTemplateText, input_encoding='utf-8' , output_encoding='utf-8' )
-			return mytemplate.render( names = names )
+			return mytemplate.render( filenames = filenames )
 	ShowFileList.exposed = True
+
+	def Is32bitExecutable( self, filename):
+		# determine the executable's base architecture, 32bit / 64bit
+		# TODO - this function might be located in somewhere else
+		import pefile
+		pe = pefile.PE(filename)
+		_32bitFlag = pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE']
+
+		if ( _32bitFlag & pe.FILE_HEADER.Machine ) == _32bitFlag:
+			return "32bit"
+		return "64bit"
 
 	def FileTree(self, company_name = None, filename = None, version_string = None ):
 		return """<html>
