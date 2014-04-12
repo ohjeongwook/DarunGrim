@@ -109,7 +109,7 @@
     <ClCompile Include="..\Lib\SharedSocket.cpp" />
     <ClCompile Include="..\Lib\SocketOperation.cpp" />
     <ClCompile Include="..\Lib\sqlite3.c" />
-    <ClCompile Include="..\Plugin\DarunGrimPlugin.cpp" />
+    <ClCompile Include="..\IDAPlugin\DarunGrimPlugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
