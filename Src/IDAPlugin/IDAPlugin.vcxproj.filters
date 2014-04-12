@@ -92,7 +92,7 @@
     <ClCompile Include="..\Lib\sqlite3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Plugin\DarunGrimPlugin.cpp">
+    <ClCompile Include="..\IDAPlugin\DarunGrimPlugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
