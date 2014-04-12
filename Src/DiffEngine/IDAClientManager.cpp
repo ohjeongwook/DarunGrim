@@ -296,21 +296,21 @@ void IDAClientManager::ShowResultsOnIDA()
 		4 );	
 }
 
-#define RUN_DARUNGRIM2_PLUGIN_STR "static main()\n\
+#define RUN_DARUNGRIM_PLUGIN_STR "static main()\n\
 {\n\
 	Wait();\n\
-	RunPlugin( \"DarunGrim2\", 1 );\n\
+	RunPlugin( \"DarunGrim\", 1 );\n\
 	SetLogFile( \"%s\" );\n\
 	SaveAnalysisData( \"%s\", %d, %d );\n\
 	Exit( 0 );\n\
 }"
 
-#define CONNECT_TO_DARUNGRIM2_STR "static main()\n\
+#define CONNECT_TO_DARUNGRIM_STR "static main()\n\
 {\n\
 	Wait();\n\
-	RunPlugin( \"DarunGrim2\", 1 );\n\
+	RunPlugin( \"DarunGrim\", 1 );\n\
 	SetLogFile( \"%s\" );\n\
-	ConnectToDarunGrim2();\n\
+	ConnectToDarunGrim();\n\
 }"
 
 void IDAClientManager::SetIDAPath( const char *ParamIDAPath )
@@ -366,7 +366,7 @@ void IDAClientManager::SetLogFilename( char *LogFilename )
 
 void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress )
 {
-	char *idc_filename=WriteToTemporaryFile( RUN_DARUNGRIM2_PLUGIN_STR, 
+	char *idc_filename=WriteToTemporaryFile( RUN_DARUNGRIM_PLUGIN_STR, 
 		EscapedLogFilename?EscapedLogFilename:"", 
 		EscapedOutputFilename?EscapedOutputFilename:"", 
 		StartAddress, 
@@ -391,9 +391,9 @@ void IDAClientManager::RunIDAToGenerateDB( const char *ida_filename, unsigned lo
 }
 
 
-void IDAClientManager::ConnectToDarunGrim2( const char *ida_filename )
+void IDAClientManager::ConnectToDarunGrim( const char *ida_filename )
 {
-	char *idc_filename=WriteToTemporaryFile( CONNECT_TO_DARUNGRIM2_STR, EscapedLogFilename?EscapedLogFilename:"");
+	char *idc_filename=WriteToTemporaryFile( CONNECT_TO_DARUNGRIM_STR, EscapedLogFilename?EscapedLogFilename:"");
 
 	if( idc_filename )
 	{

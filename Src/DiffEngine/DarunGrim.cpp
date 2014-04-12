@@ -76,7 +76,7 @@ bool DarunGrim::GenerateDB(
 	return OpenDatabase();
 }
 
-DWORD WINAPI ConnectToDarunGrim2Thread( LPVOID lpParameter )
+DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
 {
 	DarunGrim *pDarunGrim=( DarunGrim * )lpParameter;
 	IDAClientManager *pIDAClientManager;
@@ -102,7 +102,7 @@ DWORD WINAPI ConnectToDarunGrim2Thread( LPVOID lpParameter )
 		}
 
 		if( filename )
-			pIDAClientManager->ConnectToDarunGrim2( filename );
+			pIDAClientManager->ConnectToDarunGrim( filename );
 	}
 	return 1;
 }
@@ -171,18 +171,18 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	{
 		pIDAClientManager->SetDatabase( pStorageDB );
 	}
-	pIDAClientManager->StartIDAListener( DARUNGRIM2_PORT );
+	pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
 
 	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
 	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
 
-	//Create a thread that will call ConnectToDarunGrim2 one by one
+	//Create a thread that will call ConnectToDarunGrim one by one
 	DWORD dwThreadId;
-	CreateThread( NULL, 0, ConnectToDarunGrim2Thread, ( PVOID )this, 0, &dwThreadId );
+	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 	SetLoadedSourceFile( TRUE );
 
-	CreateThread( NULL, 0, ConnectToDarunGrim2Thread, ( PVOID )this, 0, &dwThreadId );
+	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
 	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 
 	if( !pDiffMachine )

@@ -4170,7 +4170,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_IDAClientManager_ConnectToDarunGrim2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAClientManager_ConnectToDarunGrim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IDAClientManager *arg1 = (IDAClientManager *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -4182,18 +4182,18 @@ SWIGINTERN PyObject *_wrap_IDAClientManager_ConnectToDarunGrim2(PyObject *SWIGUN
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_ConnectToDarunGrim2",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_ConnectToDarunGrim",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_ConnectToDarunGrim2" "', argument " "1"" of type '" "IDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_ConnectToDarunGrim" "', argument " "1"" of type '" "IDAClientManager *""'"); 
   }
   arg1 = reinterpret_cast< IDAClientManager * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_ConnectToDarunGrim2" "', argument " "2"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_ConnectToDarunGrim" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->ConnectToDarunGrim2(arg2);
+  (arg1)->ConnectToDarunGrim(arg2);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
@@ -5936,7 +5936,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IDAClientManager_SetOutputFilename", _wrap_IDAClientManager_SetOutputFilename, METH_VARARGS, NULL},
 	 { (char *)"IDAClientManager_SetLogFilename", _wrap_IDAClientManager_SetLogFilename, METH_VARARGS, NULL},
 	 { (char *)"IDAClientManager_RunIDAToGenerateDB", _wrap_IDAClientManager_RunIDAToGenerateDB, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_ConnectToDarunGrim2", _wrap_IDAClientManager_ConnectToDarunGrim2, METH_VARARGS, NULL},
+	 { (char *)"IDAClientManager_ConnectToDarunGrim", _wrap_IDAClientManager_ConnectToDarunGrim, METH_VARARGS, NULL},
 	 { (char *)"IDAClientManager_GetIDALogFilename", _wrap_IDAClientManager_GetIDALogFilename, METH_VARARGS, NULL},
 	 { (char *)"delete_IDAClientManager", _wrap_delete_IDAClientManager, METH_VARARGS, NULL},
 	 { (char *)"IDAClientManager_swigregister", IDAClientManager_swigregister, METH_VARARGS, NULL},

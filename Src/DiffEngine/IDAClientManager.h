@@ -43,7 +43,7 @@ public:
 	void SetOutputFilename( char *OutputFilename );
 	void SetLogFilename( char *LogFilename );
 	void RunIDAToGenerateDB( const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress );
-	void ConnectToDarunGrim2( const char *ida_filename );
+	void ConnectToDarunGrim( const char *ida_filename );
 	void SetIDALogFilename( const char *ida_log_filename );
 	const char *GetIDALogFilename();
 };

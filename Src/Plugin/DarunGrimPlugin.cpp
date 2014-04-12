@@ -93,8 +93,8 @@ static error_t idaapi SaveAnalysisData( value_t *argv, value_t *res )
 }
 
 BOOL ConnectToDarunGrimServer();
-static const char ConnectToDarunGrim2Args[]={0 };
-static error_t idaapi ConnectToDarunGrim2( value_t *argv, value_t *res )
+static const char ConnectToDarunGrimArgs[]={0 };
+static error_t idaapi ConnectToDarunGrim( value_t *argv, value_t *res )
 {
 	OutputFilename=NULL;
 	ConnectToDarunGrimServer();
@@ -105,7 +105,7 @@ static error_t idaapi ConnectToDarunGrim2( value_t *argv, value_t *res )
 int idaapi init( void )
 {
 	set_idc_func( "SaveAnalysisData", SaveAnalysisData, SaveAnalysisDataArgs );
-	set_idc_func( "ConnectToDarunGrim2", ConnectToDarunGrim2, ConnectToDarunGrim2Args );
+	set_idc_func( "ConnectToDarunGrim", ConnectToDarunGrim, ConnectToDarunGrimArgs );
 	set_idc_func( "SetLogFile", SetLogFile, SetLogFileVar );
 	return PLUGIN_KEEP;
 }
@@ -113,7 +113,7 @@ int idaapi init( void )
 void idaapi term( void )
 {
 	set_idc_func( "SaveAnalysisData", NULL, NULL );
-	set_idc_func( "ConnectToDarunGrim2", NULL, NULL );
+	set_idc_func( "ConnectToDarunGrim", NULL, NULL );
 }
 
 bool IsNumber( char *data )
@@ -681,10 +681,10 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 
 BOOL ConnectToDarunGrimServer()
 {
-	SOCKET data_socket=ConnectToServer( "127.0.0.1", DARUNGRIM2_PORT );
+	SOCKET data_socket = ConnectToServer("127.0.0.1", DARUNGRIM_PORT);
 	if( data_socket != INVALID_SOCKET )
 	{
-		msg( "Connected to DarunGrim2 Main Program" );
+		msg( "Connected to DarunGrim Main Program" );
 		SetSharedSocketDataReceiver( ProcessCommandFromDarunGrim );
 		PutSocketToWSAAsyncSelect( data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT );
 		return TRUE;
@@ -765,7 +765,7 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 void idaapi run( int arg )
 {
 	long start_tick = GetTickCount();
-	msg( "Start DarunGrim2 Plugin\n" );
+	msg( "Start DarunGrim Plugin\n" );
 	if( arg==1 )
 	{
 		return;
@@ -783,7 +783,7 @@ void idaapi run( int arg )
 	//FixExceptionHandlers();
 
 #ifdef INTERNAL_SERVER		
-	StartAnalysisServer( TRUE, DARUNGRIM2_PORT );
+	StartAnalysisServer( TRUE, DARUNGRIM_PORT );
 #elif defined( EXTERNAL_SERVER )
 	StartProcess( EXTERNAL_SERVER );
 #endif
@@ -903,16 +903,16 @@ void idaapi run( int arg )
 #endif
 
 	long end_tick = GetTickCount();
-	msg( "DarunGrim2 Analysis Finished %.3f sec\n", ( float ) ( end_tick - start_tick )/ 1000 );
+	msg( "DarunGrim Analysis Finished %.3f sec\n", ( float ) ( end_tick - start_tick )/ 1000 );
 }
 
-char comment[]="This is a DarunGrim2 Plugin.";
+char comment[]="This is a DarunGrim Plugin.";
 char help[] =
-				"A DarunGrim2 Plugin module\n"
+				"A DarunGrim Plugin module\n"
 				"This module let you analyze differences in two binaries.\n"
-				"This plugin dumps ida analysis data to DarunGrim2 Main Program or Database file.\n";
+				"This plugin dumps ida analysis data to DarunGrim Main Program or Database file.\n";
 
-char wanted_name[]="DarunGrim2";
+char wanted_name[]="DarunGrim";
 char wanted_hotkey[]="Alt-5";
 
 plugin_t PLUGIN=
