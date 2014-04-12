@@ -86,7 +86,7 @@ char *WriteToTemporaryFile(const char *format,...)
 	DWORD buffer_size=MAX_PATH+1;
 
 	// Get the temp path.
-	DWORD return_value=GetTempPath(buffer_size,	// length of the buffer
+	DWORD return_value=GetTempPathA(buffer_size,	// length of the buffer
 			temporary_path); // buffer for path 
 	if(return_value > buffer_size ||(return_value==0))
 	{
@@ -137,7 +137,7 @@ char *WriteToTemporaryFile(const char *format,...)
 
 void Execute(bool Wait,const char *format,...)
 {
-	STARTUPINFO StartupInfo;
+	STARTUPINFOA StartupInfo;
 	PROCESS_INFORMATION ProcessInformation;
 
     ZeroMemory(&StartupInfo,sizeof(StartupInfo));
@@ -150,7 +150,7 @@ void Execute(bool Wait,const char *format,...)
 	_vsnprintf(szCmdline,sizeof(szCmdline)/sizeof(char),format,args);
 	va_end(args);
 
-	if( CreateProcess(
+	if( CreateProcessA(
 		NULL,
 		szCmdline,      // Command line
 		NULL,           // Process handle not inheritable

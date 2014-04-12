@@ -1,6 +1,5 @@
 #pragma once
 #include <windows.h>
-#include <tchar.h>
 #include <stdarg.h>
 #include <wtypes.h>
 

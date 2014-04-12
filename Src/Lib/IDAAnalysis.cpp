@@ -725,7 +725,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 			)
 		)
 		{
-			FingerPrint.push_back((*CmdArrayIter).itype);
+			FingerPrint.push_back((unsigned char)(*CmdArrayIter).itype);
 			for(int i=0;i<UA_MAXOP;i++)
 			{
 				if((*CmdArrayIter).Operands[i].type!=0)
@@ -752,7 +752,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 			if(Debug>3)
 				WriteToLogFile(gLogFile,"%X(%X): [%s]\n",(*CmdArrayIter).ea,one_location_info.StartAddress,buf);
 
-			strcat(buf,"\n");
+			strcat_s(buf, MAXSTR, "\n");
 			disasm_buffer+=buf;
 		}
 
@@ -784,7 +784,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 		{
 			*((char *)p_one_location_info->Data+one_location_info.NameLen)=NULL;
 		}
-		for(int fi=0;fi<FingerPrint.size();fi++)
+		for(size_t fi=0;fi<FingerPrint.size();fi++)
 		{
 			((unsigned char *)p_one_location_info->Data)[one_location_info.NameLen+one_location_info.DisasmLinesLen+fi]=FingerPrint.at(fi);
 		}
@@ -1377,14 +1377,13 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 	DWORD UserNameLen=sizeof(file_info.UserName);
 	GetUserName(file_info.UserName,&UserNameLen);
 
+	char *input_file_path=NULL;
+
 #ifdef _USE_IDA_SDK_49_OR_UPPER
 	char OriginalFilePath[1024]={0,};
+	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
 #else
-	strncpy(file_info.OriginalFilePath,get_input_file_path(),sizeof(file_info.OriginalFilePath))
-#endif
-	char *input_file_path=NULL;
-#ifdef _USE_IDA_SDK_49_OR_UPPER
-	get_input_file_path(file_info.OriginalFilePath,sizeof(file_info.OriginalFilePath)-1);
+	strncpy_s(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath), get_input_file_path(), sizeof(file_info.OriginalFilePath))
 #endif
 
 	if(!Callback(Context,
@@ -1394,7 +1393,7 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		return;
 
 	ea_t saddr, eaddr;
-	ea_t addr;
+
 	// Get the user selection
 	int selected=0;
 	if(StartEA!=0 && EndEA!=0)

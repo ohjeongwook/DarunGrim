@@ -126,7 +126,7 @@ void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
 	do
 	{
 		connected_links_count=0;
-		for(int i=0;i<get_func_qty();i++)
+		for(size_t i=0;i<get_func_qty();i++)
 		{
 			func_t *f=getn_func(i);
 			char function_name[100]={0,};

@@ -4,6 +4,3 @@
 #pragma once
 
 char *GetFileVersionInfoStr(LPTSTR szFilename,char *InfoStr);
-char *GetLastWriteTime(LPCSTR filename);
-char *GetFileMD5Sum(LPCSTR filename);
-

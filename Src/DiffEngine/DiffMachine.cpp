@@ -3,7 +3,6 @@
 #include <list>
 #include <hash_set>
 #include <hash_map>
-#include "ZlibWrapper.h"
 #include "Diff.h"
 #include "LogOperation.h"
 
@@ -1852,170 +1851,11 @@ BOOL DiffMachine::Save(
 						hash_set <DWORD> *pTheTargetSelectedAddresses 
 )
 {
-	if( Type==DiffMachineFileBinaryFormat )
-	{
-		int ret;
-		ZlibWrapper *zlib_wrapper=new ZlibWrapper( TRUE, 1 );
-		zlib_wrapper->SetOutFile( DataFile, Offset, dwMoveMethod );
-		multimap <DWORD,  MatchData>::iterator match_map_iter;
-		for( match_map_iter=DiffResults->MatchMap.begin();
-			match_map_iter!=DiffResults->MatchMap.end();
-			match_map_iter++ )
-		{
-			if( 
-				pTheSourceSelectedAddresses &&
-				pTheSourceSelectedAddresses->find( match_map_iter->first )==
-				pTheSourceSelectedAddresses->end()
-			 )
-			{
-				continue;
-			}
-			char type=TYPE_MATCH;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )&type, sizeof( type ) );
-			if( !ret )
-				return FALSE;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				&match_map_iter->first, 
-				sizeof( match_map_iter->first )
-			 );
-			if( !ret )
-				return FALSE;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				&match_map_iter->second, 
-				sizeof( match_map_iter->second )
-			 );
-			if( !ret )
-				return FALSE;
-		}
-		//Save Unidentified blocks
-		hash_set <DWORD>::iterator unidentified_iter;
-		for( unidentified_iter=TheSourceUnidentifedBlockHash.begin();unidentified_iter!=TheSourceUnidentifedBlockHash.end();unidentified_iter++ )
-		{
-			if( 
-				pTheSourceSelectedAddresses &&
-				pTheSourceSelectedAddresses->find( *unidentified_iter )==
-				pTheSourceSelectedAddresses->end()
-			 )
-			{
-				continue;
-			}
-			BYTE type=TYPE_BEFORE_UNIDENTIFIED_BLOCK;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				&type, 
-				sizeof( type )
-			 );
-			if( !ret )
-				return FALSE;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				( PBYTE )&( *unidentified_iter ), 
-				sizeof( DWORD )
-			 );
-			if( !ret )
-				return FALSE;
-		}
-		for( unidentified_iter=TheTargetUnidentifedBlockHash.begin();unidentified_iter!=TheTargetUnidentifedBlockHash.end();unidentified_iter++ )
-		{
-			if( 
-				pTheTargetSelectedAddresses &&
-				pTheTargetSelectedAddresses->find( *unidentified_iter )==
-				pTheTargetSelectedAddresses->end()
-			 )
-			{
-				continue;
-			}
-			BYTE type=TYPE_AFTER_UNIDENTIFIED_BLOCK;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				&type, 
-				sizeof( type )
-			 );
-			if( !ret )
-				return FALSE;
-			ret=zlib_wrapper->WriteData( ( unsigned char * )
-				( PBYTE )&( *unidentified_iter ), 
-				sizeof( DWORD )
-			 );
-			if( !ret )
-				return FALSE;
-		}
-		delete zlib_wrapper;
-		return TRUE;
-	}else if( Type==DiffMachineFileSQLiteFormat )
-	{
-	}
 	return FALSE;
 }
 
 BOOL DiffMachine::Retrieve( char *DataFile, BYTE Type, DWORD Offset, DWORD Length )
 {
-	if( Type==DiffMachineFileBinaryFormat )
-	{
-		ZlibWrapper *zlib_wrapper=new ZlibWrapper( FALSE );
-		if( !zlib_wrapper->SetInFile( DataFile, Offset, Length ) )
-			return FALSE;
-
-		DiffResults=new AnalysisResult;
-		DiffResults->MatchMap.clear();
-		DiffResults->ReverseAddressMap.clear();
-		while( 1 )
-		{
-			char type;
-
-			DWORD nBytesRead=zlib_wrapper->ReadData( ( unsigned char * )
-				&type,  
-				sizeof( type ) ) ; 
-			if( nBytesRead!=sizeof( type ) )
-				break;
-			if( type==TYPE_MATCH || type==TYPE_REVERSE_MATCH )
-			{
-				DWORD address;
-				nBytesRead=zlib_wrapper->ReadData( ( unsigned char * )
-					&address,  
-					sizeof( address ) ) ; 
-				if( nBytesRead!=sizeof( address ) )
-					break;
-			
-				MatchData match_data;
-				nBytesRead=zlib_wrapper->ReadData( ( unsigned char * )
-					&match_data, 
-					sizeof( match_data ) ); 
-				if( nBytesRead!=sizeof( match_data ) )
-					break;
-				if( type==TYPE_MATCH )
-				{
-					DiffResults->MatchMap.insert( MatchMap_Pair( address, match_data ) );
-				}else
-				{
-					DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( address, match_data.Addresses[0] ) );
-				}
-			}else if( type==TYPE_BEFORE_UNIDENTIFIED_BLOCK || type==TYPE_AFTER_UNIDENTIFIED_BLOCK )
-			{
-				DWORD address;
-				nBytesRead=zlib_wrapper->ReadData( ( unsigned char * )
-					&address,  
-					sizeof( address ) ) ; 
-				if( nBytesRead!=sizeof( address ) )
-					break;
-				if( type==TYPE_BEFORE_UNIDENTIFIED_BLOCK )
-				{
-					TheSourceUnidentifedBlockHash.insert( address );
-				}else
-				{
-					TheTargetUnidentifedBlockHash.insert( address );
-				}
-			}
-		}
-#ifdef REGNERATE_ANALYSIS_RESULT
-		DiffResults->MatchMap.clear();
-		DiffResults->ReverseAddressMap.clear();
-		Analyze();
-		RemoveDuplicates();
-#endif
-		GenerateFunctionMatchInfo();
-		delete zlib_wrapper;
-		return TRUE;
-	}else if( Type==DiffMachineFileSQLiteFormat )
-	{
-	}
 	return FALSE;
 }
 

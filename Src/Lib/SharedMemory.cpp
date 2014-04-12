@@ -283,21 +283,21 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 	return NULL;
 }
 
-BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int SharedMemorySize,BOOL is_server)
+BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *shared_memory_name,int shared_memory_size,BOOL is_server)
 {
 	HANDLE MapFileHandle=INVALID_HANDLE_VALUE;
 	PBYTE shared_buffer;
 #define READ_EVENT_POSTIFX TEXT("_read")
 #define WRITE_EVENT_POSTIFX TEXT("_write")
-	int event_name_len=(_tcslen(SharedMemoryName)+max(_tcslen(READ_EVENT_POSTIFX),_tcslen(WRITE_EVENT_POSTIFX))+10)*sizeof(TCHAR);
+	int event_name_len=(_tcslen(shared_memory_name)+max(_tcslen(READ_EVENT_POSTIFX),_tcslen(WRITE_EVENT_POSTIFX))+10)*sizeof(TCHAR);
 	char *event_name=(char *)malloc(event_name_len);
 	memset(event_name,0,event_name_len);
 #ifdef UNICODE
-	_snprintf(event_name,event_name_len/sizeof(TCHAR)-1,"%ws%ws",SharedMemoryName,READ_EVENT_POSTIFX);
+	_snprintf(event_name,event_name_len/sizeof(TCHAR)-1,"%ws%ws",shared_memory_name,READ_EVENT_POSTIFX);
 #else
-	_snprintf(event_name,event_name_len-1,"%s%s",SharedMemoryName,READ_EVENT_POSTIFX);
+	_snprintf(event_name,event_name_len-1,"%s%s",shared_memory_name,READ_EVENT_POSTIFX);
 #endif
-	dprintf("%s: Creating Event[%s]\n",__FUNCTION__,event_name);
+	dprintf(TEXT("%s: Creating Event[%s]\n"),__FUNCTION__,event_name);
 	//Init R/W Event
 	if(1 || is_server)
 	{
@@ -310,17 +310,17 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 	if (!p_data_sharer->EventHandleForReading) 
 	{
 		//error
-		dprintf("%s: Creating Event Failed\n",__FUNCTION__);
+		dprintf(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
 		return FALSE;
 	}
 
 	memset(event_name,0,event_name_len);
 #ifdef UNICODE
-	_snprintf(event_name,(event_name_len)/sizeof(TCHAR)-1,"%ws%ws",SharedMemoryName,WRITE_EVENT_POSTIFX);
+	_snprintf(event_name,(event_name_len)/sizeof(TCHAR)-1,"%ws%ws",shared_memory_name,WRITE_EVENT_POSTIFX);
 #else
-	_snprintf(event_name,event_name_len-1,"%s%s",SharedMemoryName,WRITE_EVENT_POSTIFX);	
+	_snprintf(event_name,event_name_len-1,"%s%s",shared_memory_name,WRITE_EVENT_POSTIFX);	
 #endif
-	dprintf("Creating Event[%s]\n",event_name);
+	dprintf(TEXT("Creating Event[%s]\n"),event_name);
 	if(1 || is_server)
 	{
 		p_data_sharer->EventHandleForWriting= CreateEventA(NULL,TRUE,FALSE,(LPCSTR)event_name);
@@ -333,7 +333,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 	if (!p_data_sharer->EventHandleForWriting) 
 	{ 
 		//error
-		dprintf("%s: Creating Event Failed\n",__FUNCTION__);
+		dprintf(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
 		return FALSE;
 	}
 
@@ -343,7 +343,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 		MapFileHandle=OpenFileMappingA(
 			FILE_MAP_ALL_ACCESS,	// read/write access
 			FALSE,					// do not inherit the name
-			(LPCSTR)SharedMemoryName);	// name of mapping object
+			(LPCSTR)shared_memory_name);	// name of mapping object
 	}
 	if(MapFileHandle==INVALID_HANDLE_VALUE || !MapFileHandle)
 	{
@@ -353,20 +353,20 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 			NULL,
 			PAGE_READWRITE,
 			0,
-			SharedMemorySize+sizeof(MemoryHeader),
-			(LPCSTR)SharedMemoryName);
+			shared_memory_size+sizeof(MemoryHeader),
+			(LPCSTR)shared_memory_name);
 	}
 
 	if (MapFileHandle!=INVALID_HANDLE_VALUE && MapFileHandle)  
 	{
-		dprintf(TEXT("%s: Created Shared Memory[%s]\n"),__FUNCTION__,SharedMemoryName);
+		dprintf(TEXT("%s: Created Shared Memory[%s]\n"),__FUNCTION__,shared_memory_name);
 	
 		shared_buffer=(PBYTE)MapViewOfFile(
 			MapFileHandle,
 			FILE_MAP_ALL_ACCESS,	// read/write permission
 			0,
 			0,
-			SharedMemorySize+sizeof(MemoryHeader)); 
+			shared_memory_size+sizeof(MemoryHeader)); 
 
 		if(shared_buffer)
 		{
@@ -378,7 +378,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 			p_data_sharer->MemoryHeaderPtr=(PMemoryHeader)shared_buffer;
 			if(is_server && p_data_sharer->MemoryHeaderPtr)
 			{
-				p_data_sharer->MemoryHeaderPtr->BufferSize=SharedMemorySize;
+				p_data_sharer->MemoryHeaderPtr->BufferSize=shared_memory_size;
 				p_data_sharer->MemoryHeaderPtr->ReadPoint=p_data_sharer->MemoryHeaderPtr->WritePoint=0;
 			}
 			dprintf(TEXT("%s: p_data_sharer->MemoryHeaderPtr->Data=%x\n"),
@@ -390,7 +390,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *SharedMemoryName,int Shared
 			return TRUE;
 		}
 	}
-	dprintf("%s: Returning False\n",__FUNCTION__);
+	dprintf(TEXT("%s: Returning False\n"), __FUNCTION__);
 	return FALSE;	
 }
 

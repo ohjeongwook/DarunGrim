@@ -2,7 +2,7 @@
 #undef printf
 #include <windows.h>
 #include <stdio.h>
-#include <tchar.h>
+#include <TCHAR.H>
 #include "dprintf.h"
 
 void PrintToStdOutWithTime(const TCHAR *format,...)
@@ -69,7 +69,7 @@ void WriteToLogFile(HANDLE hFile,const char *format,...)
 #ifdef IDA_PLUGIN
 		msg("%s",Contents);
 #else
-		OutputDebugString(Contents);
+		OutputDebugStringA(Contents);
 #endif
 	}
 }

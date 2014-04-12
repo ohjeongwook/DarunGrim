@@ -1,7 +1,6 @@
 #pragma once
 #include <windows.h>
 #include <string>
-#include <tchar.h>
 
 enum LogOutputTypes { LogToStdout = 0x1, LogToDbgview = 0x2, LogToFile = 0x4, LogToIDAMessageBox = 0x8 };
 

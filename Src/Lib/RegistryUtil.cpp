@@ -28,7 +28,7 @@ char *GetRegValue( const char *key_name, const char *value_name, DWORD &type, DW
 	char *subkey_name = (char *)strstr( key_name, "\\" );
 	subkey_name++;
 	HKEY hk_result;
-	if( RegOpenKey( root_key, subkey_name, &hk_result ) == ERROR_SUCCESS )
+	if( RegOpenKeyA( root_key, subkey_name, &hk_result ) == ERROR_SUCCESS )
 	{
 		BYTE *data;
 		data_length = 1;
@@ -36,7 +36,7 @@ char *GetRegValue( const char *key_name, const char *value_name, DWORD &type, DW
 		data = (BYTE *) malloc( data_length );
 		while( 1 )
 		{
-			LONG Ret = RegQueryValueEx( hk_result, value_name, 0, &type, data, &data_length );
+			LONG Ret = RegQueryValueExA( hk_result, value_name, 0, &type, data, &data_length );
 			if( Ret == ERROR_MORE_DATA )
 			{
 				data_length += 1;

@@ -8,7 +8,7 @@
 #include "DataStructure.h"
 #include "LogOperation.h"
 
-const enum {DiffMachineFileBinaryFormat, DiffMachineFileSQLiteFormat};
+const enum {DiffMachineFileSQLiteFormat};
 
 #define MATCH_MAP_TABLE "MatchMap"
 #define CREATE_MATCH_MAP_TABLE_STATEMENT "CREATE TABLE " MATCH_MAP_TABLE" ( \n\

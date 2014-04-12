@@ -10,7 +10,6 @@
 #include "DataStructure.h"
 #include "SharedMemory.h"
 #include "SharedSocket.h"
-#include "ZlibWrapper.h"
 #include "DBWrapper.h"
 
 using namespace std;
@@ -28,9 +27,7 @@ private:
 	AnalysisInfo *ClientAnalysisInfo;
 	DataSharer IDADataSharer;
 	char *DisasmLine;
-	static PBYTE ZlibWrapperRetrieveCallback(PVOID Context, BYTE *pType, DWORD *pLength);
 	void RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
-	char *RetrieveString(ZlibWrapper *zlib_wrapper);
 	void GenerateTwoLevelFingerPrint();
 	void MergeBlocks();
 public:

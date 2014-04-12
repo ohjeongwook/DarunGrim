@@ -57,8 +57,8 @@ void LogOperation::_Log(const CHAR *log_message)
 
 			SYSTEMTIME lt;
 			GetLocalTime(&lt);
-			TCHAR time_buffer[50];
-			_sntprintf( time_buffer, sizeof(time_buffer), TEXT("[%02d/%02d/%04d %02d:%02d:%02d] "),
+			char time_buffer[50];
+			_snprintf(time_buffer, sizeof(time_buffer), "[%02d/%02d/%04d %02d:%02d:%02d] ",
 				lt.wMonth,
 				lt.wDay,
 				lt.wYear,
@@ -98,7 +98,7 @@ void LogOperation::_Log(const CHAR *log_message)
 	}
 
 	if( OutputType & LogToDbgview )
-		OutputDebugString( full_log_message.c_str() );
+		OutputDebugStringA( full_log_message.c_str() );
 
 	if( OutputType & LogToIDAMessageBox )
 	{

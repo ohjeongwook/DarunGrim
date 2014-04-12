@@ -19,11 +19,11 @@ extern int DebugLevel;
 
 int ReadFileInfo(void *arg,int argc,char **argv,char **names)
 {
-	for(int i=0;i<argc;i++)
+	/*for(int i=0;i<argc;i++)
 	{
 		dprintf("%s: %s\n",names[i],argv[i]);
 	}
-	dprintf("\n");
+	dprintf("\n");*/
 	return 0;
 }
 

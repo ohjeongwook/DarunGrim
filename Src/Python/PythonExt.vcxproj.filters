@@ -33,165 +33,159 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\DiffEngine\Python\DiffEngine_wrap.cxx">
+    <ClCompile Include="..\DiffEngine\DarunGrim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\IDAClientManager.cpp">
+    <ClCompile Include="..\DiffEngine\DiffMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\OneIDAClientManager.cpp">
+    <ClCompile Include="..\DiffEngine\IDAClientManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\Test.cpp">
+    <ClCompile Include="..\DiffEngine\OneIDAClientManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\DarunGrim.cpp">
+    <ClCompile Include="..\DiffEngine\Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\DiffMachine.cpp">
+    <ClCompile Include="..\Lib\DataBaseWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\DataBaseWriter.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\Diff.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\Diff.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\dprintf.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\dprintf.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\fileinfo.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\fileinfo.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\IDAAnalysis.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\IDAAnalysis.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\IDAVerifier.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\IDAVerifier.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\LogOperation.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\LogOperation.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\md5.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\md5.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\ProcessUtils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\ProcessUtils.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\RegistryUtil.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\RegistryUtil.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\SharedMemory.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\SharedMemory.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\SharedSocket.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\SharedSocket.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\SocketOperation.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\SocketOperation.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\sqlite3.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\sqlite3.c">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\Varray.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\Varray.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="..\Lib\XGetopt.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Lib\XGetopt.cpp">
-      <Filter>Lib\Source Files</Filter>
+    <ClCompile Include="DiffEngine_wrap.cxx">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\DiffEngine\Python\DiffEngine.i">
-      <Filter>Swig</Filter>
-    </None>
-    <None Include="..\..\DiffEngine\Python\DarunGrimEngine.py">
-      <Filter>Python</Filter>
-    </None>
-    <None Include="..\..\DiffEngine\Python\DiffEngine.py">
-      <Filter>Python</Filter>
-    </None>
+    <None Include="..\DiffEngine\Python\DarunGrimEngine.py" />
+    <None Include="..\DiffEngine\Python\DiffEngine.i" />
+    <None Include="..\DiffEngine\Python\DiffEngine.py" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DiffEngine\IDAClientManager.h">
+    <ClInclude Include="..\DiffEngine\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\OneIDAClientManager.h">
+    <ClInclude Include="..\DiffEngine\Configuration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\Common.h">
+    <ClInclude Include="..\DiffEngine\DarunGrim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\Configuration.h">
+    <ClInclude Include="..\DiffEngine\DataStructure.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\DarunGrim.h">
+    <ClInclude Include="..\DiffEngine\DiffMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\DataStructure.h">
+    <ClInclude Include="..\DiffEngine\IDAClientManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DiffEngine\DiffMachine.h">
+    <ClInclude Include="..\DiffEngine\OneIDAClientManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\DataBaseWriter.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\DataBaseWriter.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\DBWrapper.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\DBWrapper.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\Diff.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\Diff.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\dprintf.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\dprintf.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\fileinfo.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\fileinfo.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\IDAAnalysis.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\IDAAnalysis.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\IDAAnalysisCommon.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\IDAAnalysisCommon.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\IdaIncludes.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\IdaIncludes.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\IDAVerifier.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\IDAVerifier.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\LogOperation.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\LogOperation.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\md5.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\md5.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\ProcessUtils.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\ProcessUtils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\RegistryUtil.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\RegistryUtil.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\SharedMemory.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\SharedMemory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\SharedSocket.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\SharedSocket.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\SocketOperation.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\SocketOperation.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\sqlite3.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\sqlite3.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\TLV.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\TLV.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\Varray.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\Varray.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lib\XGetopt.h">
-      <Filter>Lib\Header Files</Filter>
+    <ClInclude Include="..\Lib\XGetopt.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

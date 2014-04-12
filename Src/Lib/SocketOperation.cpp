@@ -145,7 +145,7 @@ HWND PutSocketToWSAAsyncSelect(SOCKET a_socket,LRESULT (CALLBACK *SocketMessageW
 
 		if(RegisterClass(&wc) == 0)
 		{
-			UnregisterClass(ClassName,(HINSTANCE)&__ImageBase);
+			UnregisterClassA(ClassName,(HINSTANCE)&__ImageBase);
 			if(RegisterClass(&wc) == 0)
 			{
 				printf("Registering Asynchrounous socket window failed\n");

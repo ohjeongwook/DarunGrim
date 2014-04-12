@@ -24,10 +24,10 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 			if(sizeof(OneLocationInfo)<=Length)
 			{
 				POneLocationInfo pOneLocationInfo=(POneLocationInfo)Data;
-				TCHAR *FingerprintHexStringBuffer=NULL;
+				char *FingerprintHexStringBuffer=NULL;
 				if(pOneLocationInfo->FingerprintLen>0)
 				{
-					FingerprintHexStringBuffer=(TCHAR *)malloc(pOneLocationInfo->FingerprintLen*2+10);
+					FingerprintHexStringBuffer=(char *)malloc(pOneLocationInfo->FingerprintLen*2+10);
 					if(FingerprintHexStringBuffer)
 					{
 						memset(FingerprintHexStringBuffer,0,pOneLocationInfo->FingerprintLen*2+10);

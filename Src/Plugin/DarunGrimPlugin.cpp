@@ -612,7 +612,7 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 			//ua_mnem( current_address, op_buffer, sizeof( op_buffer ) );
 			generate_disasm_line( current_address, op_buffer, sizeof( op_buffer )-1, 0 );
 			tag_remove( op_buffer, op_buffer, sizeof( op_buffer ) );
-			strcat( op_buffer, "\n" );
+			strcat_s( op_buffer, "\n" );
 
 			new_buffer_offset=current_buffer_offset+strlen( op_buffer );
 			disasm_buffer=( char * )realloc( disasm_buffer, new_buffer_offset+1 );
