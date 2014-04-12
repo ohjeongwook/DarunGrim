@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Swig">
+      <UniqueIdentifier>{9755a41b-9c5a-4c55-bd67-074ff3bd6ec4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Python">
+      <UniqueIdentifier>{cfc26d17-d822-465c-be91-0fe41c57e0de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib">
+      <UniqueIdentifier>{b02fa449-19f9-474e-bd2f-c946a721d4a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Header Files">
+      <UniqueIdentifier>{46c9a4de-d566-47ca-863e-5a95597142b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Source Files">
+      <UniqueIdentifier>{80a4066c-ac10-41ad-b611-cd466c6bb1b0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\DiffEngine\Python\DiffEngine_wrap.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DiffEngine\IDAClientManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DiffEngine\OneIDAClientManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DiffEngine\Test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DiffEngine\DarunGrim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DiffEngine\DiffMachine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\DataBaseWriter.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\Diff.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\dprintf.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\fileinfo.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\IDAAnalysis.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\IDAVerifier.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\LogOperation.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\md5.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\ProcessUtils.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\RegistryUtil.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\SharedMemory.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\SharedSocket.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\SocketOperation.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\sqlite3.c">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\Varray.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Lib\XGetopt.cpp">
+      <Filter>Lib\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\DiffEngine\Python\DiffEngine.i">
+      <Filter>Swig</Filter>
+    </None>
+    <None Include="..\..\DiffEngine\Python\DarunGrimEngine.py">
+      <Filter>Python</Filter>
+    </None>
+    <None Include="..\..\DiffEngine\Python\DiffEngine.py">
+      <Filter>Python</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\DiffEngine\IDAClientManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\OneIDAClientManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\Configuration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\DarunGrim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\DataStructure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DiffEngine\DiffMachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\DataBaseWriter.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\DBWrapper.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\Diff.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\dprintf.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\fileinfo.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\IDAAnalysis.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\IDAAnalysisCommon.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\IdaIncludes.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\IDAVerifier.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\LogOperation.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\md5.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\ProcessUtils.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\RegistryUtil.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\SharedMemory.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\SharedSocket.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\SocketOperation.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\sqlite3.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\TLV.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\Varray.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Lib\XGetopt.h">
+      <Filter>Lib\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
