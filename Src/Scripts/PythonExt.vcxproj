@@ -114,7 +114,7 @@
     <ClCompile Include="DiffEngine_wrap.cxx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\DiffEngine\Python\DarunGrimEngine.py" />
+    <None Include="..\DiffEngine\Python\DarunGrim.py" />
     <None Include="..\DiffEngine\Python\DiffEngine.i" />
     <None Include="..\DiffEngine\Python\DiffEngine.py" />
   </ItemGroup>
