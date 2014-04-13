@@ -2,6 +2,11 @@ import sys
 import DiffEngine
 import os
 
+LogToStdout = 0x1
+LogToDbgview = 0x2
+LogToFile = 0x4
+LogToIDAMessageBox = 0x8
+
 class Differ:
 	def __init__ ( self, SourceFilename, TargetFilename ):
 		self.SourceFilename = str(SourceFilename)
@@ -17,6 +22,10 @@ class Differ:
 	def LoadDiffResults( self, storage_filename ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		self.DarunGrim.LoadDiffResults( storage_filename )
+
+	def DiffDatabaseFiles( self, src_storage_filename, target_storage_filename, result_storage_filename ):
+		self.DarunGrim.SetLogParameters(LogToStdout, 100, "");        
+		self.DarunGrim.DiffDatabaseFiles( src_storage_filename, target_storage_filename, result_storage_filename )
 
 	def DiffFile( self, storage_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
@@ -40,11 +49,11 @@ class Differ:
 		self.DarunGrim.ColorAddress( index, start_address, end_address, color )
 
 if __name__ == '__main__':
-	"""
-	TheSourceFilename = sys.argv[1]
-	TheTargetFilename = sys.argv[2]
-	StorageFilename = sys.argv[3]
+	src_filename = sys.argv[1]
+	target_filename = sys.argv[2]
+	result_filename = sys.argv[3]
 
+	"""
 	LogFilename = 'test.log'
 
 	IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
@@ -55,8 +64,13 @@ if __name__ == '__main__':
 	ida_client_manager = DiffEngine.IDAClientManager()
 	ida_client_manager.StartIDAListener( 1216 )
 	"""
-	
+
 	darun_grim = DiffEngine.DarunGrim()
+
+	"""
 	storage_filename = os.path.join( os.getcwd(), str('test2.dgf') )
 	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
 	raw_input( 'Press any key to continue...' )
+	"""
+
+	darun_grim.DiffDatabaseFiles(src_filename, target_filename, result_filename);

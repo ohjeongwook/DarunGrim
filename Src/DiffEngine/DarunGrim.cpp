@@ -6,8 +6,8 @@ LogOperation Logger;
 
 DarunGrim::DarunGrim(): 
 	pStorageDB(NULL),
-	pOneIDAClientManagerTheSource(NULL),
-	pOneIDAClientManagerTheTarget(NULL),
+	pSourceIDAClientManager(NULL),
+	pTargetIDAClientManager(NULL),
 	pDiffMachine(NULL),
 	pIDAClientManager(NULL),
 	IsLoadedSourceFile( FALSE )
@@ -33,11 +33,11 @@ DarunGrim::~DarunGrim()
 	if( pIDAClientManager )
 		delete pIDAClientManager;
 
-	if( pOneIDAClientManagerTheSource )
-		delete pOneIDAClientManagerTheSource;
+	if( pSourceIDAClientManager )
+		delete pSourceIDAClientManager;
 
-	if( pOneIDAClientManagerTheTarget )
-		delete pOneIDAClientManagerTheTarget;
+	if( pTargetIDAClientManager )
+		delete pTargetIDAClientManager;
 }
 
 void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
@@ -65,15 +65,14 @@ bool DarunGrim::GenerateDB(
 	unsigned long start_address_for_target, unsigned long end_address_for_target )
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	StorageFilename = storage_filename;
 
-	pIDAClientManager->SetOutputFilename( StorageFilename );
+	pIDAClientManager->SetOutputFilename(storage_filename);
 	pIDAClientManager->SetLogFilename( log_filename );
 	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_source );
 	pIDAClientManager->RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
 	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_target );
 	pIDAClientManager->RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
-	return OpenDatabase();
+	return OpenDatabase(storage_filename);
 }
 
 DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
@@ -173,38 +172,71 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	}
 	pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
 
-	pOneIDAClientManagerTheSource=new OneIDAClientManager( pStorageDB );
-	pOneIDAClientManagerTheTarget=new OneIDAClientManager( pStorageDB );
+	pSourceIDAClientManager=new OneIDAClientManager( pStorageDB );
+	pTargetIDAClientManager=new OneIDAClientManager( pStorageDB );
 
 	//Create a thread that will call ConnectToDarunGrim one by one
 	DWORD dwThreadId;
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheSource, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	pIDAClientManager->AcceptIDAClient( pSourceIDAClientManager, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 	SetLoadedSourceFile( TRUE );
 
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	pIDAClientManager->AcceptIDAClient( pOneIDAClientManagerTheTarget, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	pIDAClientManager->AcceptIDAClient( pTargetIDAClientManager, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 
 	if( !pDiffMachine )
 	{
 		Analyze();
 	}
 
-	pIDAClientManager->SetMembers( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget, pDiffMachine );
+	pIDAClientManager->SetMembers( pSourceIDAClientManager, pTargetIDAClientManager, pDiffMachine );
 	pIDAClientManager->CreateIDACommandProcessorThread();
 	pIDAClientManager->StopIDAListener();
 
 	return TRUE;
 }
 
-bool DarunGrim::OpenDatabase()
+bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, char *target_storage_filename, char *output_storage_filename)
+{
+	Logger.Log(10, "%s: entry\n", __FUNCTION__);
+	
+	printf("%s\n", output_storage_filename);
+
+	pSourceIDAClientManager = new OneIDAClientManager(new DBWrapper((char *)src_storage_filename));
+	pTargetIDAClientManager = new OneIDAClientManager(new DBWrapper((char *)target_storage_filename));
+	
+	printf("Loading %s\n", src_storage_filename);
+	pSourceIDAClientManager->Load();
+
+	printf("Loading %s\n", target_storage_filename);
+	pTargetIDAClientManager->Load();
+
+	pDiffMachine = new DiffMachine(pSourceIDAClientManager, pTargetIDAClientManager);
+
+	if (pDiffMachine)
+	{
+		pDiffMachine->Analyze();
+
+		if (pStorageDB)
+			delete pStorageDB;
+
+		pStorageDB = new DBWrapper((char *)output_storage_filename);
+		pIDAClientManager->SetDatabase(pStorageDB);
+
+		pDiffMachine->Save(*pStorageDB);
+	}
+
+	return TRUE;
+}
+
+bool DarunGrim::OpenDatabase(char *storage_filename)
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 
 	if( pStorageDB )
 		delete pStorageDB;
 
-	pStorageDB = new DBWrapper( StorageFilename );
+	pStorageDB = new DBWrapper(storage_filename);
 
 	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT);
 	pStorageDB->ExecuteStatement(NULL,NULL,CREATE_ONE_LOCATION_INFO_TABLE_START_ADDRESS_INDEX_STATEMENT);
@@ -224,7 +256,7 @@ bool DarunGrim::LoadDiffResults( const char *storage_filename )
 
 		if( pDiffMachine )
 		{
-			pDiffMachine->Retrieve( *pStorageDB,TRUE, 1 , 2 );
+			pDiffMachine->Load(*pStorageDB, TRUE, 1, 2);
 			return TRUE;
 		}
 	}
@@ -240,11 +272,11 @@ bool DarunGrim::Analyze()
 	if( pStorageDB )
 	{
 		pDiffMachine = new DiffMachine();
-		pDiffMachine->Retrieve( *pStorageDB,TRUE,source_file_id,target_file_id);
+		pDiffMachine->Load(*pStorageDB, TRUE, source_file_id, target_file_id);
 	}
-	else if( pOneIDAClientManagerTheSource && pOneIDAClientManagerTheTarget )
+	else if( pSourceIDAClientManager && pTargetIDAClientManager )
 	{
-		pDiffMachine = new DiffMachine( pOneIDAClientManagerTheSource, pOneIDAClientManagerTheTarget );
+		pDiffMachine = new DiffMachine( pSourceIDAClientManager, pTargetIDAClientManager );
 	}
 
 	if( pDiffMachine )
@@ -262,8 +294,8 @@ bool DarunGrim::ShowOnIDA()
 	if( pIDAClientManager )
 	{
 		pIDAClientManager->SetMembers(
-			pOneIDAClientManagerTheSource,
-			pOneIDAClientManagerTheTarget,
+			pSourceIDAClientManager,
+			pTargetIDAClientManager,
 			pDiffMachine
 		);
 		pIDAClientManager->ShowResultsOnIDA();
@@ -275,23 +307,23 @@ bool DarunGrim::ShowOnIDA()
 
 void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long target_address )
 {
-	if( pOneIDAClientManagerTheSource )
-		pOneIDAClientManagerTheSource->ShowAddress( source_address );
-	if( pOneIDAClientManagerTheTarget )
-		pOneIDAClientManagerTheTarget->ShowAddress( target_address );
+	if( pSourceIDAClientManager )
+		pSourceIDAClientManager->ShowAddress( source_address );
+	if( pTargetIDAClientManager )
+		pTargetIDAClientManager->ShowAddress( target_address );
 }
 
 void DarunGrim::ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color )
 {
 	if( index == 0 )
 	{
-		if( pOneIDAClientManagerTheSource )
-			pOneIDAClientManagerTheSource->ColorAddress( start_address, end_address, color );
+		if( pSourceIDAClientManager )
+			pSourceIDAClientManager->ColorAddress( start_address, end_address, color );
 	}
 	else
 	{
-		if( pOneIDAClientManagerTheTarget )
-			pOneIDAClientManagerTheTarget->ColorAddress( start_address, end_address, color );
+		if( pTargetIDAClientManager )
+			pTargetIDAClientManager->ColorAddress( start_address, end_address, color );
 	}
 }
 
