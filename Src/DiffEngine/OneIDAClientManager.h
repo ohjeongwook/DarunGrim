@@ -27,7 +27,8 @@ private:
 	AnalysisInfo *ClientAnalysisInfo;
 	DataSharer IDADataSharer;
 	char *DisasmLine;
-	void RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
+	void LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
+	BOOL LoadFromDatabase(DBWrapper *pStorageDB, int FileID = 1, BOOL bRetrieveDataForAnalysis = FALSE, DWORD FunctionAddress = 0);
 	void GenerateTwoLevelFingerPrint();
 	void MergeBlocks();
 public:
@@ -45,12 +46,12 @@ public:
 	}
 	OneIDAClientManager(DBWrapper *StorageDB=NULL);
 	~OneIDAClientManager();
-	BOOL RetrieveIDARawDataFromFile(const char *Filename);
+	BOOL LoadIDARawDataFromFile(const char *Filename);
 	void SetSocket(SOCKET socket);
-	BOOL RetrieveIDARawDataFromSocket(SOCKET socket);
+	BOOL LoadIDARawDataFromSocket(SOCKET socket);
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
-
-	BOOL Retrieve(DBWrapper *InputDB, int FileID=1, BOOL bRetrieveDataForAnalysis=FALSE, DWORD FunctionAddress = 0 );
+	BOOL Load(int FileID = 1, BOOL bRetrieveDataForAnalysis = FALSE, DWORD FunctionAddress = 0);
+	
 	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 
 	BOOL RetrieveOneLocationInfo( DWORD FunctionAddress = 0 );

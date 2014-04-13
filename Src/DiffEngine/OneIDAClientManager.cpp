@@ -25,12 +25,12 @@ extern int DebugLevel;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-OneIDAClientManager::OneIDAClientManager(DBWrapper *StorageDB):
+OneIDAClientManager::OneIDAClientManager(DBWrapper *storage_db):
 	ClientAnalysisInfo(NULL)
 {
 	ClientAnalysisInfo = NULL;
 	m_FileID = 0;
-	m_StorageDB = StorageDB;
+	m_StorageDB = storage_db;
 	DisasmLine = NULL;
 	Socket = INVALID_SOCKET;
 	m_OriginalFilePath = NULL;
@@ -78,7 +78,7 @@ void OneIDAClientManager::SetSocket(SOCKET socket)
 	Socket = socket;
 }
 
-BOOL OneIDAClientManager::RetrieveIDARawDataFromSocket(SOCKET socket)
+BOOL OneIDAClientManager::LoadIDARawDataFromSocket(SOCKET socket)
 {
 	Socket = socket;
 	ClientAnalysisInfo = NULL;
@@ -104,8 +104,8 @@ BOOL OneIDAClientManager::RetrieveIDARawDataFromSocket(SOCKET socket)
 	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
 	if(SendTLVData(SEND_ANALYSIS_DATA, (PBYTE)data, sizeof(DWORD)+strlen(shared_memory_name)+1))
 	{
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d RetrieveIDARawData\n", __FUNCTION__);
-		RetrieveIDARawData((PBYTE (*)(PVOID Context, BYTE *Type, DWORD *Length))GetData, (PVOID)&IDADataSharer);
+		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d LoadIDARawData\n", __FUNCTION__);
+		LoadIDARawData((PBYTE (*)(PVOID Context, BYTE *Type, DWORD *Length))GetData, (PVOID)&IDADataSharer);
 		return TRUE;
 	}
 	return FALSE;
@@ -341,13 +341,11 @@ FunctionAddress = 0 : Retrieve All Functions
 	else			: Retrieve That Specific Function
 */
 
-BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress )
+BOOL OneIDAClientManager::LoadFromDatabase(DBWrapper *pStorageDB, int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress)
 {
+	Logger.Log(10, "LoadFromDatabase: %s\n", pStorageDB->GetDatabaseName());
 	m_FileID = FileID;
-	m_StorageDB = InputDB;
-
-	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
+	pStorageDB->ExecuteStatement(pStorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 	ClientAnalysisInfo = new AnalysisInfo;
 
 	if(bRetrieveDataForAnalysis)
@@ -357,17 +355,20 @@ BOOL OneIDAClientManager::Retrieve(DBWrapper *InputDB, int FileID, BOOL bRetriev
 
 	if( FunctionAddress == 0 )
 	{
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", m_FileID);
+		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", m_FileID);
 	}
 	else
 	{
 		//Retrieve only relevant maps
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", m_FileID, m_FileID, FunctionAddress, m_FileID, FunctionAddress );
+		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", m_FileID, m_FileID, FunctionAddress, m_FileID, FunctionAddress);
 	}
 
 	return TRUE;
+}
+
+BOOL OneIDAClientManager::Load(int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress)
+{
+	return LoadFromDatabase(m_StorageDB, FileID, bRetrieveDataForAnalysis, FunctionAddress);
 }
 
 void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
@@ -426,7 +427,7 @@ typedef struct {
 	DWORD child_address;
 } AddressPair;
 
-void OneIDAClientManager::RetrieveIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context)
+void OneIDAClientManager::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context)
 {
 	BYTE type;
 	DWORD length;

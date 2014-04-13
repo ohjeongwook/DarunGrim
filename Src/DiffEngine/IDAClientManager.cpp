@@ -89,8 +89,8 @@ BOOL IDAClientManager::AcceptIDAClient( OneIDAClientManager *pOneIDAClientManage
 	{
 		if( RetrieveData )
 		{
-			Logger.Log( 10, "%s: Calling RetrieveIDARawDataFromSocket\n", __FUNCTION__ );
-			pOneIDAClientManager->RetrieveIDARawDataFromSocket( ClientSocket );
+			Logger.Log( 10, "%s: Calling LoadIDARawDataFromSocket\n", __FUNCTION__ );
+			pOneIDAClientManager->LoadIDARawDataFromSocket( ClientSocket );
 		}
 		else
 		{

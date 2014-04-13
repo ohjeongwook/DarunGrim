@@ -2047,18 +2047,18 @@ void DiffMachine::SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD Pa
 	TargetFunctionAddress = ParamTargetFunctionAddress;
 }
 
-BOOL DiffMachine::Retrieve( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
+BOOL DiffMachine::Load( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
 {
 	if( TheSource )
 		delete TheSource;
 	if( TheTarget )
 		delete TheTarget;
 
-	TheSource=new OneIDAClientManager();
-	TheTarget=new OneIDAClientManager();
+	TheSource = new OneIDAClientManager(&InputDB);
+	TheTarget = new OneIDAClientManager(&InputDB);
 
-	TheSource->Retrieve( &InputDB, TheSourceFileID, bRetrieveDataForAnalysis, SourceFunctionAddress );
-	TheTarget->Retrieve( &InputDB, TheTargetFileID, bRetrieveDataForAnalysis, TargetFunctionAddress );
+	TheSource->Load( TheSourceFileID, bRetrieveDataForAnalysis, SourceFunctionAddress );
+	TheTarget->Load( TheTargetFileID, bRetrieveDataForAnalysis, TargetFunctionAddress);
 
 	m_InputDB=&InputDB;
 	m_TheSourceFileID=TheSourceFileID;
