@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\DiffEngine\DarunGrim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -99,11 +96,6 @@
     <ClCompile Include="DiffEngine_wrap.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DiffEngine\Python\DarunGrim.py" />
-    <None Include="..\DiffEngine\Python\DiffEngine.i" />
-    <None Include="..\DiffEngine\Python\DiffEngine.py" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DiffEngine\Common.h">
@@ -187,5 +179,22 @@
     <ClInclude Include="..\Lib\XGetopt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DarunGrim.py">
+      <Filter>Python</Filter>
+    </None>
+    <None Include="DarunGrimDatabase.py">
+      <Filter>Python</Filter>
+    </None>
+    <None Include="DiffEngine.i">
+      <Filter>Python</Filter>
+    </None>
+    <None Include="DiffEngine.py">
+      <Filter>Python</Filter>
+    </None>
+    <None Include="SecurityImplications.py">
+      <Filter>Python</Filter>
+    </None>
   </ItemGroup>
 </Project>

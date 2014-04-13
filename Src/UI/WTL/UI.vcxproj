@@ -65,7 +65,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\ohm\Documents\GitHub\DarunGrim\Lib\wtl90_4090_RC1\Include;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\DiffEngine;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\Lib;C:\Users\ohm\Documents\GitHub\DarunGrim\Lib\graphviz-2.36\release\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\graphviz-2.36\release\include\graphviz</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
