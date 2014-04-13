@@ -6,10 +6,10 @@ sys.path.append(r'..\Diff Inspector')
 import os
 
 import PatchTimeline
-import DarunGrimEngine
+import DarunGrim
 import PatchDatabaseWrapper
-import DarunGrimAnalyzers
-import DarunGrimDatabaseWrapper
+import SecurityImplications
+import DarunGrimDatabase
 
 Differs = {}
 class Manager:
@@ -188,7 +188,7 @@ class Manager:
 
 		self.DatabaseName = full_databasename
 		if not differ:
-			differ = DarunGrimEngine.Differ( source_filename, target_filename )
+			differ = DarunGrim.Differ( source_filename, target_filename )
 			differ.SetIDAPath( self.IDAPath )
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
@@ -208,12 +208,12 @@ class Manager:
 
 	def LoadDiffer( self, databasename, source_filename = None, target_filename = None ):
 		if os.path.isfile( databasename ) and os.path.getsize( databasename ) > 0:
-			database = DarunGrimDatabaseWrapper.Database( databasename )
+			database = DarunGrimDatabase.Database( databasename )
 			function_match_info_count = database.GetFunctionMatchInfoCount()
 			del database
 
 			if function_match_info_count > 0:
-				differ = DarunGrimEngine.Differ( source_filename, target_filename )
+				differ = DarunGrim.Differ( source_filename, target_filename )
 				differ.SetIDAPath( self.IDAPath )
 				if self.DebugLevel > 0:
 					print 'Already analyzed',databasename
@@ -256,8 +256,8 @@ class Manager:
 		return 0x00ffff
 
 	def UpdateSecurityImplicationsScore( self, databasename ):
-		database = DarunGrimDatabaseWrapper.Database( databasename )
-		pattern_analyzer = DarunGrimAnalyzers.PatternAnalyzer()
+		database = DarunGrimDatabase.Database( databasename )
+		pattern_analyzer = SecurityImplications.PatternAnalyzer()
 		for function_match_info in database.GetFunctionMatchInfo():
 			if function_match_info.non_match_count_for_the_source > 0 or \
 				function_match_info.non_match_count_for_the_target > 0 or \
