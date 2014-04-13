@@ -1,11 +1,15 @@
 #pragma once
 #include <stdio.h>
 #include "sqlite3.h"
+#include <string>
+using namespace std;
+using namespace stdext;
 
 class DBWrapper
 {
 private:
 	sqlite3 *db;
+	string m_DatabaseName;
 public:
 	DBWrapper( char *DatabaseName = NULL )
 	{
@@ -21,7 +25,13 @@ public:
 
 	BOOL Open( char *DatabaseName )
 	{
+		m_DatabaseName = DatabaseName;
 		CreateDatabase( DatabaseName );
+	}
+
+	const char *GetDatabaseName()
+	{
+		return m_DatabaseName.c_str();
 	}
 
 	void CloseDatabase()
