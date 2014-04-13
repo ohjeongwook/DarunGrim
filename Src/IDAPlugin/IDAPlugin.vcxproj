@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Python27\include;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\DiffEngine;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\Lib;C:\Users\ohm\Documents\GitHub\DarunGrim\Lib\idasdk65\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Python27\include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\idasdk65\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -66,14 +66,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\ohm\Documents\GitHub\DarunGrim\Lib\idasdk65\include;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\Lib;C:\Users\ohm\Documents\GitHub\DarunGrim\Src\DiffEngine</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\ohm\Documents\GitHub\DarunGrim\Lib\idasdk65\lib\x86_win_vc_32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk65\lib\x86_win_vc_32</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;advapi32.lib;Version.lib;ida.lib;pro.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:PLUGIN /VERSION:0.1 %(AdditionalOptions)</AdditionalOptions>
       <OutputFile>$(OutDir)DarunGrimPlugin.plw</OutputFile>
