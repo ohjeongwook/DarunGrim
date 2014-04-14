@@ -9,8 +9,8 @@ import os
 import PatchDatabaseWrapper
 import PatchTimeline
 import DarunGrimSessions
-import DarunGrimDatabaseWrapper
-import DarunGrimAnalyzers
+import DarunGrimDatabase
+import SecurityImplications
 import DownloadMSPatches
 import FileStore
 
@@ -47,7 +47,7 @@ class WebServer(object):
 		database = PatchDatabaseWrapper.Database( self.DatabaseName )
 		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = database )
 		self.DarunGrimSessionsInstance = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
-		self.PatternAnalyzer = DarunGrimAnalyzers.PatternAnalyzer()
+		self.PatternAnalyzer = SecurityImplications.PatternAnalyzer()
 
 	def index(self):
 		mytemplate = Template( IndexTemplateText )
@@ -641,7 +641,7 @@ $(function () {
 			patch_database.AddProjectResult( project_id, source_id, target_id, databasename)
 
 		databasename = self.GenerateDGFName( source_id, target_id )
-		database = DarunGrimDatabaseWrapper.Database( databasename )
+		database = DarunGrimDatabase.Database( databasename )
 
 		#Check if dgf if correct? check size entries in GetFunctionMatchInfoCount?.
 		if database.GetFunctionMatchInfoCount() == 0:
@@ -730,7 +730,7 @@ $(function () {
 
 	def GetFunctionMatchInfo( self, patch_id, download_id, file_id, source_id, target_id, show_detail = 0, project_id = None ):
 		databasename = self.GenerateDGFName( source_id, target_id )
-		database = DarunGrimDatabaseWrapper.Database( databasename )
+		database = DarunGrimDatabase.Database( databasename )
 
 		function_match_infos = []
 		
@@ -781,7 +781,7 @@ $(function () {
 		target_file = patch_database.GetFileByID( target_id )[0]
 	
 		databasename = self.GenerateDGFName( source_id, target_id )
-		darungrim_database = DarunGrimDatabaseWrapper.Database( databasename )
+		darungrim_database = DarunGrimDatabase.Database( databasename )
 
 		source_address = int(source_address)
 		target_address = int(target_address)

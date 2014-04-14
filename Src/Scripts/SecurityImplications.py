@@ -1,4 +1,4 @@
-import DarunGrimDatabaseWrapper
+import DarunGrimDatabase
 
 class PatternAnalyzer:
 	SecurityImpactPatterns = ( 
@@ -37,7 +37,7 @@ class PatternAnalyzer:
 		return ( security_implications_score, return_lines )
 
 	def GetSecurityImplicationsScore( self, databasename, source_address, target_address ):
-		database = DarunGrimDatabaseWrapper.Database( databasename )
+		database = DarunGrimDatabase.Database( databasename )
 	
 		source_address = int(source_address)
 		target_address = int(target_address)
