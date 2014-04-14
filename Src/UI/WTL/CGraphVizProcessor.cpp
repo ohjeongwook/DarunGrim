@@ -2,6 +2,7 @@
 #pragma warning(disable:4996)
 #include "CGraphVizProcessor.h"
 #include "dprintf.h"
+#include <gvc.h>
 
 using namespace std;
 

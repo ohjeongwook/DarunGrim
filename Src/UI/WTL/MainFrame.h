@@ -158,7 +158,6 @@ private:
 	vector<MatchAddressPair> BlockList;
 	CCommandBarCtrl m_CmdBar;
 	float m_Zoom;
-	BOOL m_UseLegacyFileFormat;
 	bool m_RetrieveClientManagersDatabase;
 	int AssociateSocketCount;
 	int m_State;
@@ -221,7 +220,6 @@ public:
 	{
 		m_State=STATE_NONE;
 
-		m_UseLegacyFileFormat=FALSE;
 		m_Zoom=1.0f;
 		hThreadOfAssociateSocketWithClientManagers=INVALID_HANDLE_VALUE;
 		pOneClientManager=NULL;
@@ -846,7 +844,7 @@ public:
 		DBWrapper *OutputDB=&(((CMainFrame *)pParam)->m_DatabaseHandle);
 		{
 			IDAClientManager *pOneClientManager=new IDAClientManager();
-			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
+			pOneClientManager->StartIDAListener( DARUNGRIM_PORT );
 
 			if(pOneClientManager->AcceptIDAClient(
 				(
@@ -948,7 +946,7 @@ public:
 		{
 			::MessageBox(m_hWnd,"Patched IDB is opened.\r\nIDA will be synced from now on.","Information",MB_OK);
 			IDAClientManager *pOneClientManager=new IDAClientManager();
-			pOneClientManager->StartIDAListener( DARUNGRIM2_PORT );
+			pOneClientManager->StartIDAListener( DARUNGRIM_PORT );
 			pOneClientManager->SetMembers(pOneClientManagerTheSource,pOneClientManagerTheTarget,pDiffMachine);
 			pOneClientManager->ShowResultsOnIDA();
 			pOneClientManager->CreateIDACommandProcessorThread();
@@ -1033,7 +1031,7 @@ public:
 		//Initiate Analysis
 		pDiffMachine=new DiffMachine();
 		PrintToLogView("Retrieve signature data...\r\n");
-		pDiffMachine->Retrieve(m_DatabaseHandle,TRUE,1,2);
+		pDiffMachine->Load(m_DatabaseHandle, TRUE, 1, 2);
 		PrintToLogView("Start analysis...\r\n");
 		pDiffMachine->Analyze();
 		PrintToLogView("Saving results...\r\n");
@@ -1388,7 +1386,7 @@ public:
 		m_DatabaseHandle.CreateDatabase((char *)m_DatabaseFilename.c_str());
 		CreateTables(m_DatabaseHandle);
 		pDiffMachine=new DiffMachine();
-		pDiffMachine->Retrieve(m_DatabaseHandle);
+		pDiffMachine->Load(m_DatabaseHandle);
 		pOneClientManagerTheSource=pDiffMachine->GetTheSource();
 		pOneClientManagerTheTarget=pDiffMachine->GetTheTarget();
 #endif
@@ -1442,27 +1440,8 @@ public:
 				}
 			}
 		}
-		if(m_UseLegacyFileFormat)
-		{
-			WriteOffsetLength(filename,0,0,0,TRUE);
-			pOneClientManagerTheSource->Save(filename,0L,FILE_END,pTheSourceAddresses);
-			DWORD TheSourceLength=GetCurrentOffset(filename);
 
-			pOneClientManagerTheTarget->Save(filename,0L,FILE_END,pTheTargetAddresses);
-			DWORD TheTargetLength=GetCurrentOffset(filename);
-
-			pDiffMachine->Save(filename,DiffMachineFileBinaryFormat,0L,FILE_END,pTheSourceAddresses,pTheTargetAddresses);
-
-			DWORD ResultLength=GetCurrentOffset(filename);
-
-			ResultLength-=TheTargetLength;
-			TheTargetLength-=TheSourceLength;
-			TheSourceLength-=sizeof(DWORD)*3;
-			WriteOffsetLength(filename,TheSourceLength,TheTargetLength,ResultLength,FALSE);
-		}else
-		{
-			pDiffMachine->Save(filename,DiffMachineFileSQLiteFormat,0L,FILE_END,pTheSourceAddresses,pTheTargetAddresses);
-		}
+		pDiffMachine->Save(filename,DiffMachineFileSQLiteFormat,0L,FILE_END,pTheSourceAddresses,pTheTargetAddresses);
 		return 0;
 	}
 

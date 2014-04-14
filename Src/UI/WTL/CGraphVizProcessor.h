@@ -1,5 +1,6 @@
 #pragma once
 #include <types.h>
+#include <graph.h>
 #include <windows.h>
 #include <stdio.h>
 

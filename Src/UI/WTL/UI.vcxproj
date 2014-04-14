@@ -64,17 +64,48 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\graphviz-2.36\release\include\graphviz</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;dprintf=printf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\graphviz-2.18\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\graphviz-2.18\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\DiffEngine\Common.h" />
+    <ClInclude Include="..\..\DiffEngine\Configuration.h" />
+    <ClInclude Include="..\..\DiffEngine\DarunGrim.h" />
+    <ClInclude Include="..\..\DiffEngine\DataStructure.h" />
+    <ClInclude Include="..\..\DiffEngine\DiffMachine.h" />
+    <ClInclude Include="..\..\DiffEngine\IDAClientManager.h" />
+    <ClInclude Include="..\..\DiffEngine\OneIDAClientManager.h" />
+    <ClInclude Include="..\..\DiffEngine\targetver.h" />
+    <ClInclude Include="..\..\Lib\DataBaseWriter.h" />
+    <ClInclude Include="..\..\Lib\DBWrapper.h" />
+    <ClInclude Include="..\..\Lib\Diff.h" />
+    <ClInclude Include="..\..\Lib\dprintf.h" />
+    <ClInclude Include="..\..\Lib\fileinfo.h" />
+    <ClInclude Include="..\..\Lib\IDAAnalysisCommon.h" />
+    <ClInclude Include="..\..\Lib\IdaIncludes.h" />
+    <ClInclude Include="..\..\Lib\LogOperation.h" />
+    <ClInclude Include="..\..\Lib\md5.h" />
+    <ClInclude Include="..\..\Lib\ProcessUtils.h" />
+    <ClInclude Include="..\..\Lib\RegistryUtil.h" />
+    <ClInclude Include="..\..\Lib\SharedMemory.h" />
+    <ClInclude Include="..\..\Lib\SharedSocket.h" />
+    <ClInclude Include="..\..\Lib\SocketOperation.h" />
+    <ClInclude Include="..\..\Lib\sqlite3.h" />
+    <ClInclude Include="..\..\Lib\TLV.h" />
+    <ClInclude Include="..\..\Lib\Varray.h" />
+    <ClInclude Include="..\..\Lib\XGetopt.h" />
     <ClInclude Include="aboutdlg.h" />
     <ClInclude Include="CGraphVizProcessor.h" />
     <ClInclude Include="CGraphVizWindow.h" />
@@ -89,6 +120,24 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\DiffEngine\DarunGrim.cpp" />
+    <ClCompile Include="..\..\DiffEngine\DiffMachine.cpp" />
+    <ClCompile Include="..\..\DiffEngine\IDAClientManager.cpp" />
+    <ClCompile Include="..\..\DiffEngine\OneIDAClientManager.cpp" />
+    <ClCompile Include="..\..\Lib\DataBaseWriter.cpp" />
+    <ClCompile Include="..\..\Lib\Diff.cpp" />
+    <ClCompile Include="..\..\Lib\dprintf.cpp" />
+    <ClCompile Include="..\..\Lib\fileinfo.cpp" />
+    <ClCompile Include="..\..\Lib\LogOperation.cpp" />
+    <ClCompile Include="..\..\Lib\md5.cpp" />
+    <ClCompile Include="..\..\Lib\ProcessUtils.cpp" />
+    <ClCompile Include="..\..\Lib\RegistryUtil.cpp" />
+    <ClCompile Include="..\..\Lib\SharedMemory.cpp" />
+    <ClCompile Include="..\..\Lib\SharedSocket.cpp" />
+    <ClCompile Include="..\..\Lib\SocketOperation.cpp" />
+    <ClCompile Include="..\..\Lib\sqlite3.c" />
+    <ClCompile Include="..\..\Lib\Varray.cpp" />
+    <ClCompile Include="..\..\Lib\XGetopt.cpp" />
     <ClCompile Include="CGraphVizProcessor.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stdafx.cpp">

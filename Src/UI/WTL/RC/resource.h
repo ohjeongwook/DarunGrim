@@ -2,8 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by Dialogs.rc
 //
-#define IDD_DIALOG_SELECT_FILES         151
-#define IDD_DIALOG_LOG_VIEWER           152
 #define IDC_BUTTON_SOURCE               1500
 #define IDC_BUTTON_TARGET               1501
 #define IDC_EDIT_SOURCE                 1502
