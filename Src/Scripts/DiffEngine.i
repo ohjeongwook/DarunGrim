@@ -84,7 +84,7 @@ public:
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
-	BOOL Load( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis=TRUE, int TheSourceFileID=1, int TheTargetFileID=2, BOOL bLoadMatchMapToMemory=FALSE );
+	BOOL Load( DBWrapper* InputDB);
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
 
@@ -101,7 +101,7 @@ public:
 		unsigned long start_address_for_source, unsigned long end_address_for_source, 
 		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
-	bool DiffDatabaseFiles(char *src_storage_filename, char *target_storage_filename, char *output_storage_filename);
+	bool DiffDatabaseFiles(char *src_storage_filename, unsigned long source_address, char *target_storage_filename, unsigned long target_address, char *output_storage_filename);
 	bool Analyze();
 	
 	void SetSourceFilename( char *source_filename );

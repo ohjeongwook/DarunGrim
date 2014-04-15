@@ -62,7 +62,7 @@
       <OutputFile>$(OutDir)_DiffEngine.pyd</OutputFile>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)\Lib\swigwin-3.0.0\swig.exe -c++ -python $(SolutionDir)\Src\DiffEngine\Python\DiffEngine.i 
+      <Command>$(SolutionDir)\Lib\swigwin-3.0.0\swig.exe -c++ -python $(SolutionDir)\Src\Scripts\DiffEngine.i 
 </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>

@@ -4580,276 +4580,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DiffMachine_Load(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DiffMachine *arg1 = (DiffMachine *) 0 ;
-  DBWrapper *arg2 = 0 ;
-  BOOL arg3 ;
-  int arg4 ;
-  int arg5 ;
-  BOOL arg6 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
-  void *argp6 ;
-  int res6 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  PyObject * obj5 = 0 ;
-  BOOL result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:DiffMachine_Load",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DiffMachine, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DiffMachine_Load" "', argument " "1"" of type '" "DiffMachine *""'"); 
-  }
-  arg1 = reinterpret_cast< DiffMachine * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_DBWrapper,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_BOOL,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'");
-    } else {
-      BOOL * temp = reinterpret_cast< BOOL * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
-  }
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DiffMachine_Load" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = static_cast< int >(val4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "DiffMachine_Load" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = static_cast< int >(val5);
-  {
-    res6 = SWIG_ConvertPtr(obj5, &argp6, SWIGTYPE_p_BOOL,  0  | 0);
-    if (!SWIG_IsOK(res6)) {
-      SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "DiffMachine_Load" "', argument " "6"" of type '" "BOOL""'"); 
-    }  
-    if (!argp6) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "6"" of type '" "BOOL""'");
-    } else {
-      BOOL * temp = reinterpret_cast< BOOL * >(argp6);
-      arg6 = *temp;
-      if (SWIG_IsNewObj(res6)) delete temp;
-    }
-  }
-  result = (arg1)->Load(*arg2,arg3,arg4,arg5,arg6);
-  resultobj = SWIG_NewPointerObj((new BOOL(static_cast< const BOOL& >(result))), SWIGTYPE_p_BOOL, SWIG_POINTER_OWN |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  DiffMachine *arg1 = (DiffMachine *) 0 ;
-  DBWrapper *arg2 = 0 ;
-  BOOL arg3 ;
-  int arg4 ;
-  int arg5 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  BOOL result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:DiffMachine_Load",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DiffMachine, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DiffMachine_Load" "', argument " "1"" of type '" "DiffMachine *""'"); 
-  }
-  arg1 = reinterpret_cast< DiffMachine * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_DBWrapper,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_BOOL,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'");
-    } else {
-      BOOL * temp = reinterpret_cast< BOOL * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
-  }
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DiffMachine_Load" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = static_cast< int >(val4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "DiffMachine_Load" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = static_cast< int >(val5);
-  result = (arg1)->Load(*arg2,arg3,arg4,arg5);
-  resultobj = SWIG_NewPointerObj((new BOOL(static_cast< const BOOL& >(result))), SWIGTYPE_p_BOOL, SWIG_POINTER_OWN |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  DiffMachine *arg1 = (DiffMachine *) 0 ;
-  DBWrapper *arg2 = 0 ;
-  BOOL arg3 ;
-  int arg4 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  BOOL result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:DiffMachine_Load",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DiffMachine, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DiffMachine_Load" "', argument " "1"" of type '" "DiffMachine *""'"); 
-  }
-  arg1 = reinterpret_cast< DiffMachine * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_DBWrapper,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_BOOL,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'");
-    } else {
-      BOOL * temp = reinterpret_cast< BOOL * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
-  }
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DiffMachine_Load" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = static_cast< int >(val4);
-  result = (arg1)->Load(*arg2,arg3,arg4);
-  resultobj = SWIG_NewPointerObj((new BOOL(static_cast< const BOOL& >(result))), SWIGTYPE_p_BOOL, SWIG_POINTER_OWN |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_3(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  DiffMachine *arg1 = (DiffMachine *) 0 ;
-  DBWrapper *arg2 = 0 ;
-  BOOL arg3 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 ;
-  int res3 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  BOOL result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOO:DiffMachine_Load",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DiffMachine, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DiffMachine_Load" "', argument " "1"" of type '" "DiffMachine *""'"); 
-  }
-  arg1 = reinterpret_cast< DiffMachine * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_DBWrapper,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_BOOL,  0  | 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'"); 
-    }  
-    if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "3"" of type '" "BOOL""'");
-    } else {
-      BOOL * temp = reinterpret_cast< BOOL * >(argp3);
-      arg3 = *temp;
-      if (SWIG_IsNewObj(res3)) delete temp;
-    }
-  }
-  result = (arg1)->Load(*arg2,arg3);
-  resultobj = SWIG_NewPointerObj((new BOOL(static_cast< const BOOL& >(result))), SWIGTYPE_p_BOOL, SWIG_POINTER_OWN |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_4(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  DiffMachine *arg1 = (DiffMachine *) 0 ;
-  DBWrapper *arg2 = 0 ;
+  DBWrapper *arg2 = (DBWrapper *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -4864,162 +4598,16 @@ SWIGINTERN PyObject *_wrap_DiffMachine_Load__SWIG_4(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DiffMachine_Load" "', argument " "1"" of type '" "DiffMachine *""'"); 
   }
   arg1 = reinterpret_cast< DiffMachine * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_DBWrapper,  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_DBWrapper, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper &""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DiffMachine_Load" "', argument " "2"" of type '" "DBWrapper *""'"); 
   }
   arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  result = (arg1)->Load(*arg2);
+  result = (arg1)->Load(arg2);
   resultobj = SWIG_NewPointerObj((new BOOL(static_cast< const BOOL& >(result))), SWIGTYPE_p_BOOL, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_DiffMachine_Load(PyObject *self, PyObject *args) {
-  int argc;
-  PyObject *argv[7];
-  int ii;
-  
-  if (!PyTuple_Check(args)) SWIG_fail;
-  argc = args ? (int)PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 6) && (ii < argc); ii++) {
-    argv[ii] = PyTuple_GET_ITEM(args,ii);
-  }
-  if (argc == 2) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DiffMachine, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_DBWrapper, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        return _wrap_DiffMachine_Load__SWIG_4(self, args);
-      }
-    }
-  }
-  if (argc == 3) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DiffMachine, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_DBWrapper, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        int res = SWIG_ConvertPtr(argv[2], 0, SWIGTYPE_p_BOOL, 0);
-        _v = SWIG_CheckState(res);
-        if (_v) {
-          return _wrap_DiffMachine_Load__SWIG_3(self, args);
-        }
-      }
-    }
-  }
-  if (argc == 4) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DiffMachine, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_DBWrapper, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        int res = SWIG_ConvertPtr(argv[2], 0, SWIGTYPE_p_BOOL, 0);
-        _v = SWIG_CheckState(res);
-        if (_v) {
-          {
-            int res = SWIG_AsVal_int(argv[3], NULL);
-            _v = SWIG_CheckState(res);
-          }
-          if (_v) {
-            return _wrap_DiffMachine_Load__SWIG_2(self, args);
-          }
-        }
-      }
-    }
-  }
-  if (argc == 5) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DiffMachine, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_DBWrapper, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        int res = SWIG_ConvertPtr(argv[2], 0, SWIGTYPE_p_BOOL, 0);
-        _v = SWIG_CheckState(res);
-        if (_v) {
-          {
-            int res = SWIG_AsVal_int(argv[3], NULL);
-            _v = SWIG_CheckState(res);
-          }
-          if (_v) {
-            {
-              int res = SWIG_AsVal_int(argv[4], NULL);
-              _v = SWIG_CheckState(res);
-            }
-            if (_v) {
-              return _wrap_DiffMachine_Load__SWIG_1(self, args);
-            }
-          }
-        }
-      }
-    }
-  }
-  if (argc == 6) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DiffMachine, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_DBWrapper, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        int res = SWIG_ConvertPtr(argv[2], 0, SWIGTYPE_p_BOOL, 0);
-        _v = SWIG_CheckState(res);
-        if (_v) {
-          {
-            int res = SWIG_AsVal_int(argv[3], NULL);
-            _v = SWIG_CheckState(res);
-          }
-          if (_v) {
-            {
-              int res = SWIG_AsVal_int(argv[4], NULL);
-              _v = SWIG_CheckState(res);
-            }
-            if (_v) {
-              int res = SWIG_ConvertPtr(argv[5], 0, SWIGTYPE_p_BOOL, 0);
-              _v = SWIG_CheckState(res);
-              if (_v) {
-                return _wrap_DiffMachine_Load__SWIG_0(self, args);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  
-fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'DiffMachine_Load'.\n"
-    "  Possible C/C++ prototypes are:\n"
-    "    DiffMachine::Load(DBWrapper &,BOOL,int,int,BOOL)\n"
-    "    DiffMachine::Load(DBWrapper &,BOOL,int,int)\n"
-    "    DiffMachine::Load(DBWrapper &,BOOL,int)\n"
-    "    DiffMachine::Load(DBWrapper &,BOOL)\n"
-    "    DiffMachine::Load(DBWrapper &)\n");
-  return 0;
 }
 
 
@@ -5655,26 +5243,34 @@ SWIGINTERN PyObject *_wrap_DarunGrim_DiffDatabaseFiles(PyObject *SWIGUNUSEDPARM(
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
-  char *arg3 = (char *) 0 ;
+  unsigned long arg3 ;
   char *arg4 = (char *) 0 ;
+  unsigned long arg5 ;
+  char *arg6 = (char *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
-  int res3 ;
-  char *buf3 = 0 ;
-  int alloc3 = 0 ;
+  unsigned long val3 ;
+  int ecode3 = 0 ;
   int res4 ;
   char *buf4 = 0 ;
   int alloc4 = 0 ;
+  unsigned long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  char *buf6 = 0 ;
+  int alloc6 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_DiffDatabaseFiles",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:DarunGrim_DiffDatabaseFiles",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "1"" of type '" "DarunGrim *""'"); 
@@ -5685,26 +5281,36 @@ SWIGINTERN PyObject *_wrap_DarunGrim_DiffDatabaseFiles(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "3"" of type '" "char *""'");
-  }
-  arg3 = reinterpret_cast< char * >(buf3);
+  ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "3"" of type '" "unsigned long""'");
+  } 
+  arg3 = static_cast< unsigned long >(val3);
   res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
   if (!SWIG_IsOK(res4)) {
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "4"" of type '" "char *""'");
   }
   arg4 = reinterpret_cast< char * >(buf4);
-  result = (bool)(arg1)->DiffDatabaseFiles(arg2,arg3,arg4);
+  ecode5 = SWIG_AsVal_unsigned_SS_long(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "5"" of type '" "unsigned long""'");
+  } 
+  arg5 = static_cast< unsigned long >(val5);
+  res6 = SWIG_AsCharPtrAndSize(obj5, &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "6"" of type '" "char *""'");
+  }
+  arg6 = reinterpret_cast< char * >(buf6);
+  result = (bool)(arg1)->DiffDatabaseFiles(arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return NULL;
 }
 
