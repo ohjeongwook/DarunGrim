@@ -23,12 +23,14 @@ private:
 #endif
 	DBWrapper *m_StorageDB;
 	char *m_OriginalFilePath;
+	DWORD TargetFunctionAddress;
+
 	SOCKET Socket;
 	AnalysisInfo *ClientAnalysisInfo;
 	DataSharer IDADataSharer;
 	char *DisasmLine;
 	void LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
-	BOOL LoadFromDatabase(DBWrapper *pStorageDB, int FileID = 1, BOOL bRetrieveDataForAnalysis = FALSE, DWORD FunctionAddress = 0);
+	BOOL LoadFromDatabase(DBWrapper *pStorageDB, int FileID = 1);
 	void GenerateTwoLevelFingerPrint();
 	void MergeBlocks();
 public:
@@ -50,11 +52,11 @@ public:
 	void SetSocket(SOCKET socket);
 	BOOL LoadIDARawDataFromSocket(SOCKET socket);
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
-	BOOL Load(int FileID = 1, BOOL bRetrieveDataForAnalysis = FALSE, DWORD FunctionAddress = 0);
-	
+	BOOL Load(int FileID = 1);
 	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 
-	BOOL RetrieveOneLocationInfo( DWORD FunctionAddress = 0 );
+	void AddAnalysisTargetFunction(DWORD FunctionAddress);
+	BOOL RetrieveOneLocationInfo();
 
 	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();

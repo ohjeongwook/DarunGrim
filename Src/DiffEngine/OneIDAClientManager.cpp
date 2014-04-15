@@ -26,7 +26,8 @@ char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
 OneIDAClientManager::OneIDAClientManager(DBWrapper *storage_db):
-	ClientAnalysisInfo(NULL)
+	ClientAnalysisInfo(NULL),
+	TargetFunctionAddress(0)
 {
 	ClientAnalysisInfo = NULL;
 	m_FileID = 0;
@@ -341,34 +342,32 @@ FunctionAddress = 0 : Retrieve All Functions
 	else			: Retrieve That Specific Function
 */
 
-BOOL OneIDAClientManager::LoadFromDatabase(DBWrapper *pStorageDB, int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress)
+BOOL OneIDAClientManager::LoadFromDatabase(DBWrapper *pStorageDB, int FileID)
 {
 	Logger.Log(10, "LoadFromDatabase: %s\n", pStorageDB->GetDatabaseName());
+
 	m_FileID = FileID;
 	pStorageDB->ExecuteStatement(pStorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 	ClientAnalysisInfo = new AnalysisInfo;
 
-	if(bRetrieveDataForAnalysis)
-	{
-		RetrieveOneLocationInfo( FunctionAddress );
-	}
-
-	if( FunctionAddress == 0 )
+	RetrieveOneLocationInfo();
+	
+	if (TargetFunctionAddress == 0)
 	{
 		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", m_FileID);
 	}
 	else
 	{
 		//Retrieve only relevant maps
-		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", m_FileID, m_FileID, FunctionAddress, m_FileID, FunctionAddress);
+		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", m_FileID, m_FileID, TargetFunctionAddress, m_FileID, TargetFunctionAddress);
 	}
 
 	return TRUE;
 }
 
-BOOL OneIDAClientManager::Load(int FileID, BOOL bRetrieveDataForAnalysis, DWORD FunctionAddress)
+BOOL OneIDAClientManager::Load(int FileID)
 {
-	return LoadFromDatabase(m_StorageDB, FileID, bRetrieveDataForAnalysis, FunctionAddress);
+	return LoadFromDatabase(m_StorageDB, FileID);
 }
 
 void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
@@ -399,14 +398,20 @@ int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **nam
 	return 0;
 }
 
-BOOL OneIDAClientManager::RetrieveOneLocationInfo( DWORD FunctionAddress )
+void OneIDAClientManager::AddAnalysisTargetFunction( DWORD FunctionAddress )
+{
+	Logger.Log(10, "AddAnalysisTargetFunction: %x\n", FunctionAddress);
+	TargetFunctionAddress = FunctionAddress;
+}
+
+BOOL OneIDAClientManager::RetrieveOneLocationInfo()
 {
 	if( ClientAnalysisInfo->fingerprint_hash_map.size()  ==  0 )
 	{
 		char FunctionAddressConditionBuffer[50]={0,};
-		if( FunctionAddress )
+		if (TargetFunctionAddress)
 		{
-			_snprintf( FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer) - 1, "AND FunctionAddress = '%d'", FunctionAddress );
+			_snprintf(FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
 		}
 
 		//Logger.Log( 10,  "Condition [%s]\n", FunctionAddressConditionBuffer );
@@ -1120,6 +1125,18 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 
 list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 {
+	printf("TargetFunctionAddress: %x", TargetFunctionAddress);
+	if (TargetFunctionAddress != 0)
+	{
+		list <DWORD> *FunctionAddresses = new list<DWORD>;
+		if (FunctionAddresses)
+		{
+			FunctionAddresses->push_back(TargetFunctionAddress);
+		}
+
+		return FunctionAddresses;
+	}	
+
 	int DoCrefFromCheck = FALSE;
 	int DoCallCheck = TRUE;
 	hash_set <DWORD> FunctionAddressHash;
