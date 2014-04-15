@@ -40,13 +40,14 @@ DarunGrim::~DarunGrim()
 		delete pTargetIDAClientManager;
 }
 
-void DarunGrim::SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile )
+void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
 {
+	printf("SetLogParameters: %d %d %s\n", newLogOutputType, newDebugLevel, newLogFile);
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	Logger.SetOutputType( ParamLogOutputType );
-	if( LogFile )
-		Logger.SetLogFilename( LogFile );
-	Logger.SetDebugLevel( ParamDebugLevel );
+	Logger.SetOutputType(newLogOutputType);
+	if (newLogFile)
+		Logger.SetLogFilename(newLogFile);
+	Logger.SetDebugLevel(newDebugLevel);
 }
 
 void DarunGrim::SetIDAPath( const char *path )
@@ -196,36 +197,26 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	return TRUE;
 }
 
-bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, char *target_storage_filename, char *output_storage_filename)
+bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, DWORD source_address, char *target_storage_filename, DWORD target_address, char *output_storage_filename)
 {
-	Logger.Log(10, "%s: entry\n", __FUNCTION__);
-	
-	printf("%s\n", output_storage_filename);
+	Logger.Log(10, "%s: entry (%s)\n", __FUNCTION__, output_storage_filename);
 
-	pSourceIDAClientManager = new OneIDAClientManager(new DBWrapper((char *)src_storage_filename));
-	pTargetIDAClientManager = new OneIDAClientManager(new DBWrapper((char *)target_storage_filename));
-	
-	printf("Loading %s\n", src_storage_filename);
-	pSourceIDAClientManager->Load();
+	pDiffMachine = new DiffMachine();
+	pDiffMachine->SetSource((char *)src_storage_filename, 1, source_address);
+	pDiffMachine->SetTarget((char *)target_storage_filename, 1, target_address);
+	pDiffMachine->Load((char *)output_storage_filename);
 
-	printf("Loading %s\n", target_storage_filename);
-	pTargetIDAClientManager->Load();
+	Logger.Log(10, "Analyze\n");
+	pDiffMachine->Analyze();
 
-	pDiffMachine = new DiffMachine(pSourceIDAClientManager, pTargetIDAClientManager);
+	if (pStorageDB)
+		delete pStorageDB;
 
-	if (pDiffMachine)
-	{
-		pDiffMachine->Analyze();
+	Logger.Log(10, "Save\n");
+	pStorageDB = new DBWrapper((char *)output_storage_filename);
+	pIDAClientManager->SetDatabase(pStorageDB);
 
-		if (pStorageDB)
-			delete pStorageDB;
-
-		pStorageDB = new DBWrapper((char *)output_storage_filename);
-		pIDAClientManager->SetDatabase(pStorageDB);
-
-		pDiffMachine->Save(*pStorageDB);
-	}
-
+	pDiffMachine->Save(*pStorageDB);
 	return TRUE;
 }
 
@@ -256,7 +247,10 @@ bool DarunGrim::LoadDiffResults( const char *storage_filename )
 
 		if( pDiffMachine )
 		{
-			pDiffMachine->Load(*pStorageDB, TRUE, 1, 2);
+			pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
+			pDiffMachine->SetSource(pStorageDB, 1);
+			pDiffMachine->SetTarget(pStorageDB, 2);
+			pDiffMachine->Load(pStorageDB);
 			return TRUE;
 		}
 	}
@@ -272,7 +266,10 @@ bool DarunGrim::Analyze()
 	if( pStorageDB )
 	{
 		pDiffMachine = new DiffMachine();
-		pDiffMachine->Load(*pStorageDB, TRUE, source_file_id, target_file_id);
+		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
+		pDiffMachine->SetSource(pStorageDB, source_file_id);
+		pDiffMachine->SetSource(pStorageDB, target_file_id);
+		pDiffMachine->Load(pStorageDB);
 	}
 	else if( pSourceIDAClientManager && pTargetIDAClientManager )
 	{

@@ -77,12 +77,6 @@ class DiffMachine
 {
 private:
 	int DebugFlag;
-	DBWrapper *m_InputDB;
-	int m_TheSourceFileID;
-	int m_TheTargetFileID;
-
-	DWORD SourceFunctionAddress;
-	DWORD TargetFunctionAddress;
 
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
@@ -91,9 +85,6 @@ private:
 
 	SOCKET SocketForTheSource;
 	SOCKET SocketForeTheTarget;
-	OneIDAClientManager *TheSource;
-	OneIDAClientManager *TheTarget;
-	AnalysisResult *DiffResults;
 
 	int GetFingerPrintMatchRate( unsigned char* unpatched_finger_print, unsigned char* patched_finger_print );
 
@@ -161,10 +152,15 @@ public:
 
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	
+private:
+	BOOL bRetrieveDataForAnalysis;
 
-	void SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress );
-	BOOL Retrieve( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD Length=0L );	
-	BOOL Load(DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis = FALSE, int TheSourceFileID = 1, int TheTargetFileID = 2, BOOL bLoadMatchMapToMemory = FALSE);
+public:
+	void SetRetrieveDataForAnalysis(BOOL newRetrieveDataForAnalysis)
+	{
+		bRetrieveDataForAnalysis = newRetrieveDataForAnalysis;
+	}
 
 	char *GetMatchTypeStr( int Type );
 
@@ -190,5 +186,62 @@ public:
 			Callback( *iter, Context );
 		}
 	}
+
+private:
+	const char *SourceDBName;
+	int SourceID;
+	DWORD SourceFunctionAddress;
+
+	const char *TargetDBName;
+	int TargetID;
+	DWORD TargetFunctionAddress;
+
+	DBWrapper *m_DiffDB;
+	DBWrapper *m_SourceDB;
+	DBWrapper *m_TargetDB;
+
+	OneIDAClientManager *TheSource;
+	OneIDAClientManager *TheTarget;
+	AnalysisResult *DiffResults;
+
+	BOOL _Load();
+
+public:
+
+	void DiffMachine::SetSource(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
+	{
+		SourceDBName = db_filename;
+		SourceID = id;
+		SourceFunctionAddress = function_address;
+	}
+
+	void DiffMachine::SetTarget(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
+	{
+		TargetDBName = db_filename;
+		TargetID = id;
+		TargetFunctionAddress = function_address;
+	}
+
+	void DiffMachine::SetSource(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	{
+		m_SourceDB = db;
+		SourceID = id;
+		SourceFunctionAddress = function_address;
+	}
+
+	void DiffMachine::SetTarget(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	{
+		m_TargetDB = db;
+		TargetID = id;
+		TargetFunctionAddress = function_address;
+	}
+
+	void DiffMachine::SetTargetFunctions(DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress)
+	{
+		SourceFunctionAddress = ParamSourceFunctionAddress;
+		TargetFunctionAddress = ParamTargetFunctionAddress;
+	}
+	BOOL Load(const char *DiffDBFilename);
+	BOOL Load(DBWrapper *DiffDB);
 };
 

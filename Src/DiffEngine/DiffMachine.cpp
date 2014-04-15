@@ -18,21 +18,23 @@ char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerpr
 
 #include "sqlite3.h"
 
-int DebugLevel = 0;
+int DebugLevel = 1;
 
 extern LogOperation Logger;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
-	SourceFunctionAddress( 0 ), 
-	TargetFunctionAddress( 0 ), 
 	DebugFlag( 0 ),
 	TheSource( NULL ),
-	TheTarget( NULL )
+	TheTarget( NULL ),
+	bRetrieveDataForAnalysis(FALSE),
+	SourceDBName(NULL),
+	SourceID(0),
+	SourceFunctionAddress(0),
+	TargetDBName(NULL),
+	TargetID(0),
+	TargetFunctionAddress(0)
 {
-	m_InputDB=NULL;
-	m_TheSourceFileID=0;
-	m_TheTargetFileID=0;
-
+	m_DiffDB=NULL;
 	DiffResults=NULL;
 	SetOneIDAClientManagers( the_source, the_target );
 }
@@ -443,7 +445,7 @@ MatchCountWithModificationForTheTarget: 0x%.8x\n\
 						//INSERT
 						//match_map_iter->first
 						//match_map_iter->second
-						m_InputDB->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
+						m_DiffDB->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
 							TheSource->GetFileID(), 
 							TheTarget->GetFileID(), 
 							*source_member_iter,
@@ -476,23 +478,32 @@ bool DiffMachine::Analyze()
 	if( !TheSource || !TheTarget )
 		return FALSE;
 
+	/*
+	TODO:
 	if( TheSource->FixFunctionAddresses() )
-		TheSource->RetrieveOneLocationInfo( SourceFunctionAddress );
-
 	if( TheTarget->FixFunctionAddresses() )
-		TheTarget->RetrieveOneLocationInfo( TargetFunctionAddress );
+		
+	*/
+	TheSource->RetrieveOneLocationInfo();
+	TheTarget->RetrieveOneLocationInfo();
+
 	DiffResults=new AnalysisResult;
+
 	if( DebugLevel&1 )
 		Logger.Log( 10,  "%s: Fingerprint Map Size %u:%u\n", __FUNCTION__, 
 			TheSource->GetClientAnalysisInfo()->fingerprint_hash_map.size(), 
 			TheTarget->GetClientAnalysisInfo()->fingerprint_hash_map.size() );
 
+	Logger.Log(10, "LoadFunctionMembersMap\n");
 	FunctionMembersMapForTheSource=TheSource->LoadFunctionMembersMap();
 	FunctionMembersMapForTheTarget=TheTarget->LoadFunctionMembersMap();
+
+	Logger.Log(10, "LoadAddressToFunctionMap\n");
 	AddressToFunctionMapForTheSource=TheSource->LoadAddressToFunctionMap();
 	AddressToFunctionMapForTheTarget=TheTarget->LoadAddressToFunctionMap();
 
 	// Name Match
+	Logger.Log(10, "Name Match\n");
 	multimap <string,  DWORD>::iterator patched_name_hash_map_pIter;
 	for( name_hash_map_pIter=TheSource->GetClientAnalysisInfo()->name_hash_map.begin();
 		name_hash_map_pIter!=TheSource->GetClientAnalysisInfo()->name_hash_map.end();
@@ -536,6 +547,7 @@ bool DiffMachine::Analyze()
 			}
 		}
 	}
+
 	if( DebugLevel&1 )
 		Logger.Log( 10,  "%s: Name matched number=%u\n", __FUNCTION__, TemporaryMatchMap.size() );
 
@@ -1772,19 +1784,19 @@ MatchData *DiffMachine::GetMatchData( int index, DWORD address, BOOL erase )
 	DWORD block_address=address;
 	
 
-	if( !DiffResults && m_InputDB )
+	if( !DiffResults && m_DiffDB )
 	{
 		static MatchData match_data;
 		memset( &match_data, 0, sizeof( match_data ) );
 
 		if( erase )
 		{
-			m_InputDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", m_TheSourceFileID, m_TheTargetFileID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
+			m_DiffDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
 			return NULL;
 		}
 		else
 		{
-			m_InputDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", m_TheSourceFileID, m_TheTargetFileID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
+			m_DiffDB->ExecuteStatement( ReadOneMatchMapCallback, &match_data, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index==0?"TheSourceAddress":"TheTargetAddress", block_address );
 			if( match_data.Addresses[0]!=0 )
 			{
 				if( DebugLevel&1 ) Logger.Log( 10,  "%s: %u 0x%x Returns %x-%x\r\n", __FUNCTION__, index, block_address, match_data.Addresses[0], match_data.Addresses[1] );
@@ -1850,11 +1862,6 @@ BOOL DiffMachine::Save(
 						hash_set <DWORD> *pTheSourceSelectedAddresses, 
 						hash_set <DWORD> *pTheTargetSelectedAddresses 
 )
-{
-	return FALSE;
-}
-
-BOOL DiffMachine::Retrieve( char *DataFile, BYTE Type, DWORD Offset, DWORD Length )
 {
 	return FALSE;
 }
@@ -2041,39 +2048,67 @@ int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **
 	return 0;
 }
 
-void DiffMachine::SetTargetFunctions( DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress )
+BOOL DiffMachine::Load(const char *DiffDBFilename)
 {
-	SourceFunctionAddress = ParamSourceFunctionAddress;
-	TargetFunctionAddress = ParamTargetFunctionAddress;
+	Logger.Log(10, "Loading %s\n", DiffDBFilename);
+	m_DiffDB = new DBWrapper();
+	m_DiffDB->CreateDatabase(DiffDBFilename);
+
+	if (SourceDBName != NULL && TargetDBName != NULL)
+	{
+		Logger.Log(10, "Loading %s\n", SourceDBName);
+		m_SourceDB = new DBWrapper();
+		m_SourceDB->CreateDatabase(SourceDBName);
+
+		Logger.Log(10, "Loading %s\n", TargetDBName);
+		m_TargetDB = new DBWrapper();
+		m_TargetDB->CreateDatabase(TargetDBName);
+	}
+
+	return _Load();
 }
 
-BOOL DiffMachine::Load( DBWrapper& InputDB, BOOL bRetrieveDataForAnalysis, int TheSourceFileID, int TheTargetFileID, BOOL bLoadMatchMapToMemory )
+BOOL DiffMachine::Load(DBWrapper* DiffDB)
+{
+	m_DiffDB = DiffDB;
+	m_SourceDB = DiffDB;
+	m_TargetDB = DiffDB;
+
+	return _Load();
+}
+
+BOOL DiffMachine::_Load()
 {
 	if( TheSource )
 		delete TheSource;
-	if( TheTarget )
+
+	TheSource = new OneIDAClientManager(m_SourceDB);
+	TheSource->AddAnalysisTargetFunction(SourceFunctionAddress);
+	TheSource->Load(SourceID);
+
+	if (TheTarget)
 		delete TheTarget;
 
-	TheSource = new OneIDAClientManager(&InputDB);
-	TheTarget = new OneIDAClientManager(&InputDB);
+	TheTarget = new OneIDAClientManager(m_TargetDB);
+	TheTarget->AddAnalysisTargetFunction(TargetFunctionAddress);
+	TheTarget->Load(TargetID);
 
-	TheSource->Load( TheSourceFileID, bRetrieveDataForAnalysis, SourceFunctionAddress );
-	TheTarget->Load( TheTargetFileID, bRetrieveDataForAnalysis, TargetFunctionAddress);
+	m_DiffDB->ExecuteStatement(
+					ReadFunctionMatchInfoListCallback, 
+					&FunctionMatchInfoList, 
+					"SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From " 
+					FUNCTION_MATCH_INFO_TABLE
+					" WHERE TheSourceFileID=%u AND TheTargetFileID=%u", SourceID, TargetID );
+	
 
-	m_InputDB=&InputDB;
-	m_TheSourceFileID=TheSourceFileID;
-	m_TheTargetFileID=TheTargetFileID;
-	InputDB.ExecuteStatement( ReadFunctionMatchInfoListCallback, &FunctionMatchInfoList, "SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From " FUNCTION_MATCH_INFO_TABLE" WHERE TheSourceFileID=%u AND TheTargetFileID=%u", TheSourceFileID, TheTargetFileID );
-	if( bLoadMatchMapToMemory )
-	{
-		DiffResults=new AnalysisResult;
-		InputDB.ExecuteStatement( ReadMatchMapCallback, DiffResults, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u", TheSourceFileID, TheTargetFileID );
-	}else
-	{
-		if( DiffResults )
-			delete DiffResults;
-		DiffResults=NULL;
-	}
+	DiffResults=new AnalysisResult;
+	
+	m_DiffDB->ExecuteStatement(
+				ReadMatchMapCallback, 
+				DiffResults, 
+				"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u", 
+				SourceID, TargetID );
+				
 	return TRUE;
 }
 

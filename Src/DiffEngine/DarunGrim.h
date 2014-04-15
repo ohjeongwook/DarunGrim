@@ -37,7 +37,7 @@ public:
 		unsigned long start_address_for_source, unsigned long end_address_for_source, 
 		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
-	bool DiffDatabaseFiles(char *src_storage_filename, char *target_storage_filename, char *output_storage_filename);
+	bool DiffDatabaseFiles(char *src_storage_filename, DWORD source_address, char *target_storage_filename, DWORD target_address, char *output_storage_filename);
 
 	bool LoadDiffResults( const char *storage_filename );
 	bool Analyze();
