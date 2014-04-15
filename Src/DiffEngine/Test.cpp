@@ -27,7 +27,10 @@ void main( int argc, char *argv[] )
 	pDiffMachine->SetTargetFunctions( 0x208a5d2a, 0x208a63b8 );
 
 	printf("Retrieving Data\n");
-	pDiffMachine->Load(OutputDB, TRUE, TheSourceFileID, TheTargetFileID);
+	pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
+	pDiffMachine->SetSource(&OutputDB, TheSourceFileID);
+	pDiffMachine->SetSource(&OutputDB, TheTargetFileID);
+	pDiffMachine->Load(&OutputDB);
 
 	printf("Start Analysis\n");
 	pDiffMachine->Analyze();
