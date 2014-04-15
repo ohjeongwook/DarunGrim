@@ -44,7 +44,7 @@ public:
 		}
 	}
 
-	BOOL CreateDatabase( char *DatabaseName )
+	BOOL CreateDatabase( const char *DatabaseName )
 	{		
 		//Database Setup
 		printf("Opening Database [%s]\n", DatabaseName );

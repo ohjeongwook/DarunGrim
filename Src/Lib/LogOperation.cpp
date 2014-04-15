@@ -367,9 +367,9 @@ void LogOperation::SetOutputType( int output_type )
 	OutputType = output_type;
 }
 
-void LogOperation::SetDebugLevel( DWORD debug_level )
+void LogOperation::SetDebugLevel( DWORD newDebugLevel )
 {
-	DebugLevel = debug_level;
+	DebugLevel = newDebugLevel;
 }
 
 void LogOperation::SetLogFilename( const char *filename )
