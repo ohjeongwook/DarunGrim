@@ -23,10 +23,6 @@ class Differ:
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		self.DarunGrim.LoadDiffResults( storage_filename )
 
-	def DiffDatabaseFiles( self, src_storage_filename, target_storage_filename, result_storage_filename ):
-		self.DarunGrim.SetLogParameters(LogToStdout, 100, "");        
-		self.DarunGrim.DiffDatabaseFiles( src_storage_filename, target_storage_filename, result_storage_filename )
-
 	def DiffFile( self, storage_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
@@ -72,5 +68,6 @@ if __name__ == '__main__':
 	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
 	raw_input( 'Press any key to continue...' )
 	"""
-
-	darun_grim.DiffDatabaseFiles(src_filename, target_filename, result_filename);
+	darun_grim.SetLogParameters(LogToStdout, 100, "");  
+	#darun_grim.DiffDatabaseFiles(src_filename, 0x31d10906, target_filename, 0x31d10970, result_filename)
+	darun_grim.DiffDatabaseFiles(src_filename, 0x0, target_filename, 0x0, result_filename)
