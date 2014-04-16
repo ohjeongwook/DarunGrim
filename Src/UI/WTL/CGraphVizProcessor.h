@@ -19,6 +19,8 @@ class CGraphVizProcessor
 {
 private:
 	Agraph_t *g;
+	GVC_t *gvc;
+
 	stdext::hash_map<DWORD,Agnode_t *> AddressToNodeMap;
 	stdext::hash_map<Agnode_t *,DWORD> *NodeToUserDataMap;
 

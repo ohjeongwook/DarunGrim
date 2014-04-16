@@ -41,7 +41,7 @@ public:
 		else
 			m_OriginalHDC.GetClipBox(&m_rc);
 
-		if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: %d,%d,%d,%d\n",__FUNCTION__,m_rc.left,m_rc.right-m_rc.left,m_rc.top,m_rc.bottom-m_rc.top);
+		if(DebugLevel>0) dprintf("%s: %d,%d,%d,%d\n",__FUNCTION__,m_rc.left,m_rc.right-m_rc.left,m_rc.top,m_rc.bottom-m_rc.top);
 		CreateCompatibleDC(m_OriginalHDC);
 		::LPtoDP(m_OriginalHDC,(LPPOINT)&m_rc,sizeof(RECT)/sizeof(POINT));
 
@@ -73,7 +73,7 @@ public:
 			SetWindowOrg(m_rc.left,m_rc.top);
 		}else
 		{
-			if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: Failed in CreateDIBitmap(%d,%d)\n",__FUNCTION__,
+			if(DebugLevel>0) dprintf("%s: Failed in CreateDIBitmap(%d,%d)\n",__FUNCTION__,
 				BitMapHead.biWidth,
 				BitMapHead.biHeight);
 		}
@@ -121,6 +121,7 @@ private:
 	END_MSG_MAP()
 
 	list<DrawingInfo *> *DrawingInfoMap;
+
 	LRESULT OnCreate(LPCREATESTRUCT lpcs)
 	{
 		DebugLevel=0;
@@ -153,8 +154,10 @@ private:
 		GetScrollOffset(ScrollOffset);
 		int x=(int)((float)(MAKEPOINTS(lParam).x+ScrollOffset.x)/(float)m_ZoomLevel);
 		int y=(int)((float)(MAKEPOINTS(lParam).y+ScrollOffset.y)/(float)m_ZoomLevel);
+
 		if(!DrawingInfoMap)
 			return 0;
+
 		DWORD address=0;
 		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
 
@@ -227,6 +230,7 @@ private:
 	{
 		if(!DrawingInfoMap)
 			return 0;
+
 		int min_x=-1;
 		int min_y=-1;
 		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
@@ -281,8 +285,9 @@ private:
 				WindowWidth,WindowHeight,SWP_NOMOVE|SWP_NOZORDER);
 	}
 
-	void SetDrawingInfoMap(list<DrawingInfo *> *DrawingInfoMapParam)
+	void SetDrawingInfoMap(list<DrawingInfo *> *NewDrawingInfoMap)
 	{
+		//Clean up NewDrawingInfoMap
 		if(DrawingInfoMap)
 		{
 			list<DrawingInfo *>::iterator DrawingInfoMapIterator;
@@ -299,9 +304,12 @@ private:
 			}
 			delete DrawingInfoMap;
 		}
-		DrawingInfoMap=DrawingInfoMapParam;
+
+		DrawingInfoMap=NewDrawingInfoMap;
+		
 		if(!DrawingInfoMap)
 			return;
+
 		m_ClientWidth=0;
 		m_ClientHeight=0;
 		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
@@ -311,17 +319,23 @@ private:
 			DrawingInfoMapIterator++)
 		{
 			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
-			if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: p_drawing_info=%x\n",__FUNCTION__,p_drawing_info);
+			if(DebugLevel>0) 
+				dprintf("%s: p_drawing_info=%x\n",__FUNCTION__,p_drawing_info);
+			
 			if(p_drawing_info->type==TYPE_DI_GRAPH)
 			{
 				xWinOrg=p_drawing_info->points[1].x;
 				yWinOrg=p_drawing_info->points[1].y;
 				m_ClientWidth=p_drawing_info->points[1].x+10;
 				m_ClientHeight=p_drawing_info->points[1].y+10;
-				if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: m_ClientWidth: %d m_ClientHeight:%d\n",__FUNCTION__,m_ClientWidth,m_ClientHeight);
+
+				if(DebugLevel>0) 
+					dprintf("%s: m_ClientWidth: %d m_ClientHeight:%d\n",__FUNCTION__,m_ClientWidth,m_ClientHeight);
+				
 				SetScrollSize((int)((float)m_ClientWidth*m_ZoomLevel)+1,(int)((float)m_ClientHeight*m_ZoomLevel)+1);
 			}
 		}
+
 		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
 			DrawingInfoMapIterator!=DrawingInfoMap->end();
 			DrawingInfoMapIterator++)
@@ -334,10 +348,11 @@ private:
 				{
 				}else
 				{
-					p_drawing_info->points[pos].y=yWinOrg-p_drawing_info->points[pos].y;
+					p_drawing_info->points[pos].y = yWinOrg - p_drawing_info->points[pos].y;
 				}
 			}
 		}
+
 		if(MemDC)
 		{
 			delete MemDC;
@@ -1060,7 +1075,7 @@ private:
 			}else if(ret==0)
 			{
 				//match
-				if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: %s(%s)=RGB(%x,%x,%x)\n",__FUNCTION__,name,AllColors[CurrentPosition].name,
+				if(DebugLevel>0) dprintf("%s: %s(%s)=RGB(%x,%x,%x)\n",__FUNCTION__,name,AllColors[CurrentPosition].name,
 					(AllColors[CurrentPosition].color>>16)&0xff,
 					(AllColors[CurrentPosition].color>>8)&0xff,
 					AllColors[CurrentPosition].color&0xff
@@ -1094,7 +1109,7 @@ private:
 				}
 				TotalValue=TotalValue*16+CurrentValue;
 			}
-			if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: %s=%x\n",__FUNCTION__,name,TotalValue);
+			if(DebugLevel>0) dprintf("%s: %s=%x\n",__FUNCTION__,name,TotalValue);
 			return RGB(
 				(TotalValue>>16)&0xff,
 				(TotalValue>>8)&0xff,
@@ -1122,20 +1137,24 @@ private:
 	
 	void DoPaintReal(CDCHandle dc)
 	{
-		if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: entry\n",__FUNCTION__);
+		if(DebugLevel>0) dprintf("%s: entry\n",__FUNCTION__);
+
 		if(!DrawingInfoMap)
 			return;
+
 		//SetViewportOrgEx(dc,10,10,NULL);
 		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
 
 		char *CurrentFontName="Helvetica";
 		float CurrentFontSize=10.0;
+
 		printf("%s\n",__FUNCTION__);
 
 		char *FillColor=NULL;
 		char *PenColor=NULL;
 		char *BgColor=NULL;
 		char *FontColor=NULL;
+
 		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
 			DrawingInfoMapIterator!=DrawingInfoMap->end();
 			DrawingInfoMapIterator++)
@@ -1153,14 +1172,14 @@ private:
 			}else if(p_drawing_info->type==TYPE_DI_FILLCOLOR)
 			{
 				FillColor=p_drawing_info->text;
-				if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: [fillcolor] Got %s\n",__FUNCTION__,FillColor);
+				if(DebugLevel>0) dprintf("%s: [fillcolor] Got %s\n",__FUNCTION__,FillColor);
 			}else if(p_drawing_info->type==TYPE_DI_BGCOLOR)
 			{
 				BgColor=p_drawing_info->text;
 			}else if(p_drawing_info->type==TYPE_DI_FONTCOLOR)
 			{
 				FontColor=p_drawing_info->text;
-				if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: [fontcolor] FontColor=%s\n",__FUNCTION__,FontColor);
+				if(DebugLevel>0) dprintf("%s: [fontcolor] FontColor=%s\n",__FUNCTION__,FontColor);
 			}else if(p_drawing_info->type==TYPE_DI_RECTS)
 			{
 				if(p_drawing_info->points && p_drawing_info->count>0)
@@ -1169,7 +1188,7 @@ private:
 					HBRUSH hbrushOld=NULL;
 					if(BgColor)
 					{
-						if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: [BgColor] [%s]\n",__FUNCTION__,BgColor);
+						if(DebugLevel>0) dprintf("%s: [BgColor] [%s]\n",__FUNCTION__,BgColor);
 						hbrush=CreateSolidBrush(GetColorFromName(BgColor));
 						hbrushOld=(HBRUSH)SelectObject(dc,hbrush); 
 						BgColor=NULL;
@@ -1223,7 +1242,7 @@ private:
 						//filling
 						HBRUSH hbrush=NULL;
 						HBRUSH hbrushOld=NULL;
-						if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: Polygon=%d points [fillcolor] FillColor=%s\n",__FUNCTION__,p_drawing_info->count,FillColor?FillColor:"");
+						if(DebugLevel>0) dprintf("%s: Polygon=%d points [fillcolor] FillColor=%s\n",__FUNCTION__,p_drawing_info->count,FillColor?FillColor:"");
 						if(FillColor)
 						{
 							hbrush=CreateSolidBrush(GetColorFromName(FillColor));
@@ -1304,7 +1323,7 @@ private:
 
 						HPEN hpen=NULL;
 						HPEN hpenOld=NULL;
-						if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: [fontcolor] Using FontColor=%s for Text [%s]\n",__FUNCTION__,FontColor,p_drawing_info->text);
+						if(DebugLevel>0) dprintf("%s: [fontcolor] Using FontColor=%s for Text [%s]\n",__FUNCTION__,FontColor,p_drawing_info->text);
 						//TODO: Calcuate accurate font size
 						CFont CurrentFont;
 						if(!CurrentFont.CreatePointFont((int)(CurrentFontSize*7),CurrentFontName))
@@ -1331,7 +1350,7 @@ private:
 						//C n -c1c2...cn
 						//Set fill color. The color value consists of the n characters following '-'. (1.1)
 						FillColor=p_drawing_info->text;
-						if(DebugLevel>0) if(DebugLevel>0) dprintf("%s: [fillcolor] Set %s\n",__FUNCTION__,FillColor);
+						if(DebugLevel>0) dprintf("%s: [fillcolor] Set %s\n",__FUNCTION__,FillColor);
 						break;
 					}
 					case 'c':
@@ -1375,25 +1394,30 @@ private:
 		{
 			CSize size;
 			GetScrollSize(size);
+
 			RECT rc;
 			rc.left=0;
 			rc.right=m_ClientWidth;
 			rc.top=0;
 			rc.bottom=m_ClientHeight;
+
 			MemDC=new CMemDC(dc.m_hDC,&rc);
-			if(DebugLevel>0) if(DebugLevel>0) dprintf("%s(%x): Drawing on MemDC(%d,%d,%d,%d)\n",__FUNCTION__,this,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top);
+			if(DebugLevel>0) dprintf("%s(%x): Drawing on MemDC(%d,%d,%d,%d)\n",__FUNCTION__,this,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top);
 			DoPaintReal(CDCHandle(MemDC->m_hDC));
 		}
+
 		if(MemDC)
 		{
 			RECT rc;
 			GetClientRect(&rc);
+
 			rc.left+=m_ptOffset.x;
 			rc.right+=m_ptOffset.x;
 			rc.top+=m_ptOffset.y;
 			rc.bottom+=m_ptOffset.y;
 
-			if(DebugLevel>0) if(DebugLevel>0) dprintf("%s(%x): Copying to the Window(%d,%d,%d,%d)\n",__FUNCTION__,this,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top);
+			if(DebugLevel>0) dprintf("%s(%x): Copying to the Window(%d,%d,%d,%d)\n",__FUNCTION__,this,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top);
+
 			//dc.BitBlt(rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,*MemDC,rc.left,rc.top,SRCCOPY);
 			dc.StretchBlt(rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,*MemDC,(int)((float)rc.left/m_ZoomLevel),(int)((float)rc.top/m_ZoomLevel),(int)((float)(rc.right-rc.left)/m_ZoomLevel),(int)((float)(rc.bottom-rc.top)/m_ZoomLevel),SRCCOPY);
 			//rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top

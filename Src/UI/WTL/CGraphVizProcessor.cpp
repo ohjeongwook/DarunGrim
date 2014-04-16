@@ -12,8 +12,13 @@ int GraphVizInterfaceProcessorDebugLevel=0;
 CGraphVizProcessor::CGraphVizProcessor()
 {
 	aginit();
-	/* Create a simple digraph */
+	gvc = gvContext();
+
 	g=agopen("g",AGDIGRAPH);
+
+	//char *argv[2] = { "dot", NULL };
+	//gvParseArgs(gvc, 1, argv);
+
 	NodeToUserDataMap=new stdext::hash_map<Agnode_t *,DWORD>;
 }
 
@@ -66,13 +71,13 @@ void CGraphVizProcessor::SetNodeData(DWORD NodeID,LPCSTR NodeName,LPCSTR NodeDat
 	agsafeset(n,"fontsize",FontSize,"");
 	if(FontColor)
 	{
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set to [%s]\n",__FUNCTION__,FontColor);
+		if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set to [%s]\n",__FUNCTION__,FontColor);
 		agsafeset(n,"fontcolor",FontColor,"");
 	}
 	if(FillColor)
 	{
 		agsafeset(n,"style","filled","");
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: NodeName=%s [fillcolor] set to [%s]\n",__FUNCTION__,NodeName,FillColor);
+		if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: NodeName=%s [fillcolor] set to [%s]\n",__FUNCTION__,NodeName,FillColor);
 		agsafeset(n,"fillcolor",FillColor,"");
 	}
 	AddressToNodeMap.insert(std::pair <DWORD,Agnode_t *>(NodeID,n));
@@ -116,7 +121,7 @@ list <DrawingInfo *> *CGraphVizProcessor::ParseXDOTAttributeString(char *buffer)
 	int i;
 	list <DrawingInfo *> *p_drawing_infos=new list <DrawingInfo *>;
 
-	if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s\n",buffer);
+	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s\n",buffer);
 	while(buffer[pos])
 	{
 		bool is_valid_type=TRUE;
@@ -437,11 +442,15 @@ char *CGraphVizProcessor::GetNodeAttribute(Agnode_t *n, char *attr)
 	g=n->graph->root;
 
 	a=agfindattr(g->proto->n,attr);
+	
 	if (!a)
 		return "";
+
 	val=agxget(n,a->index);
+	
 	if (!val)
 		return "";
+	
 	return val;
 }
 
@@ -468,11 +477,11 @@ void CGraphVizProcessor::GetDrawingInfo(DWORD address,list<DrawingInfo *> *p_dra
 	{
 		if(type==TYPE_DI_FONTCOLOR)
 		{
-			if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set %s\n",__FUNCTION__,str);
+			if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set %s\n",__FUNCTION__,str);
 		}
 		if(type==TYPE_DI_FILLCOLOR)
 		{
-			if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fillcolor] set %s\n",__FUNCTION__,str);
+			if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fillcolor] set %s\n",__FUNCTION__,str);
 		}
 		DrawingInfo *p_drawing_info=(DrawingInfo *)malloc(sizeof(DrawingInfo));
 		p_drawing_info->address=address;
@@ -537,16 +546,13 @@ void CGraphVizProcessor::GetDrawingInfo(DWORD address,list<DrawingInfo *> *p_dra
 
 int CGraphVizProcessor::RenderToFile(char *format,char *filename)
 {
-	GVC_t *gvc;
 
-	/* set up a graphviz context */
-	gvc=gvContext();
 	/* parse command line args - minimally argv[0] sets layout engine */
 	//gvParseArgs(gvc,argc,argv);
 	/* Compute a layout using layout engine from command line args */
-	//gvLayoutJobs(gvc, g);
+	gvLayoutJobs(gvc, g);
 	/* Write the graph according to -T and -o options */
-	//gvRenderJobs(gvc, g);
+	gvRenderJobs(gvc, g);
 	agsafeset(g,"charset","Latin1","");
 	gvLayout(gvc,g,"dot");	
 
@@ -555,37 +561,27 @@ int CGraphVizProcessor::RenderToFile(char *format,char *filename)
 
 list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
 {
-	Agnode_t *n;
-	GVC_t *gvc;
 	list<DrawingInfo *> *DrawingInfoMap=new list<DrawingInfo *>;
-
-	/* set up a graphviz context */
-	gvc=gvContext();
-	/* parse command line args - minimally argv[0] sets layout engine */
-	//gvParseArgs(gvc,argc,argv);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	/* Compute a layout using layout engine from command line args */
-	//gvLayoutJobs(gvc, g);
+	gvLayoutJobs(gvc, g);
 	/* Write the graph according to -T and -o options */
-	//gvRenderJobs(gvc, g);
+	gvRenderJobs(gvc, g);
+
 	agsafeset(g,"charset","Latin1","");
-#ifdef TEST
-	agsafeset(g,"mode","hier","");
-	gvLayout(gvc,g,"neato");
-#else
-	printf("calling gvLayout\n");
-	gvLayout(gvc,g,"dot");	
-	printf("gvLayout\n");
-#endif
+
+	/*agsafeset(g,"mode","hier","");
+	gvLayout(gvc,g,"neato");*/
+	gvLayout(gvc,g,"dot");
 
 	//gvRenderFilename(gvc,g,"xdot","test.xdot");
 	//gvRenderFilename(gvc,g,"gif","test.gif");
 	gvRender(gvc,g,"xdot",NULL);
-	if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("gvRender\n");
+	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("gvRender\n");
 
-	if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("bb=%s\n",GetGraphAttribute(g,"bb"));
-	if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("_draw_=%s\n",GetGraphAttribute(g,"_draw_"));
+	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("bb=%s\n",GetGraphAttribute(g,"bb"));
+	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("_draw_=%s\n",GetGraphAttribute(g,"_draw_"));
 	DrawingInfo *p_drawing_info=(DrawingInfo *)malloc(sizeof(DrawingInfo));
 	p_drawing_info->type=TYPE_DI_GRAPH;
 	p_drawing_info->count=2;
@@ -600,10 +596,8 @@ list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
 	p_drawing_info->address=0;
 	DrawingInfoMap->push_back(p_drawing_info);
 
-	for(n=agfstnode(g);n;n=agnxtnode(g,n))
+	for (Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
-		DWORD address=NodeToUserDataMap->find(n)->second;
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("name=%s\n",n->name);
 		/*
 		digraph g {
 			graph 
@@ -641,37 +635,46 @@ list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
 			];
 		}
 		*/
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("shape=%s\n",GetNodeAttribute(n,"shape"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("color=%s\n",GetNodeAttribute(n,"color"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("pos=%s\n",GetNodeAttribute(n,"pos"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("width=%s\n",GetNodeAttribute(n,"width"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("height=%s\n",GetNodeAttribute(n,"height"));
 
-		//_draw_
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("rects=%s\n",GetNodeAttribute(n,"rects"));
+		DWORD address = NodeToUserDataMap->find(n)->second;
+
+		if (GraphVizInterfaceProcessorDebugLevel > -1)
+		{
+			char *name = n->name;
+			char *width = GetNodeAttribute(n, "width");
+			char *height = GetNodeAttribute(n, "height");
+
+			dprintf("name=%s\n", name);
+			dprintf("width=%s\n", width);
+			dprintf("height=%s\n", height);
+
+			dprintf("shape=%s\n", GetNodeAttribute(n, "shape"));
+			dprintf("color=%s\n", GetNodeAttribute(n, "color"));
+			dprintf("pos=%s\n", GetNodeAttribute(n, "pos"));
+			dprintf("rects=%s\n", GetNodeAttribute(n, "rects"));
+			dprintf("_draw_=%s\n", GetNodeAttribute(n, "_draw_"));
+			dprintf("_ldraw_=%s\n", GetNodeAttribute(n, "_ldraw_"));
+		}
+
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_COLOR,GetNodeAttribute(n,"color"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_FILLCOLOR,GetNodeAttribute(n,"fillcolor"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_BGCOLOR,GetNodeAttribute(n,"bgcolor"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_FONTCOLOR,GetNodeAttribute(n,"fontcolor"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_RECTS,GetNodeAttribute(n,"rects"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("_draw_=%s\n",GetNodeAttribute(n,"_draw_"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_DRAW,GetNodeAttribute(n,"_draw_"));
-		if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("_ldraw_=%s\n",GetNodeAttribute(n,"_ldraw_"));
 		GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_DRAW,GetNodeAttribute(n,"_ldraw_"));
 
-		Agedge_t *e;
-		for(e=agfstedge(g,n);e;
-			e=agnxtedge(g,e,n)
-		)
+		for (Agedge_t *e = agfstedge(g, n); e; e = agnxtedge(g, e, n))
 		{
 			GetEdgeAttribute(e,"pos");
 			GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_DRAW,GetEdgeAttribute(e,"_draw_"));
 			GetDrawingInfo(address,DrawingInfoMap,TYPE_DI_DRAW,GetEdgeAttribute(e,"_hdraw_"));
+
 			for(int i=0;
 				i<dtsize(e->tail->graph->univ->edgeattr->dict);
 				i++)
 			{
-				if(GraphVizInterfaceProcessorDebugLevel>0) if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("edge: %s-%s\n",
+				if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("edge: %s-%s\n",
 					e->tail->graph->univ->edgeattr->list[i]->name,
 					agxget(e,e->tail->graph->univ->edgeattr->list[i]->index));
 			}
