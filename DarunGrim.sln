@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IDAPlugin", "Src\IDAPlugin\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UI", "Src\UI\WTL\UI.vcxproj", "{1238DCFB-7CF2-40F3-BE02-191AE6F594DC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestGraphViz", "Src\UI\TestGraphViz\TestGraphViz.vcxproj", "{FB2F55AC-96E5-497D-9831-029F14F2B298}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,16 @@ Global
 		{1238DCFB-7CF2-40F3-BE02-191AE6F594DC}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{1238DCFB-7CF2-40F3-BE02-191AE6F594DC}.Release|Win32.ActiveCfg = Release|Win32
 		{1238DCFB-7CF2-40F3-BE02-191AE6F594DC}.Release|Win32.Build.0 = Release|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Debug|Win32.Build.0 = Debug|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Release|Any CPU.ActiveCfg = Release|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Release|Win32.ActiveCfg = Release|Win32
+		{FB2F55AC-96E5-497D-9831-029F14F2B298}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
