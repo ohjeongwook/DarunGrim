@@ -30,7 +30,6 @@ private:
 	DataSharer IDADataSharer;
 	char *DisasmLine;
 	void LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
-	BOOL LoadFromDatabase(DBWrapper *pStorageDB, int FileID = 1);
 	void GenerateTwoLevelFingerPrint();
 	void MergeBlocks();
 public:
@@ -52,11 +51,14 @@ public:
 	void SetSocket(SOCKET socket);
 	BOOL LoadIDARawDataFromSocket(SOCKET socket);
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
-	BOOL Load(int FileID = 1);
+
+	void SetFileID(int FileID = 1);
+	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address);
+	BOOL Load();
 	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 
 	void AddAnalysisTargetFunction(DWORD FunctionAddress);
-	BOOL RetrieveOneLocationInfo();
+	BOOL LoadOneLocationInfo();
 
 	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();
@@ -72,7 +74,7 @@ public:
 	void FreeDisasmLines();
 	void ShowAddress(unsigned long address);
 	void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
-	list <DWORD> GetFunctionMemberBlocks(unsigned long address);
+	list <DWORD> GetFunctionMemberBlocks(unsigned long FunctionAddress);
 	void GenerateFingerprintHashMap();
 	int GetFileID();
 	char *GetOriginalFilePath();

@@ -24,6 +24,7 @@ extern LogOperation Logger;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
 	DebugFlag( 0 ),
+	LoadDiffResults(false),
 	TheSource( NULL ),
 	TheTarget( NULL ),
 	bRetrieveDataForAnalysis(FALSE),
@@ -484,8 +485,8 @@ bool DiffMachine::Analyze()
 	if( TheTarget->FixFunctionAddresses() )
 		
 	*/
-	TheSource->RetrieveOneLocationInfo();
-	TheTarget->RetrieveOneLocationInfo();
+	TheSource->LoadOneLocationInfo();
+	TheTarget->LoadOneLocationInfo();
 
 	DiffResults=new AnalysisResult;
 
@@ -2084,14 +2085,16 @@ BOOL DiffMachine::_Load()
 
 	TheSource = new OneIDAClientManager(m_SourceDB);
 	TheSource->AddAnalysisTargetFunction(SourceFunctionAddress);
-	TheSource->Load(SourceID);
+	TheSource->SetFileID(SourceID);
+	//TheSource->Load(SourceID);
 
 	if (TheTarget)
 		delete TheTarget;
 
 	TheTarget = new OneIDAClientManager(m_TargetDB);
 	TheTarget->AddAnalysisTargetFunction(TargetFunctionAddress);
-	TheTarget->Load(TargetID);
+	TheTarget->SetFileID(TargetID);
+	//TheTarget->Load(TargetID);
 
 	m_DiffDB->ExecuteStatement(
 					ReadFunctionMatchInfoListCallback, 
@@ -2101,14 +2104,17 @@ BOOL DiffMachine::_Load()
 					" WHERE TheSourceFileID=%u AND TheTargetFileID=%u", SourceID, TargetID );
 	
 
-	DiffResults=new AnalysisResult;
-	
-	m_DiffDB->ExecuteStatement(
-				ReadMatchMapCallback, 
-				DiffResults, 
-				"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u", 
-				SourceID, TargetID );
-				
+	if (LoadDiffResults)
+	{
+		DiffResults = new AnalysisResult;
+
+		m_DiffDB->ExecuteStatement(
+			ReadMatchMapCallback,
+			DiffResults,
+			"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
+			SourceID, TargetID);
+	}
+
 	return TRUE;
 }
 

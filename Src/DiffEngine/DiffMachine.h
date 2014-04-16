@@ -187,6 +187,15 @@ public:
 		}
 	}
 
+
+private:
+	BOOL LoadDiffResults;
+public:
+	void SetLoadDiffResults(BOOL NewLoadDiffResults)
+	{
+		LoadDiffResults = NewLoadDiffResults;
+	}
+
 private:
 	const char *SourceDBName;
 	int SourceID;

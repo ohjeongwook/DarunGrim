@@ -74,6 +74,48 @@ OneIDAClientManager::~OneIDAClientManager()
 	}
 }
 
+int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
+{
+	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
+	if (argv[1] && argv[1][0] != NULL)
+	{
+		DWORD Address = strtoul10(argv[0]);
+		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
+		if (FingerprintStr)
+		{
+			ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
+		}
+		ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(argv[2], Address));
+	}
+	return 0;
+}
+
+static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char **names)
+{
+	hash_set <DWORD> *FunctionAddressHash = (hash_set <DWORD> *)arg;
+	if (FunctionAddressHash)
+	{
+#if DEBUG_LEVEL > 1
+		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
+#endif
+		FunctionAddressHash->insert(strtoul10(argv[0]));
+	}
+	return 0;
+}
+
+static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv, char **names)
+{
+	list <DWORD> *p_address_list = (list <DWORD> *)arg;
+	if (p_address_list)
+	{
+#if DEBUG_LEVEL > 1
+		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
+#endif
+		p_address_list->push_back(strtoul10(argv[0]));
+	}
+	return 0;
+}
+
 void OneIDAClientManager::SetSocket(SOCKET socket)
 {
 	Socket = socket;
@@ -120,19 +162,32 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 	addresses = (DWORD *)malloc(sizeof(DWORD)*current_size);
 	int addresses_i = 0;
 
-	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
-	for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.find(address);
-		map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
+	multimap <DWORD, PMapInfo> *p_map_info_hash_map;
+
+	if (ClientAnalysisInfo)
+	{
+		p_map_info_hash_map = &ClientAnalysisInfo->map_info_hash_map;
+	}
+	else
+	{
+		p_map_info_hash_map = new multimap <DWORD, PMapInfo>();
+		LoadMapInfo(p_map_info_hash_map, address);
+	}
+
+	multimap <DWORD, PMapInfo>::iterator map_info_hash_map_pIter;
+	
+	for (map_info_hash_map_pIter = p_map_info_hash_map->find(address);
+		map_info_hash_map_pIter != p_map_info_hash_map->end();
 		map_info_hash_map_pIter++
 		)
 	{
-		if(map_info_hash_map_pIter->first != address)
+		if (map_info_hash_map_pIter->first != address)
 			break;
-		if(map_info_hash_map_pIter->second->Type  ==  type)
+		if (map_info_hash_map_pIter->second->Type == type)
 		{
 			//map_info_hash_map_pIter->second->Dst
 			//TODO: add
-			if(current_size<addresses_i+2)
+			if (current_size < addresses_i + 2)
 			{
 				current_size += 50;
 				addresses = (DWORD *)realloc(addresses, sizeof(DWORD)*(current_size));
@@ -141,6 +196,12 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 			addresses_i++;
 			addresses[addresses_i] = NULL;
 		}
+	}
+
+	if (!ClientAnalysisInfo)
+	{
+		p_map_info_hash_map->clear();
+		free(p_map_info_hash_map);
 	}
 
 	if(p_length)
@@ -153,53 +214,140 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 	return addresses;
 }
 
+list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
+{
+	printf("TargetFunctionAddress: %x", TargetFunctionAddress);
+	if (TargetFunctionAddress != 0)
+	{
+		list <DWORD> *FunctionAddresses = new list<DWORD>;
+		if (FunctionAddresses)
+		{
+			FunctionAddresses->push_back(TargetFunctionAddress);
+		}
+
+		return FunctionAddresses;
+	}
+
+	int DoCrefFromCheck = FALSE;
+	int DoCallCheck = TRUE;
+	hash_set <DWORD> FunctionAddressHash;
+	hash_map <DWORD, short> AddressesHash;
+
+	multimap <DWORD, PMapInfo>::iterator map_info_hash_map_pIter;
+	if (DoCrefFromCheck)
+	{
+		if (DebugLevel & 1) Logger.Log(10, "AddressesHash.size() = %u\n", AddressesHash.size());
+		for (map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
+			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_pIter++
+			)
+		{
+			if (DebugLevel & 1) Logger.Log(10, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
+			if (map_info_hash_map_pIter->second->Type == CREF_FROM)
+			{
+				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
+				if (iter != AddressesHash.end())
+				{
+					iter->second = FALSE;
+				}
+			}
+		}
+		if (DebugLevel & 1) Logger.Log(10, "%s\n", __FUNCTION__);
+		multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_iter;
+		for (address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
+			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
+			address_fingerprint_hash_map_iter++)
+		{
+			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
+		}
+		if (DebugLevel & 1) Logger.Log(10, "AddressesHash.size() = %u\n", AddressesHash.size());
+		for (hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin(); AddressesHashIterator != AddressesHash.end(); AddressesHashIterator++)
+		{
+			if (AddressesHashIterator->second)
+			{
+				if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
+				FunctionAddressHash.insert(AddressesHashIterator->first);
+			}
+		}
+	}
+	else
+	{
+		if (m_StorageDB)
+			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM OneLocationInfo WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
+	}
+
+	if (DoCallCheck && ClientAnalysisInfo)
+	{
+		for (map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
+			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
+			map_info_hash_map_pIter++
+			)
+		{
+			if (map_info_hash_map_pIter->second->Type == CALL)
+			{
+				if (FunctionAddressHash.find(map_info_hash_map_pIter->second->Dst) == FunctionAddressHash.end())
+				{
+					if (DebugLevel & 1)
+						Logger.Log(10, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
+					FunctionAddressHash.insert(map_info_hash_map_pIter->second->Dst);
+				}
+			}
+		}
+	}
+
+	list <DWORD> *FunctionAddresses = new list<DWORD>;
+	if (FunctionAddresses)
+	{
+		for (hash_set <DWORD>::iterator FunctionAddressHashIter = FunctionAddressHash.begin();
+			FunctionAddressHashIter != FunctionAddressHash.end();
+			FunctionAddressHashIter++)
+		{
+			FunctionAddresses->push_back(*FunctionAddressHashIter);
+			if (DebugLevel & 4)
+				Logger.Log(10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
+		}
+		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+	}
+	return FunctionAddresses;
+}
+
 #undef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
 void OneIDAClientManager::RemoveFromFingerprintHash(DWORD address)
 {
 	unsigned char *Fingerprint = NULL;
-#ifdef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
-	multimap <DWORD , unsigned char *, hash_compare_fingerprint >::iterator address_fingerprint_hash_map_PIter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-	if(address_fingerprint_hash_map_PIter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
-	{
-		Fingerprint = (char *)address_fingerprint_hash_map_PIter->second;
-#else
-		char *FingerprintStr = NULL;
 
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
-		if(FingerprintStr)
-		{
-			Fingerprint = HexToBytesWithLengthAmble(FingerprintStr);
-		}
-#endif
-		if(Fingerprint)
-		{
-			multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_PIter;
-			for(fingerprint_hash_map_PIter = ClientAnalysisInfo->fingerprint_hash_map.find(Fingerprint);
-				fingerprint_hash_map_PIter != ClientAnalysisInfo->fingerprint_hash_map.end();
-				fingerprint_hash_map_PIter++
-			)
-			{
-				if(!IsEqualByteWithLengthAmble(fingerprint_hash_map_PIter->first, Fingerprint))
-					break;
-				if(fingerprint_hash_map_PIter->second  ==  address)
-				{
-					ClientAnalysisInfo->fingerprint_hash_map.erase(fingerprint_hash_map_PIter);
-					break;
-				}
-			}
-#ifndef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
-			free(Fingerprint);
-#endif
-		}
-#ifdef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
+	char *FingerprintStr = NULL;
+
+	if (m_StorageDB)
+		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+	if (FingerprintStr)
+	{
+		Fingerprint = HexToBytesWithLengthAmble(FingerprintStr);
 	}
-#endif
+
+	if (Fingerprint)
+	{
+		multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_PIter;
+		for (fingerprint_hash_map_PIter = ClientAnalysisInfo->fingerprint_hash_map.find(Fingerprint);
+			fingerprint_hash_map_PIter != ClientAnalysisInfo->fingerprint_hash_map.end();
+			fingerprint_hash_map_PIter++
+			)
+		{
+			if (!IsEqualByteWithLengthAmble(fingerprint_hash_map_PIter->first, Fingerprint))
+				break;
+			if (fingerprint_hash_map_PIter->second == address)
+			{
+				ClientAnalysisInfo->fingerprint_hash_map.erase(fingerprint_hash_map_PIter);
+				break;
+			}
+		}
+		free(Fingerprint);
+	}
 }
 
 char *OneIDAClientManager::GetFingerPrintStr(DWORD address)
 {
-	if(ClientAnalysisInfo->address_fingerprint_hash_map.size()>0)
+	if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_hash_map.size()>0)
 	{
 		multimap <DWORD , unsigned char *>::iterator address_fingerprint_hash_map_PIter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
 		if(address_fingerprint_hash_map_PIter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
@@ -312,7 +460,7 @@ BOOL OneIDAClientManager::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 {
 	//Logger.Log( 10, "%s: %s %s %s %s\n", __FUNCTION__, m_FileID, argv[0], argv[1], argv[2], argv[3]);
-	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
+	multimap <DWORD, PMapInfo> *p_map_info_hash_map = (multimap <DWORD, PMapInfo> *)arg;
 
 	PMapInfo p_map_info = new MapInfo;
 	p_map_info->Type = strtoul10(argv[0]);
@@ -327,7 +475,7 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 		argv[3], strtoul10(argv[3])
 	);
 #endif
-	ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+	p_map_info_hash_map->insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
 	return 0;
 }
 
@@ -336,38 +484,66 @@ char *OneIDAClientManager::GetOriginalFilePath()
 	return m_OriginalFilePath;
 }
 
+BOOL OneIDAClientManager::LoadOneLocationInfo()
+{
+	if (ClientAnalysisInfo->fingerprint_hash_map.size() == 0)
+	{
+		char FunctionAddressConditionBuffer[50] = { 0, };
+		if (TargetFunctionAddress)
+		{
+			_snprintf(FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
+		}
+
+		if (m_StorageDB)
+			m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback,
+			(void *)ClientAnalysisInfo,
+			"SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u %s",
+			m_FileID,
+			FunctionAddressConditionBuffer);
+		GenerateFingerprintHashMap();
+	}
+	return TRUE;
+}
 
 /*
 FunctionAddress = 0 : Retrieve All Functions
 	else			: Retrieve That Specific Function
 */
 
-BOOL OneIDAClientManager::LoadFromDatabase(DBWrapper *pStorageDB, int FileID)
+void OneIDAClientManager::SetFileID(int FileID)
 {
-	Logger.Log(10, "LoadFromDatabase: %s\n", pStorageDB->GetDatabaseName());
-
 	m_FileID = FileID;
-	pStorageDB->ExecuteStatement(pStorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
-	ClientAnalysisInfo = new AnalysisInfo;
+}
 
-	RetrieveOneLocationInfo();
-	
-	if (TargetFunctionAddress == 0)
+void OneIDAClientManager::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address)
+{
+	if (Address == 0)
 	{
-		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", m_FileID);
+		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", 
+			m_FileID);
 	}
 	else
 	{
-		//Retrieve only relevant maps
-		pStorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)ClientAnalysisInfo, "SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u AND SrcBlock IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') AND Dst IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d') ORDER BY ID ASC", m_FileID, m_FileID, TargetFunctionAddress, m_FileID, TargetFunctionAddress);
+		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
+			"WHERE FileID = %u "
+			"AND SrcBlock ='%d'",
+			m_FileID, Address);
 	}
-
-	return TRUE;
 }
 
-BOOL OneIDAClientManager::Load(int FileID)
+BOOL OneIDAClientManager::Load()
 {
-	return LoadFromDatabase(m_StorageDB, FileID);
+	Logger.Log(10, "Load: %s\n", m_StorageDB->GetDatabaseName());
+
+	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
+	ClientAnalysisInfo = new AnalysisInfo;
+
+	LoadOneLocationInfo();
+	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress);
+
+	return TRUE;
 }
 
 void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
@@ -382,49 +558,10 @@ void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD
 	}
 }
 
-int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
-{
-	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
-	if( argv[1] && argv[1][0] != NULL )
-	{
-		DWORD Address = strtoul10(argv[0]);
-		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
-		if(FingerprintStr)
-		{
-			ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
-		}
-		ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(argv[2], Address));
-	}
-	return 0;
-}
-
 void OneIDAClientManager::AddAnalysisTargetFunction( DWORD FunctionAddress )
 {
 	Logger.Log(10, "AddAnalysisTargetFunction: %x\n", FunctionAddress);
 	TargetFunctionAddress = FunctionAddress;
-}
-
-BOOL OneIDAClientManager::RetrieveOneLocationInfo()
-{
-	if( ClientAnalysisInfo->fingerprint_hash_map.size()  ==  0 )
-	{
-		char FunctionAddressConditionBuffer[50]={0,};
-		if (TargetFunctionAddress)
-		{
-			_snprintf(FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
-		}
-
-		//Logger.Log( 10,  "Condition [%s]\n", FunctionAddressConditionBuffer );
-
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback, 
-				(void *)ClientAnalysisInfo, 
-				"SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u %s",
-				m_FileID, 
-				FunctionAddressConditionBuffer );
-		GenerateFingerprintHashMap();
-	}
-	return TRUE;
 }
 
 typedef struct {
@@ -868,36 +1005,49 @@ void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned lon
 	SendTLVData(COLOR_ADDRESS, (PBYTE)data, sizeof(data));
 }
 
-list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long address)
+list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long FunctionAddress)
 {
 	list <DWORD> address_list;
-	list <DWORD>::iterator address_list_iter;
-	hash_set <DWORD> checked_addresses;
-	address_list.push_back(address);
-	checked_addresses.insert(address);
-	for(address_list_iter = address_list.begin();
-		address_list_iter != address_list.end();
-		address_list_iter++
-	)
-	{
-		int addresses_number;
-		DWORD *p_addresses = GetMappedAddresses(*address_list_iter, CREF_FROM, &addresses_number);
-		if(p_addresses && addresses_number>0)
+
+	if (ClientAnalysisInfo)
+	{	
+		list <DWORD>::iterator address_list_iter;
+		hash_set <DWORD> checked_addresses;
+		address_list.push_back(FunctionAddress);
+		checked_addresses.insert(FunctionAddress);
+
+		for (address_list_iter = address_list.begin();
+			address_list_iter != address_list.end();
+			address_list_iter++
+			)
 		{
-			for(int i = 0;i<addresses_number;i++)
+			int addresses_number;
+			DWORD *p_addresses = GetMappedAddresses(*address_list_iter, CREF_FROM, &addresses_number);
+			if (p_addresses && addresses_number > 0)
 			{
-				if(p_addresses[i])
+				for (int i = 0; i < addresses_number; i++)
 				{
-					if(checked_addresses.find(p_addresses[i])  ==  checked_addresses.end())
+					if (p_addresses[i])
 					{
-						address_list.push_back(p_addresses[i]);
-						checked_addresses.insert(p_addresses[i]);
+						if (checked_addresses.find(p_addresses[i]) == checked_addresses.end())
+						{
+							address_list.push_back(p_addresses[i]);
+							checked_addresses.insert(p_addresses[i]);
+						}
 					}
 				}
+				free(p_addresses);
 			}
-			free(p_addresses);
 		}
 	}
+	else
+	{
+		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&address_list,
+			"SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d'"
+			"ORDER BY ID ASC",
+			m_FileID, FunctionAddress);
+	}
+
 	return address_list;
 }
 
@@ -1047,19 +1197,6 @@ int IsEqualByteWithLengthAmble(unsigned char *Bytes01, unsigned char *Bytes02)
 	return FALSE;
 }
 
-static int ReadFunctionMembersResultsCallback(void *arg, int argc, char **argv, char **names)
-{
-	hash_set <DWORD> *FunctionAddressHash = (hash_set <DWORD> *)arg;
-	if(FunctionAddressHash)
-	{
-#if DEBUG_LEVEL > 1
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
-#endif
-		FunctionAddressHash->insert(strtoul10(argv[0]));
-	}
-	return 0;
-}
-
 multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 {
 	if(DebugLevel&1) Logger.Log( 10, "Retrieve Functions Addresses\n");
@@ -1121,102 +1258,6 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 		AddressToFunctionMap->insert(pair <DWORD, DWORD>(strtoul10(argv[0]), strtoul10(argv[1])));
 	}
 	return 0;
-}
-
-list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
-{
-	printf("TargetFunctionAddress: %x", TargetFunctionAddress);
-	if (TargetFunctionAddress != 0)
-	{
-		list <DWORD> *FunctionAddresses = new list<DWORD>;
-		if (FunctionAddresses)
-		{
-			FunctionAddresses->push_back(TargetFunctionAddress);
-		}
-
-		return FunctionAddresses;
-	}	
-
-	int DoCrefFromCheck = FALSE;
-	int DoCallCheck = TRUE;
-	hash_set <DWORD> FunctionAddressHash;
-	hash_map <DWORD, short> AddressesHash;
-
-	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
-	if(DoCrefFromCheck)
-	{
-		if(DebugLevel&1) Logger.Log( 10, "AddressesHash.size() = %u\n", AddressesHash.size());
-		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_pIter++
-			)
-		{
-			if(DebugLevel&1) Logger.Log( 10, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
-			if(map_info_hash_map_pIter->second->Type  ==  CREF_FROM)
-			{
-				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
-				if(iter != AddressesHash.end())
-				{
-					iter->second = FALSE;
-				}
-			}
-		}
-		if(DebugLevel&1) Logger.Log( 10, "%s\n", __FUNCTION__);
-		multimap <DWORD,  unsigned char *>::iterator address_fingerprint_hash_map_iter;
-		for(address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
-			address_fingerprint_hash_map_iter++)
-		{
-			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck?TRUE:FALSE));
-		}
-		if(DebugLevel&1) Logger.Log( 10, "AddressesHash.size() = %u\n", AddressesHash.size());
-		for(hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin();AddressesHashIterator != AddressesHash.end();AddressesHashIterator++)
-		{
-			if(AddressesHashIterator->second)
-			{
-				if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
-				FunctionAddressHash.insert(AddressesHashIterator->first);
-			}
-		}
-	}else
-	{
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(ReadFunctionMembersResultsCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM OneLocationInfo WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
-	}
-
-	if( DoCallCheck && ClientAnalysisInfo )
-	{
-		for(map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_pIter++
-			)
-		{
-			if(map_info_hash_map_pIter->second->Type  ==  CALL)
-			{
-				if(FunctionAddressHash.find(map_info_hash_map_pIter->second->Dst)  ==  FunctionAddressHash.end())
-				{
-					if(DebugLevel&1)
-						Logger.Log( 10, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
-					FunctionAddressHash.insert(map_info_hash_map_pIter->second->Dst);
-				}
-			}
-		}
-	}
-
-	list <DWORD> *FunctionAddresses = new list<DWORD>;
-	if(FunctionAddresses)
-	{
-		for(hash_set <DWORD>::iterator FunctionAddressHashIter = FunctionAddressHash.begin();
-			FunctionAddressHashIter != FunctionAddressHash.end();
-			FunctionAddressHashIter++)
-		{
-			FunctionAddresses->push_back(*FunctionAddressHashIter);
-			if(DebugLevel&4)
-				Logger.Log( 10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
-		}
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
-	}
-	return FunctionAddresses;
 }
 
 multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
