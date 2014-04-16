@@ -19,6 +19,8 @@
 #include <vector>
 #include <hash_map>
 #include <string>
+#include <algorithm> 
+
 using namespace std;
 using namespace stdext;
 
@@ -37,6 +39,8 @@ using namespace stdext;
 #include "LogViewerDlg.h"
 
 #include "RegistryUtil.h"
+
+#include "VirtualListViewCtrl.h"
 
 extern int GraphVizInterfaceProcessorDebugLevel;
 
@@ -127,6 +131,39 @@ public:
 	}
 };
 
+class DiffListSorter
+{
+private:
+	int SortColumn = 6;
+	bool Ascending = false;
+	bool bDescendingSortInfos[10];
+
+public:
+	DiffListSorter()
+	{
+		memset(bDescendingSortInfos, 0, sizeof(bDescendingSortInfos));
+	}
+
+	void SortChange(int i)
+	{
+		bDescendingSortInfos[i] = bDescendingSortInfos[i] ? 0 : 1;
+		SortColumn = i;
+		Ascending = bDescendingSortInfos[i];
+	}
+
+	bool operator() (VirtualListDisplayItem *a, VirtualListDisplayItem *b)
+	{
+		if (Ascending)
+		{
+			return a->Items[SortColumn]<b->Items[SortColumn]; //ascending
+		}
+		else
+		{
+			return a->Items[SortColumn]>b->Items[SortColumn]; //descending
+		}
+	}
+} ;
+
 typedef struct
 {
 	DWORD original;
@@ -135,7 +172,7 @@ typedef struct
 
 enum {STATE_NONE,STATE_DGF_CREATED,STATE_DGF_OPENED,STATE_ORIGINAL_ANALYZED,STATE_PATCHED_ACCEPTED,STATE_ANALYSIS_COMPLETED};
 
-class CMainFrame : public CFrameWindowImpl<CMainFrame>
+class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>, public CMessageFilter
 {
 private:
 	std::string m_IDAPath;
@@ -153,9 +190,7 @@ private:
 	OneIDAClientManager *pSourceClientManager;
 	OneIDAClientManager *pTargetClientManager;
 	DiffMachine *pDiffMachine;
-	bool bDescendingSortInfos[10];
 	list<DrawingInfo *> *DrawingInfoMap;
-	vector<MatchAddressPair> BlockList;
 	CCommandBarCtrl m_CmdBar;
 	float m_Zoom;
 	bool m_RetrieveClientManagersDatabase;
@@ -175,8 +210,9 @@ public:
 	CGraphVizWindow m_lGraphVizView;
 	CGraphVizWindow m_rGraphVizView;
 	CTabView m_TabView;
-	CSortListViewCtrl m_DiffListView;
-	CSortListViewCtrl m_MatchedBlocksView;
+
+	CVirtualListViewCtrl<long> m_DiffListView;
+	CVirtualListViewCtrl<long> m_MatchedBlocksView;
 
 	BEGIN_MSG_MAP(CMainFrame)
 		MESSAGE_HANDLER(WM_CREATE,OnCreate)
@@ -198,9 +234,36 @@ public:
 		COMMAND_ID_HANDLER(ID_APP_ABOUT,OnAppAbout)
 		NOTIFY_CODE_HANDLER(NM_DBLCLK,OnListViewDblClick)
 		NOTIFY_CODE_HANDLER(LVN_COLUMNCLICK,OnListViewColumnClick)
-		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
 		MESSAGE_HANDLER(WM_DROPFILES,OnDropFiles)
+		CHAIN_MSG_MAP(CUpdateUI<CMainFrame>)
+		CHAIN_MSG_MAP(CFrameWindowImpl<CMainFrame>)
+		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
+
+	virtual BOOL PreTranslateMessage(MSG* pMsg)
+	{
+		if (CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
+			return TRUE;
+
+		if (m_DiffListView.PreTranslateMessage(pMsg))
+			return TRUE;
+
+		if (m_MatchedBlocksView.PreTranslateMessage(pMsg))
+			return TRUE;
+
+		return FALSE;
+	}
+
+	virtual BOOL OnIdle()
+	{
+		UIUpdateToolBar();
+		return FALSE;
+	}
+
+	BEGIN_UPDATE_UI_MAP(CMainFrame)
+		UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
+	END_UPDATE_UI_MAP()
 
 	void SetDatabaseFilename(char *Filename)
 	{
@@ -227,6 +290,8 @@ public:
 		pTargetClientManager=NULL;
 		pDiffMachine=NULL;
 		m_RetrieveClientManagersDatabase=FALSE;
+		pDiffListDisplayItemArray = NULL;
+		pMatchedBlocksDisplayItemArray = NULL;
 
 		//Get ini file path
 		std::string ConfFileName;
@@ -371,6 +436,7 @@ public:
 			NULL,
 			WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|LVS_REPORT,
 			WS_EX_CLIENTEDGE);
+
 		if(m_DiffListView.IsWindow())
 			m_TabView.AddPage(m_DiffListView.m_hWnd,"Functions",0,&m_DiffListView);
 
@@ -389,7 +455,6 @@ public:
 		m_DiffListView.SetColumnWidth(5,60);
 		m_DiffListView.AddColumn(_T("Match Rate"),6);
 		m_DiffListView.SetColumnWidth(6,60);
-		memset(bDescendingSortInfos,0,sizeof(bDescendingSortInfos));
 
 		CRect TabViewRect;
 		m_MatchedBlocksView.Create(m_TabView,
@@ -520,50 +585,6 @@ public:
 		return 0;
 	}
 
-	int AddItemToDiffListView(
-			char *the_source,
-			int the_source_umatched,
-			char *the_target,
-			int the_target_umatched,
-			int different,
-			int matched,
-			int lParam
-			)
-	{
-		int nIndex=m_DiffListView.InsertItem(LVIF_TEXT|LVIF_PARAM,
-			0,
-			the_source,
-			0,
-			0,
-			0,
-			(LPARAM)lParam);
-
-		char tmp[20];
-		_snprintf(tmp,sizeof(tmp),"%10d",the_source_umatched);
-		m_DiffListView.SetItemText(nIndex,1,tmp);
-		m_DiffListView.SetItemText(nIndex,2,the_target);
-		_snprintf(tmp,sizeof(tmp),"%10d",the_target_umatched);
-		m_DiffListView.SetItemText(nIndex,3,tmp);
-		_snprintf(tmp,sizeof(tmp),"%10d",different);
-		m_DiffListView.SetItemText(nIndex,4,tmp);
-		_snprintf(tmp,sizeof(tmp),"%10d",matched);
-		m_DiffListView.SetItemText(nIndex,5,tmp);
-
-		float match_rate=0.0;
-		int all_blocks=matched*2+the_source_umatched+the_target_umatched+different*2;
-		if(all_blocks>0)
-			match_rate=(all_blocks-(the_source_umatched+the_target_umatched+different))*100/all_blocks;
-		if(match_rate==0)
-		{
-			_snprintf(tmp,sizeof(tmp),"  0%%");
-		}else
-		{
-			_snprintf(tmp,sizeof(tmp),"%3.d%%",(int)match_rate);
-		}
-		m_DiffListView.SetItemText(nIndex,6,tmp);
-		return nIndex;
-	}
-
 	void DrawOnGraphVizWindow(int index,CGraphVizWindow *pGraphVizWindow,OneIDAClientManager *pOneClientManager,DWORD address)
 	{
 		CGraphVizProcessor *pGraphVizProcessor=new CGraphVizProcessor();
@@ -572,7 +593,6 @@ public:
 			char name[100];
 			_snprintf(name,sizeof(name),"%X",address);
 			char *disasm_line=pOneClientManager->GetDisasmLines(address,0);
-
 			
 			char *font_color="black";
 			char *fill_color="white";
@@ -648,132 +668,8 @@ public:
 		}
 		DrawingInfoMap=pGraphVizProcessor->GenerateDrawingInfo();
 		delete pGraphVizProcessor;
+
 		pGraphVizWindow->SetDrawingInfoMap(DrawingInfoMap);
-	}
-
-
-	LRESULT OnListViewDblClick(int idCtrl,LPNMHDR pnmh,BOOL& bHandled)
-	{
-		LPNMITEMACTIVATE pnmia=(LPNMITEMACTIVATE)pnmh;
-		if(m_DiffListView.GetDlgCtrlID()==idCtrl)
-		{
-			m_MatchedBlocksView.DeleteAllItems();
-			m_TabView.SetActivePage(1);
-			FunctionMatchInfo match_info=pDiffMachine->GetFunctionMatchInfo((int)m_DiffListView.GetItemData(pnmia->iItem));
-			m_lPane.SetTitle(match_info.TheSourceFunctionName);
-			m_rPane.SetTitle(match_info.TheTargetFunctionName);
-
-			list <DWORD> orig_addresses=pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
-			list <DWORD> patched_addresses=pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
-
-			hash_set <DWORD> matched_addresses;
-			list <DWORD>::iterator iter;
-			for(iter=orig_addresses.begin();iter!=orig_addresses.end();iter++)
-			{
-				if(*iter>0)
-				{
-					char tmp[20];
-					_snprintf(tmp,sizeof(tmp),"%X",*iter);
-
-					int nIndex=m_MatchedBlocksView.InsertItem(LVIF_TEXT|LVIF_PARAM,
-						0,
-						tmp,
-						0,
-						0,
-						0,
-						(LPARAM)BlockList.size());
-						//Fingerprint
-					char *fingerprint=pSourceClientManager->GetFingerPrintStr(*iter);
-					if(fingerprint)
-					{
-						m_MatchedBlocksView.SetItemText(nIndex,4,fingerprint);
-						free(fingerprint);
-					}
-
-					MatchAddressPair match_address_pair;
-					match_address_pair.original=*iter;
-					match_address_pair.patched=0;
-					MatchData *pMatchData=pDiffMachine->GetMatchData(0,*iter);
-					if(pMatchData)
-					{
-						matched_addresses.insert(pMatchData->Addresses[1]);
-						_snprintf(tmp,sizeof(tmp),"%X",pMatchData->Addresses[1]);
-						m_MatchedBlocksView.SetItemText(nIndex,1,tmp);
-						_snprintf(tmp,sizeof(tmp),"%3.d%%",pMatchData->MatchRate);
-						m_MatchedBlocksView.SetItemText(nIndex,2,tmp);
-						//Type
-						m_MatchedBlocksView.SetItemText(nIndex,3,pDiffMachine->GetMatchTypeStr(pMatchData->Type));
-
-						fingerprint=pTargetClientManager->GetFingerPrintStr(pMatchData->Addresses[1]);
-						if(fingerprint)
-						{
-							m_MatchedBlocksView.SetItemText(nIndex,5,fingerprint);
-							free(fingerprint);
-						}
-
-						_snprintf(tmp,sizeof(tmp),"%X",pMatchData->UnpatchedParentAddress);
-						m_MatchedBlocksView.SetItemText(nIndex,6,tmp);
-						_snprintf(tmp,sizeof(tmp),"%X",pMatchData->PatchedParentAddress);
-						m_MatchedBlocksView.SetItemText(nIndex,7,tmp);
-
-						match_address_pair.patched=pMatchData->Addresses[1];
-					}
-					BlockList.push_back(match_address_pair);
-				}
-			}
-			for(iter=patched_addresses.begin();iter!=patched_addresses.end();iter++)
-			{
-				if(matched_addresses.find(*iter)==matched_addresses.end() && *iter>0)
-				{
-					int nIndex=m_MatchedBlocksView.InsertItem(LVIF_TEXT|LVIF_PARAM,
-						0,
-						" ",
-						0,
-						0,
-						0,
-						(LPARAM)BlockList.size());
-					char tmp[20];
-					_snprintf(tmp,sizeof(tmp),"%X",*iter);
-
-					m_MatchedBlocksView.SetItemText(nIndex,1,tmp);
-					MatchAddressPair match_address_pair;
-					match_address_pair.original=0;
-					match_address_pair.patched=*iter;
-					MatchData *pMatchData=pDiffMachine->GetMatchData(1,*iter);
-					if(pMatchData)
-					{
-						_snprintf(tmp,sizeof(tmp),"%X",pMatchData->Addresses[0]);
-						m_MatchedBlocksView.SetItemText(nIndex,0,tmp);
-						match_address_pair.original=pMatchData->Addresses[0];
-					}
-					char *fingerprint=pTargetClientManager->GetFingerPrintStr(*iter);
-					if(fingerprint)
-					{
-						m_MatchedBlocksView.SetItemText(nIndex,5,fingerprint);
-						free(fingerprint);
-					}
-					BlockList.push_back(match_address_pair);
-				}
-			}
-			DrawOnGraphVizWindow(0,&m_lGraphVizView,pSourceClientManager,match_info.TheSourceAddress);
-			DrawOnGraphVizWindow(1,&m_rGraphVizView,pTargetClientManager,match_info.TheTargetAddress);
-		}else if(m_MatchedBlocksView.GetDlgCtrlID()==idCtrl)
-		{
-			int pos=(int)m_MatchedBlocksView.GetItemData(pnmia->iItem);
-			MatchAddressPair &match_address_pair=BlockList.at(pos);
-
-			RECT rc;
-			m_lGraphVizView.GetClientRect(&rc);
-			m_lGraphVizView.ShowNode(match_address_pair.original,(rc.right-rc.left)/2,(rc.bottom-rc.top)/2);
-			if(pSourceClientManager)
-				pSourceClientManager->ShowAddress(match_address_pair.original);
-
-			m_rGraphVizView.GetClientRect(&rc);
-			m_rGraphVizView.ShowNode(match_address_pair.patched,(rc.right-rc.left)/2,(rc.bottom-rc.top)/2);
-			if(pTargetClientManager)
-				pTargetClientManager->ShowAddress(match_address_pair.patched);
-		}
-		return 0;
 	}
 
 	typedef struct
@@ -792,19 +688,6 @@ public:
 		si->pList->GetItemText(lParam2,si->iColumn,strItem2);
 		//return atoi(strItem1)-atoi(strItem2);
 		return -1;
-	}
-	
-	LRESULT OnListViewColumnClick(int idCtrl,LPNMHDR pnmh,BOOL& bHandled)
-	{
-		if(m_DiffListView.GetDlgCtrlID()==idCtrl)
-		{
-			LPNMLISTVIEW lpn=(LPNMLISTVIEW)pnmh;
-			bDescendingSortInfos[lpn->iSubItem]=bDescendingSortInfos[lpn->iSubItem]?0:1;
-			m_DiffListView.SortItems(lpn->iSubItem,bDescendingSortInfos[lpn->iSubItem]);
-		}else if(m_MatchedBlocksView.GetDlgCtrlID()==idCtrl)
-		{
-		}
-		return 0;
 	}
 
 	LRESULT OnPaneClose(WORD,WORD,HWND hWndCtl,BOOL&)
@@ -895,36 +778,240 @@ public:
 		return m_RetrieveClientManagersDatabase;
 	}
 
+private:
+	DiffListSorter Sorter;
+	int SortColumn = 6;
+	bool Ascending = false;
+	vector<VirtualListDisplayItem *> *pDiffListDisplayItemArray;
+	vector<VirtualListDisplayItem *> *pMatchedBlocksDisplayItemArray;
+	vector<MatchAddressPair> MatchedBlocksList;
+public:
+
+	LRESULT OnListViewColumnClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+	{
+		if (m_DiffListView.GetDlgCtrlID() == idCtrl)
+		{
+			LPNMLISTVIEW lpn = (LPNMLISTVIEW)pnmh;
+			Sorter.SortChange(lpn->iSubItem);
+			DisplayDiffResults();
+		}
+		return 0;
+	}
+
 	void DisplayDiffResults()
 	{
-		m_DiffListView.DeleteAllItems();
 		int MatchCount=pDiffMachine->GetFunctionMatchInfoCount();
 
 		PrintToLogView("MatchCount: [%d]\r\n", MatchCount);
 
+		if (pDiffListDisplayItemArray)
+			delete pDiffListDisplayItemArray;
+
+		pDiffListDisplayItemArray = new vector<VirtualListDisplayItem *>();
 
 		for(int i=0;i<MatchCount;i++)
 		{
 			FunctionMatchInfo match_info=pDiffMachine->GetFunctionMatchInfo(i);
 			if(match_info.BlockType==FUNCTION_BLOCK)
 			{
-				int index=AddItemToDiffListView(
-					match_info.TheSourceFunctionName,
-					match_info.NoneMatchCountForTheSource,
-					match_info.TheTargetFunctionName,
-					match_info.NoneMatchCountForTheTarget,
-					match_info.MatchCountWithModificationForTheSource,
-					match_info.MatchCountForTheSource,
-					i);
+				VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
+
+				p_display_item->id = i;
+
+				char tmp[20];
+
+				p_display_item->Items[0] = match_info.TheSourceFunctionName;
+
+				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheSource);
+				p_display_item->Items[1] = tmp;
+
+				p_display_item->Items[2] = match_info.TheTargetFunctionName;
+				
+				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheSource);
+				p_display_item->Items[3] = tmp;
+
+				_snprintf(tmp, sizeof(tmp), "%10d", match_info.MatchCountWithModificationForTheSource);
+				p_display_item->Items[4] = tmp;
+				
+				_snprintf(tmp, sizeof(tmp), "%10d", match_info.MatchCountForTheSource);
+				p_display_item->Items[5] = tmp;
+
+				float match_rate = 0.0;
+				int all_blocks = match_info.MatchCountForTheSource * 2 + match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource * 2;
+				if (all_blocks>0)
+					match_rate = (all_blocks - (match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource)) * 100 / all_blocks;
+				if (match_rate == 0)
+				{
+					_snprintf(tmp, sizeof(tmp), "  0%%");
+				}
+				else
+				{
+					_snprintf(tmp, sizeof(tmp), "%3.d%%", (int)match_rate);
+				}
+				p_display_item->Items[6] = tmp;
+
+				pDiffListDisplayItemArray->push_back(p_display_item);
 			}
 		}
+		
+		sort(pDiffListDisplayItemArray->begin(), pDiffListDisplayItemArray->end(), Sorter);
+
+		m_DiffListView.DeleteAllItems();
+		m_DiffListView.SetItemCount(MatchCount);
+		m_DiffListView.SetData(pDiffListDisplayItemArray);
 
 		//IDA Interaction
-		//Create new thread?
 		pOneClientManager = new IDAClientManager();
 		pOneClientManager->SetMembers(pSourceClientManager,pTargetClientManager,pDiffMachine);
 		pOneClientManager->CreateIDACommandProcessorThread();
 	}
+
+	LRESULT OnListViewDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+	{
+		LPNMITEMACTIVATE pnmia = (LPNMITEMACTIVATE)pnmh;
+		if (m_DiffListView.GetDlgCtrlID() == idCtrl)
+		{
+			m_MatchedBlocksView.DeleteAllItems();
+			m_TabView.SetActivePage(1);
+
+			FunctionMatchInfo match_info = pDiffMachine->GetFunctionMatchInfo(m_DiffListView.GetID(pnmia->iItem));
+			m_lPane.SetTitle(match_info.TheSourceFunctionName);
+			m_rPane.SetTitle(match_info.TheTargetFunctionName);
+
+			list <DWORD> orig_addresses = pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
+			list <DWORD> patched_addresses = pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
+
+			if (pMatchedBlocksDisplayItemArray)
+				delete pMatchedBlocksDisplayItemArray;
+			
+			pMatchedBlocksDisplayItemArray = new vector<VirtualListDisplayItem *>();
+
+			hash_set <DWORD> matched_addresses;
+			list <DWORD>::iterator iter;
+			for (iter = orig_addresses.begin(); iter != orig_addresses.end(); iter++)
+			{
+				if (*iter>0)
+				{
+					VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
+
+					p_display_item->id = 0;
+
+					char tmp[20];
+					_snprintf(tmp, sizeof(tmp), "%X", *iter);
+
+					p_display_item->Items[0] = tmp;
+
+					//Fingerprint
+					char *fingerprint = pSourceClientManager->GetFingerPrintStr(*iter);
+					if (fingerprint)
+					{
+						p_display_item->Items[4] = fingerprint;
+						free(fingerprint);
+					}
+
+					MatchAddressPair match_address_pair;
+					match_address_pair.original = *iter;
+					match_address_pair.patched = 0;
+					MatchData *pMatchData = pDiffMachine->GetMatchData(0, *iter);
+					if (pMatchData)
+					{
+						matched_addresses.insert(pMatchData->Addresses[1]);
+						_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[1]);
+						p_display_item->Items[1] = tmp;
+
+						_snprintf(tmp, sizeof(tmp), "%3.d%%", pMatchData->MatchRate);
+						p_display_item->Items[2] = tmp;
+
+						//Type
+						p_display_item->Items[3] = pDiffMachine->GetMatchTypeStr(pMatchData->Type);
+
+						fingerprint = pTargetClientManager->GetFingerPrintStr(pMatchData->Addresses[1]);
+						if (fingerprint)
+						{
+							p_display_item->Items[5] = fingerprint;
+							free(fingerprint);
+						}
+
+						_snprintf(tmp, sizeof(tmp), "%X", pMatchData->UnpatchedParentAddress);
+						p_display_item->Items[6] = tmp;
+
+						_snprintf(tmp, sizeof(tmp), "%X", pMatchData->PatchedParentAddress);
+						p_display_item->Items[7] = tmp;
+
+						match_address_pair.patched = pMatchData->Addresses[1];
+					}
+
+					pMatchedBlocksDisplayItemArray->push_back(p_display_item);
+					MatchedBlocksList.push_back(match_address_pair);
+				}
+			}
+
+			for (iter = patched_addresses.begin(); iter != patched_addresses.end(); iter++)
+			{
+				VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
+
+				p_display_item->id = 0;
+
+				if (matched_addresses.find(*iter) == matched_addresses.end() && *iter>0)
+				{
+					p_display_item->Items[0] = " ";
+
+					char tmp[20];
+					_snprintf(tmp, sizeof(tmp), "%X", *iter);
+
+					p_display_item->Items[1] = tmp;
+
+					MatchAddressPair match_address_pair;
+					match_address_pair.original = 0;
+					match_address_pair.patched = *iter;
+					MatchData *pMatchData = pDiffMachine->GetMatchData(1, *iter);
+					if (pMatchData)
+					{
+						_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[0]);
+						p_display_item->Items[0] = tmp;
+
+						match_address_pair.original = pMatchData->Addresses[0];
+					}
+					char *fingerprint = pTargetClientManager->GetFingerPrintStr(*iter);
+					if (fingerprint)
+					{
+						p_display_item->Items[5] = fingerprint;
+						free(fingerprint);
+					}
+
+					pMatchedBlocksDisplayItemArray->push_back(p_display_item);
+					MatchedBlocksList.push_back(match_address_pair);
+				}
+			}
+
+			m_MatchedBlocksView.DeleteAllItems();
+			m_MatchedBlocksView.SetItemCount(pMatchedBlocksDisplayItemArray->size());
+			m_MatchedBlocksView.SetData(pMatchedBlocksDisplayItemArray);
+
+			DrawOnGraphVizWindow(0, &m_lGraphVizView, pSourceClientManager, match_info.TheSourceAddress);
+			DrawOnGraphVizWindow(1, &m_rGraphVizView, pTargetClientManager, match_info.TheTargetAddress);
+		}
+		else if (m_MatchedBlocksView.GetDlgCtrlID() == idCtrl)
+		{
+			int pos = (int)m_MatchedBlocksView.GetItemData(pnmia->iItem);
+			MatchAddressPair &match_address_pair = MatchedBlocksList.at(pos);
+
+			RECT rc;
+			m_lGraphVizView.GetClientRect(&rc);
+			m_lGraphVizView.ShowNode(match_address_pair.original, (rc.right - rc.left) / 2, (rc.bottom - rc.top) / 2);
+			
+			m_rGraphVizView.GetClientRect(&rc);
+			m_rGraphVizView.ShowNode(match_address_pair.patched, (rc.right - rc.left) / 2, (rc.bottom - rc.top) / 2);
+
+			if (pSourceClientManager)
+				pSourceClientManager->ShowAddress(match_address_pair.original);
+
+			if (pTargetClientManager)
+				pTargetClientManager->ShowAddress(match_address_pair.patched);
+		}
+		return 0;
+	}
+
 
 	int AnalyzeIDAClientManagers(WORD,WORD,HWND,BOOL&)
 	{
@@ -1371,6 +1458,8 @@ public:
 		SetWindowText(m_DiffFilename.c_str());
 
 		pDiffMachine = new DiffMachine();
+		
+		//TODO:
 		pDiffMachine->SetSource("C:\\mat\\Analysis\\RTF Patches\\ms12-064.dgf",1);
 		pDiffMachine->SetTarget("C:\\mat\\Analysis\\RTF Patches\\ms12-079.dgf",1);
 		pDiffMachine->Load(m_DiffFilename.c_str());
