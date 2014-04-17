@@ -45,16 +45,24 @@ int Run(LPTSTR lpstrCmdLine=NULL,int nCmdShow=SW_SHOWDEFAULT)
 		ATLTRACE(_T("Main window creation failed!\n"));
 		return 0;
 	}
-	/////////////////////////////////////////////
+
 	//center and show main window
 	wndMain.CenterWindow();
 	wndMain.ShowWindow(nCmdShow);
 	new CSplashWnd(IDB_SPLASH,3000,wndMain.m_hWnd);
 	if(Filename)
 		wndMain.SetDatabaseFilename(Filename);
-	int nRet=theLoop.Run();
-	_Module.RemoveMessageLoop();
-	return nRet;
+
+	try
+	{
+		int nRet = theLoop.Run();
+		_Module.RemoveMessageLoop();
+		return nRet;
+	}
+	catch (...)
+	{
+		return false;
+	}
 }
 
 int WINAPI _tWinMain(HINSTANCE hInstance,HINSTANCE,LPTSTR lpstrCmdLine,int nCmdShow)
