@@ -5,8 +5,21 @@ class VirtualListDisplayItem
 public:
 	string Items[10];
 	int id;
-};
+	void *data;
 
+	VirtualListDisplayItem():
+		id(0),
+		data(NULL)
+	{
+	}
+
+	~VirtualListDisplayItem()
+	{
+		if (data)
+			free(data);
+		data = NULL;
+	}
+};
 
 template <class T>
 class CVirtualListViewCtrl : public CWindowImpl<CVirtualListViewCtrl<T>, CListViewCtrl>
@@ -80,6 +93,11 @@ public:
 	int GetID(int i)
 	{
 		return DisplayItemList->at(i)->id;
+	}
+
+	void *GetData(int i)
+	{
+		return DisplayItemList->at(i)->data;
 	}
 
 	LRESULT OnLVGetDispInfo(int, LPNMHDR pNMHDR, BOOL&)
