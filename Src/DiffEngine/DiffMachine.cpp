@@ -3,6 +3,9 @@
 #include <list>
 #include <hash_set>
 #include <hash_map>
+#include <stdlib.h>
+#include <tchar.h>
+
 #include "Diff.h"
 #include "LogOperation.h"
 
@@ -24,14 +27,12 @@ extern LogOperation Logger;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
 	DebugFlag( 0 ),
-	LoadDiffResults(false),
+	LoadDiffResults(true),
 	TheSource( NULL ),
 	TheTarget( NULL ),
 	bRetrieveDataForAnalysis(FALSE),
-	SourceDBName(NULL),
 	SourceID(0),
 	SourceFunctionAddress(0),
-	TargetDBName(NULL),
 	TargetID(0),
 	TargetFunctionAddress(0)
 {
@@ -1876,7 +1877,9 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 
 	Logger.Log( 10, "Executing %s\n", CREATE_MATCH_MAP_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT );
-	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_INDEX_STATEMENT );		
+	OutputDB.ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
+	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT);
+	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT);
 
 	Logger.Log( 10, "Executing %s\n", CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
@@ -2011,19 +2014,19 @@ int ReadMatchMapCallback( void *arg, int argc, char **argv, char **names )
 	AnalysisResult *DiffResults=( AnalysisResult * )arg;
 
 	MatchData match_data;
-	DWORD TheSourceAddress=strtoul10( argv[0] );
-	DWORD TheTargetAddress=strtoul10( argv[1] );
+	DWORD SourceAddress=strtoul10( argv[0] );
+	DWORD TargetAddress=strtoul10( argv[1] );
 	match_data.Type=atoi( argv[3] );
 	match_data.SubType=atoi( argv[4] );
 	match_data.Status=atoi( argv[5] );
 	match_data.MatchRate=atoi( argv[6] );
 	match_data.UnpatchedParentAddress=strtoul10( argv[7] );
 	match_data.PatchedParentAddress=strtoul10( argv[8] );
+	match_data.Addresses[0]=SourceAddress;
+	match_data.Addresses[1]=TargetAddress;
 
-	match_data.Addresses[0]=TheSourceAddress;
-	match_data.Addresses[1]=TheTargetAddress;
-	DiffResults->MatchMap.insert( MatchMap_Pair( TheSourceAddress, match_data ) );
-	DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( TheTargetAddress, TheSourceAddress ) );
+	DiffResults->MatchMap.insert( MatchMap_Pair( SourceAddress, match_data ) );
+	DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( TargetAddress, SourceAddress ) );
 	return 0;
 }
 
@@ -2049,21 +2052,116 @@ int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **
 	return 0;
 }
 
+struct FileList
+{
+	string SourceFilename;
+	string TargetFilename;
+};
+
+int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
+{
+	FileList *file_list = (FileList *)arg;
+	if (file_list)
+	{
+		if (!stricmp(argv[0], "source"))
+		{
+			file_list->SourceFilename = argv[1];
+		}
+		else if (!stricmp(argv[0], "target"))
+		{
+			file_list->TargetFilename = argv[1];
+		}
+	}
+	return 0;
+}
+
+// Use your own error codes here
+#define SUCCESS                     0L
+#define FAILURE_NULL_ARGUMENT       1L
+#define FAILURE_API_CALL            2L
+#define FAILURE_INSUFFICIENT_BUFFER 3L
+
+DWORD GetBasePathFromPathName(LPCTSTR szPathName,
+	LPTSTR  szBasePath,
+	DWORD   dwBasePathSize)
+{
+	TCHAR   szDrive[_MAX_DRIVE] = { 0 };
+	TCHAR   szDir[_MAX_DIR] = { 0 };
+	TCHAR   szFname[_MAX_FNAME] = { 0 };
+	TCHAR   szExt[_MAX_EXT] = { 0 };
+	size_t  PathLength;
+	DWORD   dwReturnCode;
+
+	// Parameter validation
+	if (szPathName == NULL || szBasePath == NULL)
+	{
+		return FAILURE_NULL_ARGUMENT;
+	}
+
+	// Split the path into it's components
+	dwReturnCode = _tsplitpath_s(szPathName, szDrive, _MAX_DRIVE, szDir, _MAX_DIR, szFname, _MAX_FNAME, szExt, _MAX_EXT);
+	if (dwReturnCode != 0)
+	{
+		_ftprintf(stderr, TEXT("Error splitting path. _tsplitpath_s returned %d.\n"), dwReturnCode);
+		return FAILURE_API_CALL;
+	}
+
+	// Check that the provided buffer is large enough to store the results and a terminal null character
+	PathLength = _tcslen(szDrive) + _tcslen(szDir);
+	if ((PathLength + sizeof(TCHAR)) > dwBasePathSize)
+	{
+		_ftprintf(stderr, TEXT("Insufficient buffer. Required %d. Provided: %d\n"), PathLength, dwBasePathSize);
+		return FAILURE_INSUFFICIENT_BUFFER;
+	}
+
+	// Copy the szDrive and szDir into the provide buffer to form the basepath
+	if ((dwReturnCode = _tcscpy_s(szBasePath, dwBasePathSize, szDrive)) != 0)
+	{
+		_ftprintf(stderr, TEXT("Error copying string. _tcscpy_s returned %d\n"), dwReturnCode);
+		return FAILURE_API_CALL;
+	}
+	if ((dwReturnCode = _tcscat_s(szBasePath, dwBasePathSize, szDir)) != 0)
+	{
+		_ftprintf(stderr, TEXT("Error copying string. _tcscat_s returned %d\n"), dwReturnCode);
+		return FAILURE_API_CALL;
+	}
+	return SUCCESS;
+}
+
 BOOL DiffMachine::Load(const char *DiffDBFilename)
 {
 	Logger.Log(10, "Loading %s\n", DiffDBFilename);
 	m_DiffDB = new DBWrapper();
 	m_DiffDB->CreateDatabase(DiffDBFilename);
 
-	if (SourceDBName != NULL && TargetDBName != NULL)
-	{
-		Logger.Log(10, "Loading %s\n", SourceDBName);
-		m_SourceDB = new DBWrapper();
-		m_SourceDB->CreateDatabase(SourceDBName);
+	FileList DiffFileList;
+	m_DiffDB->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
-		Logger.Log(10, "Loading %s\n", TargetDBName);
+	SourceDBName = DiffFileList.SourceFilename;
+	TargetDBName = DiffFileList.TargetFilename;
+
+	if (SourceDBName.size()>0 && TargetDBName.size()>0)
+	{
+		char *DiffDBBasename = strdup(DiffDBFilename);
+		GetBasePathFromPathName(DiffDBFilename, DiffDBBasename, strlen(DiffDBBasename));
+
+		char *FullSourceDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(SourceDBName.c_str()) + 1);
+		strcpy(FullSourceDBName, DiffDBBasename);
+		strcat(FullSourceDBName, SourceDBName.c_str());
+
+		Logger.Log(10, "Loading %s\n", FullSourceDBName);
+		m_SourceDB = new DBWrapper();
+		m_SourceDB->CreateDatabase(FullSourceDBName);
+		SetSource(FullSourceDBName, 1);
+
+		char *FullTargetDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(TargetDBName.c_str()) + 1);
+		strcpy(FullTargetDBName, DiffDBBasename);
+		strcat(FullTargetDBName, TargetDBName.c_str());
+
+		Logger.Log(10, "Loading %s\n", FullTargetDBName);
 		m_TargetDB = new DBWrapper();
-		m_TargetDB->CreateDatabase(TargetDBName);
+		m_TargetDB->CreateDatabase(FullTargetDBName);
+		SetTarget(FullTargetDBName, 1);
 	}
 
 	return _Load();

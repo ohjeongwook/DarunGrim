@@ -25,9 +25,19 @@ const enum {DiffMachineFileSQLiteFormat};
 			UnpatchedParentAddress INTEGER, \n\
 			PatchedParentAddress INTEGER\n\
 		 );"
+
 #define INSERT_MATCH_MAP_TABLE_STATEMENT "INSERT INTO  "MATCH_MAP_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u' );"
 #define DELETE_MATCH_MAP_TABLE_STATEMENT "DELETE FROM "MATCH_MAP_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
-#define CREATE_MATCH_MAP_TABLE_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"Index ON "MATCH_MAP_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, TheTargetAddress )"
+#define CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"TheSourceAddressIndex ON "MATCH_MAP_TABLE" ( TheSourceAddress )"
+#define CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"TheTargetAddressIndex ON "MATCH_MAP_TABLE" ( TheTargetAddress )"
+
+#define FILE_LIST_TABLE "FileList"
+#define CREATE_FILE_LIST_TABLE_STATEMENT "CREATE TABLE " FILE_LIST_TABLE " ( \n\
+			id INTEGER PRIMARY KEY AUTOINCREMENT, \n\
+			Type VARCHAR(25), \n\
+			Filename VARCHAR(255) \n\
+		 );"
+#define INSERT_FILE_LIST_TABLE_STATEMENT "INSERT INTO  "FILE_LIST_TABLE" ( Type, Filename) values ( '%s', '%s' );"
 
 #define UNIDENTIFIED_BLOCKS_TABLE "UnidentifiedBlocks"
 #define CREATE_UNIDENTIFIED_BLOCKS_TABLE_STATEMENT "CREATE TABLE "UNIDENTIFIED_BLOCKS_TABLE" ( \n\
@@ -197,11 +207,11 @@ public:
 	}
 
 private:
-	const char *SourceDBName;
+	string SourceDBName;
 	int SourceID;
 	DWORD SourceFunctionAddress;
 
-	const char *TargetDBName;
+	string TargetDBName;
 	int TargetID;
 	DWORD TargetFunctionAddress;
 
