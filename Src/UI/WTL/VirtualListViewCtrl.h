@@ -16,8 +16,10 @@ public:
 	~VirtualListDisplayItem()
 	{
 		if (data)
+		{
 			free(data);
-		data = NULL;
+			data = NULL;
+		}
 	}
 };
 

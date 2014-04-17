@@ -844,7 +844,16 @@ public:
 		PrintToLogView("MatchCount: [%d]\r\n", MatchCount);
 
 		if (pDiffListDisplayItemArray)
+		{
+			for (vector<VirtualListDisplayItem *>::iterator iter = pDiffListDisplayItemArray->begin();
+				iter != pDiffListDisplayItemArray->end();
+				iter++
+				)
+			{
+				delete *iter;
+			}
 			delete pDiffListDisplayItemArray;
+		}
 
 		pDiffListDisplayItemArray = new vector<VirtualListDisplayItem *>();
 
@@ -918,7 +927,16 @@ public:
 		list <DWORD> target_addresses = pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
 
 		if (pMatchedBlocksDisplayItemArray)
+		{
+			for (vector<VirtualListDisplayItem *>::iterator iter = pMatchedBlocksDisplayItemArray->begin();
+				iter != pMatchedBlocksDisplayItemArray->end();
+				iter++
+				)
+			{
+				delete *iter;
+			}
 			delete pMatchedBlocksDisplayItemArray;
+		}
 
 		pMatchedBlocksDisplayItemArray = new vector<VirtualListDisplayItem *>();
 
