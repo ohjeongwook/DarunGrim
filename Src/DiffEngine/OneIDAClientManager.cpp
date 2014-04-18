@@ -29,12 +29,14 @@ OneIDAClientManager::OneIDAClientManager(DBWrapper *storage_db):
 	ClientAnalysisInfo(NULL),
 	TargetFunctionAddress(0)
 {
-	ClientAnalysisInfo = NULL;
+	ClientAnalysisInfo = new AnalysisInfo;
 	m_FileID = 0;
 	m_StorageDB = storage_db;
 	DisasmLine = NULL;
 	Socket = INVALID_SOCKET;
 	m_OriginalFilePath = NULL;
+
+	Logger.Log(10, "OneIDAClientManager: m_StorageDB: %p", m_StorageDB);
 }
 
 OneIDAClientManager::~OneIDAClientManager()
@@ -85,7 +87,12 @@ int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **nam
 		{
 			ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
 		}
-		ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(argv[2], Address));
+
+		if (strtoul10(argv[3]) == 1 && strlen(argv[2]) > 0)
+		{
+			char *name = argv[2];
+			ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(name, Address));
+		}
 	}
 	return 0;
 }
@@ -164,7 +171,7 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 
 	multimap <DWORD, PMapInfo> *p_map_info_hash_map;
 
-	if (ClientAnalysisInfo)
+	if (ClientAnalysisInfo && ClientAnalysisInfo->map_info_hash_map.size()>0)
 	{
 		p_map_info_hash_map = &ClientAnalysisInfo->map_info_hash_map;
 	}
@@ -497,7 +504,7 @@ BOOL OneIDAClientManager::LoadOneLocationInfo()
 		if (m_StorageDB)
 			m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback,
 			(void *)ClientAnalysisInfo,
-			"SELECT StartAddress, Fingerprint, Name FROM OneLocationInfo WHERE FileID = %u %s",
+			"SELECT StartAddress, Fingerprint, Name, BlockType FROM OneLocationInfo WHERE FileID = %u %s",
 			m_FileID,
 			FunctionAddressConditionBuffer);
 		GenerateFingerprintHashMap();
@@ -520,7 +527,7 @@ void OneIDAClientManager::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_has
 	if (Address == 0)
 	{
 		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
-			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u ORDER BY ID ASC", 
+			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u", 
 			m_FileID);
 	}
 	else
@@ -538,7 +545,6 @@ BOOL OneIDAClientManager::Load()
 	Logger.Log(10, "Load: %s\n", m_StorageDB->GetDatabaseName());
 
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
-	ClientAnalysisInfo = new AnalysisInfo;
 
 	LoadOneLocationInfo();
 	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress);
@@ -579,7 +585,6 @@ void OneIDAClientManager::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context
 	multimap <string,  DWORD>::iterator name_hash_map_pIter;
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
 
-	ClientAnalysisInfo = new AnalysisInfo;
 	DWORD current_addr = 0L;
 
 	if( m_StorageDB )
