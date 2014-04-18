@@ -27,14 +27,15 @@ extern LogOperation Logger;
 
 DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
 	DebugFlag( 0 ),
-	LoadDiffResults(true),
 	TheSource( NULL ),
 	TheTarget( NULL ),
 	bRetrieveDataForAnalysis(FALSE),
 	SourceID(0),
 	SourceFunctionAddress(0),
 	TargetID(0),
-	TargetFunctionAddress(0)
+	TargetFunctionAddress(0),
+	LoadOneIDAClientManager(false),
+	LoadDiffResults(true)
 {
 	m_DiffDB=NULL;
 	DiffResults=NULL;
@@ -497,16 +498,20 @@ bool DiffMachine::Analyze()
 			TheTarget->GetClientAnalysisInfo()->fingerprint_hash_map.size() );
 
 	Logger.Log(10, "LoadFunctionMembersMap\n");
+
 	FunctionMembersMapForTheSource=TheSource->LoadFunctionMembersMap();
 	FunctionMembersMapForTheTarget=TheTarget->LoadFunctionMembersMap();
 
 	Logger.Log(10, "LoadAddressToFunctionMap\n");
+
 	AddressToFunctionMapForTheSource=TheSource->LoadAddressToFunctionMap();
 	AddressToFunctionMapForTheTarget=TheTarget->LoadAddressToFunctionMap();
 
 	// Name Match
 	Logger.Log(10, "Name Match\n");
+
 	multimap <string,  DWORD>::iterator patched_name_hash_map_pIter;
+
 	for( name_hash_map_pIter=TheSource->GetClientAnalysisInfo()->name_hash_map.begin();
 		name_hash_map_pIter!=TheSource->GetClientAnalysisInfo()->name_hash_map.end();
 		name_hash_map_pIter++ )
@@ -521,7 +526,9 @@ bool DiffMachine::Analyze()
 					name_hash_map_pIter->first.find( "sub_" )!=string::npos ||
 					name_hash_map_pIter->first.find( "func_" )!=string::npos )
 					continue;
+
 				patched_name_hash_map_pIter=TheTarget->GetClientAnalysisInfo()->name_hash_map.find( name_hash_map_pIter->first );
+
 				if( patched_name_hash_map_pIter!=TheTarget->GetClientAnalysisInfo()->name_hash_map.end() )
 				{
 					MatchData match_data;
@@ -538,6 +545,7 @@ bool DiffMachine::Analyze()
 						name_hash_map_pIter->second, 
 						match_data
 						 ) );
+
 					if( DebugLevel&1 )
 						Logger.Log( 10,  "%s: matched %s( %x )-%s( %x ) MatchRate=%u%%\n", __FUNCTION__, 
 							name_hash_map_pIter->first.c_str(), 
@@ -549,6 +557,7 @@ bool DiffMachine::Analyze()
 			}
 		}
 	}
+	Logger.Log(10, "Name Match Ended\n");
 
 	if( DebugLevel&1 )
 		Logger.Log( 10,  "%s: Name matched number=%u\n", __FUNCTION__, TemporaryMatchMap.size() );
@@ -558,12 +567,14 @@ bool DiffMachine::Analyze()
 	{
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: DoFingerPrintMatch\n", __FUNCTION__ );
+
 		DoFingerPrintMatch( &TemporaryMatchMap );
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: Match Map Size: %u\n", __FUNCTION__, TemporaryMatchMap.size() );
 
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: DoIsomorphMatch\n", __FUNCTION__ );
+
 		DoIsomorphMatch( &TemporaryMatchMap );
 
 		if( DebugLevel&1 )
@@ -2137,31 +2148,46 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 	FileList DiffFileList;
 	m_DiffDB->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
-	SourceDBName = DiffFileList.SourceFilename;
-	TargetDBName = DiffFileList.TargetFilename;
+	if (DiffFileList.SourceFilename.size() > 0 && DiffFileList.TargetFilename.size() > 0)
+	{
+		char *DiffDBBasename = (char *) malloc(strlen(DiffDBFilename)+1);
+
+		if (DiffDBBasename)
+		{
+			GetBasePathFromPathName(DiffDBFilename, DiffDBBasename, strlen(DiffDBFilename)+1);
+			char *FullSourceDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(DiffFileList.SourceFilename.c_str()) + 1);
+			
+			if (FullSourceDBName)
+			{
+				strcpy(FullSourceDBName, DiffDBBasename);
+				strcat(FullSourceDBName, DiffFileList.SourceFilename.c_str());
+				SourceDBName = FullSourceDBName;
+				free(FullSourceDBName);
+			}
+
+			char *FullTargetDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(DiffFileList.TargetFilename.c_str()) + 1);
+			
+			if (FullTargetDBName)
+			{
+				strcpy(FullTargetDBName, DiffDBBasename);
+				strcat(FullTargetDBName, DiffFileList.TargetFilename.c_str());
+				TargetDBName = FullTargetDBName;
+				free(FullTargetDBName);
+			}
+		}
+	}
 
 	if (SourceDBName.size()>0 && TargetDBName.size()>0)
 	{
-		char *DiffDBBasename = strdup(DiffDBFilename);
-		GetBasePathFromPathName(DiffDBFilename, DiffDBBasename, strlen(DiffDBBasename));
-
-		char *FullSourceDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(SourceDBName.c_str()) + 1);
-		strcpy(FullSourceDBName, DiffDBBasename);
-		strcat(FullSourceDBName, SourceDBName.c_str());
-
-		Logger.Log(10, "Loading %s\n", FullSourceDBName);
+		Logger.Log(10, "Loading %s\n", SourceDBName.c_str());
 		m_SourceDB = new DBWrapper();
-		m_SourceDB->CreateDatabase(FullSourceDBName);
-		SetSource(FullSourceDBName, 1);
+		m_SourceDB->CreateDatabase(SourceDBName.c_str());
+		SetSource(SourceDBName.c_str(), 1);
 
-		char *FullTargetDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(TargetDBName.c_str()) + 1);
-		strcpy(FullTargetDBName, DiffDBBasename);
-		strcat(FullTargetDBName, TargetDBName.c_str());
-
-		Logger.Log(10, "Loading %s\n", FullTargetDBName);
+		Logger.Log(10, "Loading %s\n", TargetDBName.c_str());
 		m_TargetDB = new DBWrapper();
-		m_TargetDB->CreateDatabase(FullTargetDBName);
-		SetTarget(FullTargetDBName, 1);
+		m_TargetDB->CreateDatabase(TargetDBName.c_str());
+		SetTarget(TargetDBName.c_str(), 1);
 	}
 
 	return _Load();
@@ -2184,7 +2210,9 @@ BOOL DiffMachine::_Load()
 	TheSource = new OneIDAClientManager(m_SourceDB);
 	TheSource->AddAnalysisTargetFunction(SourceFunctionAddress);
 	TheSource->SetFileID(SourceID);
-	//TheSource->Load(SourceID);
+
+	if (LoadOneIDAClientManager)
+		TheSource->Load();
 
 	if (TheTarget)
 		delete TheTarget;
@@ -2192,7 +2220,8 @@ BOOL DiffMachine::_Load()
 	TheTarget = new OneIDAClientManager(m_TargetDB);
 	TheTarget->AddAnalysisTargetFunction(TargetFunctionAddress);
 	TheTarget->SetFileID(TargetID);
-	//TheTarget->Load(TargetID);
+	if (LoadOneIDAClientManager)
+		TheTarget->Load();
 
 	m_DiffDB->ExecuteStatement(
 					ReadFunctionMatchInfoListCallback, 

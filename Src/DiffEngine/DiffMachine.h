@@ -199,11 +199,17 @@ public:
 
 
 private:
-	BOOL LoadDiffResults;
+	bool LoadDiffResults;
+	bool LoadOneIDAClientManager;
 public:
-	void SetLoadDiffResults(BOOL NewLoadDiffResults)
+	void SetLoadDiffResults(bool NewLoadDiffResults)
 	{
 		LoadDiffResults = NewLoadDiffResults;
+	}
+
+	void SetLoadOneIDAClientManager(bool NewLoadOneIDAClientManager)
+	{
+		LoadOneIDAClientManager = NewLoadOneIDAClientManager;
 	}
 
 private:
