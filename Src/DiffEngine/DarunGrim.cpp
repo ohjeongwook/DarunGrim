@@ -10,7 +10,7 @@ DarunGrim::DarunGrim():
 	pTargetIDAClientManager(NULL),
 	pDiffMachine(NULL),
 	pIDAClientManager(NULL),
-	IsLoadedSourceFile( FALSE )
+	IsLoadedSourceFile( false )	
 {
 	LogOperation::InitLog();
 	Logger.SetCategory( "DarunGrim" );
@@ -204,6 +204,7 @@ bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, DWORD source_addre
 	pDiffMachine = new DiffMachine();
 	pDiffMachine->SetSource((char *)src_storage_filename, 1, source_address);
 	pDiffMachine->SetTarget((char *)target_storage_filename, 1, target_address);
+	pDiffMachine->SetLoadOneIDAClientManager(true);
 	pDiffMachine->Load((char *)output_storage_filename);
 
 	Logger.Log(10, "Analyze\n");
