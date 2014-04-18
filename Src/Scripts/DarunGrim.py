@@ -45,29 +45,33 @@ class Differ:
 		self.DarunGrim.ColorAddress( index, start_address, end_address, color )
 
 if __name__ == '__main__':
-	src_filename = sys.argv[1]
-	target_filename = sys.argv[2]
-	result_filename = sys.argv[3]
+	from optparse import OptionParser
+
+	parser = OptionParser()
+	parser.add_option("-s", "--source_address", dest="source_address",
+						help="Source function address", type="int", default=0, metavar="SOURCE_ADDRESS")
+	parser.add_option("-t", "--target_address", dest="target_address",
+						help="Target function address", type="int", default=0, metavar="TARGET_ADDRESS")
+
+	(options, args) = parser.parse_args()
+
+	src_filename = args[0]
+	target_filename = args[1]
+	result_filename = args[2]
+
+	darun_grim = DiffEngine.DarunGrim()
+	darun_grim.SetLogParameters(LogToStdout, 100, "");  
+	darun_grim.DiffDatabaseFiles(src_filename, options.source_address, target_filename, options.target_address, result_filename)
 
 	"""
 	LogFilename = 'test.log'
 
 	IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
 	DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
-	"""
-	
-	"""
 	ida_client_manager = DiffEngine.IDAClientManager()
 	ida_client_manager.StartIDAListener( 1216 )
-	"""
 
-	darun_grim = DiffEngine.DarunGrim()
-
-	"""
 	storage_filename = os.path.join( os.getcwd(), str('test2.dgf') )
 	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
 	raw_input( 'Press any key to continue...' )
 	"""
-	darun_grim.SetLogParameters(LogToStdout, 100, "");  
-	#darun_grim.DiffDatabaseFiles(src_filename, 0x31d10906, target_filename, 0x31d10970, result_filename)
-	darun_grim.DiffDatabaseFiles(src_filename, 0x0, target_filename, 0x0, result_filename)
