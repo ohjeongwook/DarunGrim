@@ -48,6 +48,8 @@ public:
 	{		
 		//Database Setup
 		printf("Opening Database [%s]\n", DatabaseName );
+
+		m_DatabaseName = DatabaseName;
 		int rc = sqlite3_open( DatabaseName, &db );
 		if(rc)
 		{
