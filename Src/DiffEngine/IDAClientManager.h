@@ -33,7 +33,6 @@ public:
 	bool StopIDAListener();
 
 	~IDAClientManager();
-	BOOL AcceptIDAClient( OneIDAClientManager *pOneIDAClientManager, bool RetrieveData=FALSE );
 	OneIDAClientManager *GetOneIDAClientManagerFromFile( char *DataFile );
 	DWORD SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine );
 	DWORD IDACommandProcessor();
@@ -46,4 +45,5 @@ public:
 	void ConnectToDarunGrim( const char *ida_filename );
 	void SetIDALogFilename( const char *ida_log_filename );
 	const char *GetIDALogFilename();
+	BOOL AcceptIDAClient(OneIDAClientManager *pOneIDAClientManager, bool RetrieveData);
 };
