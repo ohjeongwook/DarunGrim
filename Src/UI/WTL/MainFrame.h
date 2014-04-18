@@ -23,7 +23,6 @@
 
 using namespace std;
 using namespace stdext;
-
 #include "atlctrls.h"
 #include "atlctrlw.h"
 
@@ -49,31 +48,38 @@ int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_
 DWORD WINAPI GenerateDiffFromFilesThread(LPVOID pParam);
 DWORD WINAPI OpenDGFWorkerThread(LPVOID pParam);
 
-//CDisassemblyFileOpeningDlg
+class CMainFrame;
+
+//CIDAConnectionDlg
 //pSourceClientManager->GetOriginalFilePath()
 //pTargetClientManager->GetOriginalFilePath()
 //LaunchIDA
-class CDisassemblyFileOpeningDlg : public CDialogImpl<CDisassemblyFileOpeningDlg>,public CWinDataExchange<CDisassemblyFileOpeningDlg>
+class CIDAConnectionDlg : public CDialogImpl<CIDAConnectionDlg>,public CWinDataExchange<CIDAConnectionDlg>
 {
 private:
 	CFileNameEdit m_SourceEdit;
 	CFileNameEdit m_TargetEdit;
-
+	CLogViewEdit m_LogView;
 public:
 	CString m_SourceFileName;
 	CString m_TargetFileName;
 
 	enum {IDD=IDD_DIALOG_DISASSEMBLY_FILE_OPENING};
 
-	BEGIN_MSG_MAP(CDisassemblyFileOpeningDlg)
+	BEGIN_MSG_MAP(CIDAConnectionDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDC_BUTTON_SOURCE, OnButtonSourceCmd)
 		COMMAND_ID_HANDLER(IDC_BUTTON_TARGET, OnButtonTargetCmd)
+
+		COMMAND_ID_HANDLER(IDC_BUTTON_SOURCE_CONNECTION, OnButtonSourceConnectionCmd)
+		COMMAND_ID_HANDLER(IDC_BUTTON_TARGET_CONNECTION, OnButtonTargetConnectionCmd)
+
+		COMMAND_ID_HANDLER(ID_ASSOCIATE_SOCKET_COMPLETE, ShowLogMessageHandler)
 	END_MSG_MAP()
 
-	BEGIN_DDX_MAP(CDisassemblyFileOpeningDlg)
+	BEGIN_DDX_MAP(CIDAConnectionDlg)
 		DDX_TEXT(IDC_EDIT_SOURCE,m_SourceFileName)
 		DDX_TEXT(IDC_EDIT_TARGET,m_TargetFileName)
 	END_DDX_MAP()
@@ -81,11 +87,9 @@ public:
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		DoDataExchange(FALSE);
+		m_LogView.SubclassWindow(GetDlgItem(IDC_LOG_VIEW));
 		m_SourceEdit.SubclassWindow(GetDlgItem(IDC_EDIT_SOURCE));
 		m_TargetEdit.SubclassWindow(GetDlgItem(IDC_EDIT_TARGET));;
-
-		//SetDlgItemText(IDC_EDIT_SOURCE,(char *)m_SourceFilemame);
-		//SetDlgItemText(IDC_EDIT_TARGET,(char *)m_TargetFilemame);
 		CenterWindow(GetParent());
 		return TRUE;
 	}
@@ -102,7 +106,6 @@ public:
 		CFileDialog dlgFile(TRUE,"*.*",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"All Files (*.*)\0*.*\0");
 		if(dlgFile.DoModal()==IDOK)
 		{
-			//Update Inputbox
 			SetDlgItemText(IDC_EDIT_SOURCE,dlgFile.m_szFileName);
 		}
 		return 0;
@@ -113,9 +116,64 @@ public:
 		CFileDialog dlgFile(TRUE,"*.*",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"All Files (*.*)\0*.*\0");
 		if(dlgFile.DoModal()==IDOK)
 		{
-			//Update Inputbox
 			SetDlgItemText(IDC_EDIT_TARGET,dlgFile.m_szFileName);
 		}
+		return 0;
+	}
+
+	static DWORD WINAPI AcceptIDAClient(LPVOID pParam)
+	{
+		CIDAConnectionDlg *pThis = (CIDAConnectionDlg *)pParam;
+		IDAClientManager *pIDAClientManager = new IDAClientManager();
+		pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
+
+		if (pIDAClientManager->AcceptIDAClient(pThis->GetCurrentClientManager(), false))
+		{
+			pThis->PostMessage(
+				WM_COMMAND,
+				ID_ASSOCIATE_SOCKET_COMPLETE, (LPARAM)_strdup("New connection accepted.\n"));
+		}
+		else
+		{
+			pThis->PostMessage(
+				WM_COMMAND,
+				ID_ASSOCIATE_SOCKET_COMPLETE, (LPARAM)_strdup("Connection failed.\n"));
+		}
+
+		pIDAClientManager->StopIDAListener();
+		return 0;
+	}
+
+	int ShowLogMessageHandler(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+	{
+		char *pText = (char *)hWndCtl;
+		if (pText)
+		{
+			m_LogView.AppendText(pText);
+			free(pText);
+		}
+		return 1;
+	}
+
+	LRESULT OnButtonSourceConnectionCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		DWORD dwThreadId;
+		
+		m_LogView.AppendText("Open source idb and run DarunGrim plugin.\n");
+
+		pCurrentClientManager = pSourceClientManager;
+		HANDLE hAcceptClientThread = CreateThread(NULL, 0, AcceptIDAClient, (PVOID)this, 0, &dwThreadId);
+		return 0;
+	}
+	
+	LRESULT OnButtonTargetConnectionCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		DWORD dwThreadId;
+
+		m_LogView.AppendText("Open target idb and run DarunGrim plugin.\n");
+		
+		pCurrentClientManager = pTargetClientManager;
+		HANDLE hAcceptClientThread = CreateThread(NULL, 0, AcceptIDAClient, (PVOID)this, 0, &dwThreadId);
 		return 0;
 	}
 
@@ -128,6 +186,32 @@ public:
 	void SetTargetFilename(char *Filename)
 	{
 		m_TargetFileName=Filename;		
+	}
+
+private:
+	void *Param;
+	OneIDAClientManager *pSourceClientManager;
+	OneIDAClientManager *pTargetClientManager;
+	OneIDAClientManager *pCurrentClientManager;
+public:
+	void SetParentClass(void *param)
+	{
+		Param = param;
+	}
+
+	void SetSourceClientManager(OneIDAClientManager *pNewSourceClientManager)
+	{
+		pSourceClientManager = pNewSourceClientManager;
+	}
+
+	void SetTargetClientManager(OneIDAClientManager *pNewTargetClientManager)
+	{
+		pTargetClientManager = pNewTargetClientManager;
+	}
+
+	OneIDAClientManager *GetCurrentClientManager()
+	{
+		return pCurrentClientManager;
 	}
 };
 
@@ -218,7 +302,7 @@ private:
 	CLogViwerDlg m_LogViewerDlg;
 
 	DBWrapper m_Database;
-	HANDLE hThreadOfAssociateSocketWithClientManagers;
+	
 	IDAClientManager *pOneClientManager;
 	OneIDAClientManager *pSourceClientManager;
 	OneIDAClientManager *pTargetClientManager;
@@ -317,7 +401,7 @@ public:
 		m_State=STATE_NONE;
 
 		m_Zoom=1.0f;
-		hThreadOfAssociateSocketWithClientManagers=INVALID_HANDLE_VALUE;
+
 		pOneClientManager=NULL;
 		pSourceClientManager=NULL;
 		pTargetClientManager=NULL;
@@ -755,31 +839,27 @@ public:
 		OneIDAClientManager *pTargetClientManager;
 	} ClientManagers;
 
-	static DWORD WINAPI AssociateSocketWithClientManagers(LPVOID pParam)
+	static DWORD WINAPI AcceptIDAClient(LPVOID pParam)
 	{
 		DBWrapper *OutputDB=&(((CMainFrame *)pParam)->m_Database);
-		{
-			IDAClientManager *pOneClientManager=new IDAClientManager();
-			pOneClientManager->StartIDAListener( DARUNGRIM_PORT );
 
-			if(pOneClientManager->AcceptIDAClient(
-				(
-						(CMainFrame *)pParam)->GetOneClientManagerTheSource(),
-						((CMainFrame *)pParam)->RetrieveClientManagersDatabase()
-				)
-			)
+		IDAClientManager *pOneClientManager = new IDAClientManager();
+		pOneClientManager->StartIDAListener(DARUNGRIM_PORT);
+
+		if (pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheSource(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
+		{
+			((CMainFrame *)pParam)->PostMessage(
+				WM_COMMAND,
+				ID_ASSOCIATE_SOCKET_COMPLETE, NULL);
+
+			if (pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(), ((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
 			{
 				((CMainFrame *)pParam)->PostMessage(
 					WM_COMMAND,
-					ID_ASSOCIATE_SOCKET_COMPLETE,NULL);
-				if(pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
-				{
-					((CMainFrame *)pParam)->PostMessage(
-						WM_COMMAND,
-						ID_ASSOCIATE_SOCKET_COMPLETE,NULL);
-				}
+					ID_ASSOCIATE_SOCKET_COMPLETE, NULL);
 			}
 		}
+
 		((CMainFrame *)pParam)->PostMessage(
 			WM_COMMAND,
 			ID_START_ANALYZE_IDA_CLIENT_MANAGERS,NULL);
@@ -1151,35 +1231,6 @@ public:
 		}
 	}
 
-	bool LaunchAssociateSocketWithClientManagersThread(bool RetrieveClientManagersDatabase)
-	{
-		AssociateSocketCount=0;
-		if(hThreadOfAssociateSocketWithClientManagers!=INVALID_HANDLE_VALUE)
-		{
-			DWORD ExitCode;
-			if(!(GetExitCodeThread(hThreadOfAssociateSocketWithClientManagers,&ExitCode) && ExitCode==STILL_ACTIVE))
-			{
-				hThreadOfAssociateSocketWithClientManagers=INVALID_HANDLE_VALUE;
-			}
-		}
-
-		if(hThreadOfAssociateSocketWithClientManagers==INVALID_HANDLE_VALUE)
-		{
-			DWORD dwThreadId;
-			m_RetrieveClientManagersDatabase=RetrieveClientManagersDatabase;
-			hThreadOfAssociateSocketWithClientManagers=CreateThread(NULL,0,AssociateSocketWithClientManagers,(PVOID)this,0,&dwThreadId);
-
-			if(!RetrieveClientManagersDatabase)
-			{
-				AssociateSocketCount=ASSOCIATE_SOCKET_COUNT_BASE_FOR_IDA_SYNC;
-				PrintToLogView("Opening [%s]\r\n",m_SourceFileName.c_str());
-				LaunchIDA((char *)m_SourceFileName.c_str());
-			}
-			return TRUE;
-		}
-		return FALSE;
-	}
-
 	DWORD WINAPI GenerateDiffFromFiles()
 	{
 		PrintToLogView("Starting analysis...\r\n");
@@ -1252,21 +1303,6 @@ public:
 		return 0;
 	}
 
-	/*
-			//CFileDialog dlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
-			//Drag and drop original and patched binaries or idb files to the main DarunGrim2 window \r\nor 
-			::MessageBox(m_hWnd,"Run IDA and send analysis info by executing DarunGrim2 Plugin(Alt-5).\nWhen data from two IDA sessions(unpatched first then patched) are received, the analysis will start automatically.","Information",MB_OK);
-			CleanCDFStructures();
-			m_DiffFilename=dlgFile.m_szFileName;
-			SetWindowText(m_DiffFilename);
-
-			m_Database.CreateDatabase(m_DiffFilename);
-			CreateTables(m_Database);
-			pSourceClientManager=new OneIDAClientManager(&m_Database);
-			pTargetClientManager=new OneIDAClientManager(&m_Database);
-			LaunchAssociateSocketWithClientManagersThread(TRUE);
-	*/
-
 	LRESULT OnFileOpen(WORD,WORD,HWND,BOOL&)
 	{
 		CFileDialog dlgFile(TRUE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"DarunGrim Files (*.dgf)\0*.dgf\0All Files (*.*)\0*.*\0");
@@ -1336,24 +1372,26 @@ public:
 		return 0;
 	}
 
+private:
+		CIDAConnectionDlg dlg;
+public:
 	LRESULT OnOpenBinariesWithIDA(WORD,WORD,HWND,BOOL&)
 	{
 		if(pSourceClientManager && pTargetClientManager)
 		{
-			//IDD_DIALOG_DISASSEMBLY_FILE_OPENING
-
-			//TODO: Ask user to confirm whether to open the ida files			
-			CDisassemblyFileOpeningDlg dlg;
 			if(pSourceClientManager && pSourceClientManager->GetOriginalFilePath())
 				dlg.SetSourceFilename(pSourceClientManager->GetOriginalFilePath());
+
 			if(pTargetClientManager && pTargetClientManager->GetOriginalFilePath())
 				dlg.SetTargetFilename(pTargetClientManager->GetOriginalFilePath());
+
+			dlg.SetSourceClientManager(pSourceClientManager);
+			dlg.SetTargetClientManager(pTargetClientManager);
+
 			if(dlg.DoModal()==IDOK)
 			{
-				::MessageBox(m_hWnd,"DarunGrim2 will try to launch relevant IDA sessions. But if it fails for some reason just open two relevant IDA sessions and run DarunGrim2 Plugin(Alt-5) one by one(orignal first, patched one next).\nWhen two IDA sessions(unpatched first then patched) are attached, the graph browsing will be synchronized with the IDA disassembly windows.","Information",MB_OK);
 				m_SourceFileName=dlg.m_SourceFileName;
 				m_TargetFileName=dlg.m_TargetFileName;
-				LaunchAssociateSocketWithClientManagersThread(FALSE);
 			}
 		}else
 		{

@@ -26,8 +26,12 @@
 #define IDC_EDIT_TARGET                 1503
 #define IDC_TARGET                      1503
 #define IDC_EDIT_DGF                    1504
+#define IDC_BUTTON_SOURCE_CONNECTION    1504
 #define IDC_EDIT_LOG                    1505
 #define IDC_BUTTON_DGF                  1505
+#define IDC_BUTTON_TARGET_CONNECTION    1505
+#define IDC_EDIT_LOG2                   1506
+#define IDC_LOG_VIEW                    1506
 #define IDC_BUTTON_SOURCE_TRANSFER      1507
 #define IDC_BUTTON_TARGET_TRANSFER      1508
 #define ID_OPEN_SOURCE                  1602
