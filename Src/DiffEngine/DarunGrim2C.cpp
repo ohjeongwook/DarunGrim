@@ -65,6 +65,7 @@ void main(int argc,char *argv[])
 	_getch();
 #endif
 
+	/*
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
 		//_tprintf(TEXT("c=%c optind=%u optarg=%s\n"),c,optind,optarg?optarg:TEXT(""));
@@ -133,9 +134,17 @@ void main(int argc,char *argv[])
 <database filename>\r\n\
 	Database filename to use\r\n\r\n",argv[0]);
 		return;
-	}
+	}*/
 
 	DarunGrim *pDarunGrim = new DarunGrim();
+
+	pDarunGrim->SetLogParameters(LogToStdout, 100, "");
+	pDarunGrim->DiffDatabaseFiles(
+		"C:\\mat\\Analysis\\RTF Patches\\ms14-017-prepatch.dgf", 0,
+		"C:\\mat\\Analysis\\RTF Patches\\ms14-017.dgf", 0,
+		"C:\\mat\\Analysis\\RTF Patches\\ms14-017-patch.dgf");
+
+	/*
 	if(IDAPath)
 		pDarunGrim->SetIDAPath(IDAPath);
 
@@ -166,6 +175,7 @@ void main(int argc,char *argv[])
 	{
 		pDarunGrim->ShowOnIDA();
 	}
+	*/
 
 #ifdef _DEBUG
 	//printf("Just before calling free, press any key to continue...\n");
