@@ -13,7 +13,7 @@ BOOL LogOperation::OpenLogFile( std::string &log_filename )
 {
 	EnterCriticalSection( &LogFileCS );
 	// Create the new file to write the upper-case version to.
-	if( hLogFile == INVALID_HANDLE_VALUE )
+	if (hLogFile == INVALID_HANDLE_VALUE && log_filename.size()>0)
 	{
 		hLogFile = CreateFile((LPTSTR) log_filename.c_str(),// file name 
 				GENERIC_READ | GENERIC_WRITE,// open r-w 
