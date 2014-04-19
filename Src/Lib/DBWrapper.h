@@ -11,7 +11,7 @@ private:
 	sqlite3 *db;
 	string m_DatabaseName;
 public:
-	DBWrapper( char *DatabaseName = NULL )
+	DBWrapper( const char *DatabaseName = NULL )
 	{
 		db=NULL;
 		if( DatabaseName )

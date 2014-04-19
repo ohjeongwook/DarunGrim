@@ -1899,6 +1899,10 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT );
 
 	OutputDB.BeginTransaction();
+
+	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName, SourceID, SourceFunctionAddress);
+	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName, TargetID, TargetFunctionAddress);
+
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
 
 	Logger.Log( 10,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
@@ -2141,24 +2145,21 @@ DWORD GetBasePathFromPathName(LPCTSTR szPathName,
 	return SUCCESS;
 }
 
-BOOL DiffMachine::Load(const char *DiffDBFilename)
+BOOL DiffMachine::Create(const char *DiffDBFilename)
 {
-	Logger.Log(10, "Loading %s\n", DiffDBFilename);
-	m_DiffDB = new DBWrapper();
-	m_DiffDB->CreateDatabase(DiffDBFilename);
-
+	m_DiffDB = new DBWrapper(DiffDBFilename);
 	FileList DiffFileList;
 	m_DiffDB->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
 	if (DiffFileList.SourceFilename.size() > 0 && DiffFileList.TargetFilename.size() > 0)
 	{
-		char *DiffDBBasename = (char *) malloc(strlen(DiffDBFilename)+1);
+		char *DiffDBBasename = (char *)malloc(strlen(DiffDBFilename) + 1);
 
 		if (DiffDBBasename)
 		{
-			GetBasePathFromPathName(DiffDBFilename, DiffDBBasename, strlen(DiffDBFilename)+1);
+			GetBasePathFromPathName(DiffDBFilename, DiffDBBasename, strlen(DiffDBFilename) + 1);
 			char *FullSourceDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(DiffFileList.SourceFilename.c_str()) + 1);
-			
+
 			if (FullSourceDBName)
 			{
 				strcpy(FullSourceDBName, DiffDBBasename);
@@ -2168,7 +2169,7 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 			}
 
 			char *FullTargetDBName = (char *)malloc(strlen(DiffDBBasename) + strlen(DiffFileList.TargetFilename.c_str()) + 1);
-			
+
 			if (FullTargetDBName)
 			{
 				strcpy(FullTargetDBName, DiffDBBasename);
@@ -2191,6 +2192,14 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 		m_TargetDB->CreateDatabase(TargetDBName.c_str());
 		SetTarget(TargetDBName.c_str(), 1);
 	}
+
+	return true;
+}
+
+BOOL DiffMachine::Load(const char *DiffDBFilename)
+{
+	Logger.Log(10, "Loading %s\n", DiffDBFilename);
+	Create(DiffDBFilename);
 
 	return _Load();
 }

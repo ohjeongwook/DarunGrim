@@ -35,9 +35,12 @@ const enum {DiffMachineFileSQLiteFormat};
 #define CREATE_FILE_LIST_TABLE_STATEMENT "CREATE TABLE " FILE_LIST_TABLE " ( \n\
 			id INTEGER PRIMARY KEY AUTOINCREMENT, \n\
 			Type VARCHAR(25), \n\
-			Filename VARCHAR(255) \n\
+			Filename VARCHAR(255), \n\
+			FileID INTEGER, \n\
+			FunctionAddress INTEGER\n\
 		 );"
-#define INSERT_FILE_LIST_TABLE_STATEMENT "INSERT INTO  "FILE_LIST_TABLE" ( Type, Filename) values ( '%s', '%s' );"
+
+#define INSERT_FILE_LIST_TABLE_STATEMENT "INSERT INTO  "FILE_LIST_TABLE" ( Type, Filename, FileID, FunctionAddress ) values ( '%s', '%s', '%d', '%d' );"
 
 #define UNIDENTIFIED_BLOCKS_TABLE "UnidentifiedBlocks"
 #define CREATE_UNIDENTIFIED_BLOCKS_TABLE_STATEMENT "CREATE TABLE "UNIDENTIFIED_BLOCKS_TABLE" ( \n\
@@ -242,6 +245,8 @@ public:
 		SourceFunctionAddress = ParamSourceFunctionAddress;
 		TargetFunctionAddress = ParamTargetFunctionAddress;
 	}
+
+	BOOL Create(const char *DiffDBFilename);
 	BOOL Load(const char *DiffDBFilename);
 	BOOL Load(DBWrapper *DiffDB);
 
