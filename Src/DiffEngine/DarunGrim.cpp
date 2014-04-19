@@ -297,7 +297,6 @@ bool DarunGrim::ShowOnIDA()
 			pTargetIDAClientManager,
 			pDiffMachine
 		);
-		pIDAClientManager->ShowResultsOnIDA();
 		pIDAClientManager->IDACommandProcessor();
 		return TRUE;
 	}

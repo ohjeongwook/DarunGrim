@@ -75,7 +75,6 @@ public:
 	*/
 	void ShowDiffMap(unsigned long unpatched_address,unsigned long patched_address);
 	void PrintMatchMapInfo();
-	//void ShowResultsOnIDA();
 	bool Analyze();
 	void AnalyzeFunctionSanity();
 	unsigned long GetMatchAddr(int index,unsigned long address);

@@ -248,53 +248,27 @@ BOOL IDAClientManager::CreateIDACommandProcessorThread()
 	return FALSE;
 }
 
-void SendAddMatchAddrTLVData( FunctionMatchInfo &Data, PVOID Context )
+bool SendMatchedAddrTLVData( FunctionMatchInfo &Data, PVOID Context )
 {
-	OneIDAClientManager *TheSource=( OneIDAClientManager * )Context;
-	if( TheSource )
+	OneIDAClientManager *ClientManager=( OneIDAClientManager * )Context;
+	
+	if (ClientManager)
 	{
-		TheSource->SendTLVData( 
-			ADD_MATCH_ADDR, 
-			( PBYTE )&( Data ), 
-			sizeof( Data ) );
+		return ClientManager->SendMatchedAddrTLVData(Data);
 	}
+	return false;
 }
 
-void SendUnidentifiedAddrTLVData( DWORD Data, PVOID Context )
+bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
 {
-	OneIDAClientManager *TheSource=( OneIDAClientManager * )Context;
-	if( TheSource )
+	OneIDAClientManager *ClientManager = (OneIDAClientManager *)Context;
+	if (ClientManager)
 	{
-		TheSource->SendTLVData( 
-			ADD_UNINDENTIFIED_ADDR, 
-			( PBYTE )&( Data ), 
-			sizeof( Data ) );
+		return ClientManager->SendAddrTypeTLVData(Type, Start, End);
 	}
+	return false;
 }
 
-void IDAClientManager::ShowResultsOnIDA()
-{
-	pDiffMachine->ExecuteOnFunctionMatchInfoList( SendAddMatchAddrTLVData, ( PVOID )TheSource );
-	pDiffMachine->ExecuteOnTheSourceUnidentifedBlockHash( SendUnidentifiedAddrTLVData, ( PVOID )TheSource );
-	pDiffMachine->ExecuteOnTheTargetUnidentifedBlockHash( SendUnidentifiedAddrTLVData, ( PVOID )TheTarget );
-#ifdef TODO
-	for( iter=ReverseFunctionMatchInfoList.begin();iter!=ReverseFunctionMatchInfoList.end();iter++ )
-	{
-		TheTarget->SendTLVData( 
-			ADD_MATCH_ADDR, 
-			( PBYTE )&( *iter ), 
-			sizeof( *iter ) );
-	}
-#endif
-	TheSource->SendTLVData( 
-		SHOW_DATA, 
-		( PBYTE )"test", 
-		4 );
-	TheTarget->SendTLVData( 
-		SHOW_DATA, 
-		( PBYTE )"test", 
-		4 );	
-}
 
 #define RUN_DARUNGRIM_PLUGIN_STR "static main()\n\
 {\n\

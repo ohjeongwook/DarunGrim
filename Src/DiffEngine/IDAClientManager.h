@@ -37,7 +37,6 @@ public:
 	DWORD SetMembers( OneIDAClientManager *OneIDAClientManagerTheSource, OneIDAClientManager *OneIDAClientManagerTheTarget, DiffMachine *pArgDiffMachine );
 	DWORD IDACommandProcessor();
 	BOOL CreateIDACommandProcessorThread();
-	void ShowResultsOnIDA();
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename( char *OutputFilename );
 	void SetLogFilename( char *LogFilename );
