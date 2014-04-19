@@ -577,7 +577,15 @@ list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
 
 	//gvRenderFilename(gvc,g,"xdot","test.xdot");
 	//gvRenderFilename(gvc,g,"gif","test.gif");
-	gvRender(gvc,g,"xdot",NULL);
+
+	try
+	{
+		gvRender(gvc, g, "xdot", NULL);
+	}
+	catch (...)
+	{
+		return DrawingInfoMap;
+	}
 	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("gvRender\n");
 
 	if(GraphVizInterfaceProcessorDebugLevel>0) dprintf("bb=%s\n",GetGraphAttribute(g,"bb"));
