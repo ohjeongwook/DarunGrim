@@ -35,7 +35,9 @@ DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *
 	TargetID(0),
 	TargetFunctionAddress(0),
 	LoadOneIDAClientManager(false),
-	LoadDiffResults(true)
+	LoadDiffResults(true),
+	ShowFullMatched(false),
+	ShowNonMatched(false)
 {
 	m_DiffDB=NULL;
 	DiffResults=NULL;
@@ -2223,13 +2225,40 @@ BOOL DiffMachine::_Load()
 	if (LoadOneIDAClientManager)
 		TheTarget->Load();
 
-	m_DiffDB->ExecuteStatement(
-					ReadFunctionMatchInfoListCallback, 
-					&FunctionMatchInfoList, 
-					"SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From " 
-					FUNCTION_MATCH_INFO_TABLE
-					" WHERE TheSourceFileID=%u AND TheTargetFileID=%u", SourceID, TargetID );
-	
+	char *query = "";
+
+	if (ShowFullMatched)
+	{
+		if (ShowNonMatched)
+		{
+			query = "SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
+				FUNCTION_MATCH_INFO_TABLE
+				" WHERE TheSourceFileID=%u AND TheTargetFileID=%u";
+		}
+		else
+		{
+			query = "SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
+				FUNCTION_MATCH_INFO_TABLE
+				" WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND MatchRate != 0";
+		}
+	}
+	else
+	{
+		if (ShowNonMatched)
+		{
+			query = "SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
+				FUNCTION_MATCH_INFO_TABLE
+				" WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND (NoneMatchCountForTheSource != 0 OR NoneMatchCountForTheTarget != 0 OR MatchCountWithModificationForTheSource!=0 OR MatchCountWithModificationForTheTarget !=0 )";
+		}
+		else
+		{
+			query = "SELECT TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
+				FUNCTION_MATCH_INFO_TABLE
+				" WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND (NoneMatchCountForTheSource != 0 OR NoneMatchCountForTheTarget != 0 OR MatchCountWithModificationForTheSource!=0 OR MatchCountWithModificationForTheTarget !=0 ) AND MatchRate != 0";
+		}
+	}
+
+	m_DiffDB->ExecuteStatement( ReadFunctionMatchInfoListCallback, &FunctionMatchInfoList, query, SourceID, TargetID);
 
 	if (LoadDiffResults)
 	{

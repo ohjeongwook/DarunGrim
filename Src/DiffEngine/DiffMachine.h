@@ -268,5 +268,8 @@ public:
 	}
 	BOOL Load(const char *DiffDBFilename);
 	BOOL Load(DBWrapper *DiffDB);
+
+	bool ShowFullMatched;
+	bool ShowNonMatched;
 };
 
