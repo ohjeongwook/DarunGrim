@@ -841,8 +841,8 @@ public:
 		m_lPane.SetTitle(match_info.TheSourceFunctionName);
 		m_rPane.SetTitle(match_info.TheTargetFunctionName);
 
-		list <DWORD> source_addresses = pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
-		list <DWORD> target_addresses = pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
+		list <BLOCK> source_addresses = pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
+		list <BLOCK> target_addresses = pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
 
 		if (pMatchedBlocksDisplayItemArray)
 		{
@@ -859,22 +859,22 @@ public:
 		pMatchedBlocksDisplayItemArray = new vector<VirtualListDisplayItem *>();
 
 		hash_set <DWORD> matched_addresses;
-		list <DWORD>::iterator iter;
+		list <BLOCK>::iterator iter;
 		for (iter = source_addresses.begin(); iter != source_addresses.end(); iter++)
 		{
-			if (*iter>0)
+			if ((*iter).Start>0)
 			{
 				VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
 
 				p_display_item->id = 0;
 
 				char tmp[20];
-				_snprintf(tmp, sizeof(tmp), "%X", *iter);
+				_snprintf(tmp, sizeof(tmp), "%X", (*iter).Start);
 
 				p_display_item->Items[0] = tmp;
 
 				//Fingerprint
-				char *fingerprint = pSourceClientManager->GetFingerPrintStr(*iter);
+				char *fingerprint = pSourceClientManager->GetFingerPrintStr((*iter).Start);
 				if (fingerprint)
 				{
 					p_display_item->Items[4] = fingerprint;
@@ -882,9 +882,9 @@ public:
 				}
 
 				MatchAddressPair *p_match_address_pair= new MatchAddressPair();
-				p_match_address_pair->original = *iter;
+				p_match_address_pair->original = (*iter).Start;
 				p_match_address_pair->patched = 0;
-				MatchData *pMatchData = pDiffMachine->GetMatchData(0, *iter);
+				MatchData *pMatchData = pDiffMachine->GetMatchData(0, (*iter).Start);
 				if (pMatchData)
 				{
 					matched_addresses.insert(pMatchData->Addresses[1]);
@@ -893,6 +893,12 @@ public:
 
 					_snprintf(tmp, sizeof(tmp), "%3.d%%", pMatchData->MatchRate);
 					p_display_item->Items[2] = tmp;
+
+					if (pMatchData->MatchRate!=100)
+					{
+						//Modified
+						pSourceClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+					}
 
 					//Type
 					p_display_item->Items[3] = pDiffMachine->GetMatchTypeStr(pMatchData->Type);
@@ -912,6 +918,11 @@ public:
 
 					p_match_address_pair->patched = pMatchData->Addresses[1];
 				}
+				else
+				{
+					//Non-matched
+					pSourceClientManager->SendAddrTypeTLVData(UNINDENTIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+				}
 
 				p_display_item->data = p_match_address_pair;
 				pMatchedBlocksDisplayItemArray->push_back(p_display_item);
@@ -925,19 +936,29 @@ public:
 
 			p_display_item->id = 0;
 
-			if (matched_addresses.find(*iter) == matched_addresses.end() && *iter>0)
+
+			if (matched_addresses.find((*iter).Start) != matched_addresses.end())
+			{
+				MatchData *pMatchData = pDiffMachine->GetMatchData(1, (*iter).Start);
+
+				if (pMatchData && pMatchData->MatchRate<100)
+				{
+					pTargetClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+				}
+			}
+			else if ((*iter).Start>0)
 			{
 				p_display_item->Items[0] = " ";
 
 				char tmp[20];
-				_snprintf(tmp, sizeof(tmp), "%X", *iter);
+				_snprintf(tmp, sizeof(tmp), "%X", (*iter).Start);
 
 				p_display_item->Items[1] = tmp;
 
 				MatchAddressPair *p_match_address_pair = new MatchAddressPair();
 				p_match_address_pair->original = 0;
-				p_match_address_pair->patched = *iter;
-				MatchData *pMatchData = pDiffMachine->GetMatchData(1, *iter);
+				p_match_address_pair->patched = (*iter).Start;
+				MatchData *pMatchData = pDiffMachine->GetMatchData(1, (*iter).Start);
 				if (pMatchData)
 				{
 					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[0]);
@@ -945,7 +966,13 @@ public:
 
 					p_match_address_pair->original = pMatchData->Addresses[0];
 				}
-				char *fingerprint = pTargetClientManager->GetFingerPrintStr(*iter);
+				else
+				{
+					//Non-matched
+					pTargetClientManager->SendAddrTypeTLVData(UNINDENTIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+				}
+
+				char *fingerprint = pTargetClientManager->GetFingerPrintStr((*iter).Start);
 				if (fingerprint)
 				{
 					p_display_item->Items[5] = fingerprint;
@@ -966,7 +993,6 @@ public:
 		bool draw_graphs = true;
 		if (source_addresses.size() > 400 || target_addresses.size() > 400)
 		{
-			//TODO: ask user
 			if (::MessageBox(m_hWnd, "There are too many nodes to display, do you still want show graphs?", "Information", MB_YESNO) == IDNO)
 			{
 				draw_graphs = false;
@@ -1042,7 +1068,6 @@ public:
 			IDAClientManager *pOneClientManager=new IDAClientManager();
 			pOneClientManager->StartIDAListener( DARUNGRIM_PORT );
 			pOneClientManager->SetMembers(pSourceClientManager,pTargetClientManager,pDiffMachine);
-			pOneClientManager->ShowResultsOnIDA();
 			pOneClientManager->CreateIDACommandProcessorThread();
 		}
 		AssociateSocketCount++;
@@ -1436,24 +1461,25 @@ public:
 					//match infos indexes that is selected
 					//Code block addresses for the_source/the_target
 					FunctionMatchInfo match_info=pDiffMachine->GetFunctionMatchInfo((int)m_DiffListView.GetItemData(i));
-					list <DWORD>::iterator address_iterator;
+					list <BLOCK>::iterator address_iterator;
 
-					list <DWORD> addresses;
+					list <BLOCK> addresses;
 					addresses=pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
 					for(address_iterator=addresses.begin();
 						address_iterator!=addresses.end();
 						address_iterator++)
 					{
-						dprintf("TheSource Address: %x\n",*address_iterator);
-						TheSourceAddresses.insert(*address_iterator);
+						dprintf("TheSource Address: %x\n",(*address_iterator).Start);
+						TheSourceAddresses.insert((*address_iterator).Start);
 					}
+
 					addresses=pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
 					for(address_iterator=addresses.begin();
 						address_iterator!=addresses.end();
 						address_iterator++)
 					{
-						dprintf("TheTarget Address: %x\n",*address_iterator);
-						TheTargetAddresses.insert(*address_iterator);
+						dprintf("TheTarget Address: %x\n", (*address_iterator).Start);
+						TheTargetAddresses.insert((*address_iterator).Start);
 					}
 				}
 			}
