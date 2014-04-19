@@ -15,6 +15,12 @@
 using namespace std;
 using namespace stdext;
 
+typedef struct
+{
+	DWORD Start;
+	DWORD End;
+} BLOCK;
+
 class OneIDAClientManager
 {
 private:
@@ -75,7 +81,7 @@ public:
 	void FreeDisasmLines();
 	void ShowAddress(unsigned long address);
 	void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
-	list <DWORD> GetFunctionMemberBlocks(unsigned long FunctionAddress);
+	list <BLOCK> GetFunctionMemberBlocks(unsigned long FunctionAddress);
 	void GenerateFingerprintHashMap();
 	int GetFileID();
 	char *GetOriginalFilePath();
@@ -83,6 +89,9 @@ public:
 	multimap <DWORD, DWORD> *LoadAddressToFunctionMap();
 	BOOL FixFunctionAddresses();
 	list <DWORD> *GetFunctionAddresses();
+
+	bool SendMatchedAddrTLVData(FunctionMatchInfo &Data);
+	bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End);
 };
 
 unsigned char HexToChar(char *Hex);

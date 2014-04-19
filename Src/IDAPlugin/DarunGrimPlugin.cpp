@@ -518,9 +518,19 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 		}
 		AnalyzeIDAData( ( bool ( * )( PVOID context, BYTE type, PBYTE data, DWORD length ) )PutData, ( PVOID )&data_sharer, 0, 0 );
 	}
-	else if( type==ADD_UNINDENTIFIED_ADDR )
+	else if (type == UNINDENTIFIED_ADDR || type == MODIFIED_ADDR)
 	{
 		EARange ea_range;
+
+		int color = 0x000000;
+		if (type == UNINDENTIFIED_ADDR)
+		{
+			color = 0x0000ff;
+		}
+		else if (type == MODIFIED_ADDR)
+		{
+			color = 0x00ffff;
+		}
 
 		for( DWORD i=0;i<length/( sizeof( DWORD )*2 );i++ )
 		{
@@ -534,28 +544,30 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 				ea=nextthat( ea, ea_range.end, f_isCode, NULL )
 			 )
 			{
-				set_item_color( ea, 0x0000FF );
+				set_item_color(ea, color);
 			}
 		}
-	}else if( type==ADD_MATCH_ADDR && sizeof( FunctionMatchInfo )<=length )
+	}else if( type==MATCHED_ADDR && sizeof( FunctionMatchInfo )<=length )
 	{
 		FunctionMatchInfo *p_match_info=( FunctionMatchInfo * )data;
 		if( p_match_info->BlockType==FUNCTION_BLOCK )
 		{
 			matched_block_choose_list_obj.range_list.push_back( p_match_info );
-		}			
+		}
+
+		int color = 0x00ff00;
+		if (p_match_info->MatchRate != 100)
+		{
+			color = 0x00ffff;
+		}
+
 		for( 
 			ea_t ea=p_match_info->TheSourceAddress;
 			ea < p_match_info->EndAddress;
 			ea=nextthat( ea, p_match_info->EndAddress, f_isCode, NULL )
 		 )
 		{
-			if( p_match_info->MatchRate==100 )
-			{
-				set_item_color( ea, 0x00ff00 );
-			}else{
-				set_item_color( ea, 0x00ffff );
-			}
+			set_item_color(ea, color);
 		}
 	}
 	else if( type==JUMP_TO_ADDR && length>=4 )

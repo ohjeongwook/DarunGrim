@@ -112,13 +112,16 @@ static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char 
 
 static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv, char **names)
 {
-	list <DWORD> *p_address_list = (list <DWORD> *)arg;
+	list <BLOCK> *p_address_list = (list <BLOCK> *)arg;
 	if (p_address_list)
 	{
 #if DEBUG_LEVEL > 1
 		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
 #endif
-		p_address_list->push_back(strtoul10(argv[0]));
+		BLOCK block;
+		block.Start = strtoul10(argv[0]);
+		block.End = strtoul10(argv[1]);
+		p_address_list->push_back(block);
 	}
 	return 0;
 }
@@ -1027,15 +1030,24 @@ void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned lon
 	SendTLVData(COLOR_ADDRESS, (PBYTE)data, sizeof(data));
 }
 
-list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long FunctionAddress)
+
+list <BLOCK> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long FunctionAddress)
 {
-	list <DWORD> address_list;
+	list <BLOCK> block_list;
 
 	if (ClientAnalysisInfo)
-	{	
+	{
+		list <DWORD> address_list;
 		list <DWORD>::iterator address_list_iter;
 		hash_set <DWORD> checked_addresses;
 		address_list.push_back(FunctionAddress);
+		
+		BLOCK block;
+		block.Start = FunctionAddress;
+		POneLocationInfo pOneLocationInfo = GetOneLocationInfo(FunctionAddress);
+		block.End = pOneLocationInfo->EndAddress;
+		block_list.push_back(block);
+
 		checked_addresses.insert(FunctionAddress);
 
 		for (address_list_iter = address_list.begin();
@@ -1054,6 +1066,11 @@ list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long Function
 						if (checked_addresses.find(p_addresses[i]) == checked_addresses.end())
 						{
 							address_list.push_back(p_addresses[i]);
+							block.Start = p_addresses[i];
+							POneLocationInfo pOneLocationInfo = GetOneLocationInfo(p_addresses[i]);
+							block.End = pOneLocationInfo->EndAddress;
+							block_list.push_back(block);
+
 							checked_addresses.insert(p_addresses[i]);
 						}
 					}
@@ -1061,16 +1078,18 @@ list <DWORD> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long Function
 				free(p_addresses);
 			}
 		}
+
+		
 	}
 	else
 	{
-		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&address_list,
-			"SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d'"
+		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
+			"SELECT StartAddress, EndAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d'"
 			"ORDER BY ID ASC",
 			m_FileID, FunctionAddress);
 	}
 
-	return address_list;
+	return block_list;
 }
 
 void OneIDAClientManager::MergeBlocks()
@@ -1234,34 +1253,21 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
 			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
 				if(DebugLevel&1) Logger.Log( 10, "Function %x: ", *FunctionAddressIter);
-				list <DWORD> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
-				list <DWORD>::iterator FunctionMemberBlocksIter;
+				list <BLOCK> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
+				list <BLOCK>::iterator FunctionMemberBlocksIter;
 
 				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
 					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
 					FunctionMemberBlocksIter++
 				)
 				{
-					if(DebugLevel&1) Logger.Log( 10, "%x ", *FunctionMemberBlocksIter);
-					FunctionMembers->insert(pair <DWORD, DWORD>(*FunctionAddressIter, *FunctionMemberBlocksIter));
+					if(DebugLevel&1) Logger.Log( 10, "%x ", (*FunctionMemberBlocksIter).Start );
+					FunctionMembers->insert(pair <DWORD, DWORD>(*FunctionAddressIter, (*FunctionMemberBlocksIter).Start));
 				}
 				if(DebugLevel&1) Logger.Log( 10, "\n");
 			}
 		}
 
-		/*
-		multimap <DWORD, DWORD>::iterator FunctionMembersIter;
-		DWORD FunctionAddress = 0;
-		for(FunctionMembersIter = FunctionMembers->begin();FunctionMembersIter != FunctionMembers->end();FunctionMembersIter++)
-		{
-			if(FunctionAddress != FunctionMembersIter->first)
-			{
-				FunctionAddress = FunctionMembersIter->first;
-				if(DebugLevel&1) Logger.Log( 10, "%x\n", FunctionAddress);
-			}
-			if(DebugLevel&1) Logger.Log( 10, "\t%x\n", FunctionMembersIter->second);
-		}
-		*/
 		FunctionAddresses->clear();
 		delete FunctionAddresses;
 		return FunctionMembers;
@@ -1296,15 +1302,15 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 			list <DWORD>::iterator FunctionAddressIter;
 			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
-				list <DWORD> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
-				list <DWORD>::iterator FunctionMemberBlocksIter;
+				list <BLOCK> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
+				list <BLOCK>::iterator FunctionMemberBlocksIter;
 
 				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
 					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
 					FunctionMemberBlocksIter++
 				)
 				{
-					AddressToFunctionMap->insert(pair <DWORD, DWORD>(*FunctionMemberBlocksIter, *FunctionAddressIter));
+					AddressToFunctionMap->insert(pair <DWORD, DWORD>((*FunctionMemberBlocksIter).Start, *FunctionAddressIter));
 				}
 			}
 		}
@@ -1366,3 +1372,25 @@ BOOL OneIDAClientManager::FixFunctionAddresses()
 
 	return IsFixed;
 }
+
+bool OneIDAClientManager::SendMatchedAddrTLVData(FunctionMatchInfo &Data)
+{
+	return SendTLVData(
+		MATCHED_ADDR,
+		(PBYTE)&(Data),
+		sizeof(Data));
+}
+
+bool OneIDAClientManager::SendAddrTypeTLVData(int Type, DWORD Start, DWORD End)
+{
+	DWORD StartToEnd[2];
+
+	StartToEnd[0] = Start;
+	StartToEnd[1] = End;
+
+	return SendTLVData(
+		Type,
+		(PBYTE)StartToEnd,
+		sizeof(StartToEnd));
+}
+

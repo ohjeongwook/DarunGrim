@@ -174,30 +174,6 @@ public:
 
 	char *GetMatchTypeStr( int Type );
 
-	void ExecuteOnFunctionMatchInfoList( void ( Callback( FunctionMatchInfo &Data, PVOID Context ) ), PVOID Context )
-	{
-		for( vector <FunctionMatchInfo>::iterator iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
-		{
-			Callback( *iter, Context );
-		}
-	}
-	
-	void ExecuteOnTheSourceUnidentifedBlockHash( void ( Callback( DWORD Data, PVOID Context ) ), PVOID Context )
-	{
-		for( hash_set <DWORD>::iterator iter=TheSourceUnidentifedBlockHash.begin();iter!=TheSourceUnidentifedBlockHash.end();iter++ )
-		{
-			Callback( *iter, Context );
-		}
-	}
-	void ExecuteOnTheTargetUnidentifedBlockHash( void ( Callback( DWORD Data, PVOID Context ) ), PVOID Context )
-	{
-		for( hash_set <DWORD>::iterator iter=TheTargetUnidentifedBlockHash.begin();iter!=TheTargetUnidentifedBlockHash.end();iter++ )
-		{
-			Callback( *iter, Context );
-		}
-	}
-
-
 private:
 	bool LoadDiffResults;
 	bool LoadOneIDAClientManager;

@@ -246,22 +246,22 @@ void DiffMachine::AnalyzeFunctionSanity()
 void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
 {
 	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
-	list <DWORD> address_list=ClientManager->GetFunctionMemberBlocks( Address );
-	list <DWORD>::iterator address_list_iter;
+	list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(Address);
+	list <BLOCK>::iterator address_list_iter;
 
 	for( address_list_iter=address_list.begin();
 		address_list_iter!=address_list.end();
 		address_list_iter++
 	 )
 	{
-		MatchData *pMatchData=GetMatchData( index, *address_list_iter );
+		MatchData *pMatchData=GetMatchData( index, (*address_list_iter).Start );
 		if( pMatchData )
 		{
-			Logger.Log( 10, "Basic Block: %x Match Rate: %d%%\n", *address_list_iter, pMatchData->MatchRate );
+			Logger.Log(10, "Basic Block: %x Match Rate: %d%%\n", (*address_list_iter).Start, pMatchData->MatchRate);
 		}
 		else
 		{
-			Logger.Log( 10, "Basic Block: %x Has No Match.\n", *address_list_iter );
+			Logger.Log(10, "Basic Block: %x Has No Match.\n", (*address_list_iter).Start);
 		}
 	}
 }
@@ -269,24 +269,24 @@ void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
 void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, list <DWORD>& Members )
 {
 	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
-	list <DWORD> address_list=ClientManager->GetFunctionMemberBlocks( FunctionAddress );
+	list <BLOCK> address_list=ClientManager->GetFunctionMemberBlocks( FunctionAddress );
 
-	for( list <DWORD>::iterator address_list_iter = address_list.begin();
+	for( list <BLOCK>::iterator address_list_iter = address_list.begin();
 		address_list_iter != address_list.end();
 		address_list_iter++
 	 )
 	{
-		MatchData *pMatchData=GetMatchData( index, *address_list_iter );
+		MatchData *pMatchData = GetMatchData(index, (*address_list_iter).Start);
 		if( pMatchData )
 		{
 			if( pMatchData->MatchRate < 100 )
 			{
-				Members.push_back( *address_list_iter );
+				Members.push_back((*address_list_iter).Start);
 			}
 		}
 		else
 		{
-			Members.push_back( *address_list_iter );
+			Members.push_back((*address_list_iter).Start);
 		}
 	}
 }
@@ -1300,8 +1300,8 @@ void DiffMachine::GetMatchStatistics(
 	int *p_not_found_match_number
 	 )
 {
-	list <DWORD> address_list=ClientManager->GetFunctionMemberBlocks( address );
-	list <DWORD>::iterator address_list_iter;
+	list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(address);
+	list <BLOCK>::iterator address_list_iter;
 
 	( *p_found_match_number )=0;
 	( *p_not_found_match_number )=0;
@@ -1311,7 +1311,7 @@ void DiffMachine::GetMatchStatistics(
 		address_list_iter++
 	 )
 	{
-		MatchData *pMatchData=GetMatchData( index, *address_list_iter );
+		MatchData *pMatchData = GetMatchData(index, (*address_list_iter).Start);
 		if( pMatchData )
 		{
 			if( pMatchData->MatchRate==100 )
