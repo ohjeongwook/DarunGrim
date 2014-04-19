@@ -70,6 +70,7 @@ public:
 	DWORD *GetMappedAddresses(DWORD address, int type, int *p_length);
 	BOOL SendTLVData(char type, PBYTE data, DWORD data_length);
 	char *GetDisasmLines(unsigned long start_addr, unsigned long end_addr);
+	string GetInputName();
 	POneLocationInfo GetOneLocationInfo(DWORD address);
 	void FreeDisasmLines();
 	void ShowAddress(unsigned long address);

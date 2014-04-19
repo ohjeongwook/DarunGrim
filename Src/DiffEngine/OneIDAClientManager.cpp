@@ -151,7 +151,9 @@ BOOL OneIDAClientManager::LoadIDARawDataFromSocket(SOCKET socket)
 	char data[1024+sizeof(DWORD)];
 	*(DWORD *)data = SHARED_MEMORY_SIZE;
 	memcpy(data+sizeof(DWORD), shared_memory_name, strlen(shared_memory_name)+1);
-	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
+	if(DebugLevel&1) 
+		Logger.Log( 10, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
+
 	if(SendTLVData(SEND_ANALYSIS_DATA, (PBYTE)data, sizeof(DWORD)+strlen(shared_memory_name)+1))
 	{
 		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d LoadIDARawData\n", __FUNCTION__);
@@ -960,6 +962,21 @@ char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned l
 	}
 	return _strdup("");
 #endif
+}
+
+string OneIDAClientManager::GetInputName()
+{
+	string input_name;
+
+	if (SendTLVData(GET_INPUT_NAME, (PBYTE)"", 1))
+	{
+		char type;
+		DWORD length;
+
+		PBYTE data = RecvTLVData(Socket, &type, &length);
+		input_name = (char *)data;
+	}
+	return input_name;
 }
 
 int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)

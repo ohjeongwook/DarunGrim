@@ -8,6 +8,8 @@
 #include <iostream>
 #include <list>
 
+#include <graph.hpp>
+
 #ifdef USE_DATABASE
 #include "Database.h"
 #endif
@@ -177,7 +179,6 @@ void MakeCode( ea_t start_addr, ea_t end_addr )
 
 void FixExceptionHandlers()
 {
-	char function_name[1024];
 	char name[1024];
 
 	for( int n=0;n<get_segm_qty();n++ )
@@ -674,6 +675,12 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 #ifdef HT_GRAPH
 		hook_to_notification_point( HT_GRAPH, graph_callback, ( void * )&matched_block_choose_list_obj );
 #endif
+	}
+	else if (type == GET_INPUT_NAME)
+	{
+		char buf[512] = { 0, };
+		get_input_file_path(buf, sizeof(buf));
+		SendTLVData(data_socket, INPUT_NAME, (PBYTE)buf, strlen(buf) + 1);
 	}
 
 	return 0;
