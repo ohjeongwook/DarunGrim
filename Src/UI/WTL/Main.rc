@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Danish resources
+// Danish (Denmark) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
-#ifdef _WIN32
 LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -35,18 +33,16 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Danish resources
+#endif    // Danish (Denmark) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -102,57 +98,20 @@ BEGIN
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "&Export Selections\tCtrl+E",  ID_FILE_EXPORT
+        MENUITEM "Options",                     ID_OPTIONS
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
     POPUP "&View"
     BEGIN
         MENUITEM "&Log Viewer",                 ID_VIEW_LOGVIEWER
-        MENUITEM "&Open Binaries With IDA\tCtrl+I", ID_OPEN_BINARIES_WITH_IDA
+        MENUITEM "&Open Binaries With IDA\tCtrl+I", ID_IDA_CONNECTIONS
     END
     POPUP "&Graphs"
     BEGIN
         MENUITEM "Zoom &In",                    ID_ZOOM_IN
         MENUITEM "Zoom &Out",                   ID_ZOOM_OUT
         MENUITEM "Zoom &Actual",                ID_ZOOM_ACTUAL
-    END
-    POPUP "&Help"
-    BEGIN
-        MENUITEM "&About DarunGrim2...",        ID_APP_ABOUT
-    END
-END
-
-IDR_MDICHILD MENU
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "&New Diffing From IDA\tCtrl+N", ID_FILE_NEW
-        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
-        MENUITEM "&Export Selections...\tCtrl+E", ID_FILE_EXPORT
-        MENUITEM SEPARATOR
-        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
-        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
-        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
-        MENUITEM SEPARATOR
-        MENUITEM "E&xit",                       ID_APP_EXIT
-    END
-    POPUP "&Graphs"
-    BEGIN
-        MENUITEM "Zoom &In\tCtrl+I",            ID_ZOOM_IN
-        MENUITEM "Zoom &Out\tCtrl+O",           ID_ZOOM_OUT
-        MENUITEM "Zoom &Actual\tCtrl+A",        ID_ZOOM_ACTUAL
-    END
-    POPUP "&View"
-    BEGIN
-        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
-    END
-    POPUP "&Window"
-    BEGIN
-        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
-        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
-        MENUITEM "Arrange &Icons",              ID_WINDOW_ARRANGE
     END
     POPUP "&Help"
     BEGIN
@@ -176,24 +135,22 @@ IDR_MDICHILD            ICON                    "res\\DiffBrowserDoc.ico"
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 267, 133
+IDD_ABOUTBOX DIALOGEX 0, 0, 193, 71
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,109,112,50,14
-    CTEXT           "DarunGrim2 v2.5.1\n(c)Copyright 2009\nSpecial thanks to Chen Chen and Boungyoung Lee.",IDC_STATIC,45,70,179,36,0,WS_EX_TRANSPARENT
-    GROUPBOX        "",IDC_STATIC,7,7,253,103
-    CONTROL         201,IDC_ABOUT,"Static",SS_BITMAP,24,15,220,53
+    CTEXT           "DarunGrim2 v4\n(c)Copyright 2014\nSpecial thanks to Chen Chen and Boungyoung Lee.",IDC_STATIC,7,7,179,27,0,WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "Close",IDOK,69,50,50,14,BS_CENTER | BS_VCENTER
 END
 
-IDD_DIALOG_LOG_VIEWER DIALOGEX 0, 0, 290, 212
+IDD_DIALOG_LOG_VIEWER DIALOGEX 0, 0, 393, 213
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Log Viewer"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Close",IDOK,122,191,50,14,BS_CENTER | BS_VCENTER
-    EDITTEXT        IDC_EDIT_LOG,7,7,276,179,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    DEFPUSHBUTTON   "Close",IDOK,173,192,50,14,BS_CENTER | BS_VCENTER
+    EDITTEXT        IDC_EDIT_LOG,7,7,379,179,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 IDD_DIALOG_SELECT_FILES DIALOGEX 0, 0, 328, 108
@@ -220,16 +177,29 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Disassembly File Opening"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Open File",IDC_BUTTON_SOURCE,246,7,50,14
+    PUSHBUTTON      "Open File",IDC_BUTTON_SOURCE,246,7,50,14
     LTEXT           "Source File:",IDC_STATIC,9,7,40,8
     LTEXT           "Target File:",IDC_STATIC,9,25,40,8
-    DEFPUSHBUTTON   "Open File",IDC_BUTTON_TARGET,245,23,50,14
+    PUSHBUTTON      "Open File",IDC_BUTTON_TARGET,245,23,50,14
     EDITTEXT        IDC_EDIT_SOURCE,57,7,184,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_TARGET,57,25,184,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "Close",IDOK,165,238,50,14
-    DEFPUSHBUTTON   "Accept Connection",IDC_BUTTON_SOURCE_CONNECTION,301,7,66,14
-    DEFPUSHBUTTON   "Accept Connection",IDC_BUTTON_TARGET_CONNECTION,302,24,66,14
-    EDITTEXT        IDC_LOG_VIEW,7,52,361,179,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "Accept Connection",IDC_BUTTON_SOURCE_CONNECTION,301,7,66,14
+    PUSHBUTTON      "Accept Connection",IDC_BUTTON_TARGET_CONNECTION,302,24,66,14
+    EDITTEXT        IDC_LOG_VIEW,7,44,361,187,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+END
+
+IDD_DIALOG_OPTIONS DIALOGEX 0, 0, 195, 79
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,29,58,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,103,58,50,14
+    CONTROL         "Display full matched functions",IDC_CHECK_SHOW_FULL_MATCHED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,111,10
+    CONTROL         "Display non-matched functions",IDC_CHECK_SHOW_NON_MATCHED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,26,114,10
 END
 
 
@@ -244,18 +214,19 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 260
-        VERTGUIDE, 134
+        RIGHTMARGIN, 186
+        VERTGUIDE, 94
         TOPMARGIN, 7
-        BOTTOMMARGIN, 126
+        BOTTOMMARGIN, 64
+        HORZGUIDE, 7
     END
 
     IDD_DIALOG_LOG_VIEWER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 283
+        RIGHTMARGIN, 386
         TOPMARGIN, 7
-        BOTTOMMARGIN, 205
+        BOTTOMMARGIN, 206
     END
 
     IDD_DIALOG_SELECT_FILES, DIALOG
@@ -273,6 +244,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
     END
+
+    IDD_DIALOG_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 188
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 72
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -287,7 +266,7 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
-    "I",            ID_OPEN_BINARIES_WITH_IDA, VIRTKEY, CONTROL
+    "I",            ID_IDA_CONNECTIONS,     VIRTKEY, CONTROL
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
     "I",            ID_ZOOM_IN,             VIRTKEY, CONTROL
@@ -355,7 +334,7 @@ BEGIN
     ID_ZOOM_IN              "Zoom In the Graphs\nZoom In"
     ID_ZOOM_OUT             "Zoom Out the Graphs\nZoom Out"
     ID_ZOOM_ACTUAL          "Zoom Acutal Size\nZoom Actual"
-    ID_OPEN_BINARIES_WITH_IDA "Open Binaries with IDA\nOpen"
+    ID_IDA_CONNECTIONS      "Open Binaries with IDA\nOpen"
 END
 
 STRINGTABLE

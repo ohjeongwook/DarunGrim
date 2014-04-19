@@ -132,6 +132,12 @@
     <ClInclude Include="CGraphVizProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IDAConnectionDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -202,9 +208,6 @@
     <ResourceCompile Include="Main.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ResourceCompile Include="RC\Dialogs.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DiffBrowser.ico">
@@ -219,12 +222,12 @@
     <Image Include="res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\splash.pdn">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="RC\Dialogs.aps">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

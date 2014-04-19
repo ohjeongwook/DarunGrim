@@ -33,13 +33,16 @@ using namespace stdext;
 
 #include "resource.h"
 #include "RC\resource.h"
-#include "aboutdlg.h"
+#include "IDAConnectionDlg.h"
 #include "SelectFilesDlg.h"
 #include "LogViewerDlg.h"
 
 #include "RegistryUtil.h"
 
 #include "VirtualListViewCtrl.h"
+#include "IDAConnectionDlg.h"
+#include "OptionsDlg.h"
+
 
 extern int GraphVizInterfaceProcessorDebugLevel;
 
@@ -47,173 +50,6 @@ extern int GraphVizInterfaceProcessorDebugLevel;
 int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_x,int offset_y);
 DWORD WINAPI GenerateDiffFromFilesThread(LPVOID pParam);
 DWORD WINAPI OpenDGFWorkerThread(LPVOID pParam);
-
-class CMainFrame;
-
-//CIDAConnectionDlg
-//pSourceClientManager->GetOriginalFilePath()
-//pTargetClientManager->GetOriginalFilePath()
-//LaunchIDA
-class CIDAConnectionDlg : public CDialogImpl<CIDAConnectionDlg>,public CWinDataExchange<CIDAConnectionDlg>
-{
-private:
-	CFileNameEdit m_SourceEdit;
-	CFileNameEdit m_TargetEdit;
-	CLogViewEdit m_LogView;
-public:
-	CString m_SourceFileName;
-	CString m_TargetFileName;
-
-	enum {IDD=IDD_DIALOG_DISASSEMBLY_FILE_OPENING};
-
-	BEGIN_MSG_MAP(CIDAConnectionDlg)
-		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
-		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
-		COMMAND_ID_HANDLER(IDC_BUTTON_SOURCE, OnButtonSourceCmd)
-		COMMAND_ID_HANDLER(IDC_BUTTON_TARGET, OnButtonTargetCmd)
-
-		COMMAND_ID_HANDLER(IDC_BUTTON_SOURCE_CONNECTION, OnButtonSourceConnectionCmd)
-		COMMAND_ID_HANDLER(IDC_BUTTON_TARGET_CONNECTION, OnButtonTargetConnectionCmd)
-
-		COMMAND_ID_HANDLER(ID_ASSOCIATE_SOCKET_COMPLETE, ShowLogMessageHandler)
-	END_MSG_MAP()
-
-	BEGIN_DDX_MAP(CIDAConnectionDlg)
-		DDX_TEXT(IDC_EDIT_SOURCE,m_SourceFileName)
-		DDX_TEXT(IDC_EDIT_TARGET,m_TargetFileName)
-	END_DDX_MAP()
-
-	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-	{
-		DoDataExchange(FALSE);
-		m_LogView.SubclassWindow(GetDlgItem(IDC_LOG_VIEW));
-		m_SourceEdit.SubclassWindow(GetDlgItem(IDC_EDIT_SOURCE));
-		m_TargetEdit.SubclassWindow(GetDlgItem(IDC_EDIT_TARGET));;
-		CenterWindow(GetParent());
-		return TRUE;
-	}
-
-	LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		DoDataExchange(TRUE);
-		EndDialog(wID);
-		return 0;
-	}
-
-	LRESULT OnButtonSourceCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		CFileDialog dlgFile(TRUE,"*.*",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"All Files (*.*)\0*.*\0");
-		if(dlgFile.DoModal()==IDOK)
-		{
-			SetDlgItemText(IDC_EDIT_SOURCE,dlgFile.m_szFileName);
-		}
-		return 0;
-	}
-
-	LRESULT OnButtonTargetCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		CFileDialog dlgFile(TRUE,"*.*",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"All Files (*.*)\0*.*\0");
-		if(dlgFile.DoModal()==IDOK)
-		{
-			SetDlgItemText(IDC_EDIT_TARGET,dlgFile.m_szFileName);
-		}
-		return 0;
-	}
-
-	static DWORD WINAPI AcceptIDAClient(LPVOID pParam)
-	{
-		CIDAConnectionDlg *pThis = (CIDAConnectionDlg *)pParam;
-		IDAClientManager *pIDAClientManager = new IDAClientManager();
-		pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
-
-		if (pIDAClientManager->AcceptIDAClient(pThis->GetCurrentClientManager(), false))
-		{
-			pThis->PostMessage(
-				WM_COMMAND,
-				ID_ASSOCIATE_SOCKET_COMPLETE, (LPARAM)_strdup("New connection accepted.\n"));
-		}
-		else
-		{
-			pThis->PostMessage(
-				WM_COMMAND,
-				ID_ASSOCIATE_SOCKET_COMPLETE, (LPARAM)_strdup("Connection failed.\n"));
-		}
-
-		pIDAClientManager->StopIDAListener();
-		return 0;
-	}
-
-	int ShowLogMessageHandler(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-	{
-		char *pText = (char *)hWndCtl;
-		if (pText)
-		{
-			m_LogView.AppendText(pText);
-			free(pText);
-		}
-		return 1;
-	}
-
-	LRESULT OnButtonSourceConnectionCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		DWORD dwThreadId;
-		
-		m_LogView.AppendText("Open source idb and run DarunGrim plugin.\n");
-
-		pCurrentClientManager = pSourceClientManager;
-		HANDLE hAcceptClientThread = CreateThread(NULL, 0, AcceptIDAClient, (PVOID)this, 0, &dwThreadId);
-		return 0;
-	}
-	
-	LRESULT OnButtonTargetConnectionCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		DWORD dwThreadId;
-
-		m_LogView.AppendText("Open target idb and run DarunGrim plugin.\n");
-		
-		pCurrentClientManager = pTargetClientManager;
-		HANDLE hAcceptClientThread = CreateThread(NULL, 0, AcceptIDAClient, (PVOID)this, 0, &dwThreadId);
-		return 0;
-	}
-
-	void SetSourceFilename(char *Filename)
-	{
-		m_SourceFileName=Filename;
-		
-	}
-
-	void SetTargetFilename(char *Filename)
-	{
-		m_TargetFileName=Filename;		
-	}
-
-private:
-	void *Param;
-	OneIDAClientManager *pSourceClientManager;
-	OneIDAClientManager *pTargetClientManager;
-	OneIDAClientManager *pCurrentClientManager;
-public:
-	void SetParentClass(void *param)
-	{
-		Param = param;
-	}
-
-	void SetSourceClientManager(OneIDAClientManager *pNewSourceClientManager)
-	{
-		pSourceClientManager = pNewSourceClientManager;
-	}
-
-	void SetTargetClientManager(OneIDAClientManager *pNewTargetClientManager)
-	{
-		pTargetClientManager = pNewTargetClientManager;
-	}
-
-	OneIDAClientManager *GetCurrentClientManager()
-	{
-		return pCurrentClientManager;
-	}
-};
 
 class DiffListSorter
 {
@@ -337,7 +173,8 @@ public:
 		COMMAND_ID_HANDLER(ID_APP_EXIT,OnFileExit)
 		COMMAND_ID_HANDLER(ID_FILE_NEW,OnFileNew)
 		COMMAND_ID_HANDLER(ID_FILE_OPEN,OnFileOpen)
-		COMMAND_ID_HANDLER(ID_OPEN_BINARIES_WITH_IDA,OnOpenBinariesWithIDA)		
+		COMMAND_ID_HANDLER(ID_IDA_CONNECTIONS, OnIDAConnections)
+		COMMAND_ID_HANDLER(ID_OPTIONS, OnOptions)
 		COMMAND_ID_HANDLER(ID_FILE_SAVE,OnFileSave)
 		COMMAND_ID_HANDLER(ID_VIEW_LOGVIEWER,OnViewLogViewer)	
 		COMMAND_ID_HANDLER(ID_ZOOM_IN,OnZoomIn)
@@ -345,7 +182,7 @@ public:
 		COMMAND_ID_HANDLER(ID_ZOOM_ACTUAL,OnZoomActual)
 		COMMAND_ID_HANDLER(ID_FILE_EXPORT,OnExportSelections)
 		COMMAND_ID_HANDLER(ID_START_ANALYZE_IDA_CLIENT_MANAGERS,AnalyzeIDAClientManagers)
-		COMMAND_ID_HANDLER(ID_ASSOCIATE_SOCKET_COMPLETE,AssociateSocketComplete)
+		COMMAND_ID_HANDLER(ID_ACCEPT_COMPLETE, AssociateSocketComplete)
 		COMMAND_ID_HANDLER(ID_SHOW_DIFF_RESULTS,ShowDiffResults)
 		
 		COMMAND_ID_HANDLER(ID_APP_ABOUT,OnAppAbout)
@@ -850,13 +687,13 @@ public:
 		{
 			((CMainFrame *)pParam)->PostMessage(
 				WM_COMMAND,
-				ID_ASSOCIATE_SOCKET_COMPLETE, NULL);
+				ID_ACCEPT_COMPLETE, NULL);
 
 			if (pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(), ((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
 			{
 				((CMainFrame *)pParam)->PostMessage(
 					WM_COMMAND,
-					ID_ASSOCIATE_SOCKET_COMPLETE, NULL);
+					ID_ACCEPT_COMPLETE, NULL);
 			}
 		}
 
@@ -968,6 +805,7 @@ public:
 				int all_blocks = match_info.MatchCountForTheSource * 2 + match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource * 2;
 				if (all_blocks>0)
 					match_rate = (all_blocks - (match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource)) * 100 / all_blocks;
+
 				if (match_rate == 0)
 				{
 					_snprintf(tmp, sizeof(tmp), "  0%%");
@@ -1179,6 +1017,8 @@ public:
 		if(m_RetrieveClientManagersDatabase)
 		{
 			pDiffMachine=new DiffMachine(pSourceClientManager,pTargetClientManager);
+			pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
+			pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
 			pDiffMachine->Analyze();
 			pDiffMachine->Save(m_Database);
 			DisplayDiffResults();
@@ -1256,6 +1096,8 @@ public:
 
 		//Initiate Analysis
 		pDiffMachine=new DiffMachine();
+		pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
+		pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
 		PrintToLogView("Retrieve signature data...\r\n");
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
 		pDiffMachine->SetSource(&m_Database, 1);
@@ -1286,12 +1128,12 @@ public:
 
 	LRESULT OnFileNew(WORD,WORD,HWND,BOOL&)
 	{
-		CSelectFilesDlg dlg;
-		if(dlg.DoModal()==IDOK)
+		CSelectFilesDlg IDAConnectionDlg;
+		if(IDAConnectionDlg.DoModal()==IDOK)
 		{
-			m_DiffFilename=dlg.m_DGFFileName;
-			m_SourceFileName=dlg.m_SourceFileName;
-			m_TargetFileName=dlg.m_TargetFileName;
+			m_DiffFilename=IDAConnectionDlg.m_DGFFileName;
+			m_SourceFileName=IDAConnectionDlg.m_SourceFileName;
+			m_TargetFileName=IDAConnectionDlg.m_TargetFileName;
 
 			if(m_DiffFilename.length()>0 && m_SourceFileName.length()>0 && m_TargetFileName.length()>0)
 			{
@@ -1305,11 +1147,11 @@ public:
 
 	LRESULT OnFileOpen(WORD,WORD,HWND,BOOL&)
 	{
-		CFileDialog dlgFile(TRUE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"DarunGrim Files (*.dgf)\0*.dgf\0All Files (*.*)\0*.*\0");
-		if(dlgFile.DoModal()==IDOK)
+		CFileDialog IDAConnectionDlgFile(TRUE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"DarunGrim Files (*.dgf)\0*.dgf\0All Files (*.*)\0*.*\0");
+		if(IDAConnectionDlgFile.DoModal()==IDOK)
 		{
 			CleanCDFStructures();
-			OpenDGF(dlgFile.m_szFileName);
+			OpenDGF(IDAConnectionDlgFile.m_szFileName);
 		}
 		return 0;
 	}
@@ -1331,41 +1173,7 @@ public:
 					//Open dgf
 					CleanCDFStructures();
 					OpenDGF(szFilename);
-				}/*else if(m_State==STATE_DGF_CREATED || m_State==STATE_ORIGINAL_ANALYZED)
-				{
-					//Open DLL or IDB using IDA
-					switch(m_State)
-					{
-						case STATE_DGF_CREATED:
-							if(m_OriginalFilename)
-								free(m_OriginalFilename);
-							m_OriginalFilename=_strdup(szFilename);
-							m_State=STATE_ORIGINAL_ANALYZED;
-							break;
-						case STATE_ORIGINAL_ANALYZED:
-							{
-								if(m_PatchedFilename)
-									free(m_PatchedFilename);
-								m_PatchedFilename=_strdup(szFilename);
-
-								IDAClientManager aIDAClientManager;
-								aIDAClientManager.SetOutputFilename(m_DiffFilename);
-								aIDAClientManager.RunIDAToGenerateDB(m_OriginalFilename,0,0);
-								aIDAClientManager.RunIDAToGenerateDB(m_PatchedFilename,0,0);
-								//Initiate Analysis
-								pDiffMachine=new DiffMachine();
-								pDiffMachine->Retrieve(m_Database,TRUE,1,2);
-								pDiffMachine->Analyze();
-								pDiffMachine->Save(m_Database);
-
-								//Show the results
-								DisplayDiffResults();
-
-								m_State=STATE_PATCHED_ACCEPTED;
-							}
-							break;
-					}
-				}*/
+				}
 			}
 		}
 		::DragFinish(hDrop);
@@ -1373,25 +1181,40 @@ public:
 	}
 
 private:
-		CIDAConnectionDlg dlg;
+	CIDAConnectionDlg IDAConnectionDlg;
+	COptionsDlg OptionsDlg;
+
 public:
-	LRESULT OnOpenBinariesWithIDA(WORD,WORD,HWND,BOOL&)
+	LRESULT OnOptions(WORD, WORD, HWND, BOOL&)
+	{
+		OptionsDlg.DoModal();
+
+		if (pDiffMachine)
+		{
+			pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
+			pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
+		}
+		
+		return 0;
+	}
+
+	LRESULT OnIDAConnections(WORD, WORD, HWND, BOOL&)
 	{
 		if(pSourceClientManager && pTargetClientManager)
 		{
 			if(pSourceClientManager && pSourceClientManager->GetOriginalFilePath())
-				dlg.SetSourceFilename(pSourceClientManager->GetOriginalFilePath());
+				IDAConnectionDlg.SetSourceFilename(pSourceClientManager->GetOriginalFilePath());
 
 			if(pTargetClientManager && pTargetClientManager->GetOriginalFilePath())
-				dlg.SetTargetFilename(pTargetClientManager->GetOriginalFilePath());
+				IDAConnectionDlg.SetTargetFilename(pTargetClientManager->GetOriginalFilePath());
 
-			dlg.SetSourceClientManager(pSourceClientManager);
-			dlg.SetTargetClientManager(pTargetClientManager);
+			IDAConnectionDlg.SetSourceClientManager(pSourceClientManager);
+			IDAConnectionDlg.SetTargetClientManager(pTargetClientManager);
 
-			if(dlg.DoModal()==IDOK)
+			if(IDAConnectionDlg.DoModal()==IDOK)
 			{
-				m_SourceFileName=dlg.m_SourceFileName;
-				m_TargetFileName=dlg.m_TargetFileName;
+				m_SourceFileName=IDAConnectionDlg.m_SourceFileName;
+				m_TargetFileName=IDAConnectionDlg.m_TargetFileName;
 			}
 		}else
 		{
@@ -1507,10 +1330,10 @@ public:
 
 	LRESULT OnFileSave(WORD,WORD,HWND,BOOL&)
 	{
-		CFileDialog dlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
-		if(dlgFile.DoModal()==IDOK)
+		CFileDialog IDAConnectionDlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
+		if(IDAConnectionDlgFile.DoModal()==IDOK)
 		{
-			SaveCDFile(dlgFile.m_szFileName);
+			SaveCDFile(IDAConnectionDlgFile.m_szFileName);
 		}
 		return 0;
 	}
@@ -1523,10 +1346,10 @@ public:
 
 	LRESULT OnExportSelections(WORD,WORD,HWND,BOOL&)
 	{
-		CFileDialog dlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
-		if(dlgFile.DoModal()==IDOK)
+		CFileDialog IDAConnectionDlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
+		if(IDAConnectionDlgFile.DoModal()==IDOK)
 		{
-			SaveCDFile(dlgFile.m_szFileName,TRUE);
+			SaveCDFile(IDAConnectionDlgFile.m_szFileName,TRUE);
 		}
 		return 0;
 	}
@@ -1577,7 +1400,8 @@ public:
 		SetWindowText(m_DiffFilename.c_str());
 
 		pDiffMachine = new DiffMachine();
-		
+		pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
+		pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
 		pDiffMachine->Load(m_DiffFilename.c_str());
 
 		pSourceClientManager=pDiffMachine->GetTheSource();
@@ -1647,8 +1471,8 @@ public:
 
 	LRESULT OnAppAbout(WORD,WORD,HWND,BOOL&)
 	{
-		CAboutDlg dlg;
-		dlg.DoModal();
+		CAboutDlg IDAConnectionDlg;
+		IDAConnectionDlg.DoModal();
 		return 0;
 	}
 
