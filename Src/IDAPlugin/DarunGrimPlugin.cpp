@@ -816,7 +816,7 @@ void idaapi run( int arg )
 	GetModuleFileName( ( HMODULE )&__ImageBase, dllname, sizeof( dllname ) );
 	LoadLibrary( dllname );
 
-	if( !OutputFilename && !ConnectToDarunGrimServer() )
+	if (!ConnectToDarunGrimServer() && !OutputFilename)
 	{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
 		char orignal_file_path[1024]={0, };
