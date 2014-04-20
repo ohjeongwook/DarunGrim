@@ -51,7 +51,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;dprintf=printf;__NT__;HAVE_STRING_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;dprintf=PrintToDbg;__NT__;HAVE_STRING_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>

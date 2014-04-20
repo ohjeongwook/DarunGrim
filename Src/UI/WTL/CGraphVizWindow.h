@@ -244,8 +244,11 @@ private:
 				if(p_drawing_info->points && p_drawing_info->count>0)
 				{
 					int pos;
+					dprintf("* Found drawing info for: %p\n", address);
 					for(pos=0;pos<p_drawing_info->count;pos+=1)
 					{
+						dprintf(" %d %d\n", p_drawing_info->points[pos].x, p_drawing_info->points[pos].y);
+
 						if(min_x>0)
 							min_x=min(min_x,p_drawing_info->points[pos].x);
 						else
@@ -258,6 +261,7 @@ private:
 				}
 			}
 		}
+
 		if(min_x>=0 && min_y>=0)
 		{
 			POINT ScrollOffset;
@@ -399,7 +403,8 @@ private:
 			char *name;
 			DWORD color;
 		}Colors;
-		static Colors AllColors[]=
+
+		static Colors ColorTable[]=
 		{
 			{"aliceblue",0xf0f8ff},
 			{"antiquewhite",0xfaebd7},
@@ -1056,7 +1061,7 @@ private:
 			{"yellowgreen",0x9acd32}
 		};
 
-		int EndPosition=sizeof(AllColors)/sizeof(AllColors[0]);
+		int EndPosition = sizeof(ColorTable) / sizeof(ColorTable[0]);
 		int StartPosition=0;
 		int CurrentPosition=0;
 		int OldCurrentPosition=0;
@@ -1066,30 +1071,32 @@ private:
 			CurrentPosition=StartPosition+(EndPosition-StartPosition)/2;
 			if(CurrentPosition==OldCurrentPosition)
 				break;
-			printf("Comparing with %s(%d):%s\n",AllColors[CurrentPosition].name,CurrentPosition,name);
-			int ret=_stricmp(AllColors[CurrentPosition].name,name);
+
+			printf("Comparing with %s(%d):%s\n", ColorTable[CurrentPosition].name, CurrentPosition, name);
+			int ret = _stricmp(ColorTable[CurrentPosition].name, name);
+
 			if(ret>0)
 			{
 				EndPosition=CurrentPosition;
-				//StartPosition=;
 			}else if(ret==0)
 			{
 				//match
-				if(DebugLevel>0) dprintf("%s: %s(%s)=RGB(%x,%x,%x)\n",__FUNCTION__,name,AllColors[CurrentPosition].name,
-					(AllColors[CurrentPosition].color>>16)&0xff,
-					(AllColors[CurrentPosition].color>>8)&0xff,
-					AllColors[CurrentPosition].color&0xff
+				if (DebugLevel>0) dprintf("%s: %s(%s)=RGB(%x,%x,%x)\n", __FUNCTION__, name, ColorTable[CurrentPosition].name,
+					(ColorTable[CurrentPosition].color >> 16) & 0xff,
+					(ColorTable[CurrentPosition].color >> 8) & 0xff,
+					ColorTable[CurrentPosition].color & 0xff
 					);
 				return RGB(
-					(AllColors[CurrentPosition].color>>16)&0xff,
-					(AllColors[CurrentPosition].color>>8)&0xff,
-					AllColors[CurrentPosition].color&0xff
+					(ColorTable[CurrentPosition].color >> 16) & 0xff,
+					(ColorTable[CurrentPosition].color >> 8) & 0xff,
+					ColorTable[CurrentPosition].color & 0xff
 					);
 			}else
 			{
 				StartPosition=CurrentPosition;
 			}
 		}
+
 		if(name && name[0]=='#')
 		{
 			int TotalValue=0;
@@ -1109,11 +1116,24 @@ private:
 				}
 				TotalValue=TotalValue*16+CurrentValue;
 			}
-			if(DebugLevel>0) dprintf("%s: %s=%x\n",__FUNCTION__,name,TotalValue);
-			return RGB(
-				(TotalValue>>16)&0xff,
-				(TotalValue>>8)&0xff,
-				TotalValue&0xff);
+
+			if(DebugLevel>-1)
+				dprintf("Color code: %s=%x\n",name,TotalValue);
+
+			if (strlen(name) == 9)
+			{
+				return RGB(
+					(TotalValue >> 24) & 0xff,
+					(TotalValue >> 16) & 0xff,
+					(TotalValue >> 8) & 0xff);
+			}
+			else if (strlen(name) == 7)
+			{
+				return RGB(
+					(TotalValue >> 16) & 0xff,
+					(TotalValue >> 8) & 0xff,
+					TotalValue & 0xff);
+			}
 		}
 
 		printf("%s: %s failed to lookup\n",__FUNCTION__,name);
