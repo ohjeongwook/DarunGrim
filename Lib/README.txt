@@ -4,8 +4,8 @@ SWig (swigwin-3.0.0)
 IDA SDK (idasdk65)
 	Acquire IDA SDK from HexRay
 
-GraphViz (graphviz-2.18)
-	http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.36.zip
+GraphViz (Install on %programfiles(x86)%\Graphviz 2.28)
+	http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.28.0.msi
 
 WTL (wtl90_4090_RC1)
 	http://sourceforge.net/projects/wtl/files/WTL%209.0/WTL%209.0.4090%20RC1/wtl90_4090_RC1.zip/download

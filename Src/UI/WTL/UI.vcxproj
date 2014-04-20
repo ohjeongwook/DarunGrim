@@ -52,13 +52,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;dprintf=printf;__NT__;HAVE_STRING_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\graphviz-2.18\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\graphviz-2.18\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
     </Link>
@@ -74,7 +74,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;dprintf=printf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\graphviz-2.18\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -82,7 +82,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\graphviz-2.18\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
     </Link>
