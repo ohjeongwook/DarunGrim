@@ -9,7 +9,6 @@
 #define IDR_MAINFRAME                   128
 #define IDR_MDICHILD                    129
 #define ID_FILE_EXPORT                  130
-#define ID_START_ANALYZE_IDA_CLIENT_MANAGERS 131
 #define ID_ZOOM_IN                      132
 #define ID_ZOOM_OUT                     133
 #define ID_ZOOM_ACTUAL                  134

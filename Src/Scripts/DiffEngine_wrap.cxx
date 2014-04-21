@@ -2941,14 +2941,13 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_DarunGrim swig_types[4]
 #define SWIGTYPE_p_DiffMachine swig_types[5]
 #define SWIGTYPE_p_FileInfo swig_types[6]
-#define SWIGTYPE_p_IDAClientManager swig_types[7]
-#define SWIGTYPE_p_OneIDAClientManager swig_types[8]
-#define SWIGTYPE_p_char swig_types[9]
-#define SWIGTYPE_p_hash_setT_DWORD_t swig_types[10]
-#define SWIGTYPE_p_int swig_types[11]
-#define SWIGTYPE_p_unsigned_long swig_types[12]
-static swig_type_info *swig_types[14];
-static swig_module_info swig_module = {swig_types, 13, 0, 0, 0, 0};
+#define SWIGTYPE_p_IDAController swig_types[7]
+#define SWIGTYPE_p_char swig_types[8]
+#define SWIGTYPE_p_hash_setT_DWORD_t swig_types[9]
+#define SWIGTYPE_p_int swig_types[10]
+#define SWIGTYPE_p_unsigned_long swig_types[11]
+static swig_type_info *swig_types[13];
+static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3048,9 +3047,8 @@ namespace swig {
 #include <windows.h>
 #include "DataStructure.h"
 #include "Configuration.h"
-#include "IDAClientManager.h"
 #include "DiffMachine.h"
-#include "OneIDAClientManager.h"
+#include "IDAController.h"
 #include "DarunGrim.h"
 
 
@@ -3401,6 +3399,13 @@ SWIG_FromCharPtr(const char *cptr)
 }
 
 
+SWIGINTERNINLINE PyObject*
+  SWIG_From_bool  (bool value)
+{
+  return PyBool_FromLong(value ? 1 : 0);
+}
+
+
 SWIGINTERN int
 SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
 {
@@ -3414,13 +3419,6 @@ SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
     }
   }  
   return res;
-}
-
-
-SWIGINTERNINLINE PyObject*
-  SWIG_From_bool  (bool value)
-{
-  return PyBool_FromLong(value ? 1 : 0);
 }
 
 #ifdef __cplusplus
@@ -3554,42 +3552,42 @@ SWIGINTERN PyObject *DBWrapper_swigregister(PyObject *SWIGUNUSEDPARM(self), PyOb
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_new_OneIDAClientManager__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_IDAController__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DBWrapper *arg1 = (DBWrapper *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  OneIDAClientManager *result = 0 ;
+  IDAController *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:new_OneIDAClientManager",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:new_IDAController",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DBWrapper, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_OneIDAClientManager" "', argument " "1"" of type '" "DBWrapper *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_IDAController" "', argument " "1"" of type '" "DBWrapper *""'"); 
   }
   arg1 = reinterpret_cast< DBWrapper * >(argp1);
-  result = (OneIDAClientManager *)new OneIDAClientManager(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OneIDAClientManager, SWIG_POINTER_NEW |  0 );
+  result = (IDAController *)new IDAController(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_IDAController, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_OneIDAClientManager__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_IDAController__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *result = 0 ;
+  IDAController *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)":new_OneIDAClientManager")) SWIG_fail;
-  result = (OneIDAClientManager *)new OneIDAClientManager();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OneIDAClientManager, SWIG_POINTER_NEW |  0 );
+  if (!PyArg_ParseTuple(args,(char *)":new_IDAController")) SWIG_fail;
+  result = (IDAController *)new IDAController();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_IDAController, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_OneIDAClientManager(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_IDAController(PyObject *self, PyObject *args) {
   int argc;
   PyObject *argv[2];
   int ii;
@@ -3600,7 +3598,7 @@ SWIGINTERN PyObject *_wrap_new_OneIDAClientManager(PyObject *self, PyObject *arg
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
   if (argc == 0) {
-    return _wrap_new_OneIDAClientManager__SWIG_1(self, args);
+    return _wrap_new_IDAController__SWIG_1(self, args);
   }
   if (argc == 1) {
     int _v;
@@ -3608,33 +3606,33 @@ SWIGINTERN PyObject *_wrap_new_OneIDAClientManager(PyObject *self, PyObject *arg
     int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DBWrapper, 0);
     _v = SWIG_CheckState(res);
     if (_v) {
-      return _wrap_new_OneIDAClientManager__SWIG_0(self, args);
+      return _wrap_new_IDAController__SWIG_0(self, args);
     }
   }
   
 fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_OneIDAClientManager'.\n"
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_IDAController'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    OneIDAClientManager::OneIDAClientManager(DBWrapper *)\n"
-    "    OneIDAClientManager::OneIDAClientManager()\n");
+    "    IDAController::IDAController(DBWrapper *)\n"
+    "    IDAController::IDAController()\n");
   return 0;
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetClientAnalysisInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_GetClientAnalysisInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   AnalysisInfo *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:OneIDAClientManager_GetClientAnalysisInfo",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:IDAController_GetClientAnalysisInfo",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_GetClientAnalysisInfo" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_GetClientAnalysisInfo" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   result = (AnalysisInfo *)(arg1)->GetClientAnalysisInfo();
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_AnalysisInfo, 0 |  0 );
   return resultobj;
@@ -3643,20 +3641,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetClientFileInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_GetClientFileInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   FileInfo *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:OneIDAClientManager_GetClientFileInfo",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:IDAController_GetClientFileInfo",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_GetClientFileInfo" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_GetClientFileInfo" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   result = (FileInfo *)(arg1)->GetClientFileInfo();
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_FileInfo, 0 |  0 );
   return resultobj;
@@ -3665,19 +3663,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_DumpAnalysisInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_DumpAnalysisInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:OneIDAClientManager_DumpAnalysisInfo",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:IDAController_DumpAnalysisInfo",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_DumpAnalysisInfo" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_DumpAnalysisInfo" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   (arg1)->DumpAnalysisInfo();
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3686,9 +3684,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_DumpBlockInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_DumpBlockInfo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3697,15 +3695,15 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_DumpBlockInfo(PyObject *SWIGUNUSE
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:OneIDAClientManager_DumpBlockInfo",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_DumpBlockInfo",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_DumpBlockInfo" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_DumpBlockInfo" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_DumpBlockInfo" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_DumpBlockInfo" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   (arg1)->DumpBlockInfo(arg2);
@@ -3716,9 +3714,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_RemoveFromFingerprintHash(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_RemoveFromFingerprintHash(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3727,15 +3725,15 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_RemoveFromFingerprintHash(PyObjec
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:OneIDAClientManager_RemoveFromFingerprintHash",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_RemoveFromFingerprintHash",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_RemoveFromFingerprintHash" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_RemoveFromFingerprintHash" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_RemoveFromFingerprintHash" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_RemoveFromFingerprintHash" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   (arg1)->RemoveFromFingerprintHash(arg2);
@@ -3746,9 +3744,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetBlockAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_GetBlockAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3758,15 +3756,15 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetBlockAddress(PyObject *SWIGUNU
   PyObject * obj1 = 0 ;
   unsigned long result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:OneIDAClientManager_GetBlockAddress",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_GetBlockAddress",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_GetBlockAddress" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_GetBlockAddress" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_GetBlockAddress" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_GetBlockAddress" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   result = (unsigned long)(arg1)->GetBlockAddress(arg2);
@@ -3777,9 +3775,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetMappedAddresses(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_GetMappedAddresses(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   int arg3 ;
   int *arg4 = (int *) 0 ;
@@ -3797,20 +3795,20 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetMappedAddresses(PyObject *SWIG
   unsigned long *result = 0 ;
   
   arg4 = &temp4;
-  if (!PyArg_ParseTuple(args,(char *)"OOO:OneIDAClientManager_GetMappedAddresses",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IDAController_GetMappedAddresses",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_GetMappedAddresses" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_GetMappedAddresses" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_GetMappedAddresses" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_GetMappedAddresses" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "OneIDAClientManager_GetMappedAddresses" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IDAController_GetMappedAddresses" "', argument " "3"" of type '" "int""'");
   } 
   arg3 = static_cast< int >(val3);
   result = (unsigned long *)(arg1)->GetMappedAddresses(arg2,arg3,arg4);
@@ -3827,9 +3825,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetDisasmLines(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_GetDisasmLines(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   unsigned long arg3 ;
   void *argp1 = 0 ;
@@ -3843,20 +3841,20 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_GetDisasmLines(PyObject *SWIGUNUS
   PyObject * obj2 = 0 ;
   char *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:OneIDAClientManager_GetDisasmLines",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOO:IDAController_GetDisasmLines",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_GetDisasmLines" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_GetDisasmLines" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_GetDisasmLines" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_GetDisasmLines" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "OneIDAClientManager_GetDisasmLines" "', argument " "3"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IDAController_GetDisasmLines" "', argument " "3"" of type '" "unsigned long""'");
   } 
   arg3 = static_cast< unsigned long >(val3);
   result = (char *)(arg1)->GetDisasmLines(arg2,arg3);
@@ -3867,19 +3865,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_FreeDisasmLines(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_FreeDisasmLines(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:OneIDAClientManager_FreeDisasmLines",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:IDAController_FreeDisasmLines",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_FreeDisasmLines" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_FreeDisasmLines" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   (arg1)->FreeDisasmLines();
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3888,9 +3886,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_OneIDAClientManager_ShowAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_ShowAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3899,15 +3897,15 @@ SWIGINTERN PyObject *_wrap_OneIDAClientManager_ShowAddress(PyObject *SWIGUNUSEDP
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:OneIDAClientManager_ShowAddress",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_ShowAddress",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "OneIDAClientManager_ShowAddress" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_ShowAddress" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OneIDAClientManager_ShowAddress" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_ShowAddress" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   (arg1)->ShowAddress(arg2);
@@ -3918,19 +3916,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_OneIDAClientManager(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_IDAController(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_OneIDAClientManager",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, SWIG_POINTER_DISOWN |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_IDAController",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_OneIDAClientManager" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IDAController" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3939,324 +3937,17 @@ fail:
 }
 
 
-SWIGINTERN PyObject *OneIDAClientManager_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *IDAController_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_OneIDAClientManager, SWIG_NewClientData(obj));
-  return SWIG_Py_Void();
-}
-
-SWIGINTERN PyObject *_wrap_new_IDAClientManager(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)":new_IDAClientManager")) SWIG_fail;
-  result = (IDAClientManager *)new IDAClientManager();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_IDAClientManager, SWIG_POINTER_NEW |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_SetDatabase(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  DBWrapper *arg2 = (DBWrapper *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_SetDatabase",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_SetDatabase" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_DBWrapper, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_SetDatabase" "', argument " "2"" of type '" "DBWrapper *""'"); 
-  }
-  arg2 = reinterpret_cast< DBWrapper * >(argp2);
-  (arg1)->SetDatabase(arg2);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_StartIDAListener(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  unsigned short arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  unsigned short val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  bool result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_StartIDAListener",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_StartIDAListener" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  ecode2 = SWIG_AsVal_unsigned_SS_short(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAClientManager_StartIDAListener" "', argument " "2"" of type '" "unsigned short""'");
-  } 
-  arg2 = static_cast< unsigned short >(val2);
-  result = (bool)(arg1)->StartIDAListener(arg2);
-  resultobj = SWIG_From_bool(static_cast< bool >(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_SetIDAPath(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_SetIDAPath",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_SetIDAPath" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_SetIDAPath" "', argument " "2"" of type '" "char const *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->SetIDAPath((char const *)arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_SetOutputFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_SetOutputFilename",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_SetOutputFilename" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_SetOutputFilename" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->SetOutputFilename(arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_SetLogFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_SetLogFilename",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_SetLogFilename" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_SetLogFilename" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->SetLogFilename(arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_RunIDAToGenerateDB(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  char *arg2 = (char *) 0 ;
-  unsigned long arg3 ;
-  unsigned long arg4 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  unsigned long val3 ;
-  int ecode3 = 0 ;
-  unsigned long val4 ;
-  int ecode4 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:IDAClientManager_RunIDAToGenerateDB",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_RunIDAToGenerateDB" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_RunIDAToGenerateDB" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IDAClientManager_RunIDAToGenerateDB" "', argument " "3"" of type '" "unsigned long""'");
-  } 
-  arg3 = static_cast< unsigned long >(val3);
-  ecode4 = SWIG_AsVal_unsigned_SS_long(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "IDAClientManager_RunIDAToGenerateDB" "', argument " "4"" of type '" "unsigned long""'");
-  } 
-  arg4 = static_cast< unsigned long >(val4);
-  (arg1)->RunIDAToGenerateDB(arg2,arg3,arg4);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_ConnectToDarunGrim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  char *arg2 = (char *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAClientManager_ConnectToDarunGrim",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_ConnectToDarunGrim" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "IDAClientManager_ConnectToDarunGrim" "', argument " "2"" of type '" "char *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->ConnectToDarunGrim(arg2);
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_IDAClientManager_GetIDALogFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  char *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:IDAClientManager_GetIDALogFilename",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAClientManager_GetIDALogFilename" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  result = (char *)(arg1)->GetIDALogFilename();
-  resultobj = SWIG_FromCharPtr((const char *)result);
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_delete_IDAClientManager(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  IDAClientManager *arg1 = (IDAClientManager *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_IDAClientManager",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAClientManager, SWIG_POINTER_DISOWN |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IDAClientManager" "', argument " "1"" of type '" "IDAClientManager *""'"); 
-  }
-  arg1 = reinterpret_cast< IDAClientManager * >(argp1);
-  delete arg1;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *IDAClientManager_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *obj;
-  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_IDAClientManager, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_IDAController, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
 SWIGINTERN PyObject *_wrap_new_DiffMachine__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
-  OneIDAClientManager *arg2 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
+  IDAController *arg2 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -4266,16 +3957,16 @@ SWIGINTERN PyObject *_wrap_new_DiffMachine__SWIG_0(PyObject *SWIGUNUSEDPARM(self
   DiffMachine *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OO:new_DiffMachine",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_DiffMachine" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_DiffMachine" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  arg1 = reinterpret_cast< IDAController * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "new_DiffMachine" "', argument " "2"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "new_DiffMachine" "', argument " "2"" of type '" "IDAController *""'"); 
   }
-  arg2 = reinterpret_cast< OneIDAClientManager * >(argp2);
+  arg2 = reinterpret_cast< IDAController * >(argp2);
   result = (DiffMachine *)new DiffMachine(arg1,arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_DiffMachine, SWIG_POINTER_NEW |  0 );
   return resultobj;
@@ -4286,18 +3977,18 @@ fail:
 
 SWIGINTERN PyObject *_wrap_new_DiffMachine__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  OneIDAClientManager *arg1 = (OneIDAClientManager *) 0 ;
+  IDAController *arg1 = (IDAController *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   DiffMachine *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:new_DiffMachine",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OneIDAClientManager, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_DiffMachine" "', argument " "1"" of type '" "OneIDAClientManager *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_DiffMachine" "', argument " "1"" of type '" "IDAController *""'"); 
   }
-  arg1 = reinterpret_cast< OneIDAClientManager * >(argp1);
+  arg1 = reinterpret_cast< IDAController * >(argp1);
   result = (DiffMachine *)new DiffMachine(arg1);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_DiffMachine, SWIG_POINTER_NEW |  0 );
   return resultobj;
@@ -4335,7 +4026,7 @@ SWIGINTERN PyObject *_wrap_new_DiffMachine(PyObject *self, PyObject *args) {
   if (argc == 1) {
     int _v;
     void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OneIDAClientManager, 0);
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_IDAController, 0);
     _v = SWIG_CheckState(res);
     if (_v) {
       return _wrap_new_DiffMachine__SWIG_1(self, args);
@@ -4344,11 +4035,11 @@ SWIGINTERN PyObject *_wrap_new_DiffMachine(PyObject *self, PyObject *args) {
   if (argc == 2) {
     int _v;
     void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OneIDAClientManager, 0);
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_IDAController, 0);
     _v = SWIG_CheckState(res);
     if (_v) {
       void *vptr = 0;
-      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_OneIDAClientManager, 0);
+      int res = SWIG_ConvertPtr(argv[1], &vptr, SWIGTYPE_p_IDAController, 0);
       _v = SWIG_CheckState(res);
       if (_v) {
         return _wrap_new_DiffMachine__SWIG_0(self, args);
@@ -4359,8 +4050,8 @@ SWIGINTERN PyObject *_wrap_new_DiffMachine(PyObject *self, PyObject *args) {
 fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_DiffMachine'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    DiffMachine::DiffMachine(OneIDAClientManager *,OneIDAClientManager *)\n"
-    "    DiffMachine::DiffMachine(OneIDAClientManager *)\n"
+    "    DiffMachine::DiffMachine(IDAController *,IDAController *)\n"
+    "    DiffMachine::DiffMachine(IDAController *)\n"
     "    DiffMachine::DiffMachine()\n");
   return 0;
 }
@@ -5403,7 +5094,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_LoadDiffResults(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_Load(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -5416,18 +5107,18 @@ SWIGINTERN PyObject *_wrap_DarunGrim_LoadDiffResults(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj1 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_LoadDiffResults",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_Load",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_LoadDiffResults" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_Load" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_LoadDiffResults" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_Load" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  result = (bool)(arg1)->LoadDiffResults((char const *)arg2);
+  result = (bool)(arg1)->Load((char const *)arg2);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
@@ -5533,6 +5224,239 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DarunGrim_SetDatabase(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  DBWrapper *arg2 = (DBWrapper *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetDatabase",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetDatabase" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_DBWrapper, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetDatabase" "', argument " "2"" of type '" "DBWrapper *""'"); 
+  }
+  arg2 = reinterpret_cast< DBWrapper * >(argp2);
+  (arg1)->SetDatabase(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_StartIDAListener(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  unsigned short arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned short val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_StartIDAListener",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_StartIDAListener" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_short(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_StartIDAListener" "', argument " "2"" of type '" "unsigned short""'");
+  } 
+  arg2 = static_cast< unsigned short >(val2);
+  result = (bool)(arg1)->StartIDAListener(arg2);
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_SetOutputFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetOutputFilename",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetOutputFilename" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetOutputFilename" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  (arg1)->SetOutputFilename(arg2);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_SetLogFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetLogFilename",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetLogFilename" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetLogFilename" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  (arg1)->SetLogFilename(arg2);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_RunIDAToGenerateDB(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  unsigned long arg3 ;
+  unsigned long arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  unsigned long val3 ;
+  int ecode3 = 0 ;
+  unsigned long val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_RunIDAToGenerateDB",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_RunIDAToGenerateDB" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_RunIDAToGenerateDB" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_RunIDAToGenerateDB" "', argument " "3"" of type '" "unsigned long""'");
+  } 
+  arg3 = static_cast< unsigned long >(val3);
+  ecode4 = SWIG_AsVal_unsigned_SS_long(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DarunGrim_RunIDAToGenerateDB" "', argument " "4"" of type '" "unsigned long""'");
+  } 
+  arg4 = static_cast< unsigned long >(val4);
+  (arg1)->RunIDAToGenerateDB(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_ConnectToDarunGrim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_ConnectToDarunGrim",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_ConnectToDarunGrim" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_ConnectToDarunGrim" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  (arg1)->ConnectToDarunGrim(arg2);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_GetIDALogFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:DarunGrim_GetIDALogFilename",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GetIDALogFilename" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  result = (char *)(arg1)->GetIDALogFilename();
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_DarunGrim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *result = 0 ;
@@ -5580,30 +5504,19 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"new_DBWrapper", _wrap_new_DBWrapper, METH_VARARGS, NULL},
 	 { (char *)"delete_DBWrapper", _wrap_delete_DBWrapper, METH_VARARGS, NULL},
 	 { (char *)"DBWrapper_swigregister", DBWrapper_swigregister, METH_VARARGS, NULL},
-	 { (char *)"new_OneIDAClientManager", _wrap_new_OneIDAClientManager, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_GetClientAnalysisInfo", _wrap_OneIDAClientManager_GetClientAnalysisInfo, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_GetClientFileInfo", _wrap_OneIDAClientManager_GetClientFileInfo, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_DumpAnalysisInfo", _wrap_OneIDAClientManager_DumpAnalysisInfo, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_DumpBlockInfo", _wrap_OneIDAClientManager_DumpBlockInfo, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_RemoveFromFingerprintHash", _wrap_OneIDAClientManager_RemoveFromFingerprintHash, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_GetBlockAddress", _wrap_OneIDAClientManager_GetBlockAddress, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_GetMappedAddresses", _wrap_OneIDAClientManager_GetMappedAddresses, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_GetDisasmLines", _wrap_OneIDAClientManager_GetDisasmLines, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_FreeDisasmLines", _wrap_OneIDAClientManager_FreeDisasmLines, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_ShowAddress", _wrap_OneIDAClientManager_ShowAddress, METH_VARARGS, NULL},
-	 { (char *)"delete_OneIDAClientManager", _wrap_delete_OneIDAClientManager, METH_VARARGS, NULL},
-	 { (char *)"OneIDAClientManager_swigregister", OneIDAClientManager_swigregister, METH_VARARGS, NULL},
-	 { (char *)"new_IDAClientManager", _wrap_new_IDAClientManager, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_SetDatabase", _wrap_IDAClientManager_SetDatabase, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_StartIDAListener", _wrap_IDAClientManager_StartIDAListener, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_SetIDAPath", _wrap_IDAClientManager_SetIDAPath, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_SetOutputFilename", _wrap_IDAClientManager_SetOutputFilename, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_SetLogFilename", _wrap_IDAClientManager_SetLogFilename, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_RunIDAToGenerateDB", _wrap_IDAClientManager_RunIDAToGenerateDB, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_ConnectToDarunGrim", _wrap_IDAClientManager_ConnectToDarunGrim, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_GetIDALogFilename", _wrap_IDAClientManager_GetIDALogFilename, METH_VARARGS, NULL},
-	 { (char *)"delete_IDAClientManager", _wrap_delete_IDAClientManager, METH_VARARGS, NULL},
-	 { (char *)"IDAClientManager_swigregister", IDAClientManager_swigregister, METH_VARARGS, NULL},
+	 { (char *)"new_IDAController", _wrap_new_IDAController, METH_VARARGS, NULL},
+	 { (char *)"IDAController_GetClientAnalysisInfo", _wrap_IDAController_GetClientAnalysisInfo, METH_VARARGS, NULL},
+	 { (char *)"IDAController_GetClientFileInfo", _wrap_IDAController_GetClientFileInfo, METH_VARARGS, NULL},
+	 { (char *)"IDAController_DumpAnalysisInfo", _wrap_IDAController_DumpAnalysisInfo, METH_VARARGS, NULL},
+	 { (char *)"IDAController_DumpBlockInfo", _wrap_IDAController_DumpBlockInfo, METH_VARARGS, NULL},
+	 { (char *)"IDAController_RemoveFromFingerprintHash", _wrap_IDAController_RemoveFromFingerprintHash, METH_VARARGS, NULL},
+	 { (char *)"IDAController_GetBlockAddress", _wrap_IDAController_GetBlockAddress, METH_VARARGS, NULL},
+	 { (char *)"IDAController_GetMappedAddresses", _wrap_IDAController_GetMappedAddresses, METH_VARARGS, NULL},
+	 { (char *)"IDAController_GetDisasmLines", _wrap_IDAController_GetDisasmLines, METH_VARARGS, NULL},
+	 { (char *)"IDAController_FreeDisasmLines", _wrap_IDAController_FreeDisasmLines, METH_VARARGS, NULL},
+	 { (char *)"IDAController_ShowAddress", _wrap_IDAController_ShowAddress, METH_VARARGS, NULL},
+	 { (char *)"delete_IDAController", _wrap_delete_IDAController, METH_VARARGS, NULL},
+	 { (char *)"IDAController_swigregister", IDAController_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_DiffMachine", _wrap_new_DiffMachine, METH_VARARGS, NULL},
 	 { (char *)"DiffMachine_ShowDiffMap", _wrap_DiffMachine_ShowDiffMap, METH_VARARGS, NULL},
 	 { (char *)"DiffMachine_PrintMatchMapInfo", _wrap_DiffMachine_PrintMatchMapInfo, METH_VARARGS, NULL},
@@ -5624,9 +5537,16 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_Analyze", _wrap_DarunGrim_Analyze, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetSourceFilename", _wrap_DarunGrim_SetSourceFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetTargetFilename", _wrap_DarunGrim_SetTargetFilename, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_LoadDiffResults", _wrap_DarunGrim_LoadDiffResults, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_Load", _wrap_DarunGrim_Load, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ShowAddresses", _wrap_DarunGrim_ShowAddresses, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ColorAddress", _wrap_DarunGrim_ColorAddress, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetDatabase", _wrap_DarunGrim_SetDatabase, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_StartIDAListener", _wrap_DarunGrim_StartIDAListener, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetOutputFilename", _wrap_DarunGrim_SetOutputFilename, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetLogFilename", _wrap_DarunGrim_SetLogFilename, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_RunIDAToGenerateDB", _wrap_DarunGrim_RunIDAToGenerateDB, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_ConnectToDarunGrim", _wrap_DarunGrim_ConnectToDarunGrim, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_GetIDALogFilename", _wrap_DarunGrim_GetIDALogFilename, METH_VARARGS, NULL},
 	 { (char *)"new_DarunGrim", _wrap_new_DarunGrim, METH_VARARGS, NULL},
 	 { (char *)"delete_DarunGrim", _wrap_delete_DarunGrim, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_swigregister", DarunGrim_swigregister, METH_VARARGS, NULL},
@@ -5643,8 +5563,7 @@ static swig_type_info _swigt__p_DBWrapper = {"_p_DBWrapper", "DBWrapper *", 0, 0
 static swig_type_info _swigt__p_DarunGrim = {"_p_DarunGrim", "DarunGrim *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_DiffMachine = {"_p_DiffMachine", "DiffMachine *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_FileInfo = {"_p_FileInfo", "FileInfo *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_IDAClientManager = {"_p_IDAClientManager", "IDAClientManager *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_OneIDAClientManager = {"_p_OneIDAClientManager", "OneIDAClientManager *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_IDAController = {"_p_IDAController", "IDAController *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_hash_setT_DWORD_t = {"_p_hash_setT_DWORD_t", "hash_set< DWORD > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *", 0, 0, (void*)0, 0};
@@ -5658,8 +5577,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_DarunGrim,
   &_swigt__p_DiffMachine,
   &_swigt__p_FileInfo,
-  &_swigt__p_IDAClientManager,
-  &_swigt__p_OneIDAClientManager,
+  &_swigt__p_IDAController,
   &_swigt__p_char,
   &_swigt__p_hash_setT_DWORD_t,
   &_swigt__p_int,
@@ -5673,8 +5591,7 @@ static swig_cast_info _swigc__p_DBWrapper[] = {  {&_swigt__p_DBWrapper, 0, 0, 0}
 static swig_cast_info _swigc__p_DarunGrim[] = {  {&_swigt__p_DarunGrim, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_DiffMachine[] = {  {&_swigt__p_DiffMachine, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_FileInfo[] = {  {&_swigt__p_FileInfo, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_IDAClientManager[] = {  {&_swigt__p_IDAClientManager, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_OneIDAClientManager[] = {  {&_swigt__p_OneIDAClientManager, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_IDAController[] = {  {&_swigt__p_IDAController, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_hash_setT_DWORD_t[] = {  {&_swigt__p_hash_setT_DWORD_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
@@ -5688,8 +5605,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_DarunGrim,
   _swigc__p_DiffMachine,
   _swigc__p_FileInfo,
-  _swigc__p_IDAClientManager,
-  _swigc__p_OneIDAClientManager,
+  _swigc__p_IDAController,
   _swigc__p_char,
   _swigc__p_hash_setT_DWORD_t,
   _swigc__p_int,

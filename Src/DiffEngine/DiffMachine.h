@@ -4,7 +4,7 @@
 #include <list>
 
 #include "Common.h"
-#include "OneIDAClientManager.h"
+#include "IDAController.h"
 #include "DataStructure.h"
 #include "LogOperation.h"
 
@@ -123,18 +123,27 @@ private:
 	bool DoFunctionLevelMatchOptimizing();
 
 public:
-	DiffMachine( OneIDAClientManager *the_source=NULL, OneIDAClientManager *the_target=NULL );
+	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
 	~DiffMachine();
 	void ClearFunctionMatchInfoList();
 
-	void SetOneIDAClientManagers( OneIDAClientManager *the_source, OneIDAClientManager *the_target );
-	OneIDAClientManager *GetTheSource();
-	OneIDAClientManager *GetTheTarget();
+	void SetSource(IDAController *NewSource)
+	{
+		TheSource = NewSource;
+	}
+
+	void SetTarget(IDAController *NewTarget)
+	{
+		TheTarget = NewTarget;
+	}
+
+	IDAController *GetSourceController();
+	IDAController *GetTargetController();
 	void DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  MatchData>::iterator match_map_iter );
 	DWORD DumpFunctionMatchInfo( int index, DWORD address );
 	void DiffMachine::GetMatchStatistics( 
 		DWORD address, 
-		OneIDAClientManager *ClientManager, 
+		IDAController *ClientManager, 
 		int index, 
 		int *p_found_match_number, 
 		int *p_found_match_with_difference_number, 
@@ -179,16 +188,16 @@ public:
 
 private:
 	bool LoadDiffResults;
-	bool LoadOneIDAClientManager;
+	bool LoadIDAController;
 public:
 	void SetLoadDiffResults(bool NewLoadDiffResults)
 	{
 		LoadDiffResults = NewLoadDiffResults;
 	}
 
-	void SetLoadOneIDAClientManager(bool NewLoadOneIDAClientManager)
+	void SetLoadIDAController(bool NewLoadIDAController)
 	{
-		LoadOneIDAClientManager = NewLoadOneIDAClientManager;
+		LoadIDAController = NewLoadIDAController;
 	}
 
 private:
@@ -204,8 +213,8 @@ private:
 	DBWrapper *m_SourceDB;
 	DBWrapper *m_TargetDB;
 
-	OneIDAClientManager *TheSource;
-	OneIDAClientManager *TheTarget;
+	IDAController *TheSource;
+	IDAController *TheTarget;
 	AnalysisResult *DiffResults;
 
 	BOOL _Load();

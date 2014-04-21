@@ -36,12 +36,6 @@
     <ClCompile Include="..\DiffEngine\DiffMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DiffEngine\IDAClientManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DiffEngine\OneIDAClientManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\DiffEngine\Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +90,9 @@
     <ClCompile Include="DiffEngine_wrap.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\DiffEngine\IDAController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DiffEngine\Common.h">
@@ -111,12 +108,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\DiffEngine\DiffMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DiffEngine\IDAClientManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DiffEngine\OneIDAClientManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\DataBaseWriter.h">
@@ -177,6 +168,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\XGetopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DiffEngine\IDAController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

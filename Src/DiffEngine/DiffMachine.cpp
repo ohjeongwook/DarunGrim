@@ -25,7 +25,7 @@ int DebugLevel = 1;
 
 extern LogOperation Logger;
 
-DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *the_target ):
+DiffMachine::DiffMachine( IDAController *the_source, IDAController *the_target ):
 	DebugFlag( 0 ),
 	TheSource( NULL ),
 	TheTarget( NULL ),
@@ -34,14 +34,15 @@ DiffMachine::DiffMachine( OneIDAClientManager *the_source, OneIDAClientManager *
 	SourceFunctionAddress(0),
 	TargetID(0),
 	TargetFunctionAddress(0),
-	LoadOneIDAClientManager(false),
+	LoadIDAController(false),
 	LoadDiffResults(true),
 	ShowFullMatched(false),
 	ShowNonMatched(false)
 {
 	m_DiffDB=NULL;
 	DiffResults=NULL;
-	SetOneIDAClientManagers( the_source, the_target );
+	SetSource(the_source);
+	SetTarget(the_target);
 }
 
 void DiffMachine::ClearFunctionMatchInfoList()
@@ -64,24 +65,20 @@ DiffMachine::~DiffMachine()
 	}
 
 	ClearFunctionMatchInfoList();
+	
 	if( TheSource )
 		delete TheSource;
+
 	if( TheTarget )
 		delete TheTarget;
 }
 
-void DiffMachine::SetOneIDAClientManagers( OneIDAClientManager *the_source, OneIDAClientManager *the_target )
-{
-	TheSource=the_source;
-	TheTarget=the_target;
-}
-
-OneIDAClientManager *DiffMachine::GetTheSource()
+IDAController *DiffMachine::GetSourceController()
 {
 	return TheSource;
 }
 
-OneIDAClientManager *DiffMachine::GetTheTarget()
+IDAController *DiffMachine::GetTargetController()
 {
 	return TheTarget;
 }
@@ -245,7 +242,7 @@ void DiffMachine::AnalyzeFunctionSanity()
 
 void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
 {
-	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
+	IDAController *ClientManager=index==0?TheSource:TheTarget;
 	list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(Address);
 	list <BLOCK>::iterator address_list_iter;
 
@@ -268,7 +265,7 @@ void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
 
 void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, list <DWORD>& Members )
 {
-	OneIDAClientManager *ClientManager=index==0?TheSource:TheTarget;
+	IDAController *ClientManager=index==0?TheSource:TheTarget;
 	list <BLOCK> address_list=ClientManager->GetFunctionMemberBlocks( FunctionAddress );
 
 	for( list <BLOCK>::iterator address_list_iter = address_list.begin();
@@ -1293,7 +1290,7 @@ void DiffMachine::ShowDiffMap( DWORD unpatched_address, DWORD patched_address )
 
 void DiffMachine::GetMatchStatistics( 
 	DWORD address, 
-	OneIDAClientManager *ClientManager, 
+	IDAController *ClientManager, 
 	int index, 
 	int *p_found_match_number, 
 	int *p_found_match_with_difference_number, 
@@ -2215,23 +2212,29 @@ BOOL DiffMachine::Load(DBWrapper* DiffDB)
 
 BOOL DiffMachine::_Load()
 {
-	if( TheSource )
+	if (TheSource)
+	{
 		delete TheSource;
+		TheSource = NULL;
+	}
 
-	TheSource = new OneIDAClientManager(m_SourceDB);
+	TheSource = new IDAController(m_SourceDB);
 	TheSource->AddAnalysisTargetFunction(SourceFunctionAddress);
 	TheSource->SetFileID(SourceID);
 
-	if (LoadOneIDAClientManager)
+	if (LoadIDAController)
 		TheSource->Load();
 
 	if (TheTarget)
+	{
 		delete TheTarget;
+		TheTarget = NULL;
+	}
 
-	TheTarget = new OneIDAClientManager(m_TargetDB);
+	TheTarget = new IDAController(m_TargetDB);
 	TheTarget->AddAnalysisTargetFunction(TargetFunctionAddress);
 	TheTarget->SetFileID(TargetID);
-	if (LoadOneIDAClientManager)
+	if (LoadIDAController)
 		TheTarget->Load();
 
 	char *query = "";

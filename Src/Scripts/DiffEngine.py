@@ -88,53 +88,30 @@ class DBWrapper(_object):
 DBWrapper_swigregister = _DiffEngine.DBWrapper_swigregister
 DBWrapper_swigregister(DBWrapper)
 
-class OneIDAClientManager(_object):
+class IDAController(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, OneIDAClientManager, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, IDAController, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, OneIDAClientManager, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, IDAController, name)
     __repr__ = _swig_repr
     def __init__(self, StorageDB=None): 
-        this = _DiffEngine.new_OneIDAClientManager(StorageDB)
+        this = _DiffEngine.new_IDAController(StorageDB)
         try: self.this.append(this)
         except: self.this = this
-    def GetClientAnalysisInfo(self): return _DiffEngine.OneIDAClientManager_GetClientAnalysisInfo(self)
-    def GetClientFileInfo(self): return _DiffEngine.OneIDAClientManager_GetClientFileInfo(self)
-    def DumpAnalysisInfo(self): return _DiffEngine.OneIDAClientManager_DumpAnalysisInfo(self)
-    def DumpBlockInfo(self, *args): return _DiffEngine.OneIDAClientManager_DumpBlockInfo(self, *args)
-    def RemoveFromFingerprintHash(self, *args): return _DiffEngine.OneIDAClientManager_RemoveFromFingerprintHash(self, *args)
-    def GetBlockAddress(self, *args): return _DiffEngine.OneIDAClientManager_GetBlockAddress(self, *args)
-    def GetMappedAddresses(self, *args): return _DiffEngine.OneIDAClientManager_GetMappedAddresses(self, *args)
-    def GetDisasmLines(self, *args): return _DiffEngine.OneIDAClientManager_GetDisasmLines(self, *args)
-    def FreeDisasmLines(self): return _DiffEngine.OneIDAClientManager_FreeDisasmLines(self)
-    def ShowAddress(self, *args): return _DiffEngine.OneIDAClientManager_ShowAddress(self, *args)
-    __swig_destroy__ = _DiffEngine.delete_OneIDAClientManager
+    def GetClientAnalysisInfo(self): return _DiffEngine.IDAController_GetClientAnalysisInfo(self)
+    def GetClientFileInfo(self): return _DiffEngine.IDAController_GetClientFileInfo(self)
+    def DumpAnalysisInfo(self): return _DiffEngine.IDAController_DumpAnalysisInfo(self)
+    def DumpBlockInfo(self, *args): return _DiffEngine.IDAController_DumpBlockInfo(self, *args)
+    def RemoveFromFingerprintHash(self, *args): return _DiffEngine.IDAController_RemoveFromFingerprintHash(self, *args)
+    def GetBlockAddress(self, *args): return _DiffEngine.IDAController_GetBlockAddress(self, *args)
+    def GetMappedAddresses(self, *args): return _DiffEngine.IDAController_GetMappedAddresses(self, *args)
+    def GetDisasmLines(self, *args): return _DiffEngine.IDAController_GetDisasmLines(self, *args)
+    def FreeDisasmLines(self): return _DiffEngine.IDAController_FreeDisasmLines(self)
+    def ShowAddress(self, *args): return _DiffEngine.IDAController_ShowAddress(self, *args)
+    __swig_destroy__ = _DiffEngine.delete_IDAController
     __del__ = lambda self : None;
-OneIDAClientManager_swigregister = _DiffEngine.OneIDAClientManager_swigregister
-OneIDAClientManager_swigregister(OneIDAClientManager)
-
-class IDAClientManager(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, IDAClientManager, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, IDAClientManager, name)
-    __repr__ = _swig_repr
-    def __init__(self): 
-        this = _DiffEngine.new_IDAClientManager()
-        try: self.this.append(this)
-        except: self.this = this
-    def SetDatabase(self, *args): return _DiffEngine.IDAClientManager_SetDatabase(self, *args)
-    def StartIDAListener(self, *args): return _DiffEngine.IDAClientManager_StartIDAListener(self, *args)
-    def SetIDAPath(self, *args): return _DiffEngine.IDAClientManager_SetIDAPath(self, *args)
-    def SetOutputFilename(self, *args): return _DiffEngine.IDAClientManager_SetOutputFilename(self, *args)
-    def SetLogFilename(self, *args): return _DiffEngine.IDAClientManager_SetLogFilename(self, *args)
-    def RunIDAToGenerateDB(self, *args): return _DiffEngine.IDAClientManager_RunIDAToGenerateDB(self, *args)
-    def ConnectToDarunGrim(self, *args): return _DiffEngine.IDAClientManager_ConnectToDarunGrim(self, *args)
-    def GetIDALogFilename(self): return _DiffEngine.IDAClientManager_GetIDALogFilename(self)
-    __swig_destroy__ = _DiffEngine.delete_IDAClientManager
-    __del__ = lambda self : None;
-IDAClientManager_swigregister = _DiffEngine.IDAClientManager_swigregister
-IDAClientManager_swigregister(IDAClientManager)
+IDAController_swigregister = _DiffEngine.IDAController_swigregister
+IDAController_swigregister(IDAController)
 
 class DiffMachine(_object):
     __swig_setmethods__ = {}
@@ -174,9 +151,16 @@ class DarunGrim(_object):
     def Analyze(self): return _DiffEngine.DarunGrim_Analyze(self)
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
-    def LoadDiffResults(self, *args): return _DiffEngine.DarunGrim_LoadDiffResults(self, *args)
+    def Load(self, *args): return _DiffEngine.DarunGrim_Load(self, *args)
     def ShowAddresses(self, *args): return _DiffEngine.DarunGrim_ShowAddresses(self, *args)
     def ColorAddress(self, *args): return _DiffEngine.DarunGrim_ColorAddress(self, *args)
+    def SetDatabase(self, *args): return _DiffEngine.DarunGrim_SetDatabase(self, *args)
+    def StartIDAListener(self, *args): return _DiffEngine.DarunGrim_StartIDAListener(self, *args)
+    def SetOutputFilename(self, *args): return _DiffEngine.DarunGrim_SetOutputFilename(self, *args)
+    def SetLogFilename(self, *args): return _DiffEngine.DarunGrim_SetLogFilename(self, *args)
+    def RunIDAToGenerateDB(self, *args): return _DiffEngine.DarunGrim_RunIDAToGenerateDB(self, *args)
+    def ConnectToDarunGrim(self, *args): return _DiffEngine.DarunGrim_ConnectToDarunGrim(self, *args)
+    def GetIDALogFilename(self): return _DiffEngine.DarunGrim_GetIDALogFilename(self)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)

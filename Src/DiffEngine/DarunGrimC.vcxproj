@@ -91,8 +91,6 @@
     <ClInclude Include="..\DiffEngine\DataStructure.h" />
     <ClInclude Include="..\DiffEngine\DiffEngine.h" />
     <ClInclude Include="..\DiffEngine\DiffMachine.h" />
-    <ClInclude Include="..\DiffEngine\IDAClientManager.h" />
-    <ClInclude Include="..\DiffEngine\OneIDAClientManager.h" />
     <ClInclude Include="..\DiffEngine\stdafx.h" />
     <ClInclude Include="..\Lib\DataBaseWriter.h" />
     <ClInclude Include="..\Lib\DBWrapper.h" />
@@ -112,14 +110,13 @@
     <ClInclude Include="..\Lib\TLV.h" />
     <ClInclude Include="..\Lib\Varray.h" />
     <ClInclude Include="..\Lib\XGetopt.h" />
+    <ClInclude Include="IDAController.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\DiffEngine\DarunGrim.cpp" />
     <ClCompile Include="..\DiffEngine\DarunGrim2C.cpp" />
     <ClCompile Include="..\DiffEngine\DiffMachine.cpp" />
-    <ClCompile Include="..\DiffEngine\IDAClientManager.cpp" />
-    <ClCompile Include="..\DiffEngine\OneIDAClientManager.cpp" />
     <ClCompile Include="..\Lib\DataBaseWriter.cpp" />
     <ClCompile Include="..\Lib\Diff.cpp" />
     <ClCompile Include="..\Lib\dprintf.cpp" />
@@ -134,6 +131,7 @@
     <ClCompile Include="..\Lib\sqlite3.c" />
     <ClCompile Include="..\Lib\Varray.cpp" />
     <ClCompile Include="..\Lib\XGetopt.cpp" />
+    <ClCompile Include="IDAController.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -96,8 +96,7 @@
     <ClInclude Include="..\..\DiffEngine\DarunGrim.h" />
     <ClInclude Include="..\..\DiffEngine\DataStructure.h" />
     <ClInclude Include="..\..\DiffEngine\DiffMachine.h" />
-    <ClInclude Include="..\..\DiffEngine\IDAClientManager.h" />
-    <ClInclude Include="..\..\DiffEngine\OneIDAClientManager.h" />
+    <ClInclude Include="..\..\DiffEngine\IDAController.h" />
     <ClInclude Include="..\..\DiffEngine\targetver.h" />
     <ClInclude Include="..\..\Lib\DataBaseWriter.h" />
     <ClInclude Include="..\..\Lib\DBWrapper.h" />
@@ -136,8 +135,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\DiffEngine\DarunGrim.cpp" />
     <ClCompile Include="..\..\DiffEngine\DiffMachine.cpp" />
-    <ClCompile Include="..\..\DiffEngine\IDAClientManager.cpp" />
-    <ClCompile Include="..\..\DiffEngine\OneIDAClientManager.cpp" />
+    <ClCompile Include="..\..\DiffEngine\IDAController.cpp" />
     <ClCompile Include="..\..\Lib\DataBaseWriter.cpp" />
     <ClCompile Include="..\..\Lib\Diff.cpp" />
     <ClCompile Include="..\..\Lib\dprintf.cpp" />

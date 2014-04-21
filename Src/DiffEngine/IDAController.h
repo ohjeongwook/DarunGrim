@@ -21,7 +21,7 @@ typedef struct
 	DWORD End;
 } BLOCK;
 
-class OneIDAClientManager
+class IDAController
 {
 private:
 #ifndef USE_LEGACY_MAP
@@ -51,8 +51,8 @@ public:
 	{
 		return &ClientAnalysisInfo->file_info;
 	}
-	OneIDAClientManager(DBWrapper *StorageDB=NULL);
-	~OneIDAClientManager();
+	IDAController(DBWrapper *StorageDB=NULL);
+	~IDAController();
 	BOOL LoadIDARawDataFromFile(const char *Filename);
 	void SetSocket(SOCKET socket);
 	BOOL LoadIDARawDataFromSocket(SOCKET socket);

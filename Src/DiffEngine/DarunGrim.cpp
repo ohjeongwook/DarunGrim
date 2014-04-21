@@ -1,21 +1,32 @@
+#include <winsock2.h>
+
 #include "Common.h"
 #include "DarunGrim.h"
 #include "LogOperation.h"
+
+#include "SocketOperation.h"
+#include "DataBaseWriter.h"
+#include "ProcessUtils.h"
 
 LogOperation Logger;
 
 DarunGrim::DarunGrim(): 
 	pStorageDB(NULL),
-	pSourceIDAClientManager(NULL),
-	pTargetIDAClientManager(NULL),
+	pSourceController(NULL),
+	pTargetController(NULL),
 	pDiffMachine(NULL),
-	pIDAClientManager(NULL),
-	IsLoadedSourceFile( false )	
+	IsLoadedSourceFile( false ),
+	EscapedOutputFilename(NULL),
+	EscapedLogFilename(NULL),
+	ListeningSocket(INVALID_SOCKET),
+	IDACommandProcessorThreadId(-1)
 {
 	LogOperation::InitLog();
 	Logger.SetCategory( "DarunGrim" );
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	pIDAClientManager = new IDAClientManager();
+	pDiffMachine = new DiffMachine();
+	IDAPath = _strdup(DEFAULT_IDA_PATH);
+	GenerateIDALogFilename();
 }
 
 DarunGrim::~DarunGrim()
@@ -30,14 +41,17 @@ DarunGrim::~DarunGrim()
 	if( pDiffMachine )
 		delete pDiffMachine;
 
-	if( pIDAClientManager )
-		delete pIDAClientManager;
+	StopIDAListener();
 
-	if( pSourceIDAClientManager )
-		delete pSourceIDAClientManager;
+	if (IDAPath)
+		free(IDAPath);
 
-	if( pTargetIDAClientManager )
-		delete pTargetIDAClientManager;
+	if (EscapedOutputFilename)
+		free(EscapedOutputFilename);
+
+	if (EscapedLogFilename)
+		free(EscapedLogFilename);
+
 }
 
 void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
@@ -50,11 +64,11 @@ void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const 
 	Logger.SetDebugLevel(newDebugLevel);
 }
 
-void DarunGrim::SetIDAPath( const char *path )
+void DarunGrim::SetIDAPath(const char *ParamIDAPath)
 {
-	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	if( path )
-		pIDAClientManager->SetIDAPath( path );
+	if (IDAPath)
+		free(IDAPath);
+	IDAPath = _strdup(ParamIDAPath);
 }
 
 bool DarunGrim::GenerateDB( 
@@ -67,21 +81,20 @@ bool DarunGrim::GenerateDB(
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 
-	pIDAClientManager->SetOutputFilename(storage_filename);
-	pIDAClientManager->SetLogFilename( log_filename );
-	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_source );
-	pIDAClientManager->RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
-	pIDAClientManager->SetIDALogFilename( ida_log_filename_for_target );
-	pIDAClientManager->RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
+	SetOutputFilename(storage_filename);
+	SetLogFilename( log_filename );
+	SetIDALogFilename( ida_log_filename_for_source );
+	RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
+	SetIDALogFilename( ida_log_filename_for_target );
+	RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
 	return OpenDatabase(storage_filename);
 }
 
 DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
 {
 	DarunGrim *pDarunGrim=( DarunGrim * )lpParameter;
-	IDAClientManager *pIDAClientManager;
 
-	if( pDarunGrim && (pIDAClientManager = pDarunGrim->GetIDAClientManager()) )
+	if( pDarunGrim )
 	{
 		const char *filename = NULL;
 		if( !pDarunGrim->LoadedSourceFile() )
@@ -102,7 +115,7 @@ DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
 		}
 
 		if( filename )
-			pIDAClientManager->ConnectToDarunGrim( filename );
+			pDarunGrim->ConnectToDarunGrim(filename);
 	}
 	return 1;
 }
@@ -169,43 +182,42 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 
 	if( pStorageDB )
 	{
-		pIDAClientManager->SetDatabase( pStorageDB );
+		SetDatabase( pStorageDB );
 	}
-	pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
+	StartIDAListener(DARUNGRIM_PORT);
 
-	pSourceIDAClientManager=new OneIDAClientManager( pStorageDB );
-	pTargetIDAClientManager=new OneIDAClientManager( pStorageDB );
+	pSourceController=new IDAController( pStorageDB );
+	pTargetController=new IDAController( pStorageDB );
 
 	//Create a thread that will call ConnectToDarunGrim one by one
 	DWORD dwThreadId;
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	pIDAClientManager->AcceptIDAClient( pSourceIDAClientManager, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	AcceptIDAClient( pSourceController, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 	SetLoadedSourceFile( TRUE );
 
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	pIDAClientManager->AcceptIDAClient( pTargetIDAClientManager, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	AcceptIDAClient( pTargetController, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
 
 	if( !pDiffMachine )
 	{
 		Analyze();
 	}
-
-	pIDAClientManager->SetMembers( pSourceIDAClientManager, pTargetIDAClientManager, pDiffMachine );
-	pIDAClientManager->CreateIDACommandProcessorThread();
-	pIDAClientManager->StopIDAListener();
+	CreateIDACommandProcessorThread();
+	StopIDAListener();
 
 	return TRUE;
 }
 
-bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, DWORD source_address, char *target_storage_filename, DWORD target_address, char *output_storage_filename)
+bool DarunGrim::DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
 {
 	Logger.Log(10, "%s: entry (%s)\n", __FUNCTION__, output_storage_filename);
 
-	pDiffMachine = new DiffMachine();
 	pDiffMachine->SetSource((char *)src_storage_filename, 1, source_address);
 	pDiffMachine->SetTarget((char *)target_storage_filename, 1, target_address);
-	pDiffMachine->SetLoadOneIDAClientManager(true);
+	pDiffMachine->SetLoadIDAController(true);
 	pDiffMachine->Load((char *)output_storage_filename);
+	pSourceController = pDiffMachine->GetSourceController();
+	pTargetController = pDiffMachine->GetTargetController();
 
 	Logger.Log(10, "Analyze\n");
 	pDiffMachine->Analyze();
@@ -215,9 +227,10 @@ bool DarunGrim::DiffDatabaseFiles(char *src_storage_filename, DWORD source_addre
 
 	Logger.Log(10, "Save\n");
 	pStorageDB = new DBWrapper((char *)output_storage_filename);
-	pIDAClientManager->SetDatabase(pStorageDB);
+	SetDatabase(pStorageDB);
 
 	pDiffMachine->Save(*pStorageDB);
+
 	return TRUE;
 }
 
@@ -240,21 +253,15 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 	return TRUE;
 }
 
-bool DarunGrim::LoadDiffResults( const char *storage_filename )
+bool DarunGrim::Load( const char *storage_filename )
 {
 	pStorageDB = new DBWrapper( (char *) storage_filename );
 	if( pStorageDB )
 	{
-		pDiffMachine = new DiffMachine();
-
-		if( pDiffMachine )
-		{
-			pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-			pDiffMachine->SetSource(pStorageDB, 1);
-			pDiffMachine->SetTarget(pStorageDB, 2);
-			pDiffMachine->Load(pStorageDB);
-			return TRUE;
-		}
+		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
+		pDiffMachine->Load(storage_filename);
+		pSourceController = pDiffMachine->GetSourceController();
+		pTargetController = pDiffMachine->GetTargetController();
 	}
 	return FALSE;
 }
@@ -267,15 +274,17 @@ bool DarunGrim::Analyze()
 
 	if( pStorageDB )
 	{
-		pDiffMachine = new DiffMachine();
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
 		pDiffMachine->SetSource(pStorageDB, source_file_id);
 		pDiffMachine->SetSource(pStorageDB, target_file_id);
 		pDiffMachine->Load(pStorageDB);
+		pSourceController = pDiffMachine->GetSourceController();
+		pTargetController = pDiffMachine->GetTargetController();
 	}
-	else if( pSourceIDAClientManager && pTargetIDAClientManager )
+	else if( pSourceController && pTargetController )
 	{
-		pDiffMachine = new DiffMachine( pSourceIDAClientManager, pTargetIDAClientManager );
+		pDiffMachine->SetSource(pSourceController);
+		pDiffMachine->SetTarget(pTargetController);
 	}
 
 	if( pDiffMachine )
@@ -289,43 +298,403 @@ bool DarunGrim::Analyze()
 bool DarunGrim::ShowOnIDA()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-	//pDiffMachine->PrintMatchMapInfo();
-	if( pIDAClientManager )
-	{
-		pIDAClientManager->SetMembers(
-			pSourceIDAClientManager,
-			pTargetIDAClientManager,
-			pDiffMachine
-		);
-		pIDAClientManager->IDACommandProcessor();
-		return TRUE;
-	}
-	return FALSE;
+	IDACommandProcessor();
+	return TRUE;
 }
 
 void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long target_address )
 {
-	if( pSourceIDAClientManager )
-		pSourceIDAClientManager->ShowAddress( source_address );
-	if( pTargetIDAClientManager )
-		pTargetIDAClientManager->ShowAddress( target_address );
+	if( pSourceController )
+		pSourceController->ShowAddress( source_address );
+
+	if( pTargetController )
+		pTargetController->ShowAddress( target_address );
 }
 
 void DarunGrim::ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color )
 {
 	if( index == 0 )
 	{
-		if( pSourceIDAClientManager )
-			pSourceIDAClientManager->ColorAddress( start_address, end_address, color );
+		if( pSourceController )
+			pSourceController->ColorAddress( start_address, end_address, color );
 	}
 	else
 	{
-		if( pTargetIDAClientManager )
-			pTargetIDAClientManager->ColorAddress( start_address, end_address, color );
+		if( pTargetController )
+			pTargetController->ColorAddress( start_address, end_address, color );
 	}
 }
 
-IDAClientManager *DarunGrim::GetIDAClientManager()
+void DarunGrim::SetDatabase(DBWrapper *OutputDB)
 {
-	return pIDAClientManager;
+	m_OutputDB = OutputDB;
+}
+
+bool DarunGrim::StartIDAListener(unsigned short port)
+{
+	StopIDAListener();
+	ListeningPort = port;
+	if (ListeningPort>0)
+	{
+		ListeningSocket = CreateListener(NULL, port);
+		Logger.Log(10, "%s: ListeningSocket=%d\n", __FUNCTION__, ListeningSocket);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+bool DarunGrim::StopIDAListener()
+{
+	if (ListeningSocket != INVALID_SOCKET)
+	{
+		closesocket(ListeningSocket);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+IDAController *DarunGrim::GetIDAControllerFromFile(char *DataFile)
+{
+	IDAController *pIDAController = new IDAController(m_OutputDB);
+	pIDAController->Retrieve(DataFile);
+	return pIDAController;
+}
+
+BOOL DarunGrim::AcceptIDAClient(IDAController *pIDAController, bool RetrieveData)
+{
+	SOCKET ClientSocket = accept(ListeningSocket, NULL, NULL);
+	Logger.Log(10, "%s: accepting=%d\n", __FUNCTION__, ClientSocket);
+	if (ClientSocket == INVALID_SOCKET)
+	{
+		int error = WSAGetLastError();
+		Logger.Log(10, "Socket error=%d\n", error);
+		return FALSE;
+	}
+	else
+	{
+		if (RetrieveData)
+		{
+			Logger.Log(10, "%s: Calling LoadIDARawDataFromSocket\n", __FUNCTION__);
+			pIDAController->LoadIDARawDataFromSocket(ClientSocket);
+		}
+		else
+		{
+			Logger.Log(10, "%s: SetSocket\n", __FUNCTION__);
+			pIDAController->SetSocket(ClientSocket);
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+DWORD DarunGrim::IDACommandProcessor()
+{
+	SOCKET SocketArray[WSA_MAXIMUM_WAIT_EVENTS];
+	WSAEVENT EventArray[WSA_MAXIMUM_WAIT_EVENTS];
+	WSANETWORKEVENTS NetworkEvents;
+	DWORD EventTotal = 0, index;
+
+	SocketArray[0] = pSourceController->GetSocket();
+	SocketArray[1] = pTargetController->GetSocket();
+	for (int i = 0; i<2; i++)
+	{
+		WSAEVENT NewEvent = WSACreateEvent();
+		WSAEventSelect(SocketArray[i], NewEvent, FD_READ | FD_CLOSE);
+		EventArray[EventTotal] = NewEvent;
+		EventTotal++;
+	}
+	while (1)
+	{
+		index = WSAWaitForMultipleEvents(EventTotal,
+			EventArray,
+			FALSE,
+			WSA_INFINITE,
+			FALSE);
+
+		if (index<0)
+			break;
+
+		index = index - WSA_WAIT_EVENT_0;
+		//-------------------------
+		// Iterate through all events and enumerate
+		// if the wait does not fail.
+		for (DWORD i = index; i<EventTotal; i++)
+		{
+			if (SocketArray[i] == WSA_INVALID_HANDLE)
+				continue;
+
+			index = WSAWaitForMultipleEvents(1,
+				&EventArray[i],
+				TRUE,
+				1000,
+				FALSE);
+			if ((index != WSA_WAIT_FAILED) && (index != WSA_WAIT_TIMEOUT))
+			{
+				if (WSAEnumNetworkEvents(SocketArray[i], EventArray[i], &NetworkEvents) == 0)
+				{
+					Logger.Log(10, "Signal( %d - %d )\n", i, NetworkEvents.lNetworkEvents);
+					if (NetworkEvents.lNetworkEvents == FD_READ)
+					{
+						char buffer[DATA_BUFSIZE] = { 0, };
+						WSABUF DataBuf;
+						DataBuf.len = DATA_BUFSIZE;
+						DataBuf.buf = buffer;
+						/*
+						DWORD RecvBytes;
+						DWORD Flags=0;
+						if ( WSARecv( SocketArray[i], &DataBuf, 1, &RecvBytes, &Flags, NULL, NULL )==SOCKET_ERROR )
+						{
+						Logger.Log( 10, "Error occurred at WSARecv()\n" );
+						}else
+						{
+						Logger.Log( 10, "Read %d bytes\n", RecvBytes );
+						}*/
+						char type;
+						DWORD length;
+						PBYTE data = RecvTLVData(SocketArray[i], &type, &length);
+						if (data)
+						{
+							Logger.Log(10, "%s: Type: %d Length: %d data:%x\n", __FUNCTION__, type, length, data);
+							if (type == SHOW_MATCH_ADDR && length >= 4)
+							{
+								DWORD address = *(DWORD *)data;
+								Logger.Log(10, "%s: Showing address=%x\n", __FUNCTION__, address);
+								//Get Matching Address
+
+								DWORD MatchingAddress = 0;
+								if (pDiffMachine)
+								{
+									MatchingAddress = pDiffMachine->GetMatchAddr(i, address);
+								}
+								if (MatchingAddress != 0)
+								{
+									//Show using JUMP_TO_ADDR
+									if (i == 0)
+									{
+										pTargetController->ShowAddress(MatchingAddress);
+									}
+									else
+									{
+										pSourceController->ShowAddress(MatchingAddress);
+									}
+								}
+							}
+						}
+					}
+					else if (NetworkEvents.lNetworkEvents == FD_CLOSE)
+					{
+						closesocket(SocketArray[i]);
+						WSACloseEvent(EventArray[i]);
+						memcpy(SocketArray + i, SocketArray + i + 1, EventTotal - i + 1);
+						memcpy(EventArray + i, EventArray + i + 1, EventTotal - i + 1);
+						EventTotal--;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+DWORD WINAPI IDACommandProcessorThread(LPVOID lpParameter)
+{
+	DarunGrim *pDarunGrim = (DarunGrim *)lpParameter;
+	pDarunGrim->IDACommandProcessor();
+	return 1;
+}
+
+BOOL DarunGrim::CreateIDACommandProcessorThread()
+{
+	if (IDACommandProcessorThreadId > 0)
+	{
+		HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, IDACommandProcessorThreadId);
+		if (hThread)
+		{
+			CloseHandle(hThread);
+		}
+		else
+		{
+			IDACommandProcessorThreadId = -1;
+		}
+	}
+
+	if (IDACommandProcessorThreadId == -1)
+	{
+		CreateThread(NULL, 0, IDACommandProcessorThread, (PVOID)this, 0, &IDACommandProcessorThreadId);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+bool SendMatchedAddrTLVData(FunctionMatchInfo &Data, PVOID Context)
+{
+	IDAController *ClientManager = (IDAController *)Context;
+
+	if (ClientManager)
+	{
+		return ClientManager->SendMatchedAddrTLVData(Data);
+	}
+	return false;
+}
+
+bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
+{
+	IDAController *ClientManager = (IDAController *)Context;
+	if (ClientManager)
+	{
+		return ClientManager->SendAddrTypeTLVData(Type, Start, End);
+	}
+	return false;
+}
+
+
+#define RUN_DARUNGRIM_PLUGIN_STR "static main()\n\
+{\n\
+	Wait();\n\
+	RunPlugin( \"DarunGrim\", 1 );\n\
+	SetLogFile( \"%s\" );\n\
+	SaveAnalysisData( \"%s\", %d, %d );\n\
+	Exit( 0 );\n\
+}"
+
+#define CONNECT_TO_DARUNGRIM_STR "static main()\n\
+{\n\
+	Wait();\n\
+	RunPlugin( \"DarunGrim\", 1 );\n\
+	SetLogFile( \"%s\" );\n\
+	ConnectToDarunGrim();\n\
+}"
+
+
+void DarunGrim::SetOutputFilename(char *OutputFilename)
+{
+	//Create IDC file
+	EscapedOutputFilename = (char *)malloc(strlen(OutputFilename) * 2 + 1);
+
+	if (EscapedOutputFilename)
+	{
+		DWORD i = 0, j = 0;
+		for (; i<strlen(OutputFilename); i++, j++)
+		{
+			EscapedOutputFilename[j] = OutputFilename[i];
+			if (OutputFilename[i] == '\\')
+			{
+				j++;
+				EscapedOutputFilename[j] = '\\';
+			}
+		}
+		EscapedOutputFilename[j] = NULL;
+	}
+}
+
+void DarunGrim::SetLogFilename(char *LogFilename)
+{
+	EscapedLogFilename = NULL;
+	if (LogFilename)
+	{
+		EscapedLogFilename = (char *)malloc(strlen(LogFilename) * 2 + 1);
+		if (EscapedLogFilename)
+		{
+			DWORD i = 0, j = 0;
+			for (; i<strlen(LogFilename); i++, j++)
+			{
+				EscapedLogFilename[j] = LogFilename[i];
+				if (LogFilename[i] == '\\')
+				{
+					j++;
+					EscapedLogFilename[j] = '\\';
+				}
+			}
+			EscapedLogFilename[j] = NULL;
+		}
+	}
+}
+
+void DarunGrim::RunIDAToGenerateDB(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
+{
+	char *idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
+		EscapedLogFilename ? EscapedLogFilename : "",
+		EscapedOutputFilename ? EscapedOutputFilename : "",
+		StartAddress,
+		EndAddress);
+
+	if (idc_filename)
+	{
+		//Run IDA
+		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
+		if (IDALogFilename[0])
+		{
+			Logger.Log(10, "Executing \"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename);
+		}
+		else
+		{
+			Logger.Log(10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename);
+		}
+		free(idc_filename);
+	}
+}
+
+
+void DarunGrim::ConnectToDarunGrim(const char *ida_filename)
+{
+	char *idc_filename = WriteToTemporaryFile(CONNECT_TO_DARUNGRIM_STR, EscapedLogFilename ? EscapedLogFilename : "");
+
+	if (idc_filename)
+	{
+		//Run IDA
+		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
+		Logger.Log(10, "\"%s\" -S\"%s\" \"%s\"", IDAPath, EscapedLogFilename, idc_filename, ida_filename);
+
+		if (IDALogFilename[0])
+		{
+			Execute(TRUE, "\"%s\" -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename);
+		}
+		else
+		{
+			Execute(TRUE, "\"%s\" -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename);
+		}
+		free(idc_filename);
+	}
+}
+
+bool DarunGrim::GenerateIDALogFilename()
+{
+	char temporary_path[MAX_PATH + 1];
+
+	IDALogFilename[0] = NULL;
+	// Get the temp path.
+	DWORD ret_val = GetTempPath(sizeof(temporary_path), temporary_path);
+	if (ret_val <= sizeof(temporary_path) && (ret_val != 0))
+	{
+		ret_val = GetTempFileName(temporary_path,
+			TEXT("IDALOG"),
+			0,
+			IDALogFilename);
+		if (ret_val != 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void DarunGrim::SetIDALogFilename(const char *ida_log_filename)
+{
+	if (ida_log_filename)
+	{
+		strncpy(IDALogFilename, ida_log_filename, sizeof(IDALogFilename)-1);
+		IDALogFilename[sizeof(IDALogFilename)-1] = NULL;
+	}
+	else
+	{
+		IDALogFilename[0] = NULL;
+	}
+}
+
+const char *DarunGrim::GetIDALogFilename()
+{
+	return IDALogFilename;
 }

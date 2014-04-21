@@ -6,9 +6,8 @@
 #include <windows.h>
 #include "DataStructure.h"
 #include "Configuration.h"
-#include "IDAClientManager.h"
 #include "DiffMachine.h"
-#include "OneIDAClientManager.h"
+#include "IDAController.h"
 #include "DarunGrim.h"
 %}
 %inline %{
@@ -23,10 +22,10 @@ public:
 	DBWrapper( char *DatabaseName = NULL );
 };
 
-class OneIDAClientManager
+class IDAController
 {
 public:
-	OneIDAClientManager(DBWrapper *StorageDB=NULL);
+	IDAController(DBWrapper *StorageDB=NULL);
 	AnalysisInfo *GetClientAnalysisInfo();
 	FileInfo *GetClientFileInfo();
 	void DumpAnalysisInfo();
@@ -41,31 +40,15 @@ public:
 	void ShowAddress(unsigned long address);
 };
 
-class IDAClientManager
-{
-public:
-	IDAClientManager();
-
-	void SetDatabase( DBWrapper *OutputDB );
-	bool StartIDAListener( unsigned short port );
-
-	void SetIDAPath( const char *ParamIDAPath );
-	void SetOutputFilename(char *OutputFilename);
-	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDB(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
-	void ConnectToDarunGrim(char *ida_filename);
-	const char *GetIDALogFilename();
-};
-
 class DiffMachine
 {
 public:
-	DiffMachine( OneIDAClientManager *the_source=NULL, OneIDAClientManager *the_target=NULL );
+	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
 	/*
 	void DumpMatchMapIterInfo(multimap <unsigned long, MappingData>::iterator match_map_iter);
 	void GetMatchStatistics(
 		unsigned long address,
-		OneIDAClientManager *ClientManager,
+		IDAController *ClientManager,
 		multimap <unsigned long,MappingData> *p_match_map,
 		int *p_found_match_number,
 		int *p_found_match_with_difference_number,
@@ -106,7 +89,17 @@ public:
 	void SetSourceFilename( char *source_filename );
 	void SetTargetFilename( char *target_filename );	
 	
-	bool LoadDiffResults( const char *storage_filename );
+	bool Load( const char *storage_filename );
 	void ShowAddresses( unsigned long source_address, unsigned long target_address );
 	void ColorAddress( int index, unsigned long start_address, unsigned long end_address, unsigned long color );
+
+	void SetDatabase( DBWrapper *OutputDB );
+	bool StartIDAListener( unsigned short port );
+
+	void SetIDAPath( const char *ParamIDAPath );
+	void SetOutputFilename(char *OutputFilename);
+	void SetLogFilename(char *LogFilename);
+	void RunIDAToGenerateDB(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
+	void ConnectToDarunGrim(char *ida_filename);
+	const char *GetIDALogFilename();
 };

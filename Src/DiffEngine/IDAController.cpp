@@ -1,6 +1,6 @@
 #pragma warning(disable:4996)
 #pragma warning(disable:4200)
-#include "OneIDAClientManager.h"
+#include "IDAController.h"
 #include <string>
 #include "LogOperation.h"
 
@@ -25,21 +25,21 @@ extern int DebugLevel;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-OneIDAClientManager::OneIDAClientManager(DBWrapper *storage_db):
+IDAController::IDAController(DBWrapper *storage_db):
 	ClientAnalysisInfo(NULL),
-	TargetFunctionAddress(0)
+	TargetFunctionAddress(0),
+	m_OriginalFilePath(NULL),
+	DisasmLine(NULL),
+	Socket(INVALID_SOCKET),
+	m_FileID(0)
 {
 	ClientAnalysisInfo = new AnalysisInfo;
-	m_FileID = 0;
 	m_StorageDB = storage_db;
-	DisasmLine = NULL;
-	Socket = INVALID_SOCKET;
-	m_OriginalFilePath = NULL;
 
-	Logger.Log(10, "OneIDAClientManager: m_StorageDB: %p", m_StorageDB);
+	Logger.Log(10, "IDAController: m_StorageDB: %p", m_StorageDB);
 }
 
-OneIDAClientManager::~OneIDAClientManager()
+IDAController::~IDAController()
 {
 	if(m_OriginalFilePath)
 		free(m_OriginalFilePath);
@@ -126,12 +126,12 @@ static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv,
 	return 0;
 }
 
-void OneIDAClientManager::SetSocket(SOCKET socket)
+void IDAController::SetSocket(SOCKET socket)
 {
 	Socket = socket;
 }
 
-BOOL OneIDAClientManager::LoadIDARawDataFromSocket(SOCKET socket)
+BOOL IDAController::LoadIDARawDataFromSocket(SOCKET socket)
 {
 	Socket = socket;
 	ClientAnalysisInfo = NULL;
@@ -166,7 +166,7 @@ BOOL OneIDAClientManager::LoadIDARawDataFromSocket(SOCKET socket)
 	return FALSE;
 }
 
-DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_length)
+DWORD *IDAController::GetMappedAddresses(DWORD address, int type, int *p_length)
 {
 	DWORD *addresses = NULL;
 	int current_size = 50;
@@ -226,7 +226,7 @@ DWORD *OneIDAClientManager::GetMappedAddresses(DWORD address, int type, int *p_l
 	return addresses;
 }
 
-list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
+list <DWORD> *IDAController::GetFunctionAddresses()
 {
 	printf("TargetFunctionAddress: %x", TargetFunctionAddress);
 	if (TargetFunctionAddress != 0)
@@ -324,7 +324,7 @@ list <DWORD> *OneIDAClientManager::GetFunctionAddresses()
 }
 
 #undef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
-void OneIDAClientManager::RemoveFromFingerprintHash(DWORD address)
+void IDAController::RemoveFromFingerprintHash(DWORD address)
 {
 	unsigned char *Fingerprint = NULL;
 
@@ -357,7 +357,7 @@ void OneIDAClientManager::RemoveFromFingerprintHash(DWORD address)
 	}
 }
 
-char *OneIDAClientManager::GetFingerPrintStr(DWORD address)
+char *IDAController::GetFingerPrintStr(DWORD address)
 {
 	if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_hash_map.size()>0)
 	{
@@ -376,7 +376,7 @@ char *OneIDAClientManager::GetFingerPrintStr(DWORD address)
 	return NULL;
 }
 
-char *OneIDAClientManager::GetName(DWORD address)
+char *IDAController::GetName(DWORD address)
 {
 #ifdef USE_LEGACY_MAP
 	multimap <DWORD,  string>::iterator address_name_hash_map_iter;
@@ -395,7 +395,7 @@ char *OneIDAClientManager::GetName(DWORD address)
 #endif
 }
 
-DWORD OneIDAClientManager::GetBlockAddress(DWORD address)
+DWORD IDAController::GetBlockAddress(DWORD address)
 {
 #ifdef USE_LEGACY_MAP
 	while(1)
@@ -413,7 +413,7 @@ DWORD OneIDAClientManager::GetBlockAddress(DWORD address)
 #endif
 }
 
-void OneIDAClientManager::DumpBlockInfo(DWORD block_address)
+void IDAController::DumpBlockInfo(DWORD block_address)
 {
 	int addresses_number;
 	char *type_descriptions[] = {"Cref From", "Cref To", "Call", "Dref From", "Dref To"};
@@ -459,12 +459,12 @@ const char *GetFileDataTypeStr(int type)
 	return "Unknown";
 }
 
-BOOL OneIDAClientManager::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod, hash_set <DWORD> *pSelectedAddresses)
+BOOL IDAController::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod, hash_set <DWORD> *pSelectedAddresses)
 {
 	return TRUE;
 }
 
-BOOL OneIDAClientManager::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
+BOOL IDAController::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 {
 	return TRUE;
 }
@@ -491,12 +491,12 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 	return 0;
 }
 
-char *OneIDAClientManager::GetOriginalFilePath()
+char *IDAController::GetOriginalFilePath()
 {
 	return m_OriginalFilePath;
 }
 
-BOOL OneIDAClientManager::LoadOneLocationInfo()
+BOOL IDAController::LoadOneLocationInfo()
 {
 	if (ClientAnalysisInfo->fingerprint_hash_map.size() == 0)
 	{
@@ -522,12 +522,12 @@ FunctionAddress = 0 : Retrieve All Functions
 	else			: Retrieve That Specific Function
 */
 
-void OneIDAClientManager::SetFileID(int FileID)
+void IDAController::SetFileID(int FileID)
 {
 	m_FileID = FileID;
 }
 
-void OneIDAClientManager::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address)
+void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address)
 {
 	if (Address == 0)
 	{
@@ -545,7 +545,7 @@ void OneIDAClientManager::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_has
 	}
 }
 
-BOOL OneIDAClientManager::Load()
+BOOL IDAController::Load()
 {
 	Logger.Log(10, "Load: %s\n", m_StorageDB->GetDatabaseName());
 
@@ -557,7 +557,7 @@ BOOL OneIDAClientManager::Load()
 	return TRUE;
 }
 
-void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
+void IDAController::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
 {
 	if( m_StorageDB )
 	{
@@ -569,7 +569,7 @@ void OneIDAClientManager::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD
 	}
 }
 
-void OneIDAClientManager::AddAnalysisTargetFunction( DWORD FunctionAddress )
+void IDAController::AddAnalysisTargetFunction( DWORD FunctionAddress )
 {
 	Logger.Log(10, "AddAnalysisTargetFunction: %x\n", FunctionAddress);
 	TargetFunctionAddress = FunctionAddress;
@@ -580,7 +580,7 @@ typedef struct {
 	DWORD child_address;
 } AddressPair;
 
-void OneIDAClientManager::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context)
+void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context)
 {
 	BYTE type;
 	DWORD length;
@@ -681,7 +681,7 @@ void OneIDAClientManager::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context
 	GenerateFingerprintHashMap();
 }
 
-void OneIDAClientManager::GenerateFingerprintHashMap()
+void IDAController::GenerateFingerprintHashMap()
 {
 	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
 	list <AddressPair> AddressPairs;
@@ -824,7 +824,7 @@ void OneIDAClientManager::GenerateFingerprintHashMap()
 	GenerateTwoLevelFingerPrint();
 }
 
-void OneIDAClientManager::GenerateTwoLevelFingerPrint()
+void IDAController::GenerateTwoLevelFingerPrint()
 {
 	/*
 	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_pIter;
@@ -880,7 +880,7 @@ void OneIDAClientManager::GenerateTwoLevelFingerPrint()
 	}*/
 }
 
-void OneIDAClientManager::DumpAnalysisInfo()
+void IDAController::DumpAnalysisInfo()
 {
 	if(ClientAnalysisInfo)
 	{
@@ -901,7 +901,7 @@ void OneIDAClientManager::DumpAnalysisInfo()
 	}
 }
 
-BOOL OneIDAClientManager::SendTLVData(char type, PBYTE data, DWORD data_length)
+BOOL IDAController::SendTLVData(char type, PBYTE data, DWORD data_length)
 {
 	if(Socket != INVALID_SOCKET)
 	{
@@ -916,7 +916,7 @@ BOOL OneIDAClientManager::SendTLVData(char type, PBYTE data, DWORD data_length)
 	return FALSE;
 }
 
-char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
+char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
 {
 #ifdef USE_LEGACY_MAP
 	//Look for p_analysis_info->address_disassembly_hash_map first
@@ -967,7 +967,7 @@ char *OneIDAClientManager::GetDisasmLines(unsigned long StartAddress, unsigned l
 #endif
 }
 
-string OneIDAClientManager::GetInputName()
+string IDAController::GetInputName()
 {
 	string input_name;
 
@@ -1002,7 +1002,7 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 	return 0;
 }
 
-POneLocationInfo OneIDAClientManager::GetOneLocationInfo(DWORD address)
+POneLocationInfo IDAController::GetOneLocationInfo(DWORD address)
 {
 	POneLocationInfo p_one_location_info = (POneLocationInfo)malloc(sizeof(OneLocationInfo));
 	if( m_StorageDB )
@@ -1010,18 +1010,18 @@ POneLocationInfo OneIDAClientManager::GetOneLocationInfo(DWORD address)
 	return p_one_location_info;
 }
 
-void OneIDAClientManager::FreeDisasmLines()
+void IDAController::FreeDisasmLines()
 {
 	if(DisasmLine)
 		free(DisasmLine);
 }
 
-void OneIDAClientManager::ShowAddress(unsigned long address)
+void IDAController::ShowAddress(unsigned long address)
 {
 	SendTLVData(JUMP_TO_ADDR, (PBYTE)&address, sizeof(DWORD));
 }
 
-void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color)
+void IDAController::ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color)
 {
 	unsigned long data[3];
 	data[0] = start_address;
@@ -1031,7 +1031,7 @@ void OneIDAClientManager::ColorAddress(unsigned long start_address, unsigned lon
 }
 
 
-list <BLOCK> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long FunctionAddress)
+list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddress)
 {
 	list <BLOCK> block_list;
 
@@ -1092,7 +1092,7 @@ list <BLOCK> OneIDAClientManager::GetFunctionMemberBlocks(unsigned long Function
 	return block_list;
 }
 
-void OneIDAClientManager::MergeBlocks()
+void IDAController::MergeBlocks()
 {
 	multimap <DWORD,  PMapInfo>::iterator last_iter = ClientAnalysisInfo->map_info_hash_map.end();
 	multimap <DWORD,  PMapInfo>::iterator iter;
@@ -1157,7 +1157,7 @@ void OneIDAClientManager::MergeBlocks()
 	}
 }
 
-int OneIDAClientManager::GetFileID()
+int IDAController::GetFileID()
 {
 	return m_FileID;
 }
@@ -1238,7 +1238,7 @@ int IsEqualByteWithLengthAmble(unsigned char *Bytes01, unsigned char *Bytes02)
 	return FALSE;
 }
 
-multimap <DWORD, DWORD> *OneIDAClientManager::LoadFunctionMembersMap()
+multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 {
 	if(DebugLevel&1) Logger.Log( 10, "Retrieve Functions Addresses\n");
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
@@ -1288,7 +1288,7 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 	return 0;
 }
 
-multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
+multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 {
 	int Count = 0;
 	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
@@ -1335,7 +1335,7 @@ multimap <DWORD, DWORD> *OneIDAClientManager::LoadAddressToFunctionMap()
 	return NULL;
 }
 
-BOOL OneIDAClientManager::FixFunctionAddresses()
+BOOL IDAController::FixFunctionAddresses()
 {
 	BOOL IsFixed = FALSE;
 	if(DebugLevel&1) Logger.Log( 10, "%s", __FUNCTION__);
@@ -1373,7 +1373,7 @@ BOOL OneIDAClientManager::FixFunctionAddresses()
 	return IsFixed;
 }
 
-bool OneIDAClientManager::SendMatchedAddrTLVData(FunctionMatchInfo &Data)
+bool IDAController::SendMatchedAddrTLVData(FunctionMatchInfo &Data)
 {
 	return SendTLVData(
 		MATCHED_ADDR,
@@ -1381,7 +1381,7 @@ bool OneIDAClientManager::SendMatchedAddrTLVData(FunctionMatchInfo &Data)
 		sizeof(Data));
 }
 
-bool OneIDAClientManager::SendAddrTypeTLVData(int Type, DWORD Start, DWORD End)
+bool IDAController::SendAddrTypeTLVData(int Type, DWORD Start, DWORD End)
 {
 	DWORD StartToEnd[2];
 

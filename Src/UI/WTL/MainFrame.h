@@ -6,9 +6,9 @@
 #include "CGraphVizWindow.h"
 
 //DiffEngine
-#include "IDAClientManager.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
+#include "DarunGrim.h"
 //DiffEngine
 #include "CGraphVizProcessor.h"
 
@@ -139,9 +139,6 @@ private:
 
 	DBWrapper m_Database;
 	
-	IDAClientManager *pOneClientManager;
-	OneIDAClientManager *pSourceClientManager;
-	OneIDAClientManager *pTargetClientManager;
 	DiffMachine *pDiffMachine;
 	list<DrawingInfo *> *DrawingInfoMap;
 	CCommandBarCtrl m_CmdBar;
@@ -149,6 +146,8 @@ private:
 	bool m_RetrieveClientManagersDatabase;
 	int AssociateSocketCount;
 	int m_State;
+
+	DarunGrim *pDarunGrim;
 
 public:
 	DECLARE_FRAME_WND_CLASS(NULL,IDR_MAINFRAME)
@@ -181,7 +180,6 @@ public:
 		COMMAND_ID_HANDLER(ID_ZOOM_OUT,OnZoomOut)
 		COMMAND_ID_HANDLER(ID_ZOOM_ACTUAL,OnZoomActual)
 		COMMAND_ID_HANDLER(ID_FILE_EXPORT,OnExportSelections)
-		COMMAND_ID_HANDLER(ID_START_ANALYZE_IDA_CLIENT_MANAGERS,AnalyzeIDAClientManagers)
 		COMMAND_ID_HANDLER(ID_ACCEPT_COMPLETE, AssociateSocketComplete)
 		COMMAND_ID_HANDLER(ID_SHOW_DIFF_RESULTS,ShowDiffResults)
 		
@@ -221,7 +219,6 @@ public:
 
 	void SetDatabaseFilename(char *Filename)
 	{
-		CleanCDFStructures();
 		m_DiffFilename=Filename;
 		OpenDGF(m_DiffFilename.c_str());
 	}
@@ -229,8 +226,14 @@ public:
 	~CMainFrame()
 	{
 		m_LogViewerDlg.CloseDialog(0);
+		
 		if(m_LogFilename)
 			free(m_LogFilename);
+
+		if (pDarunGrim)
+		{
+			delete pDarunGrim;
+		}
 	}
 
 	LRESULT OnCreate(UINT,WPARAM,LPARAM,BOOL&)
@@ -238,14 +241,12 @@ public:
 		m_State=STATE_NONE;
 
 		m_Zoom=1.0f;
-
-		pOneClientManager=NULL;
-		pSourceClientManager=NULL;
-		pTargetClientManager=NULL;
 		pDiffMachine=NULL;
 		m_RetrieveClientManagersDatabase=FALSE;
 		pDiffListDisplayItemArray = NULL;
 		pMatchedBlocksDisplayItemArray = NULL;
+		
+		pDarunGrim = new DarunGrim();
 
 		//Get ini file path
 		std::string ConfFileName;
@@ -493,60 +494,39 @@ public:
 		}
 	}
 
-	int GraphViewSelectCallback(DWORD address,DWORD index,int offset_x,int offset_y)
+	int GraphViewSelectCallback(DWORD address, DWORD index, int offset_x, int offset_y)
 	{
-		if(index==0)
+		pDarunGrim->ShowAddress(address, index);
+
+		MatchData *pMatchData = pDiffMachine->GetMatchData(index, address);
+
+		if (pMatchData)
 		{
-			if(pSourceClientManager)
+			dprintf("Fingerprint: %x\n", pMatchData->Addresses[index == 1 ? 0 : 1]);
+			dprintf("Fingerprint Match Rate: %3.d%%\n", pMatchData->MatchRate);
+			DWORD Address = pMatchData->Addresses[index == 1 ? 0 : 1];
+
+			pDarunGrim->ShowAddress(Address, index);
+			if (index == 0)
 			{
-				pSourceClientManager->ShowAddress(address);
+				m_rGraphVizView.ShowNode(Address, offset_x, offset_y);
 			}
-		}
-		else
-		{
-			if(pTargetClientManager)
+			else
 			{
-				pTargetClientManager->ShowAddress(address);
-			}
-		}
-		MatchData *pMatchData=pDiffMachine->GetMatchData(index,address);
-		/*
-		dprintf("Fingerprint: %x\n",address);
-		char *hex_str=pSourceClientManager->GetFingerPrintStr(address);
-		if(hex_str)
-		{
-			DumpHex("Fingerprint",(PBYTE)hex_str,0);
-			free(hex_str);
-		}*/
-		if(pMatchData)
-		{
-			dprintf("Fingerprint: %x\n",pMatchData->Addresses[index==1?0:1]);
-			//DumpHex("Fingerprint",(PBYTE)pTargetClientManager->GetFingerPrintStr(pMatchData->Addresses[1]),0);
-			dprintf("Fingerprint Match Rate: %3.d%%\n",pMatchData->MatchRate);
-			DWORD Address=pMatchData->Addresses[index==1?0:1];
-			if(index==0)
-			{
-				if(pTargetClientManager)
-					pTargetClientManager->ShowAddress(Address);
-				m_rGraphVizView.ShowNode(Address,offset_x,offset_y);
-			}else
-			{
-				if(pSourceClientManager)
-					pSourceClientManager->ShowAddress(Address);
-				m_lGraphVizView.ShowNode(Address,offset_x,offset_y);
+				m_lGraphVizView.ShowNode(Address, offset_x, offset_y);
 			}
 		}
 		return 0;
-	}
+	}	
 
-	void DrawOnGraphVizWindow(int index,CGraphVizWindow *pGraphVizWindow,OneIDAClientManager *pOneClientManager,DWORD address)
+	void DrawOnGraphVizWindow(int index,CGraphVizWindow *pGraphVizWindow,IDAController *pIDAController,DWORD address)
 	{
 		CGraphVizProcessor *pGraphVizProcessor=new CGraphVizProcessor();
 		if(address>0)
 		{
 			char name[100];
 			_snprintf(name,sizeof(name),"%X",address);
-			char *disasm_line=pOneClientManager->GetDisasmLines(address,0);
+			char *disasm_line=pIDAController->GetDisasmLines(address,0);
 			
 			char *font_color="black";
 			char *fill_color="white";
@@ -579,7 +559,7 @@ public:
 		)
 		{
 			int addresses_number;
-			DWORD *p_addresses=pOneClientManager->GetMappedAddresses(*address_list_iter,CREF_FROM,&addresses_number);
+			DWORD *p_addresses=pIDAController->GetMappedAddresses(*address_list_iter,CREF_FROM,&addresses_number);
 			if(p_addresses && addresses_number>0)
 			{
 				for(int i=0;i<addresses_number;i++)
@@ -593,7 +573,7 @@ public:
 							checked_addresses.insert(current_address);
 							char name[100];
 							_snprintf(name,sizeof(name),"%X",current_address);
-							char *disasm_line=pOneClientManager->GetDisasmLines(current_address,0);
+							char *disasm_line=pIDAController->GetDisasmLines(current_address,0);
 
 							char *font_color="black";
 							char *fill_color="white";
@@ -668,59 +648,6 @@ public:
 		}
 
 		return 0;
-	}
-
-	typedef struct {
-		IDAClientManager *pOneClientManager;
-		OneIDAClientManager *pSourceClientManager;
-		OneIDAClientManager *pTargetClientManager;
-	} ClientManagers;
-
-	static DWORD WINAPI AcceptIDAClient(LPVOID pParam)
-	{
-		DBWrapper *OutputDB=&(((CMainFrame *)pParam)->m_Database);
-
-		IDAClientManager *pOneClientManager = new IDAClientManager();
-		pOneClientManager->StartIDAListener(DARUNGRIM_PORT);
-
-		if (pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheSource(),((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
-		{
-			((CMainFrame *)pParam)->PostMessage(
-				WM_COMMAND,
-				ID_ACCEPT_COMPLETE, NULL);
-
-			if (pOneClientManager->AcceptIDAClient(((CMainFrame *)pParam)->GetOneClientManagerTheTarget(), ((CMainFrame *)pParam)->RetrieveClientManagersDatabase()))
-			{
-				((CMainFrame *)pParam)->PostMessage(
-					WM_COMMAND,
-					ID_ACCEPT_COMPLETE, NULL);
-			}
-		}
-
-		((CMainFrame *)pParam)->PostMessage(
-			WM_COMMAND,
-			ID_START_ANALYZE_IDA_CLIENT_MANAGERS,NULL);
-		return 0;
-	}
-
-	void SetIDAClientManagers(
-		IDAClientManager *pParamOneClientManager,
-		OneIDAClientManager *pParamOneClientManagerTheSource,
-		OneIDAClientManager *pParamOneClientManagerTheTarget)
-	{
-		pOneClientManager=pParamOneClientManager;
-		pSourceClientManager=pParamOneClientManagerTheSource;
-		pTargetClientManager=pParamOneClientManagerTheTarget;
-	}
-
-	OneIDAClientManager *GetOneClientManagerTheSource()
-	{
-		return pSourceClientManager;
-	}
-
-	OneIDAClientManager *GetOneClientManagerTheTarget()
-	{
-		return pTargetClientManager;
 	}
 
 	bool RetrieveClientManagersDatabase()
@@ -827,9 +754,7 @@ public:
 		m_DiffListView.SetData(pDiffListDisplayItemArray);
 
 		//IDA Interaction
-		pOneClientManager = new IDAClientManager();
-		pOneClientManager->SetMembers(pSourceClientManager,pTargetClientManager,pDiffMachine);
-		pOneClientManager->CreateIDACommandProcessorThread();
+		pDarunGrim->CreateIDACommandProcessorThread();
 	}
 
 	void DisplayMatchedBlocks()
@@ -837,12 +762,15 @@ public:
 		m_MatchedBlocksView.DeleteAllItems();
 		m_TabView.SetActivePage(1);
 
+		IDAController *pSourceClientManager = pDiffMachine->GetSourceController();
+		IDAController *pTargetClientManager = pDiffMachine->GetTargetController();
+
 		FunctionMatchInfo match_info = pDiffMachine->GetFunctionMatchInfo(m_DiffListCurrentID);
 		m_lPane.SetTitle(match_info.TheSourceFunctionName);
 		m_rPane.SetTitle(match_info.TheTargetFunctionName);
 
-		list <BLOCK> source_addresses = pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
-		list <BLOCK> target_addresses = pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
+		list <BLOCK> source_addresses = pDarunGrim->GetSourceAddresses(match_info.TheSourceAddress);
+		list <BLOCK> target_addresses = pDarunGrim->GetTargetAddresses(match_info.TheTargetAddress);
 
 		if (pMatchedBlocksDisplayItemArray)
 		{
@@ -926,7 +854,6 @@ public:
 
 				p_display_item->data = p_match_address_pair;
 				pMatchedBlocksDisplayItemArray->push_back(p_display_item);
-				
 			}
 		}
 
@@ -991,7 +918,7 @@ public:
 		m_MatchedBlocksView.SetData(pMatchedBlocksDisplayItemArray);
 
 		bool draw_graphs = true;
-		if (source_addresses.size() > 400 || target_addresses.size() > 400)
+		if (pMatchedBlocksDisplayItemArray->size() > 200)
 		{
 			if (::MessageBox(m_hWnd, "There are too many nodes to display, do you still want show graphs?", "Information", MB_YESNO) == IDNO)
 			{
@@ -1027,29 +954,10 @@ public:
 				m_rGraphVizView.GetClientRect(&rc);
 				m_rGraphVizView.ShowNode(p_match_address_pair->patched, (rc.right - rc.left) / 2, (rc.bottom - rc.top) / 2);
 
-				if (pSourceClientManager)
-					pSourceClientManager->ShowAddress(p_match_address_pair->original);
-
-				if (pTargetClientManager)
-					pTargetClientManager->ShowAddress(p_match_address_pair->patched);
+				pDarunGrim->ShowAddresses(p_match_address_pair->original, p_match_address_pair->patched);
 			}
 		}
 		return 0;
-	}
-
-
-	int AnalyzeIDAClientManagers(WORD,WORD,HWND,BOOL&)
-	{
-		if(m_RetrieveClientManagersDatabase)
-		{
-			pDiffMachine=new DiffMachine(pSourceClientManager,pTargetClientManager);
-			pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
-			pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
-			pDiffMachine->Analyze();
-			pDiffMachine->Save(m_Database);
-			DisplayDiffResults();
-		}
-		return 1;
 	}
 
 #define ASSOCIATE_SOCKET_COUNT_BASE_FOR_IDA_SYNC 1234
@@ -1065,10 +973,12 @@ public:
 		}else if(AssociateSocketCount==ASSOCIATE_SOCKET_COUNT_BASE_FOR_IDA_SYNC+1)
 		{
 			::MessageBox(m_hWnd,"Patched IDB is opened.\r\nIDA will be synced from now on.","Information",MB_OK);
-			IDAClientManager *pOneClientManager=new IDAClientManager();
-			pOneClientManager->StartIDAListener( DARUNGRIM_PORT );
-			pOneClientManager->SetMembers(pSourceClientManager,pTargetClientManager,pDiffMachine);
-			pOneClientManager->CreateIDACommandProcessorThread();
+
+			/*
+			IDAClientManager *pIDAController=new IDAClientManager();
+			pIDAController->StartIDAListener( DARUNGRIM_PORT );
+			pIDAController->SetMembers(pDiffMachine);
+			pIDAController->CreateIDACommandProcessorThread();*/
 		}
 		AssociateSocketCount++;
 		return 1;
@@ -1099,42 +1009,18 @@ public:
 	DWORD WINAPI GenerateDiffFromFiles()
 	{
 		PrintToLogView("Starting analysis...\r\n");
-		IDAClientManager aIDAClientManager;
-		aIDAClientManager.SetIDAPath( m_IDAPath.c_str() );
-		aIDAClientManager.SetOutputFilename((char *)m_DiffFilename.c_str());
-		if(m_LogFilename)
-			aIDAClientManager.SetLogFilename(m_LogFilename);
 
-		PrintToLogView("Analyzing source file [%s]\r\n",m_SourceFileName.c_str());
-		
-		aIDAClientManager.RunIDAToGenerateDB((char *)m_SourceFileName.c_str(),0,0);
+		pDarunGrim->DiffDatabaseFiles(
+			m_SourceFileName.c_str(), 0,
+			m_TargetFileName.c_str(), 0,
+			m_DiffFilename.c_str());
 
-		PrintToLogView("Analyzing target file [%s]\r\n",m_TargetFileName.c_str());
-		aIDAClientManager.RunIDAToGenerateDB((char *)m_TargetFileName.c_str(),0,0);
-
-		CleanCDFStructures();	
 		SetWindowText(m_DiffFilename.c_str());
-		PrintToLogView("Creating database...\r\n");
-		
-		m_Database.CreateDatabase((char *)m_DiffFilename.c_str());
-		CreateTables(m_Database);
 
-		//Initiate Analysis
-		pDiffMachine=new DiffMachine();
+		pDiffMachine = pDarunGrim->GetDiffMachine();
 		pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
 		pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
-		PrintToLogView("Retrieve signature data...\r\n");
-		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-		pDiffMachine->SetSource(&m_Database, 1);
-		pDiffMachine->SetTarget(&m_Database, 2);
-		pDiffMachine->Load(&m_Database);
-		PrintToLogView("Start analysis...\r\n");
-		pDiffMachine->Analyze();
-		PrintToLogView("Saving results...\r\n");
-		pDiffMachine->Save(m_Database);
 
-		pSourceClientManager=pDiffMachine->GetTheSource();
-		pTargetClientManager=pDiffMachine->GetTheTarget();
 		PrintToLogView("All operations finished...\r\n");
 		PostMessage(
 			WM_COMMAND,
@@ -1175,7 +1061,6 @@ public:
 		CFileDialog IDAConnectionDlgFile(TRUE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"DarunGrim Files (*.dgf)\0*.dgf\0All Files (*.*)\0*.*\0");
 		if(IDAConnectionDlgFile.DoModal()==IDOK)
 		{
-			CleanCDFStructures();
 			OpenDGF(IDAConnectionDlgFile.m_szFileName);
 		}
 		return 0;
@@ -1196,7 +1081,6 @@ public:
 				if(!stricmp(szFilename+strlen(szFilename)-4,".dgf"))
 				{
 					//Open dgf
-					CleanCDFStructures();
 					OpenDGF(szFilename);
 				}
 			}
@@ -1225,16 +1109,9 @@ public:
 
 	LRESULT OnIDAConnections(WORD, WORD, HWND, BOOL&)
 	{
-		if(pSourceClientManager && pTargetClientManager)
+		if (pDarunGrim->GetSourceClientManager())
 		{
-			if(pSourceClientManager && pSourceClientManager->GetOriginalFilePath())
-				IDAConnectionDlg.SetSourceFilename(pSourceClientManager->GetOriginalFilePath());
-
-			if(pTargetClientManager && pTargetClientManager->GetOriginalFilePath())
-				IDAConnectionDlg.SetTargetFilename(pTargetClientManager->GetOriginalFilePath());
-
-			IDAConnectionDlg.SetSourceClientManager(pSourceClientManager);
-			IDAConnectionDlg.SetTargetClientManager(pTargetClientManager);
+			IDAConnectionDlg.SetDarunGrim(pDarunGrim);
 
 			if(IDAConnectionDlg.DoModal()==IDOK)
 			{
@@ -1379,30 +1256,6 @@ public:
 		return 0;
 	}
 
-	void CleanCDFStructures()
-	{
-		if(pSourceClientManager)
-		{
-			delete pSourceClientManager;
-			pSourceClientManager=NULL;
-		}
-		if(pTargetClientManager)
-		{
-			delete pTargetClientManager;
-			pTargetClientManager=NULL;
-		}
-		if(pDiffMachine)
-		{
-			delete pDiffMachine;
-			pDiffMachine=NULL;
-		}
-		if(pDiffMachine)
-		{
-			delete pOneClientManager;
-			pOneClientManager=NULL;
-		}
-	}
-
 	LRESULT OpenDGF(const char *Filename)
 	{
 		dprintf("%s: %s\n",__FUNCTION__,Filename);
@@ -1421,23 +1274,19 @@ public:
 	DWORD WINAPI OpenDGFWorker()
 	{
 		PrintToLogView("Opening %s...\r\n",m_DiffFilename.c_str());
-
 		SetWindowText(m_DiffFilename.c_str());
 
-		pDiffMachine = new DiffMachine();
+		pDarunGrim->Load(m_DiffFilename.c_str());
+
+		pDiffMachine = pDarunGrim->GetDiffMachine();
 		pDiffMachine->ShowFullMatched = OptionsDlg.ShowFullMatched;
 		pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
-		pDiffMachine->Load(m_DiffFilename.c_str());
-
-		pSourceClientManager=pDiffMachine->GetTheSource();
-		pTargetClientManager=pDiffMachine->GetTheTarget();
 
 		PrintToLogView("All operations finished...\r\n");
 
 		PostMessage(
 			WM_COMMAND,
 			ID_SHOW_DIFF_RESULTS,NULL);
-
 		PrintToLogView("Press close button.\r\n");
 
 		return 1;
@@ -1464,7 +1313,7 @@ public:
 					list <BLOCK>::iterator address_iterator;
 
 					list <BLOCK> addresses;
-					addresses=pSourceClientManager->GetFunctionMemberBlocks(match_info.TheSourceAddress);
+					addresses = pDarunGrim->GetSourceAddresses(match_info.TheSourceAddress);
 					for(address_iterator=addresses.begin();
 						address_iterator!=addresses.end();
 						address_iterator++)
@@ -1473,7 +1322,7 @@ public:
 						TheSourceAddresses.insert((*address_iterator).Start);
 					}
 
-					addresses=pTargetClientManager->GetFunctionMemberBlocks(match_info.TheTargetAddress);
+					addresses = pDarunGrim->GetTargetAddresses(match_info.TheTargetAddress);
 					for(address_iterator=addresses.begin();
 						address_iterator!=addresses.end();
 						address_iterator++)

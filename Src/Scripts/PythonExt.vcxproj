@@ -97,8 +97,7 @@ copy $(OutDir)DiffEngine.dll $(SolutionDir)\Src\Scripts</Command>
   <ItemGroup>
     <ClCompile Include="..\DiffEngine\DarunGrim.cpp" />
     <ClCompile Include="..\DiffEngine\DiffMachine.cpp" />
-    <ClCompile Include="..\DiffEngine\IDAClientManager.cpp" />
-    <ClCompile Include="..\DiffEngine\OneIDAClientManager.cpp" />
+    <ClCompile Include="..\DiffEngine\IDAController.cpp" />
     <ClCompile Include="..\DiffEngine\Test.cpp" />
     <ClCompile Include="..\Lib\DataBaseWriter.cpp" />
     <ClCompile Include="..\Lib\Diff.cpp" />
@@ -124,8 +123,7 @@ copy $(OutDir)DiffEngine.dll $(SolutionDir)\Src\Scripts</Command>
     <ClInclude Include="..\DiffEngine\DarunGrim.h" />
     <ClInclude Include="..\DiffEngine\DataStructure.h" />
     <ClInclude Include="..\DiffEngine\DiffMachine.h" />
-    <ClInclude Include="..\DiffEngine\IDAClientManager.h" />
-    <ClInclude Include="..\DiffEngine\OneIDAClientManager.h" />
+    <ClInclude Include="..\DiffEngine\IDAController.h" />
     <ClInclude Include="..\Lib\DataBaseWriter.h" />
     <ClInclude Include="..\Lib\DBWrapper.h" />
     <ClInclude Include="..\Lib\Diff.h" />

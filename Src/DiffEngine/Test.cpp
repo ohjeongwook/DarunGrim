@@ -1,4 +1,3 @@
-#include "IDAClientManager.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
 #include "DataBaseWriter.h"

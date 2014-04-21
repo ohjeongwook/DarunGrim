@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include "IDAClientManager.h"
+#include "DarunGrim.h"
 #include "DiffMachine.h"
 
 #include "dprintf.h"
@@ -100,9 +100,9 @@ public:
 	static DWORD WINAPI AcceptIDAClient(LPVOID pParam)
 	{
 		CIDAConnectionDlg *pThis = (CIDAConnectionDlg *)pParam;
-		IDAClientManager *pIDAClientManager = new IDAClientManager();
-		OneIDAClientManager *pCurrentIDAClientManager = pThis->GetCurrentClientManager();
-		pIDAClientManager->StartIDAListener(DARUNGRIM_PORT);
+		DarunGrim *pDarunGrim = new DarunGrim();
+		IDAController *pCurrentIDAClientManager = pThis->GetCurrentClientManager();
+		pDarunGrim->StartIDAListener(DARUNGRIM_PORT);
 		
 		int message_id = pThis->GetShowTextMessageId();
 
@@ -110,7 +110,7 @@ public:
 			WM_COMMAND,
 			message_id, (LPARAM) _strdup("Listening..."));
 
-		if (pIDAClientManager->AcceptIDAClient(pThis->GetCurrentClientManager(), false))
+		if (pDarunGrim->AcceptIDAClient(pCurrentIDAClientManager, false))
 		{
 			pThis->PostMessage(
 				WM_COMMAND,
@@ -123,9 +123,9 @@ public:
 				ID_ACCEPT_COMPLETE, (LPARAM)_strdup("Connection failed.\n"));
 		}
 
-		pIDAClientManager->StopIDAListener();
+		pDarunGrim->StopIDAListener();
 
-		string input_name = pThis->GetCurrentClientManager()->GetInputName();
+		string input_name = pCurrentIDAClientManager->GetInputName();
 		pThis->PostMessage(
 			WM_COMMAND,
 			message_id, (LPARAM)_strdup(input_name.c_str()));
@@ -193,22 +193,22 @@ public:
 		return 0;
 	}
 
-	void SetSourceFilename(char *Filename)
+	void SetSourceFilename(const char *Filename)
 	{
 		m_SourceFileName = Filename;
 
 	}
 
-	void SetTargetFilename(char *Filename)
+	void SetTargetFilename(const char *Filename)
 	{
 		m_TargetFileName = Filename;
 	}
 
 private:
 	void *Param;
-	OneIDAClientManager *pSourceClientManager;
-	OneIDAClientManager *pTargetClientManager;
-	OneIDAClientManager *pCurrentClientManager;
+	IDAController *pSourceClientManager;
+	IDAController *pTargetClientManager;
+	IDAController *pCurrentClientManager;
 	int ShowTextMessageId;
 public:
 	void SetParentClass(void *param)
@@ -216,17 +216,26 @@ public:
 		Param = param;
 	}
 
-	void SetSourceClientManager(OneIDAClientManager *pNewSourceClientManager)
+	void SetDarunGrim(DarunGrim *pDarunGrim)
+	{
+		SetSourceFilename(pDarunGrim->GetSourceFilename());
+		SetTargetFilename(pDarunGrim->GetTargetFilename());
+
+		SetSourceClientManager(pDarunGrim->GetSourceClientManager());
+		SetTargetClientManager(pDarunGrim->GetTargetClientManager());
+	}
+
+	void SetSourceClientManager(IDAController *pNewSourceClientManager)
 	{
 		pSourceClientManager = pNewSourceClientManager;
 	}
 
-	void SetTargetClientManager(OneIDAClientManager *pNewTargetClientManager)
+	void SetTargetClientManager(IDAController *pNewTargetClientManager)
 	{
 		pTargetClientManager = pNewTargetClientManager;
 	}
 
-	OneIDAClientManager *GetCurrentClientManager()
+	IDAController *GetCurrentClientManager()
 	{
 		return pCurrentClientManager;
 	}
