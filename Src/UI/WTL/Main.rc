@@ -105,7 +105,7 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&Log Viewer",                 ID_VIEW_LOGVIEWER
-        MENUITEM "&Open Binaries With IDA\tCtrl+I", ID_IDA_CONNECTIONS
+        MENUITEM "&Connect to IDA\tCtrl+I", ID_IDA_CONNECTIONS
     END
     POPUP "&Graphs"
     BEGIN
@@ -334,7 +334,7 @@ BEGIN
     ID_ZOOM_IN              "Zoom In the Graphs\nZoom In"
     ID_ZOOM_OUT             "Zoom Out the Graphs\nZoom Out"
     ID_ZOOM_ACTUAL          "Zoom Acutal Size\nZoom Actual"
-    ID_IDA_CONNECTIONS      "Open Binaries with IDA\nOpen"
+    ID_IDA_CONNECTIONS      "Connect to IDA\nOpen"
 END
 
 STRINGTABLE

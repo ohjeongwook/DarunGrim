@@ -48,8 +48,8 @@ extern int GraphVizInterfaceProcessorDebugLevel;
 
 
 int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_x,int offset_y);
-DWORD WINAPI GenerateDiffFromFilesThread(LPVOID pParam);
-DWORD WINAPI OpenDGFWorkerThread(LPVOID pParam);
+DWORD WINAPI DiffDatabaseFilesThread(LPVOID pParam);
+DWORD WINAPI OpenDatabaseThread(LPVOID pParam);
 
 class DiffListSorter
 {
@@ -128,26 +128,23 @@ enum {STATE_NONE,STATE_DGF_CREATED,STATE_DGF_OPENED,STATE_ORIGINAL_ANALYZED,STAT
 class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>, public CMessageFilter
 {
 private:
+	DarunGrim *pDarunGrim;
+	DiffMachine *pDiffMachine;
+
 	std::string m_IDAPath;
 	char *m_LogFilename;
 
 	string m_DiffFilename;
 	string m_SourceFileName;
 	string m_TargetFileName;
-
 	CLogViwerDlg m_LogViewerDlg;
 
-	DBWrapper m_Database;
-	
-	DiffMachine *pDiffMachine;
 	list<DrawingInfo *> *DrawingInfoMap;
 	CCommandBarCtrl m_CmdBar;
 	float m_Zoom;
 	bool m_RetrieveClientManagersDatabase;
 	int AssociateSocketCount;
 	int m_State;
-
-	DarunGrim *pDarunGrim;
 
 public:
 	DECLARE_FRAME_WND_CLASS(NULL,IDR_MAINFRAME)
@@ -220,7 +217,7 @@ public:
 	void SetDatabaseFilename(char *Filename)
 	{
 		m_DiffFilename=Filename;
-		OpenDGF(m_DiffFilename.c_str());
+		OpenDatabase(m_DiffFilename.c_str());
 	}
 
 	~CMainFrame()
@@ -973,12 +970,8 @@ public:
 		}else if(AssociateSocketCount==ASSOCIATE_SOCKET_COUNT_BASE_FOR_IDA_SYNC+1)
 		{
 			::MessageBox(m_hWnd,"Patched IDB is opened.\r\nIDA will be synced from now on.","Information",MB_OK);
-
-			/*
-			IDAClientManager *pIDAController=new IDAClientManager();
-			pIDAController->StartIDAListener( DARUNGRIM_PORT );
-			pIDAController->SetMembers(pDiffMachine);
-			pIDAController->CreateIDACommandProcessorThread();*/
+			pDarunGrim->StartIDAListener( DARUNGRIM_PORT );
+			pDarunGrim->CreateIDACommandProcessorThread();
 		}
 		AssociateSocketCount++;
 		return 1;
@@ -1006,7 +999,7 @@ public:
 		}
 	}
 
-	DWORD WINAPI GenerateDiffFromFiles()
+	DWORD WINAPI DiffDatabaseFiles()
 	{
 		PrintToLogView("Starting analysis...\r\n");
 
@@ -1022,9 +1015,11 @@ public:
 		pDiffMachine->ShowNonMatched = OptionsDlg.ShowNonMatched;
 
 		PrintToLogView("All operations finished...\r\n");
+		
 		PostMessage(
 			WM_COMMAND,
 			ID_SHOW_DIFF_RESULTS,NULL);
+
 		PrintToLogView("Press close button.\r\n");
 
 		return 1;
@@ -1049,7 +1044,7 @@ public:
 			if(m_DiffFilename.length()>0 && m_SourceFileName.length()>0 && m_TargetFileName.length()>0)
 			{
 				DWORD dwThreadId;
-				CreateThread(NULL,0,GenerateDiffFromFilesThread,(PVOID)this,0,&dwThreadId);
+				CreateThread(NULL,0,DiffDatabaseFilesThread,(PVOID)this,0,&dwThreadId);
 				m_LogViewerDlg.ShowWindow(TRUE);
 			}
 		}
@@ -1061,7 +1056,7 @@ public:
 		CFileDialog IDAConnectionDlgFile(TRUE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"DarunGrim Files (*.dgf)\0*.dgf\0All Files (*.*)\0*.*\0");
 		if(IDAConnectionDlgFile.DoModal()==IDOK)
 		{
-			OpenDGF(IDAConnectionDlgFile.m_szFileName);
+			OpenDatabase(IDAConnectionDlgFile.m_szFileName);
 		}
 		return 0;
 	}
@@ -1075,13 +1070,11 @@ public:
 		for(UINT iFileIndex=0;iFileIndex<iFileCount;iFileIndex++)
 		{
 			::DragQueryFile(hDrop,iFileIndex,szFilename,sizeof(szFilename)/sizeof(TCHAR));
-			//::MessageBox(m_hWnd,szFilename,"Information",MB_OK);
 			if(strlen(szFilename)>3)
 			{
 				if(!stricmp(szFilename+strlen(szFilename)-4,".dgf"))
 				{
-					//Open dgf
-					OpenDGF(szFilename);
+					OpenDatabase(szFilename);
 				}
 			}
 		}
@@ -1256,7 +1249,7 @@ public:
 		return 0;
 	}
 
-	LRESULT OpenDGF(const char *Filename)
+	LRESULT OpenDatabase(const char *Filename)
 	{
 		dprintf("%s: %s\n",__FUNCTION__,Filename);
 
@@ -1265,13 +1258,13 @@ public:
 		if(m_DiffFilename.length()>0)
 		{
 			DWORD dwThreadId;
-			CreateThread(NULL,0,OpenDGFWorkerThread,(PVOID)this,0,&dwThreadId);
+			CreateThread(NULL,0,OpenDatabaseThread,(PVOID)this,0,&dwThreadId);
 			m_LogViewerDlg.ShowWindow(TRUE);
 		}
 		return 0;
 	}
 
-	DWORD WINAPI OpenDGFWorker()
+	DWORD WINAPI OpenDatabaseWorker()
 	{
 		PrintToLogView("Opening %s...\r\n",m_DiffFilename.c_str());
 		SetWindowText(m_DiffFilename.c_str());
@@ -1384,17 +1377,17 @@ int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_
 	return 0;
 }
 
-DWORD WINAPI GenerateDiffFromFilesThread(LPVOID pParam)
+DWORD WINAPI DiffDatabaseFilesThread(LPVOID pParam)
 {
 	CMainFrame *pCMainFrame=(CMainFrame *)pParam;
-	pCMainFrame->GenerateDiffFromFiles();
+	pCMainFrame->DiffDatabaseFiles();
 	return 0;
 }
 
-DWORD WINAPI OpenDGFWorkerThread(LPVOID pParam)
+DWORD WINAPI OpenDatabaseThread(LPVOID pParam)
 {
 	CMainFrame *pCMainFrame=(CMainFrame *)pParam;
-	pCMainFrame->OpenDGFWorker();
+	pCMainFrame->OpenDatabaseWorker();
 	return 0;
 }
 
