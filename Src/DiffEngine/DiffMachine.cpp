@@ -2072,6 +2072,19 @@ struct FileList
 	string TargetFilename;
 };
 
+char *GetFilename(char *full_pathname)
+{
+	for (int i = strlen(full_pathname) - 1; i > 0; i--)
+	{
+		if (full_pathname[i] == '\\')
+		{
+			return full_pathname + i + 1;
+		}
+	}
+
+	return full_pathname;
+}
+
 int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
 {
 	FileList *file_list = (FileList *)arg;
@@ -2079,11 +2092,11 @@ int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
 	{
 		if (!stricmp(argv[0], "source"))
 		{
-			file_list->SourceFilename = argv[1];
+			file_list->SourceFilename = GetFilename(argv[1]);
 		}
 		else if (!stricmp(argv[0], "target"))
 		{
-			file_list->TargetFilename = argv[1];
+			file_list->TargetFilename = GetFilename(argv[1]);
 		}
 	}
 	return 0;
