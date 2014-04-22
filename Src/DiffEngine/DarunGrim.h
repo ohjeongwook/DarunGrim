@@ -118,6 +118,8 @@ public:
 		unsigned long start_address_for_source, unsigned long end_address_for_source, 
 		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
+	
+	void ListDiffDatabase(const char *storage_filename);
 	bool DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename);
 
 	bool Load( const char *storage_filename );

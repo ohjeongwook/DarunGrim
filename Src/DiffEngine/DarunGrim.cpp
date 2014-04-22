@@ -208,6 +208,24 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	return TRUE;
 }
 
+
+int ReadFileInfo(void *arg, int argc, char **argv, char **names)
+{
+	for(int i=0;i<argc;i++)
+	{
+		Logger.Log(0,"%s: %s\n",names[i],argv[i]);
+	}
+	Logger.Log(0, "\n");
+	return 0;
+}
+
+
+void DarunGrim::ListDiffDatabase(const char *storage_filename)
+{
+	DBWrapper *pStorageDB = new DBWrapper((char *)storage_filename);
+	pStorageDB->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
+}
+
 bool DarunGrim::DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
 {
 	Logger.Log(10, "%s: entry (%s)\n", __FUNCTION__, output_storage_filename);
