@@ -19,10 +19,6 @@ class Differ:
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
 
-	def LoadDiffResults( self, storage_filename ):
-		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
-		self.DarunGrim.LoadDiffResults( storage_filename )
-
 	def DiffFile( self, storage_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
@@ -63,15 +59,3 @@ if __name__ == '__main__':
 	darun_grim.SetLogParameters(LogToStdout, 100, "");  
 	darun_grim.DiffDatabaseFiles(src_filename, options.source_address, target_filename, options.target_address, result_filename)
 
-	"""
-	LogFilename = 'test.log'
-
-	IDAPath = r'C:\Program Files (x86)\IDA\idag.exe'
-	DiffFile( TheSourceFilename, TheTargetFilename, StorageFilename, LogFilename, IDAPath )
-	ida_client_manager = DiffEngine.IDAClientManager()
-	ida_client_manager.StartIDAListener( 1216 )
-
-	storage_filename = os.path.join( os.getcwd(), str('test2.dgf') )
-	darun_grim.AcceptIDAClientsFromSocket( storage_filename )
-	raw_input( 'Press any key to continue...' )
-	"""
