@@ -115,7 +115,7 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About DarunGrim2...",        ID_APP_ABOUT
+        MENUITEM "&About DarunGrim4...",        ID_APP_ABOUT
     END
 END
 
@@ -140,7 +140,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMEN
 CAPTION "About"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    CTEXT           "DarunGrim2 v4\n(c)Copyright 2014\nSpecial thanks to Chen Chen and Boungyoung Lee.",IDC_STATIC,7,7,179,27,0,WS_EX_TRANSPARENT
+    CTEXT           "DarunGrim4\n(c)Copyright 2014\nSpecial thanks to Chen Chen and Boungyoung Lee.",IDC_STATIC,7,7,179,27,0,WS_EX_TRANSPARENT
     DEFPUSHBUTTON   "Close",IDOK,69,50,50,14,BS_CENTER | BS_VCENTER
 END
 
@@ -309,7 +309,7 @@ BEGIN
             VALUE "FileVersion", "2, 5, 0, 0"
             VALUE "InternalName", "DarunGrim"
             VALUE "LegalCopyright", "Copyright 2009"
-            VALUE "OriginalFilename", "DarunGrim2.exe"
+            VALUE "OriginalFilename", "DarunGrim.exe"
             VALUE "ProductName", "DarunGrim"
             VALUE "ProductVersion", "2, 0, 2, 0"
         END
@@ -328,7 +328,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "DarunGrim2"
+    IDR_MAINFRAME           "DarunGrim 4"
     IDR_MDICHILD            "Document"
     ID_FILE_EXPORT          "Export Selections to a file\nExport Selections"
     ID_ZOOM_IN              "Zoom In the Graphs\nZoom In"

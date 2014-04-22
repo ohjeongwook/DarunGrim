@@ -247,7 +247,7 @@ public:
 
 		//Get ini file path
 		std::string ConfFileName;
-		char *InstallDir = GetRegValueString( "HKEY_LOCAL_MACHINE\\SOFTWARE\\DarunGrim2", "Install_Dir" );
+		char *InstallDir = GetRegValueString( "HKEY_LOCAL_MACHINE\\SOFTWARE\\DarunGrim4", "Install_Dir" );
 		if( InstallDir )
 		{
 			ConfFileName = InstallDir;
@@ -983,8 +983,8 @@ public:
 		char *IDCFilename=WriteToTemporaryFile("static main()\n\
 			{\n\
 				Wait();\n\
-				RunPlugin(\"DarunGrim2\",1);\n\
-				ConnectToDarunGrim2();\n\
+				RunPlugin(\"DarunGrimPlugin\",1);\n\
+				ConnectToDarunGrim();\n\
 			}");
 		if(IDCFilename)
 		{
