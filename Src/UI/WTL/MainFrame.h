@@ -708,12 +708,12 @@ public:
 
 				char tmp[20];
 
-				p_display_item->Items[0] = match_info.TheSourceFunctionName;
+				p_display_item->Items[0] = match_info.TheSourceFunctionName ? match_info.TheSourceFunctionName:"";
 
 				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheSource);
 				p_display_item->Items[1] = tmp;
 
-				p_display_item->Items[2] = match_info.TheTargetFunctionName;
+				p_display_item->Items[2] = match_info.TheTargetFunctionName ? match_info.TheTargetFunctionName:"";
 				
 				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheSource);
 				p_display_item->Items[3] = tmp;
