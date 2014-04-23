@@ -1894,13 +1894,15 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 
 	OutputDB.BeginTransaction();
 
-	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName, SourceID, SourceFunctionAddress);
-	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName, TargetID, TargetFunctionAddress);
+	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
+	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
 
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
 
 	Logger.Log( 10,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
-	if( DebugLevel&1 ) Logger.Log( 10,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
+	if( DebugLevel&1 ) 
+		Logger.Log( 10,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
+
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
 		match_map_iter++ )
@@ -1913,9 +1915,7 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 		{
 			continue;
 		}
-		//INSERT
-		//match_map_iter->first
-		//match_map_iter->second
+
 		OutputDB.ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
 			SourceController->GetFileID(), 
 			TargetController->GetFileID(), 
@@ -1976,45 +1976,7 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 			);
 			
 	}
-#ifdef SAVE_UNINDENTIFIED_BLOCKS_TO_DB
-	OutputDB.ExecuteStatement( NULL, NULL, CREATE_UNIDENTIFIED_BLOCKS_TABLE_STATEMENT );
-	
-	//Save Unidentified blocks
-	hash_set <DWORD>::iterator unidentified_iter;
-	for( unidentified_iter = SourceControllerUnidentifedBlockHash.begin();unidentified_iter != SourceControllerUnidentifedBlockHash.end();unidentified_iter++ )
-	{
-		if( 
-			pTheSourceSelectedAddresses &&
-			pTheSourceSelectedAddresses->find( *unidentified_iter )==
-			pTheSourceSelectedAddresses->end()
-		 )
-		{
-			continue;
-		}
-		//INSERT
-		OutputDB.ExecuteStatement( NULL, NULL, INSERT_UNIDENTIFIED_BLOCKS_TABLE_STATEMENT, 
-			TYPE_BEFORE_UNIDENTIFIED_BLOCK, 
-			*unidentified_iter
-			 );
 
-	}
-	for( unidentified_iter = TargetControllerUnidentifedBlockHash.begin();unidentified_iter != TargetControllerUnidentifedBlockHash.end();unidentified_iter++ )
-	{
-		if( 
-			pTheTargetSelectedAddresses &&
-			pTheTargetSelectedAddresses->find( *unidentified_iter )==
-			pTheTargetSelectedAddresses->end()
-		 )
-		{
-			continue;
-		}
-		//INSERT
-		OutputDB.ExecuteStatement( NULL, NULL, INSERT_UNIDENTIFIED_BLOCKS_TABLE_STATEMENT, 
-			TYPE_AFTER_UNIDENTIFIED_BLOCK, 
-			*unidentified_iter
-			 );
-	}
-#endif
 	OutputDB.EndTransaction();
 	return TRUE;
 }
