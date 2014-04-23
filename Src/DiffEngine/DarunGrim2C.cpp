@@ -37,6 +37,7 @@ void main(int argc,char *argv[])
 	int SourceFileID;
 	int TargetFileID;
 
+#ifdef DEBUG_MEMORY
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
@@ -45,6 +46,7 @@ void main(int argc,char *argv[])
 	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+#endif
 
 	while((c=getopt(argc,argv,optstring,&optind,&optarg))!=EOF)
 	{
@@ -68,12 +70,10 @@ void main(int argc,char *argv[])
 
 			case 's':
 				SourceFunctionAddress = strtoul(optarg, NULL, 16);
-				printf("SourceFunctionAddress: %x\n", SourceFunctionAddress);
 				break;
 
 			case 't':
 				TargetFunctionAddress = strtoul(optarg, NULL, 16);
-				printf("TargetFunctionAddress: %x\n", TargetFunctionAddress);
 				break;
 
 			case 'I':
@@ -148,9 +148,8 @@ void main(int argc,char *argv[])
 	else
 	{
 		pDarunGrim->AcceptIDAClientsFromSocket();
+		pDarunGrim->Analyze();
 	}
-
-	pDarunGrim->Analyze();
 
 
 	if(UseIDASync)
@@ -158,5 +157,7 @@ void main(int argc,char *argv[])
 		pDarunGrim->ShowOnIDA();
 	}
 
+#ifdef DEBUG_MEMORY
 	_CrtDumpMemoryLeaks();
+#endif
 }
