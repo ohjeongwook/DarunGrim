@@ -52,7 +52,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;SWIG_PYTHON_INTERPRETER_NO_DEBUG;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Python27\include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Lib\idasdk65\include</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -65,6 +65,11 @@
       <Command>$(SolutionDir)\Lib\swigwin-3.0.0\swig.exe -c++ -python $(SolutionDir)\Src\Scripts\DiffEngine.i 
 </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)_DiffEngine.pyd $(SolutionDir)\Src\Scripts
+copy $(OutDir)DiffEngine.dll $(SolutionDir)\Src\Scripts
+copy $(SolutionDir)\Src\Scripts\*.py $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -88,7 +93,8 @@
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)_DiffEngine.pyd $(SolutionDir)\Src\Scripts
-copy $(OutDir)DiffEngine.dll $(SolutionDir)\Src\Scripts</Command>
+copy $(OutDir)DiffEngine.dll $(SolutionDir)\Src\Scripts
+copy $(SolutionDir)\Src\Scripts\*.py $(OutDir)</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>$(SolutionDir)\Lib\swigwin-3.0.0\swig.exe -c++ -python $(SolutionDir)\Src\Scripts\DiffEngine.i </Command>
