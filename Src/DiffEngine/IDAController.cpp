@@ -226,7 +226,6 @@ DWORD *IDAController::GetMappedAddresses(DWORD address, int type, int *p_length)
 
 list <DWORD> *IDAController::GetFunctionAddresses()
 {
-	printf("TargetFunctionAddress: %x", TargetFunctionAddress);
 	if (TargetFunctionAddress != 0)
 	{
 		list <DWORD> *FunctionAddresses = new list<DWORD>;
