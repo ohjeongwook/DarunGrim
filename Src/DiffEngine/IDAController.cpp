@@ -35,8 +35,6 @@ IDAController::IDAController(DBWrapper *storage_db):
 {
 	ClientAnalysisInfo = new AnalysisInfo;
 	m_StorageDB = storage_db;
-
-	Logger.Log(10, "IDAController: m_StorageDB: %p", m_StorageDB);
 }
 
 IDAController::~IDAController()
@@ -512,6 +510,7 @@ BOOL IDAController::LoadOneLocationInfo()
 			"SELECT StartAddress, Fingerprint, Name, BlockType FROM OneLocationInfo WHERE FileID = %u %s",
 			m_FileID,
 			FunctionAddressConditionBuffer);
+
 		GenerateFingerprintHashMap();
 	}
 	return TRUE;
@@ -547,7 +546,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 
 BOOL IDAController::Load()
 {
-	Logger.Log(10, "Load: %s\n", m_StorageDB->GetDatabaseName());
+	Logger.Log(10, "%s: %s\n", __FUNCTION__, m_StorageDB->GetDatabaseName());
 
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
@@ -571,7 +570,7 @@ void IDAController::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD Funct
 
 void IDAController::AddAnalysisTargetFunction( DWORD FunctionAddress )
 {
-	Logger.Log(10, "AddAnalysisTargetFunction: %x\n", FunctionAddress);
+	Logger.Log(10, "Add Analysis Target Function: %x\n", FunctionAddress);
 	TargetFunctionAddress = FunctionAddress;
 }
 

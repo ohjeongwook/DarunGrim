@@ -67,11 +67,13 @@ void main(int argc,char *argv[])
 				break;
 
 			case 's':
-				SourceFunctionAddress = strtoul10(optarg);
+				SourceFunctionAddress = strtoul(optarg, NULL, 16);
+				printf("SourceFunctionAddress: %x\n", SourceFunctionAddress);
 				break;
 
 			case 't':
-				TargetFunctionAddress = strtoul10(optarg);
+				TargetFunctionAddress = strtoul(optarg, NULL, 16);
+				printf("TargetFunctionAddress: %x\n", TargetFunctionAddress);
 				break;
 
 			case 'I':
@@ -128,7 +130,7 @@ void main(int argc,char *argv[])
 	if (IDAPath)
 		pDarunGrim->SetIDAPath(IDAPath);
 
-	pDarunGrim->SetLogParameters(LogToStdout, 100, "");
+	//pDarunGrim->SetLogParameters(LogToStdout, 100, "");
 
 	char *DiffDatabaseFilename=argv[optind];
 	

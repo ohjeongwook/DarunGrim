@@ -202,6 +202,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	{
 		Analyze();
 	}
+
 	CreateIDACommandProcessorThread();
 	StopIDAListener();
 
@@ -228,10 +229,14 @@ void DarunGrim::ListDiffDatabase(const char *storage_filename)
 
 bool DarunGrim::DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
 {
-	Logger.Log(10, "%s: entry (%s)\n", __FUNCTION__, output_storage_filename);
+	Logger.Log(10, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
+
+	Logger.Log(10, "	source_address: %x\n", source_address);
+	Logger.Log(10, "	target_address: %x\n", target_address);
 
 	pDiffMachine->SetSource((char *)src_storage_filename, 1, source_address);
 	pDiffMachine->SetTarget((char *)target_storage_filename, 1, target_address);
+
 	pDiffMachine->SetLoadIDAController(true);
 	pDiffMachine->Load((char *)output_storage_filename);
 	pSourceController = pDiffMachine->GetSourceController();
