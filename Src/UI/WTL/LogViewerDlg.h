@@ -109,5 +109,10 @@ public:
 		}
 		return 1;
 	}
+
+	void Clear()
+	{
+		m_EditLog.Clear();
+	}
 };
 
