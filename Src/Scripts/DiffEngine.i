@@ -29,9 +29,7 @@ public:
 	AnalysisInfo *GetClientAnalysisInfo();
 	FileInfo *GetClientFileInfo();
 	void DumpAnalysisInfo();
-	//void GetName(unsigned long address,char *buffer,int len);
 	void DumpBlockInfo(unsigned long block_address);
-	//const char *GetFingerPrint(unsigned long address);
 	void RemoveFromFingerprintHash(unsigned long address);
 	unsigned long GetBlockAddress(unsigned long address);
 	unsigned long *GetMappedAddresses(unsigned long address,int type,int *OUTPUT);
@@ -44,25 +42,11 @@ class DiffMachine
 {
 public:
 	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
-	/*
-	void DumpMatchMapIterInfo(multimap <unsigned long, MappingData>::iterator match_map_iter);
-	void GetMatchStatistics(
-		unsigned long address,
-		IDAController *ClientManager,
-		multimap <unsigned long,MappingData> *p_match_map,
-		int *p_found_match_number,
-		int *p_found_match_with_difference_number,
-		int *p_not_found_match_number);
-	int GetMatchRate(unsigned long unpatched_address,unsigned long patched_address);
-	void DoFingerPrintMatch(multimap <unsigned long,MappingData> *p_match_map);
-	*/
 	void ShowDiffMap(unsigned long unpatched_address,unsigned long patched_address);
 	void PrintMatchMapInfo();
 	bool Analyze();
 	void AnalyzeFunctionSanity();
 	unsigned long GetMatchAddr(int index,unsigned long address);
-	//int GetMatchInfoCount();
-	//MatchInfo GetMatchInfo(int i);
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
