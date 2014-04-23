@@ -96,8 +96,7 @@ BEGIN
     BEGIN
         MENUITEM "&New Diffing\tCtrl+N", ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
-        MENUITEM "&Export Selections\tCtrl+E",  ID_FILE_EXPORT
+        MENUITEM "&Show Breakpoints\tCtrl+E",  ID_SHOW_BREAKPOINTS
         MENUITEM "Options",                     ID_OPTIONS
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
@@ -330,7 +329,7 @@ STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "DarunGrim 4"
     IDR_MDICHILD            "Document"
-    ID_FILE_EXPORT          "Export Selections to a file\nExport Selections"
+	ID_SHOW_BREAKPOINTS     "Show Breakpoints\nShow Breakpoints"
     ID_ZOOM_IN              "Zoom In the Graphs\nZoom In"
     ID_ZOOM_OUT             "Zoom Out the Graphs\nZoom Out"
     ID_ZOOM_ACTUAL          "Zoom Acutal Size\nZoom Actual"

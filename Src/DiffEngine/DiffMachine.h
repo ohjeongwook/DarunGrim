@@ -86,6 +86,16 @@ typedef struct _AnalysisResult_ {
 
 #define DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING 1
 
+class BREAKPOINTS
+{
+public:
+	hash_set<DWORD> SourceFunctionMap;
+	hash_set<DWORD> SourceAddressMap;
+
+	hash_set<DWORD> TargetFunctionMap;
+	hash_set<DWORD> TargetAddressMap;
+};
+
 class DiffMachine
 {
 private:
@@ -129,12 +139,12 @@ public:
 
 	void SetSource(IDAController *NewSource)
 	{
-		TheSource = NewSource;
+		SourceController = NewSource;
 	}
 
 	void SetTarget(IDAController *NewTarget)
 	{
-		TheTarget = NewTarget;
+		TargetController = NewTarget;
 	}
 
 	IDAController *GetSourceController();
@@ -213,43 +223,43 @@ private:
 	DBWrapper *m_SourceDB;
 	DBWrapper *m_TargetDB;
 
-	IDAController *TheSource;
-	IDAController *TheTarget;
+	IDAController *SourceController;
+	IDAController *TargetController;
 	AnalysisResult *DiffResults;
 
 	BOOL _Load();
 
 public:
 
-	void DiffMachine::SetSource(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
+	void SetSource(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
 	{
 		SourceDBName = db_filename;
 		SourceID = id;
 		SourceFunctionAddress = function_address;
 	}
 
-	void DiffMachine::SetTarget(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
+	void SetTarget(const char *db_filename, DWORD id = 1, DWORD function_address = 0)
 	{
 		TargetDBName = db_filename;
 		TargetID = id;
 		TargetFunctionAddress = function_address;
 	}
 
-	void DiffMachine::SetSource(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	void SetSource(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_SourceDB = db;
 		SourceID = id;
 		SourceFunctionAddress = function_address;
 	}
 
-	void DiffMachine::SetTarget(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	void SetTarget(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_TargetDB = db;
 		TargetID = id;
 		TargetFunctionAddress = function_address;
 	}
 
-	void DiffMachine::SetTargetFunctions(DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress)
+	void SetTargetFunctions(DWORD ParamSourceFunctionAddress, DWORD ParamTargetFunctionAddress)
 	{
 		SourceFunctionAddress = ParamSourceFunctionAddress;
 		TargetFunctionAddress = ParamTargetFunctionAddress;
@@ -261,5 +271,8 @@ public:
 
 	bool ShowFullMatched;
 	bool ShowNonMatched;
+
+
+	BREAKPOINTS ShowUnidentifiedAndModifiedBlocks();
 };
 

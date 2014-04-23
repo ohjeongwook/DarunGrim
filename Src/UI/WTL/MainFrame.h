@@ -171,12 +171,11 @@ public:
 		COMMAND_ID_HANDLER(ID_FILE_OPEN,OnFileOpen)
 		COMMAND_ID_HANDLER(ID_IDA_CONNECTIONS, OnIDAConnections)
 		COMMAND_ID_HANDLER(ID_OPTIONS, OnOptions)
-		COMMAND_ID_HANDLER(ID_FILE_SAVE,OnFileSave)
+		COMMAND_ID_HANDLER(ID_SHOW_BREAKPOINTS, OnShowBreakpoints)
 		COMMAND_ID_HANDLER(ID_VIEW_LOGVIEWER,OnViewLogViewer)	
 		COMMAND_ID_HANDLER(ID_ZOOM_IN,OnZoomIn)
 		COMMAND_ID_HANDLER(ID_ZOOM_OUT,OnZoomOut)
 		COMMAND_ID_HANDLER(ID_ZOOM_ACTUAL,OnZoomActual)
-		COMMAND_ID_HANDLER(ID_FILE_EXPORT,OnExportSelections)
 		COMMAND_ID_HANDLER(ID_ACCEPT_COMPLETE, AssociateSocketComplete)
 		COMMAND_ID_HANDLER(ID_SHOW_DIFF_RESULTS,ShowDiffResults)
 		
@@ -673,7 +672,7 @@ public:
 		{
 			LPNMLISTVIEW lpn = (LPNMLISTVIEW)pnmh;
 			m_MatchedBlocksSorter.SortChange(lpn->iSubItem);
-			DisplayMatchedBlocks();
+			DisplayMatchedBlocks(false);
 		}
 		return 0;
 	}
@@ -682,7 +681,7 @@ public:
 	{
 		int MatchCount=pDiffMachine->GetFunctionMatchInfoCount();
 
-		PrintToLogView("MatchCount: [%d]\r\n", MatchCount);
+		PrintToLogView("Functions displayed: [%d]\r\n", MatchCount);
 
 		if (pDiffListDisplayItemArray)
 		{
@@ -725,18 +724,13 @@ public:
 				_snprintf(tmp, sizeof(tmp), "%10d", match_info.MatchCountForTheSource);
 				p_display_item->Items[5] = tmp;
 
-				float match_rate = 0.0;
-				int all_blocks = match_info.MatchCountForTheSource * 2 + match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource * 2;
-				if (all_blocks>0)
-					match_rate = (all_blocks - (match_info.NoneMatchCountForTheSource + match_info.NoneMatchCountForTheTarget + match_info.MatchCountWithModificationForTheSource)) * 100 / all_blocks;
-
-				if (match_rate == 0)
+				if (match_info.MatchRate == 0)
 				{
 					_snprintf(tmp, sizeof(tmp), "  0%%");
 				}
 				else
 				{
-					_snprintf(tmp, sizeof(tmp), "%3.d%%", (int)match_rate);
+					_snprintf(tmp, sizeof(tmp), "%3.d%%", (int)match_info.MatchRate);
 				}
 				p_display_item->Items[6] = tmp;
 
@@ -749,12 +743,9 @@ public:
 		m_DiffListView.DeleteAllItems();
 		m_DiffListView.SetItemCount(MatchCount);
 		m_DiffListView.SetData(pDiffListDisplayItemArray);
-
-		//IDA Interaction
-		pDarunGrim->CreateIDACommandProcessorThread();
 	}
 
-	void DisplayMatchedBlocks()
+	void DisplayMatchedBlocks(bool DisplayNewFunction = false)
 	{
 		m_MatchedBlocksView.DeleteAllItems();
 		m_TabView.SetActivePage(1);
@@ -787,7 +778,7 @@ public:
 		list <BLOCK>::iterator iter;
 		for (iter = source_addresses.begin(); iter != source_addresses.end(); iter++)
 		{
-			if ((*iter).Start>0)
+			if ((*iter).Start > 0)
 			{
 				VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
 
@@ -806,7 +797,7 @@ public:
 					free(fingerprint);
 				}
 
-				MatchAddressPair *p_match_address_pair= new MatchAddressPair();
+				MatchAddressPair *p_match_address_pair = new MatchAddressPair();
 				p_match_address_pair->original = (*iter).Start;
 				p_match_address_pair->patched = 0;
 				MatchData *pMatchData = pDiffMachine->GetMatchData(0, (*iter).Start);
@@ -819,7 +810,7 @@ public:
 					_snprintf(tmp, sizeof(tmp), "%3.d%%", pMatchData->MatchRate);
 					p_display_item->Items[2] = tmp;
 
-					if (pMatchData->MatchRate!=100)
+					if (pMatchData->MatchRate != 100)
 					{
 						//Modified
 						pSourceClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
@@ -914,19 +905,22 @@ public:
 		m_MatchedBlocksView.SetItemCount(pMatchedBlocksDisplayItemArray->size());
 		m_MatchedBlocksView.SetData(pMatchedBlocksDisplayItemArray);
 
-		bool draw_graphs = true;
-		if (pMatchedBlocksDisplayItemArray->size() > 200)
+		if (DisplayNewFunction)
 		{
-			if (::MessageBox(m_hWnd, "There are too many nodes to display, do you still want show graphs?", "Information", MB_YESNO) == IDNO)
+			bool draw_graphs = true;
+			if (pMatchedBlocksDisplayItemArray->size() > 200)
 			{
-				draw_graphs = false;
+				if (::MessageBox(m_hWnd, "There are too many nodes to display, do you still want show graphs?", "Information", MB_YESNO) == IDNO)
+				{
+					draw_graphs = false;
+				}
 			}
-		}
 
-		if (draw_graphs)
-		{
-			DrawOnGraphVizWindow(0, &m_lGraphVizView, pSourceClientManager, match_info.TheSourceAddress);
-			DrawOnGraphVizWindow(1, &m_rGraphVizView, pTargetClientManager, match_info.TheTargetAddress);
+			if (draw_graphs)
+			{
+				DrawOnGraphVizWindow(0, &m_lGraphVizView, pSourceClientManager, match_info.TheSourceAddress);
+				DrawOnGraphVizWindow(1, &m_rGraphVizView, pTargetClientManager, match_info.TheTargetAddress);
+			}
 		}
 	}
 
@@ -936,7 +930,7 @@ public:
 		if (m_DiffListView.GetDlgCtrlID() == idCtrl)
 		{
 			m_DiffListCurrentID = m_DiffListView.GetID(pnmia->iItem);
-			DisplayMatchedBlocks();
+			DisplayMatchedBlocks(true);
 		}
 		else if (m_MatchedBlocksView.GetDlgCtrlID() == idCtrl)
 		{
@@ -1223,29 +1217,87 @@ public:
 		return 0;
 	}
 
-	LRESULT OnFileSave(WORD,WORD,HWND,BOOL&)
+	void WriteToFile(HANDLE hFile, const char *format, ...)
 	{
-		CFileDialog IDAConnectionDlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
-		if(IDAConnectionDlgFile.DoModal()==IDOK)
+		va_list args;
+		va_start(args, format);
+		char Contents[1024] = { 0, };
+		_vsnprintf(Contents, sizeof(Contents) / sizeof(char), format, args);
+		va_end(args);
+
+		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			SaveCDFile(IDAConnectionDlgFile.m_szFileName);
+
+			DWORD dwBytesWritten;
+			BOOL fSuccess = WriteFile(hFile,
+				Contents,
+				strlen(Contents),
+				&dwBytesWritten,
+				NULL);
+			if (!fSuccess)
+			{
+				printf("WriteFile failed with error %u.\n", GetLastError());
+			}
 		}
+	}
+
+	LRESULT OnShowBreakpoints(WORD, WORD, HWND, BOOL&)
+	{
+		PrintToLogView("Retrieving breakpoints...\r\n");
+
+		BREAKPOINTS breakpoints = pDiffMachine->ShowUnidentifiedAndModifiedBlocks();
+
+		CFileDialog dlgBreakPointFile(FALSE, "txt", NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "*.txt");
+		if (dlgBreakPointFile.DoModal() == IDOK)
+		{
+			PrintToLogView("Opening %s...\r\n", dlgBreakPointFile.m_szFileName);
+
+			HANDLE hFile = CreateFile((LPTSTR)dlgBreakPointFile.m_szFileName,// file name 
+				GENERIC_READ | GENERIC_WRITE,// open r-w 
+				FILE_SHARE_READ,
+				NULL,				// default security 
+				OPEN_ALWAYS,		// overwrite existing
+				FILE_ATTRIBUTE_NORMAL,// normal file 
+				NULL);				// no template 
+			if (hFile != INVALID_HANDLE_VALUE)
+			{
+				WriteToFile(hFile, "\r\n* Source Binary Breakpoints:\r\n");
+				for (hash_set<DWORD>::iterator iter = breakpoints.SourceFunctionMap.begin(); iter != breakpoints.SourceFunctionMap.end(); iter++)
+				{
+					WriteToFile(hFile, "bp %x \".echo FUNCTION: %x;gc\"\r\n", *iter, *iter);
+				}
+
+				for (hash_set<DWORD>::iterator iter = breakpoints.SourceAddressMap.begin(); iter != breakpoints.SourceAddressMap.end(); iter++)
+				{
+					WriteToFile(hFile, "bp %x \".echo '    %x';gc\"\r\n", *iter, *iter);
+				}
+
+				WriteToFile(hFile, "\r\n* Target Binary Breakpoints:\r\n");
+				for (hash_set<DWORD>::iterator iter = breakpoints.TargetFunctionMap.begin(); iter != breakpoints.TargetFunctionMap.end(); iter++)
+				{
+					WriteToFile(hFile, "bp %x \".echo FUNCTION: %x;gc\"\r\n", *iter, *iter);
+				}
+
+				for (hash_set<DWORD>::iterator iter = breakpoints.TargetAddressMap.begin(); iter != breakpoints.TargetAddressMap.end(); iter++)
+				{
+					WriteToFile(hFile, "bp %x \".echo '    %x';gc\"\r\n", *iter, *iter);
+				}
+
+				CloseHandle(hFile);
+
+				PrintToLogView("Breakpoints saved.\r\n");
+			}
+		}
+		m_LogViewerDlg.ShowWindow(TRUE);
+
+		PrintToLogView("Press close button.\r\n");
+
 		return 0;
 	}
 
 	LRESULT OnViewLogViewer(WORD,WORD,HWND,BOOL&)
 	{
 		m_LogViewerDlg.ShowWindow(TRUE);
-		return 0;
-	}
-
-	LRESULT OnExportSelections(WORD,WORD,HWND,BOOL&)
-	{
-		CFileDialog IDAConnectionDlgFile(FALSE,"dgf",NULL,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,"*.dgf");
-		if(IDAConnectionDlgFile.DoModal()==IDOK)
-		{
-			SaveCDFile(IDAConnectionDlgFile.m_szFileName,TRUE);
-		}
 		return 0;
 	}
 
@@ -1283,52 +1335,6 @@ public:
 		PrintToLogView("Press close button.\r\n");
 
 		return 1;
-	}
-
-	LRESULT SaveCDFile(char *filename,bool bSelectedOnly=FALSE)
-	{
-		hash_set <DWORD> *pTheSourceAddresses=NULL;
-		hash_set <DWORD> *pTheTargetAddresses=NULL;
-		hash_set <DWORD> TheSourceAddresses;
-		hash_set <DWORD> TheTargetAddresses;
-		if(bSelectedOnly)
-		{
-			pTheSourceAddresses=&TheSourceAddresses;
-			pTheTargetAddresses=&TheTargetAddresses;
-			//List selected items
-			for(int i=0;i<m_DiffListView.GetItemCount();i++)
-			{
-				if(m_DiffListView.GetCheckState(i))
-				{
-					//match infos indexes that is selected
-					//Code block addresses for the_source/the_target
-					FunctionMatchInfo match_info=pDiffMachine->GetFunctionMatchInfo((int)m_DiffListView.GetItemData(i));
-					list <BLOCK>::iterator address_iterator;
-
-					list <BLOCK> addresses;
-					addresses = pDarunGrim->GetSourceAddresses(match_info.TheSourceAddress);
-					for(address_iterator=addresses.begin();
-						address_iterator!=addresses.end();
-						address_iterator++)
-					{
-						dprintf("TheSource Address: %x\n",(*address_iterator).Start);
-						TheSourceAddresses.insert((*address_iterator).Start);
-					}
-
-					addresses = pDarunGrim->GetTargetAddresses(match_info.TheTargetAddress);
-					for(address_iterator=addresses.begin();
-						address_iterator!=addresses.end();
-						address_iterator++)
-					{
-						dprintf("TheTarget Address: %x\n", (*address_iterator).Start);
-						TheTargetAddresses.insert((*address_iterator).Start);
-					}
-				}
-			}
-		}
-
-		pDiffMachine->Save(filename,DiffMachineFileSQLiteFormat,0L,FILE_END,pTheSourceAddresses,pTheTargetAddresses);
-		return 0;
 	}
 
 	LRESULT OnFileExit(WORD,WORD,HWND,BOOL&)

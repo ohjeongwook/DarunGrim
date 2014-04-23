@@ -8,7 +8,7 @@
 #define IDD_OPTIONS                     101
 #define IDR_MAINFRAME                   128
 #define IDR_MDICHILD                    129
-#define ID_FILE_EXPORT                  130
+#define ID_SHOW_BREAKPOINTS                  130
 #define ID_ZOOM_IN                      132
 #define ID_ZOOM_OUT                     133
 #define ID_ZOOM_ACTUAL                  134
