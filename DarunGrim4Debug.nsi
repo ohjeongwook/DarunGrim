@@ -90,6 +90,9 @@ Section "" ;No components page, name is not important
   File Src\Scripts\DiffEngine.py
   File Src\Scripts\SecurityImplications.py
 
+  SetOutPath $INSTDIR\x64
+  File x64\Debug-x64\DarunGrimC.exe
+
   ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.5_is1' "Inno Setup: App Path"
   StrCmp $0 "" 0 read_ida_path
   ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.4_is1' "Inno Setup: App Path"
