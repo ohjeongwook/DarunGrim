@@ -715,7 +715,7 @@ public:
 
 				p_display_item->Items[2] = match_info.TheTargetFunctionName ? match_info.TheTargetFunctionName:"";
 				
-				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheSource);
+				_snprintf(tmp, sizeof(tmp), "%10d", match_info.NoneMatchCountForTheTarget);
 				p_display_item->Items[3] = tmp;
 
 				_snprintf(tmp, sizeof(tmp), "%10d", match_info.MatchCountWithModificationForTheSource);
