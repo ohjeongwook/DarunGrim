@@ -538,8 +538,8 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
 			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 			"WHERE FileID = %u "
-			"AND SrcBlock ='%d'",
-			m_FileID, Address);
+			"AND ( SrcBlock IN ( SELECT StartAddress FROM OneLocationInfo WHERE FunctionAddress='%d' OR StartAddress = '%d' ) )",
+			m_FileID, Address, Address);
 	}
 }
 
