@@ -100,12 +100,6 @@ class DiffMachine
 {
 private:
 	int DebugFlag;
-
-	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
-	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
-	multimap <DWORD, DWORD> *AddressToFunctionMapForTheSource;
-	multimap <DWORD, DWORD> *AddressToFunctionMapForTheTarget;
-
 	SOCKET SocketForTheSource;
 	SOCKET SocketForeTheTarget;
 

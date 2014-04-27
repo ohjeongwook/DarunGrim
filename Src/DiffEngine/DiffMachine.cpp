@@ -495,14 +495,6 @@ bool DiffMachine::Analyze()
 
 	Logger.Log(10, "LoadFunctionMembersMap\n");
 
-	FunctionMembersMapForTheSource = SourceController->LoadFunctionMembersMap();
-	FunctionMembersMapForTheTarget = TargetController->LoadFunctionMembersMap();
-
-	Logger.Log(10, "LoadAddressToFunctionMap\n");
-
-	AddressToFunctionMapForTheSource = SourceController->LoadAddressToFunctionMap();
-	AddressToFunctionMapForTheTarget = TargetController->LoadAddressToFunctionMap();
-
 	// Name Match
 	Logger.Log(10, "Name Match\n");
 
@@ -609,21 +601,7 @@ bool DiffMachine::Analyze()
 
 	DoFunctionLevelMatchOptimizing();
 
-	FunctionMembersMapForTheSource->clear();
-	delete FunctionMembersMapForTheSource;
-	FunctionMembersMapForTheSource=NULL;
 
-	FunctionMembersMapForTheTarget->clear();
-	delete FunctionMembersMapForTheTarget;
-	FunctionMembersMapForTheTarget=NULL;
-
-	AddressToFunctionMapForTheSource->clear();
-	delete AddressToFunctionMapForTheSource;
-	AddressToFunctionMapForTheSource=NULL;
-
-	AddressToFunctionMapForTheTarget->clear();
-	delete AddressToFunctionMapForTheTarget;
-	AddressToFunctionMapForTheTarget=NULL;
 	return true;
 }
 
@@ -877,6 +855,16 @@ void DiffMachine::DoIsomorphMatch( multimap <DWORD, MatchData> *pOrigTemporaryMa
 
 void DiffMachine::DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, multimap <DWORD, MatchData> *pTargetTemporaryMap )
 {
+	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
+	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
+	multimap <DWORD, DWORD> *AddressToFunctionMapForTheSource;
+	multimap <DWORD, DWORD> *AddressToFunctionMapForTheTarget;
+
+	FunctionMembersMapForTheSource = SourceController->LoadFunctionMembersMap();
+	FunctionMembersMapForTheTarget = TargetController->LoadFunctionMembersMap();
+	AddressToFunctionMapForTheSource = SourceController->LoadAddressToFunctionMap();
+	AddressToFunctionMapForTheTarget = TargetController->LoadAddressToFunctionMap();
+
 	multimap <DWORD, DWORD>::iterator FunctionMembersIter;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	multimap <DWORD, DWORD>::iterator SourceFunctionMembersIter;
@@ -1062,6 +1050,24 @@ void DiffMachine::DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, m
 		//Collect BlockAddresses
 		BlockAddresses.push_back( FunctionMembersIter->second );
 	}
+
+	FunctionMembersMapForTheSource->clear();
+	delete FunctionMembersMapForTheSource;
+	FunctionMembersMapForTheSource = NULL;
+
+	FunctionMembersMapForTheTarget->clear();
+	delete FunctionMembersMapForTheTarget;
+	FunctionMembersMapForTheTarget = NULL;
+
+	AddressToFunctionMapForTheSource->clear();
+	delete AddressToFunctionMapForTheSource;
+	AddressToFunctionMapForTheSource = NULL;
+
+	AddressToFunctionMapForTheTarget->clear();
+	delete AddressToFunctionMapForTheTarget;
+	AddressToFunctionMapForTheTarget = NULL;
+
+
 }
 
 typedef struct _AddressesInfo_
@@ -1687,16 +1693,9 @@ void DiffMachine::GenerateFunctionMatchInfo()
 		{
 			//if( DebugLevel&1 ) Logger.Log( 10,  "%s: %x \n", __FUNCTION__, patched_address_fingerprint_hash_map_Iter->first );
 
-#ifdef USE_LEGACY_MAP
-			address_hash_map_pIter = TargetController->GetClientAnalysisInfo()->address_hash_map.find( patched_address_fingerprint_hash_map_Iter->first );
-			if( address_hash_map_pIter != TargetController->GetClientAnalysisInfo()->address_hash_map.end() )
-			{
-				POneLocationInfo p_one_location_info=address_hash_map_pIter->second;
-#else
 			POneLocationInfo p_one_location_info = TargetController->GetOneLocationInfo( patched_address_fingerprint_hash_map_Iter->first );
 			if( p_one_location_info )
 			{
-#endif
 				if( p_one_location_info->BlockType==FUNCTION_BLOCK )
 				{
 					match_info.TheSourceAddress=0;
@@ -1719,12 +1718,9 @@ void DiffMachine::GenerateFunctionMatchInfo()
 				}
 
 				TheTargetUnidentifedBlockHash.insert( p_one_location_info->StartAddress );
-#ifndef USE_LEGACY_MAP
 				free( p_one_location_info );
-#endif
 			}
-			//if( patched_unidentified_number%8==7 )
-			//	if( DebugLevel&1 ) Logger.Log( 10,  "\n" );
+
 			patched_unidentified_number++;
 		}
 	}
@@ -2148,6 +2144,8 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 				TargetDBName = FullTargetDBName;
 				free(FullTargetDBName);
 			}
+
+			free(DiffDBBasename);
 		}
 	}
 

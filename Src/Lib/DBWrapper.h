@@ -82,7 +82,7 @@ public:
 
 		if(db)
 		{
-			int rc;
+			int rc = 0;
 			char *statement_buffer=NULL;
 			char *zErrMsg=0;
 
@@ -97,7 +97,11 @@ public:
 				statement_buffer=(char *)malloc(statement_buffer_len);
 				memset(statement_buffer,0,statement_buffer_len);
 				if(statement_buffer && _vsnprintf(statement_buffer,statement_buffer_len,format,args)!=-1)
+				{
+					free(statement_buffer);
 					break;
+				}
+
 				if(!statement_buffer)
 					break;
 				free(statement_buffer);
@@ -115,9 +119,11 @@ public:
 				printf("Executing [%s]\n",statement_buffer);
 #endif
 			}
+
 			if(statement_buffer)
 			{
 				rc=sqlite3_exec(db, statement_buffer,callback, context, &zErrMsg );
+
 				if(rc!=SQLITE_OK)
 				{
 					if(debug>0)
@@ -135,6 +141,7 @@ public:
 				sqlite3_free( statement_buffer );
 #endif
 			}
+
 			return rc;
 		}
 		return SQLITE_ERROR;
