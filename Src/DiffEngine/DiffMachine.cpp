@@ -598,10 +598,8 @@ bool DiffMachine::Analyze()
 	//RemoveDuplicates();
 	//AnalyzeFunctionSanity();
 	GenerateFunctionMatchInfo();
-
 	DoFunctionLevelMatchOptimizing();
-
-
+	GenerateFunctionMatchInfo();
 	return true;
 }
 
@@ -1309,6 +1307,7 @@ void DiffMachine::GetMatchStatistics(
 	 )
 	{
 		MatchData *pMatchData = GetMatchData(index, (*address_list_iter).Start);
+
 		if( pMatchData )
 		{
 			if( pMatchData->MatchRate==100 )
@@ -1859,14 +1858,7 @@ DWORD DiffMachine::GetMatchAddr( int index, DWORD address )
 	return 0L;
 }
 
-BOOL DiffMachine::Save( 
-						char *DataFile, 
-						BYTE Type, 
-						DWORD Offset, 
-						DWORD dwMoveMethod, 
-						hash_set <DWORD> *pTheSourceSelectedAddresses, 
-						hash_set <DWORD> *pTheTargetSelectedAddresses 
-)
+BOOL DiffMachine::Save(char *DataFile, BYTE Type, DWORD Offset, DWORD dwMoveMethod, hash_set <DWORD> *pTheSourceSelectedAddresses, hash_set <DWORD> *pTheTargetSelectedAddresses )
 {
 	return FALSE;
 }
