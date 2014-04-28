@@ -17,11 +17,11 @@ using namespace std;
 using namespace stdext;
 #include "Configuration.h"
 
-char *MatchDataTypeStr[]={"Name Match", "Fingerprint Match", "Two Level Fingerprint Match", "IsoMorphic Match"};
+char *MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function" };
 
 #include "sqlite3.h"
 
-int DebugLevel = 1;
+int DebugLevel = 0xffffffff;
 
 extern LogOperation Logger;
 
@@ -433,12 +433,29 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 						MatchData match_data;
 						memset( &match_data, 0, sizeof( MatchData ) );
 						match_data.Type=FINGERPRINT_INSIDE_FUNCTION_MATCH;
+						match_data.SubType = 0;
 						match_data.Addresses[0] = *source_member_iter;
 						match_data.Addresses[1] = *target_member_iter;
 
 						match_data.UnpatchedParentAddress=0;
 						match_data.PatchedParentAddress=0;
 						match_data.MatchRate = MatchRate;
+
+						multimap <DWORD, MatchData>::iterator match_map_iter = DiffResults->MatchMap.find(*source_member_iter);
+						if ( match_map_iter  != DiffResults->MatchMap.end())
+						{
+							DiffResults->MatchMap.erase(match_map_iter);
+						}
+
+						hash_map <DWORD, DWORD>::iterator reverse_match_map_iter = DiffResults->ReverseAddressMap.find(*source_member_iter);
+						if (reverse_match_map_iter != DiffResults->ReverseAddressMap.end())
+						{
+							DiffResults->ReverseAddressMap.erase(reverse_match_map_iter);
+						}
+
+						if (DebugLevel & 1)
+							Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+						
 						DiffResults->MatchMap.insert( MatchMap_Pair( *source_member_iter, match_data ) );
 						DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( *target_member_iter, *source_member_iter ) );
 					}
@@ -477,12 +494,6 @@ bool DiffMachine::Analyze()
 	if (!SourceController || !TargetController)
 		return FALSE;
 
-	/*
-	TODO:
-	if( TheSource->FixFunctionAddresses() )
-	if( TheTarget->FixFunctionAddresses() )
-		
-	*/
 	SourceController->LoadOneLocationInfo();
 	TargetController->LoadOneLocationInfo();
 
@@ -492,8 +503,6 @@ bool DiffMachine::Analyze()
 		Logger.Log( 10,  "%s: Fingerprint Map Size %u:%u\n", __FUNCTION__, 
 			SourceController->GetClientAnalysisInfo()->fingerprint_hash_map.size(), 
 			TargetController->GetClientAnalysisInfo()->fingerprint_hash_map.size() );
-
-	Logger.Log(10, "LoadFunctionMembersMap\n");
 
 	// Name Match
 	Logger.Log(10, "Name Match\n");
@@ -529,18 +538,13 @@ bool DiffMachine::Analyze()
 						patched_name_hash_map_pIter->second
 						 );
 
+					if (DebugLevel & 1)
+						Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
 					TemporaryMatchMap.insert( MatchMap_Pair( 
 						name_hash_map_pIter->second, 
 						match_data
 						 ) );
-
-					if( DebugLevel&1 )
-						Logger.Log( 10,  "%s: matched %s( %x )-%s( %x ) MatchRate=%u%%\n", __FUNCTION__, 
-							name_hash_map_pIter->first.c_str(), 
-							name_hash_map_pIter->second, 
-							patched_name_hash_map_pIter->first.c_str(), 
-							patched_name_hash_map_pIter->second, 
-							match_data.MatchRate );
 				}
 			}
 		}
@@ -580,14 +584,18 @@ bool DiffMachine::Analyze()
 
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: Call DoFunctionMatch\n", __FUNCTION__ );
+
 		DoFunctionMatch( &DiffResults->MatchMap, &TemporaryMatchMap );
 
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: One Loop Of Analysis MatchMap size is %u.\n", __FUNCTION__, DiffResults->MatchMap.size() );
+
 		if( OldMatchMapSize==DiffResults->MatchMap.size() )
 			break;
+
 		OldMatchMapSize=DiffResults->MatchMap.size();
 	}
+
 	//Construct reverse_match_map
 	for( multimap <DWORD,  MatchData>::iterator match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
@@ -595,7 +603,8 @@ bool DiffMachine::Analyze()
 	{
 		DiffResults->ReverseAddressMap.insert( pair<DWORD, DWORD>( match_map_iter->second.Addresses[1], match_map_iter->first ) );
 	}
-	//RemoveDuplicates();
+
+	RemoveDuplicates();
 	//AnalyzeFunctionSanity();
 	GenerateFunctionMatchInfo();
 	DoFunctionLevelMatchOptimizing();
@@ -669,6 +678,10 @@ void DiffMachine::DoFingerPrintMatch( multimap <DWORD, MatchData> *p_match_map )
 					match_data.Addresses[0]=fingerprint_hash_map_pIter->second;
 					match_data.Addresses[1]=patched_fingerprint_hash_map_pIter->second;
 					match_data.MatchRate=100;
+
+					if (DebugLevel & 1)
+						Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
 					p_match_map->insert( MatchMap_Pair( 
 						fingerprint_hash_map_pIter->second, 
 						match_data
@@ -707,18 +720,22 @@ void DiffMachine::DoIsomorphMatch( multimap <DWORD, MatchData> *pOrigTemporaryMa
 				DWORD *unpatched_addresses = SourceController->GetMappedAddresses(match_map_iter->first, types[type_pos], &unpatched_addresses_number);
 				DWORD *patched_addresses = TargetController->GetMappedAddresses( match_map_iter->second.Addresses[1], types[type_pos], &patched_addresses_number );
 				if( DebugLevel&4 )
-					Logger.Log( 10,  "%s: Tree Matching Mapped Address Count: %x( %x ) %x( %x ) ", __FUNCTION__, 
+					Logger.Log( 10,  "%s: Tree Matching Mapped Address Count: %x( %x ) %x( %x )\n", __FUNCTION__, 
 						unpatched_addresses_number, match_map_iter->first, 
 						patched_addresses_number, match_map_iter->second.Addresses[1] );
-				if( DebugLevel&8 )
+				if( DebugLevel & 8 )
 				{
 					int i;
 					Logger.Log( 10,  "%s: %u %x-%x\n\t", __FUNCTION__, types[type_pos], match_map_iter->first, match_map_iter->second.Addresses[1] );
+					
 					for( i=0;i<unpatched_addresses_number;i++ )
 						Logger.Log( 10,  "%x ", unpatched_addresses[i] );
+
 					Logger.Log( 10,  "\n\t" );
+					
 					for( i=0;i<patched_addresses_number;i++ )
 						Logger.Log( 10,  "%x ", patched_addresses[i] );
+					
 					Logger.Log( 10,  "\n" );
 				}
 
@@ -799,6 +816,10 @@ void DiffMachine::DoIsomorphMatch( multimap <DWORD, MatchData> *pOrigTemporaryMa
 								match_data.MatchRate=MatchRate;
 								match_data.UnpatchedParentAddress=match_map_iter->first;
 								match_data.PatchedParentAddress=match_map_iter->second.Addresses[1];
+
+								if (DebugLevel & 1)
+									Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
 								pNewTemporaryMap->insert( MatchMap_Pair( 
 									unpatched_addresses[i], 
 									match_data
@@ -978,6 +999,10 @@ void DiffMachine::DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, m
 						match_data.Addresses[0] = TheSourceFunctionAddress;
 						match_data.Addresses[1]=TheChosenTargetFunctionAddress;
 						match_data.MatchRate=100;
+
+						if (DebugLevel & 1)
+							Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
 						pTargetTemporaryMap->insert( MatchMap_Pair( 
 							TheSourceFunctionAddress, 
 							match_data
@@ -1165,6 +1190,10 @@ void DiffMachine::DoFingerPrintMatchInsideFunction( multimap <DWORD, MatchData> 
 			match_data.UnpatchedParentAddress=SourceFunctionAddress;
 			match_data.PatchedParentAddress=TargetFunctionAddress;
 			match_data.MatchRate=100;
+
+			if (DebugLevel & 1)
+				Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
 			pTemporaryMap->insert( MatchMap_Pair( 
 				fingerprint_hash_map_iter->second.TheSourceAddress, 
 				match_data
@@ -1197,9 +1226,9 @@ void DiffMachine::PrintMatchMapInfo()
 	{
 		if( DebugLevel&1 )
 			Logger.Log( 10,  "%s: %x-%x ( %s )\n", __FUNCTION__, 
-		match_map_iter->first, 
-		match_map_iter->second.Addresses[1], 
-		MatchDataTypeStr[match_map_iter->second.Type] );
+				match_map_iter->first, 
+				match_map_iter->second.Addresses[1], 
+				MatchDataTypeStr[match_map_iter->second.Type] );
 	}
 
 	if( DebugLevel&1 )
@@ -2191,7 +2220,10 @@ BOOL DiffMachine::_Load()
 	SourceController->SetFileID(SourceID);
 
 	if (LoadIDAController)
+	{
+		SourceController->FixFunctionAddresses();
 		SourceController->Load();
+	}
 
 	if (TargetController)
 	{
@@ -2204,7 +2236,10 @@ BOOL DiffMachine::_Load()
 	TargetController->SetFileID(TargetID);
 
 	if (LoadIDAController)
+	{
+		TargetController->FixFunctionAddresses();
 		TargetController->Load();
+	}
 
 	char *query = "";
 
@@ -2277,10 +2312,9 @@ BOOL DiffMachine::DeleteMatchInfo( DBWrapper& OutputDB )
 
 char *DiffMachine::GetMatchTypeStr( int Type )
 {
-	static char *TypeStr[]={"Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function"};
-	if( Type<sizeof( TypeStr )/sizeof( TypeStr[0] ) )
+	if (Type<sizeof(MatchDataTypeStr) / sizeof(MatchDataTypeStr[0]))
 	{
-		return TypeStr[Type];
+		return MatchDataTypeStr[Type];
 	}
 	return "Unknown";
 }
