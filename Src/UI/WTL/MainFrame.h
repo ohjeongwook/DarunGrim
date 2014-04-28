@@ -774,7 +774,7 @@ public:
 
 		pMatchedBlocksDisplayItemArray = new vector<VirtualListDisplayItem *>();
 
-		hash_set <DWORD> matched_addresses;
+		hash_set <DWORD> matched_target_addresses;
 		list <BLOCK>::iterator iter;
 		for (iter = source_addresses.begin(); iter != source_addresses.end(); iter++)
 		{
@@ -803,7 +803,7 @@ public:
 				MatchData *pMatchData = pDiffMachine->GetMatchData(0, (*iter).Start);
 				if (pMatchData)
 				{
-					matched_addresses.insert(pMatchData->Addresses[1]);
+					matched_target_addresses.insert(pMatchData->Addresses[1]);
 					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[1]);
 					p_display_item->Items[1] = tmp;
 
@@ -852,7 +852,7 @@ public:
 			p_display_item->id = 0;
 
 
-			if (matched_addresses.find((*iter).Start) != matched_addresses.end())
+			if (matched_target_addresses.find((*iter).Start) != matched_target_addresses.end())
 			{
 				MatchData *pMatchData = pDiffMachine->GetMatchData(1, (*iter).Start);
 
