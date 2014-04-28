@@ -130,7 +130,7 @@ void main(int argc,char *argv[])
 	if (IDAPath)
 		pDarunGrim->SetIDAPath(IDAPath);
 
-	//pDarunGrim->SetLogParameters(LogToStdout, 100, "");
+	pDarunGrim->SetLogParameters(LogToStdout, DebugLevel, "");
 
 	char *DiffDatabaseFilename=argv[optind];
 	
