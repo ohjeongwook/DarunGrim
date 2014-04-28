@@ -59,7 +59,7 @@ public:
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
 
 	void SetFileID(int FileID = 1);
-	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address);
+	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address, bool IsFunction = false);
 	BOOL Load();
 	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 

@@ -525,7 +525,7 @@ void IDAController::SetFileID(int FileID)
 	m_FileID = FileID;
 }
 
-void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address)
+void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address, bool IsFunction)
 {
 	if (Address == 0)
 	{
@@ -535,11 +535,22 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 	}
 	else
 	{
-		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
-			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
-			"WHERE FileID = %u "
-			"AND ( SrcBlock IN ( SELECT StartAddress FROM OneLocationInfo WHERE FunctionAddress='%d' OR StartAddress = '%d' ) )",
-			m_FileID, Address, Address);
+		if (IsFunction)
+		{
+			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
+				"WHERE FileID = %u "
+				"AND ( SrcBlock IN ( SELECT StartAddress FROM OneLocationInfo WHERE FunctionAddress='%d') )",
+				m_FileID, Address);
+		}
+		else
+		{
+			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
+				"WHERE FileID = %u "
+				"AND SrcBlock  = '%d'",
+				m_FileID, Address);
+		}
 	}
 }
 
@@ -550,7 +561,7 @@ BOOL IDAController::Load()
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
 	LoadOneLocationInfo();
-	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress);
+	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress, true);
 
 	return TRUE;
 }
@@ -1076,8 +1087,6 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 				free(p_addresses);
 			}
 		}
-
-		
 	}
 	else
 	{
@@ -1238,7 +1247,9 @@ int IsEqualByteWithLengthAmble(unsigned char *Bytes01, unsigned char *Bytes02)
 
 multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 {
-	if(DebugLevel&1) Logger.Log( 10, "Retrieve Functions Addresses\n");
+	if(DebugLevel&1) 
+		Logger.Log(10, "LoadFunctionMembersMap\n");
+
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
 	if(FunctionAddresses)
 	{
@@ -1342,6 +1353,7 @@ BOOL IDAController::FixFunctionAddresses()
 
 	if( m_StorageDB )
 		m_StorageDB->BeginTransaction();
+
 	for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter != AddressToFunctionMap->end();AddressToFunctionMapIter++)
 	{
 		//StartAddress: AddressToFunctionMapIter->first
@@ -1355,16 +1367,19 @@ BOOL IDAController::FixFunctionAddresses()
 		if( m_StorageDB )
 			m_StorageDB->ExecuteStatement(NULL, NULL, UPDATE_ONE_LOCATION_INFO_TABLE_FUNCTION_ADDRESS_STATEMENT, 
 						AddressToFunctionMapIter->second, 
-						AddressToFunctionMapIter->second  ==  AddressToFunctionMapIter->first?FUNCTION_BLOCK:UNKNOWN_BLOCK, 
+						AddressToFunctionMapIter->second  ==  AddressToFunctionMapIter->first ? FUNCTION_BLOCK:UNKNOWN_BLOCK, 
 						m_FileID, 
 						AddressToFunctionMapIter->first);
 
 		IsFixed = TRUE;
 	}
-	if(DebugLevel&1) Logger.Log( 10, "\r\n");
+
+	if(DebugLevel&1)
+		Logger.Log( 10, "\r\n");
 
 	if( m_StorageDB )
 		m_StorageDB->EndTransaction();
+
 	AddressToFunctionMap->clear();
 	delete AddressToFunctionMap;
 
