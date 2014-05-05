@@ -24,12 +24,9 @@
 
 #include "SocketOperation.h"
 
-#undef USE_ZLIB_WRAPPER_FOR_FILE
 #define USE_SQLITE_DB
 
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-#include "ZlibWrapper.h"
-#elif defined( USE_SQLITE_DB )
+#if defined( USE_SQLITE_DB )
 #include "sqlite3.h"
 #include "DBWrapper.h"
 #include "DataBaseWriter.h"
@@ -711,25 +708,6 @@ BOOL ConnectToDarunGrimServer()
 	return FALSE;
 }
 
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-bool ZlibWrapperFileWriterWrapper( PVOID Context, BYTE Type, PBYTE Data, DWORD Length )
-{
-	if( Length==0 )
-		return TRUE;
-	BOOL Status=FALSE;
-	ZlibWrapper *zlib_wrapper=( ZlibWrapper * )Context;
-	if( zlib_wrapper && Length>0 )
-	{
-		Status=zlib_wrapper->WriteData( ( unsigned char * )&Type, sizeof( Type ) );
-		if( Status )
-			Status=zlib_wrapper->WriteData( ( unsigned char * )&Length, sizeof( Length ) );
-		if( Status )
-			Status=zlib_wrapper->WriteData( ( unsigned char * )Data, Length );
-	}
-	return Status;
-}
-#endif
-
 bool FileWriterWrapper( PVOID Context, BYTE Type, PBYTE Data, DWORD Length )
 {
 	BOOL Status=FALSE;
@@ -866,10 +844,7 @@ void idaapi run( int arg )
 
 	if( OutputFilename )
 	{
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-		ZlibWrapper *zlib_wrapper=new ZlibWrapper( TRUE, 5 );
-		zlib_wrapper->SetOutFile( OutputFilename );
-#elif defined( USE_SQLITE_DB )
+#if defined( USE_SQLITE_DB )
 		DBWrapper db( OutputFilename );
 		CreateTables( db );
 		db.BeginTransaction();
@@ -887,18 +862,15 @@ void idaapi run( int arg )
 #endif
 
 		AnalyzeIDAData( ( bool ( * )( PVOID, BYTE, PBYTE, DWORD ) )
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-			ZlibWrapperFileWriterWrapper
-#elif defined( USE_SQLITE_DB )
-			//Insert Callback
+
+#if defined( USE_SQLITE_DB )
 			DatabaseWriterWrapper
 #else
 			FileWriterWrapper
 #endif
 			, ( PVOID )
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-			zlib_wrapper
-#elif defined( USE_SQLITE_DB )
+
+#if defined( USE_SQLITE_DB )
 			//Database pointer
 			&db
 #else
@@ -906,8 +878,8 @@ void idaapi run( int arg )
 #endif
 			, StartEA, EndEA
 		 );
-#ifdef USE_ZLIB_WRAPPER_FOR_FILE
-#elif defined( USE_SQLITE_DB )
+
+#if defined( USE_SQLITE_DB )
 		db.EndTransaction();
 		db.CloseDatabase();
 #else
