@@ -14,7 +14,6 @@
 #include "DarunGrim.h"
 
 #define strtoul10(X) strtoul(X,NULL,10)
-extern int DebugLevel;
 
 void main(int argc,char *argv[])
 {
@@ -36,6 +35,7 @@ void main(int argc,char *argv[])
 
 	int SourceFileID;
 	int TargetFileID;
+	int DebugLevel = 0;
 
 #ifdef DEBUG_MEMORY
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
