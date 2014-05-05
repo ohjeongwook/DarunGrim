@@ -79,8 +79,72 @@ const enum {DiffMachineFileSQLiteFormat};
 
 enum {TYPE_MATCH, TYPE_REVERSE_MATCH, TYPE_BEFORE_UNIDENTIFIED_BLOCK, TYPE_AFTER_UNIDENTIFIED_BLOCK};
 
-typedef struct _AnalysisResult_ {
+#undef TEST_MATCHMAP
+
+#ifdef TEST_MATCHMAP
+class MATCHMAP
+{
+public:
 	multimap <DWORD, MatchData> MatchMap;
+
+	void insert(MatchMap_Pair d)
+	{
+		if (d.first == 0x31ab6d92)
+		{
+			printf("found interesting part");
+		}
+
+		MatchMap.insert(d);
+	}
+
+	multimap <DWORD, MatchData>::iterator erase(multimap <DWORD, MatchData>::iterator d)
+	{
+		if ((*d).first == 0x31ab6d92)
+		{
+			printf("found interesting part");
+		}
+
+		return MatchMap.erase(d);
+	}
+
+	multimap <DWORD, MatchData>::iterator find(DWORD d)
+	{
+		return MatchMap.find(d);
+	}
+
+	multimap <DWORD, MatchData>::iterator begin()
+	{
+		return MatchMap.begin();
+	}
+
+	multimap <DWORD, MatchData>::iterator end()
+	{
+		return MatchMap.end();
+	}
+
+	int size()
+	{
+		return MatchMap.size();
+	}
+
+	int count(DWORD d)
+	{
+		return MatchMap.count(d);
+	}
+
+	void clear()
+	{
+		return MatchMap.clear();
+	}
+};
+
+#else
+typedef multimap <DWORD, MatchData> MATCHMAP;
+#endif
+
+
+typedef struct _AnalysisResult_ {
+	MATCHMAP MatchMap;
 	hash_map <DWORD, DWORD> ReverseAddressMap;
 } AnalysisResult;
 
@@ -95,6 +159,13 @@ public:
 	hash_set<DWORD> TargetFunctionMap;
 	hash_set<DWORD> TargetAddressMap;
 };
+
+typedef struct
+{
+	DWORD Source;
+	DWORD Target;
+	int MatchRate;
+} MatchRateInfo;
 
 class DiffMachine
 {
@@ -118,13 +189,15 @@ private:
 	vector <FunctionMatchInfo> ReverseFunctionMatchInfoList;
 
 	//Algorithms
-	void DoFingerPrintMatch( multimap <DWORD, MatchData> *pTemporaryMap );
-	void DoFingerPrintMatchInsideFunction( multimap <DWORD, MatchData> *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses );
-	void PurgeFingerprintHashMap( multimap <DWORD, MatchData> *pTemporaryMap );
+	void DoFingerPrintMatch(MATCHMAP *pTemporaryMap);
+	void DoFingerPrintMatchInsideFunction(MATCHMAP *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses);
+	void PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap);
 
-	void DoIsomorphMatch( multimap <DWORD, MatchData> *pTemporaryMap );
-	void DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, multimap <DWORD, MatchData> *pTargetTemporaryMap );
+	void DoIsomorphMatch(MATCHMAP *pTemporaryMap);
+	void DoFunctionMatch(MATCHMAP *pTemporaryMap, MATCHMAP *pTargetTemporaryMap);
 	bool DoFunctionLevelMatchOptimizing();
+
+	MatchRateInfo *GetMatchRate(DWORD source_address, DWORD target_address, int type, int &MatchRateInfoCount);
 
 public:
 	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
@@ -156,7 +229,7 @@ public:
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
 
 	MatchData *GetMatchData( int index, DWORD address, BOOL erase = FALSE );
-	void AppendToMatchMap( multimap <DWORD, MatchData> *pBaseMap, multimap <DWORD, MatchData> *pTemporaryMap );
+	void AppendToMatchMap(MATCHMAP *pBaseMap, MATCHMAP *pTemporaryMap);
 
 
 	void ShowDiffMap( DWORD unpatched_address, DWORD patched_address );

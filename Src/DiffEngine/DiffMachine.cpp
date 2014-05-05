@@ -21,7 +21,7 @@ char *MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "Is
 
 #include "sqlite3.h"
 
-int DebugLevel = 0xffffffff;
+int DebugLevel = 0;
 
 extern LogOperation Logger;
 
@@ -102,20 +102,20 @@ int DiffMachine::GetFingerPrintMatchRate( unsigned char* unpatched_finger_print,
 
 int DiffMachine::GetMatchRate( DWORD unpatched_address, DWORD patched_address )
 {
-	multimap <DWORD,  unsigned char *>::iterator unpatched_address_fingerprint_hash_map_Iter;
-	multimap <DWORD,  unsigned char *>::iterator patched_address_fingerprint_hash_map_Iter;
+	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_hash_map_Iter;
+	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_hash_map_Iter;
 						
-	unpatched_address_fingerprint_hash_map_Iter=SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find( unpatched_address );
-	patched_address_fingerprint_hash_map_Iter=TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find( patched_address );
+	source_fingerprint_hash_map_Iter=SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find( unpatched_address );
+	target_fingerprint_hash_map_Iter=TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find( patched_address );
 
 	if( 
-		unpatched_address_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
-		patched_address_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end()
+		source_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
+		target_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end()
 	 )
 	{
 		return GetFingerPrintMatchRate( 
-			unpatched_address_fingerprint_hash_map_Iter->second, 
-			patched_address_fingerprint_hash_map_Iter->second );
+			source_fingerprint_hash_map_Iter->second, 
+			target_fingerprint_hash_map_Iter->second );
 	}
 	return 0;
 }
@@ -489,7 +489,7 @@ bool DiffMachine::Analyze()
 	multimap <string,  DWORD>::iterator fingerprint_hash_map_pIter;
 	multimap <string,  DWORD>::iterator name_hash_map_pIter;
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
-	multimap <DWORD, MatchData> TemporaryMatchMap;
+	MATCHMAP TemporaryMatchMap;
 
 	if (!SourceController || !TargetController)
 		return FALSE;
@@ -612,7 +612,7 @@ bool DiffMachine::Analyze()
 	return true;
 }
 
-void DiffMachine::AppendToMatchMap( multimap <DWORD, MatchData> *pBaseMap, multimap <DWORD, MatchData> *pTemporaryMap )
+void DiffMachine::AppendToMatchMap(MATCHMAP *pBaseMap, MATCHMAP *pTemporaryMap)
 {
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
 	if( DebugLevel&1 )
@@ -625,7 +625,7 @@ void DiffMachine::AppendToMatchMap( multimap <DWORD, MatchData> *pBaseMap, multi
 	}
 }
 
-void DiffMachine::PurgeFingerprintHashMap( multimap <DWORD, MatchData> *pTemporaryMap )
+void DiffMachine::PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap)
 {
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
 	if( DebugLevel&1 )
@@ -655,7 +655,7 @@ void DiffMachine::PurgeFingerprintHashMap( multimap <DWORD, MatchData> *pTempora
 			TargetController->GetClientAnalysisInfo()->fingerprint_hash_map.size() );
 }
 
-void DiffMachine::DoFingerPrintMatch( multimap <DWORD, MatchData> *p_match_map )
+void DiffMachine::DoFingerPrintMatch(MATCHMAP *p_match_map)
 {
 	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_pIter;
 	multimap <unsigned char *,  DWORD, hash_compare_fingerprint>::iterator patched_fingerprint_hash_map_pIter;
@@ -695,149 +695,198 @@ void DiffMachine::DoFingerPrintMatch( multimap <DWORD, MatchData> *p_match_map )
 		Logger.Log( 10,  "%s: Matched pair count=%u\n", __FUNCTION__, p_match_map->size() );
 }
 
-void DiffMachine::DoIsomorphMatch( multimap <DWORD, MatchData> *pOrigTemporaryMap )
+MatchRateInfo *DiffMachine::GetMatchRate(DWORD source_address, DWORD target_address, int type, int &MatchRateInfoCount)
 {
-	multimap <DWORD, MatchData> *pTemporaryMap=pOrigTemporaryMap;
+	int source_addresses_number;
+	int target_addresses_number;
+	MatchRateInfoCount = 0;
+
+	DWORD *source_addresses = SourceController->GetMappedAddresses(source_address, type, &source_addresses_number);
+	DWORD *target_addresses = TargetController->GetMappedAddresses(target_address, type, &target_addresses_number);
+
+	if (source_addresses_number != 0 && target_addresses_number != 0)
+	{
+		if (DebugLevel & 4)
+		{
+			Logger.Log(10, "%s: Tree Matching Mapped Address Count: %x( %x ) %x( %x )\n", __FUNCTION__,
+				source_addresses_number, source_address,
+				target_addresses_number, target_address);
+
+			int i;
+			for (i = 0; i < source_addresses_number; i++)
+				Logger.Log(10, "%x ", source_addresses[i]);
+
+			Logger.Log(10, "\n\t");
+
+			for (i = 0; i < target_addresses_number; i++)
+				Logger.Log(10, "%x ", target_addresses[i]);
+
+			Logger.Log(10, "\n");
+		}
+
+		MatchRateInfo *pMatchRateInfoArray = new MatchRateInfo[source_addresses_number*target_addresses_number];
+
+		for (int i = 0; i < source_addresses_number; i++)
+		{
+			multimap <DWORD, unsigned char *>::iterator source_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find(source_addresses[i]);
+
+			for (int j = 0; j < target_addresses_number; j++)
+			{
+				multimap <DWORD, unsigned char *>::iterator target_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find(target_addresses[j]);
+
+				if (source_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
+					target_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end())
+				{
+					pMatchRateInfoArray[MatchRateInfoCount].Source = source_addresses[i];
+					pMatchRateInfoArray[MatchRateInfoCount].Target = target_addresses[j];
+					pMatchRateInfoArray[MatchRateInfoCount].MatchRate = GetFingerPrintMatchRate(source_fingerprint_hash_map_Iter->second, target_fingerprint_hash_map_Iter->second);
+					MatchRateInfoCount++;
+				}
+				else if (source_fingerprint_hash_map_Iter == SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
+					target_fingerprint_hash_map_Iter == TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end())
+				{
+					pMatchRateInfoArray[MatchRateInfoCount].Source = source_addresses[i];
+					pMatchRateInfoArray[MatchRateInfoCount].Target = target_addresses[j];
+					pMatchRateInfoArray[MatchRateInfoCount].MatchRate = 100;
+					MatchRateInfoCount++;
+				}
+			}
+		}
+
+		if (source_addresses)
+			free(source_addresses);
+
+		if (target_addresses)
+			free(target_addresses);
+
+		return pMatchRateInfoArray;
+	}
+	
+	return NULL;
+}
+
+void DiffMachine::DoIsomorphMatch(MATCHMAP *pOrigTemporaryMap)
+{
+	MATCHMAP *pTemporaryMap = pOrigTemporaryMap;
 	int types[]={CREF_FROM, CALL, DREF_FROM}; //CREF_TO, DREF_TO
 
 	while( pTemporaryMap->size()>0 )
 	{
 		int processed_count=0;
 		multimap <DWORD,  MatchData>::iterator match_map_iter;
-		multimap <DWORD, MatchData> *pNewTemporaryMap=new multimap <DWORD, MatchData>;
+		MATCHMAP *pNewTemporaryMap = new MATCHMAP;
 
 		if( DebugLevel&1 )
-			Logger.Log( 10,  "%s: Tree Match count=%u\n", __FUNCTION__, pTemporaryMap->size() );
-		for( match_map_iter=pTemporaryMap->begin();
-			match_map_iter!=pTemporaryMap->end();
-			match_map_iter++ )
+			Logger.Log( 10,  "%s: Current match count=%u\n", __FUNCTION__, pTemporaryMap->size() );
+
+		for( match_map_iter=pTemporaryMap->begin(); match_map_iter!=pTemporaryMap->end(); match_map_iter++ )
 		{
-			int unpatched_addresses_number;
-			int patched_addresses_number;
-
-			for( int type_pos=0;type_pos<sizeof( types )/sizeof( int );type_pos++ )
+			for( int type_pos=0; type_pos<sizeof( types )/sizeof( int );type_pos++ )
 			{
-				DWORD *unpatched_addresses = SourceController->GetMappedAddresses(match_map_iter->first, types[type_pos], &unpatched_addresses_number);
-				DWORD *patched_addresses = TargetController->GetMappedAddresses( match_map_iter->second.Addresses[1], types[type_pos], &patched_addresses_number );
-				if( DebugLevel&4 )
-					Logger.Log( 10,  "%s: Tree Matching Mapped Address Count: %x( %x ) %x( %x )\n", __FUNCTION__, 
-						unpatched_addresses_number, match_map_iter->first, 
-						patched_addresses_number, match_map_iter->second.Addresses[1] );
-				if( DebugLevel & 8 )
-				{
-					int i;
-					Logger.Log( 10,  "%s: %u %x-%x\n\t", __FUNCTION__, types[type_pos], match_map_iter->first, match_map_iter->second.Addresses[1] );
-					
-					for( i=0;i<unpatched_addresses_number;i++ )
-						Logger.Log( 10,  "%x ", unpatched_addresses[i] );
+				int MatchRateInfoCount = 0;
+				MatchRateInfo *pMatchRateInfoArray = GetMatchRate(match_map_iter->first, match_map_iter->second.Addresses[1], types[type_pos], MatchRateInfoCount);
 
-					Logger.Log( 10,  "\n\t" );
-					
-					for( i=0;i<patched_addresses_number;i++ )
-						Logger.Log( 10,  "%x ", patched_addresses[i] );
-					
-					Logger.Log( 10,  "\n" );
-				}
-
-				if( unpatched_addresses_number==patched_addresses_number )
+				if (pMatchRateInfoArray)
 				{
-					multimap <DWORD,  unsigned char *>::iterator unpatched_address_fingerprint_hash_map_Iter;
-					multimap <DWORD,  unsigned char *>::iterator patched_address_fingerprint_hash_map_Iter;
-					
-					for( int i=0;i<unpatched_addresses_number;i++ )
+					while (1)
 					{
-						unpatched_address_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find(unpatched_addresses[i]);
-						patched_address_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find( patched_addresses[i] );
-							
-						int MatchRate=100;
-						if( 
-							( 
-								( 
-								unpatched_address_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
-									patched_address_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() 
-								 ) &&
-								( MatchRate=GetFingerPrintMatchRate( 
-									unpatched_address_fingerprint_hash_map_Iter->second, 
-									patched_address_fingerprint_hash_map_Iter->second ) )
-							 ) ||
-							( 
-							unpatched_address_fingerprint_hash_map_Iter == SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
-								patched_address_fingerprint_hash_map_Iter == TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end()
-							 )
-						 )
+						int MaxMatchRate = 0;
+						int max_i = -1;
+
+						for (int i = 0; i < MatchRateInfoCount; i++)
 						{
-							bool add=TRUE;
-							multimap <DWORD, MatchData> *p_compared_match_map[]={
-								&DiffResults->MatchMap, 
-								pOrigTemporaryMap, 
-								pNewTemporaryMap, 
-								pTemporaryMap};
-							
-							multimap <DWORD,  MatchData>::iterator cur_match_map_iter;
-							//If not found from "all" match map
-							for( int compare_i=0;compare_i<sizeof( p_compared_match_map )/sizeof( p_compared_match_map[0] );compare_i++ )
+							if (pMatchRateInfoArray[i].MatchRate > MaxMatchRate)
 							{
-								cur_match_map_iter=p_compared_match_map[compare_i]->find( unpatched_addresses[i] );
-
-								while( cur_match_map_iter!=p_compared_match_map[compare_i]->end() &&
-										cur_match_map_iter->first==unpatched_addresses[i]
-								 )
-								{
-									if( cur_match_map_iter->second.Addresses[1]==patched_addresses[i] )
-									{
-										if( DebugLevel&2 )
-											Logger.Log( 10,  "Match is already there %x-%x\n", unpatched_addresses[i], patched_addresses[i] );
-										add=FALSE;
-										break;
-									}else if( MatchRate<cur_match_map_iter->second.MatchRate )
-									{
-										if( DebugLevel&2 )
-											Logger.Log( 10,  "Another match is already there with higher match rate %x-%x( %u%% )\n", 
-												unpatched_addresses[i], 
-												cur_match_map_iter->second.Addresses[1] );
-										add=FALSE;
-										break;
-									}
-									cur_match_map_iter++;
-								}
-								if( !add )
-									break;
-							}
-							if( add )
-							{
-								if( DebugLevel&2 )
-									Logger.Log( 10,  "Adding %x-%x\n", unpatched_addresses[i], patched_addresses[i] );
-								MatchData match_data;
-								memset( &match_data, 0, sizeof( MatchData ) );
-								match_data.Type=TREE_MATCH;
-								match_data.SubType=type_pos;
-								match_data.Addresses[0]=unpatched_addresses[i];
-								match_data.Addresses[1]=patched_addresses[i];
-								match_data.MatchRate=MatchRate;
-								match_data.UnpatchedParentAddress=match_map_iter->first;
-								match_data.PatchedParentAddress=match_map_iter->second.Addresses[1];
-
-								if (DebugLevel & 1)
-									Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
-
-								pNewTemporaryMap->insert( MatchMap_Pair( 
-									unpatched_addresses[i], 
-									match_data
-									 ) );
-							}
-							{
-								
+								MaxMatchRate = pMatchRateInfoArray[i].MatchRate;
+								max_i = i;
 							}
 						}
-						if( DebugLevel&2 )
-							Logger.Log( 10,  "MatchRate=%u%%\n", MatchRate );
+
+						if (max_i == -1)
+							break;
+
+						bool add_match_map = TRUE;
+						MATCHMAP *p_compared_match_map[] = {
+							&DiffResults->MatchMap,
+							pOrigTemporaryMap,
+							pNewTemporaryMap,
+							pTemporaryMap };
+
+						multimap <DWORD, MatchData>::iterator cur_match_map_iter;
+						for (int compare_i = 0; compare_i < sizeof(p_compared_match_map) / sizeof(p_compared_match_map[0]); compare_i++)
+						{
+							cur_match_map_iter = p_compared_match_map[compare_i]->find(pMatchRateInfoArray[max_i].Source);
+
+							while (cur_match_map_iter != p_compared_match_map[compare_i]->end() &&
+								cur_match_map_iter->first == pMatchRateInfoArray[max_i].Source
+								)
+							{
+								if (cur_match_map_iter->second.Addresses[1] == pMatchRateInfoArray[max_i].Target)
+								{
+									if (DebugLevel & 2)
+										Logger.Log(10, "Match is already there %x-%x\n", pMatchRateInfoArray[max_i].Source, pMatchRateInfoArray[max_i].Target);
+									add_match_map = FALSE;
+									break;
+								}
+								else if (pMatchRateInfoArray[max_i].MatchRate < cur_match_map_iter->second.MatchRate)
+								{
+									if (DebugLevel & 2)
+										Logger.Log(10, "Another match is already there with higher match rate %x-%x( %u%% )\n",
+										pMatchRateInfoArray[max_i].Source,
+										cur_match_map_iter->second.Addresses[1]);
+									add_match_map = FALSE;
+									break;
+								}
+								cur_match_map_iter++;
+							}
+
+							if (!add_match_map)
+								break;
+						}
+
+						if (add_match_map)
+						{
+							if (DebugLevel & 2)
+								Logger.Log(10, "Adding %x-%x\n", pMatchRateInfoArray[max_i].Source, pMatchRateInfoArray[max_i].Target);
+
+							MatchData match_data;
+							memset(&match_data, 0, sizeof(MatchData));
+							match_data.Type = TREE_MATCH;
+							match_data.SubType = type_pos;
+							match_data.Addresses[0] = pMatchRateInfoArray[max_i].Source;
+							match_data.Addresses[1] = pMatchRateInfoArray[max_i].Target;
+							match_data.MatchRate = pMatchRateInfoArray[max_i].MatchRate;
+							match_data.UnpatchedParentAddress = match_map_iter->first;
+							match_data.PatchedParentAddress = match_map_iter->second.Addresses[1];
+
+							if (DebugLevel & 1)
+								Logger.Log(10, "%s %x-%x: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
+
+							pNewTemporaryMap->insert(MatchMap_Pair(
+								pMatchRateInfoArray[max_i].Source,
+								match_data
+								));
+
+							for (int i = 0; i < MatchRateInfoCount; i++)
+							{
+								if (pMatchRateInfoArray[i].Source == pMatchRateInfoArray[max_i].Source ||
+									pMatchRateInfoArray[i].Target == pMatchRateInfoArray[max_i].Target
+									)
+								{
+									pMatchRateInfoArray[i].MatchRate = 0;
+								}
+							}
+						}
+						else
+						{
+							pMatchRateInfoArray[max_i].MatchRate = 0;
+						}
 					}
+
+					delete pMatchRateInfoArray;
 				}
-				if( unpatched_addresses )
-					free( unpatched_addresses );
-				if( patched_addresses )
-					free( patched_addresses );
 			}
+
 			processed_count++;
 
 			if( DebugLevel&4 )
@@ -872,7 +921,7 @@ void DiffMachine::DoIsomorphMatch( multimap <DWORD, MatchData> *pOrigTemporaryMa
 	}
 }
 
-void DiffMachine::DoFunctionMatch( multimap <DWORD, MatchData> *pTemporaryMap, multimap <DWORD, MatchData> *pTargetTemporaryMap )
+void DiffMachine::DoFunctionMatch(MATCHMAP *pTemporaryMap, MATCHMAP *pTargetTemporaryMap)
 {
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
@@ -1100,7 +1149,7 @@ typedef struct _AddressesInfo_
 	DWORD TheTargetAddress;
 } AddressesInfo;
 
-void DiffMachine::DoFingerPrintMatchInsideFunction( multimap <DWORD, MatchData> *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses )
+void DiffMachine::DoFingerPrintMatchInsideFunction(MATCHMAP *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses)
 {
 	//Fingerprint match on SourceBlockAddresses, TargetBlockAddresse
 	/*
@@ -1234,17 +1283,17 @@ void DiffMachine::PrintMatchMapInfo()
 	if( DebugLevel&1 )
 		Logger.Log( 10,  "%s: ** unidentified( 0 )\n", __FUNCTION__ );
 	int unpatched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator unpatched_address_fingerprint_hash_map_Iter;
-	for( unpatched_address_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
-		unpatched_address_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
-		unpatched_address_fingerprint_hash_map_Iter++
+	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_hash_map_Iter;
+	for( source_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
+		source_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
+		source_fingerprint_hash_map_Iter++
 	 )
 	{
-		if( DiffResults->MatchMap.find( unpatched_address_fingerprint_hash_map_Iter->first )==DiffResults->MatchMap.end() )
+		if( DiffResults->MatchMap.find( source_fingerprint_hash_map_Iter->first )==DiffResults->MatchMap.end() )
 		{
 			if( DebugLevel&1 )
 			{
-				Logger.Log( 10,  "%s: %x ", __FUNCTION__, unpatched_address_fingerprint_hash_map_Iter->first );
+				Logger.Log( 10,  "%s: %x ", __FUNCTION__, source_fingerprint_hash_map_Iter->first );
 				if( unpatched_unidentified_number%8==7 )
 					Logger.Log( 10,  "\n" );
 			}
@@ -1258,15 +1307,15 @@ void DiffMachine::PrintMatchMapInfo()
 	if( DebugLevel&1 )
 		Logger.Log( 10,  "%s: ** unidentified( 1 )\n", __FUNCTION__ );
 	int patched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator patched_address_fingerprint_hash_map_Iter;
-	for( patched_address_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
-		patched_address_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
-		patched_address_fingerprint_hash_map_Iter++
+	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_hash_map_Iter;
+	for( target_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
+		target_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
+		target_fingerprint_hash_map_Iter++
 	 )
 	{
-		if( DiffResults->ReverseAddressMap.find( patched_address_fingerprint_hash_map_Iter->first )==DiffResults->ReverseAddressMap.end() )
+		if( DiffResults->ReverseAddressMap.find( target_fingerprint_hash_map_Iter->first )==DiffResults->ReverseAddressMap.end() )
 		{
-			if( DebugLevel&1 ) Logger.Log( 10,  "%s: %x ", __FUNCTION__, patched_address_fingerprint_hash_map_Iter->first );
+			if( DebugLevel&1 ) Logger.Log( 10,  "%s: %x ", __FUNCTION__, target_fingerprint_hash_map_Iter->first );
 			if( patched_unidentified_number%8==7 )
 				if( DebugLevel&1 ) Logger.Log( 10,  "\n" );
 			patched_unidentified_number++;
@@ -1659,21 +1708,21 @@ void DiffMachine::GenerateFunctionMatchInfo()
 
 	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
 	int unpatched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator unpatched_address_fingerprint_hash_map_Iter;
-	for( unpatched_address_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
-		unpatched_address_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
-		unpatched_address_fingerprint_hash_map_Iter++
+	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_hash_map_Iter;
+	for( source_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
+		source_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
+		source_fingerprint_hash_map_Iter++
 	 )
 	{
-		if( DiffResults->MatchMap.find( unpatched_address_fingerprint_hash_map_Iter->first )==DiffResults->MatchMap.end() )
+		if( DiffResults->MatchMap.find( source_fingerprint_hash_map_Iter->first )==DiffResults->MatchMap.end() )
 		{
 #ifdef USE_LEGACY_MAP
-			address_hash_map_pIter = SourceController->GetClientAnalysisInfo()->address_hash_map.find( unpatched_address_fingerprint_hash_map_Iter->first );
+			address_hash_map_pIter = SourceController->GetClientAnalysisInfo()->address_hash_map.find( source_fingerprint_hash_map_Iter->first );
 			if( address_hash_map_pIter != SourceController->GetClientAnalysisInfo()->address_hash_map.end() )
 			{
 				POneLocationInfo p_one_location_info=( POneLocationInfo )p_one_location_info;
 #else
-			POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo( unpatched_address_fingerprint_hash_map_Iter->first );
+			POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo( source_fingerprint_hash_map_Iter->first );
 			if( p_one_location_info )
 			{
 #endif
@@ -1711,17 +1760,17 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	if( DebugLevel&1 ) Logger.Log( 10,  "%s: unpatched_unidentified_number=%u\n", __FUNCTION__, TheSourceUnidentifedBlockHash.size() );
 
 	int patched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator patched_address_fingerprint_hash_map_Iter;
-	for( patched_address_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
-		patched_address_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
-		patched_address_fingerprint_hash_map_Iter++
+	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_hash_map_Iter;
+	for( target_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
+		target_fingerprint_hash_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end();
+		target_fingerprint_hash_map_Iter++
 	 )
 	{
-		if( DiffResults->ReverseAddressMap.find( patched_address_fingerprint_hash_map_Iter->first )==DiffResults->ReverseAddressMap.end() )
+		if( DiffResults->ReverseAddressMap.find( target_fingerprint_hash_map_Iter->first )==DiffResults->ReverseAddressMap.end() )
 		{
-			//if( DebugLevel&1 ) Logger.Log( 10,  "%s: %x \n", __FUNCTION__, patched_address_fingerprint_hash_map_Iter->first );
+			//if( DebugLevel&1 ) Logger.Log( 10,  "%s: %x \n", __FUNCTION__, target_fingerprint_hash_map_Iter->first );
 
-			POneLocationInfo p_one_location_info = TargetController->GetOneLocationInfo( patched_address_fingerprint_hash_map_Iter->first );
+			POneLocationInfo p_one_location_info = TargetController->GetOneLocationInfo( target_fingerprint_hash_map_Iter->first );
 			if( p_one_location_info )
 			{
 				if( p_one_location_info->BlockType==FUNCTION_BLOCK )
