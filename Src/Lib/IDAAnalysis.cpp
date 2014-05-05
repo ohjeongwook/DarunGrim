@@ -620,11 +620,10 @@ void UpdateInstructionMap
 			}
 		}
 	}
-	///////////////////////////////////////////////////////////
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray=FALSE);
+
 void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
 {
 	string disasm_buffer;
@@ -637,7 +636,9 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 	
 
 	TCHAR name[225]={0,};
-	get_true_name(one_location_info.StartAddress,one_location_info.StartAddress,name,sizeof(name));
+
+	get_short_name(one_location_info.StartAddress, one_location_info.StartAddress, name, sizeof(name));
+
 	if(isCode(Flag))
 	{
 		func_t *p_func=get_func(one_location_info.StartAddress);
@@ -645,7 +646,9 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 		{
 			one_location_info.FunctionAddress=p_func->startEA;
 		}
+		
 		ea_t cref=get_first_cref_to(one_location_info.StartAddress);
+
 		if(cref==BADADDR || one_location_info.StartAddress==one_location_info.FunctionAddress)
 		{
 			one_location_info.BlockType=FUNCTION_BLOCK;
@@ -658,9 +661,10 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 
 	vector <unsigned char> FingerPrint;
 
-	//dump disasmline
 	one_location_info.EndAddress=0;
+
 	list <insn_t>::iterator CmdArrayIter;
+
 	for(CmdArrayIter=pCmdArray->begin();
 		CmdArrayIter!=pCmdArray->end();
 		CmdArrayIter++)
@@ -743,6 +747,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 				}
 			}
 		}
+
 		if(isCode(Flag))
 		{
 			char buf[MAXSTR];
@@ -755,12 +760,12 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 			strcat_s(buf, MAXSTR, "\n");
 			disasm_buffer+=buf;
 		}
-
 	}
 
 	one_location_info.NameLen=strlen(name)+1;
 	one_location_info.DisasmLinesLen=disasm_buffer.length()+1;
 	one_location_info.FingerprintLen=FingerPrint.size();
+
 	if(GatherCmdArray)
 	{
 		one_location_info.CmdArrayLen=pCmdArray->size()*sizeof(insn_t);
@@ -771,10 +776,12 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 
 	int one_location_info_length=sizeof(one_location_info)+one_location_info.NameLen+one_location_info.DisasmLinesLen+one_location_info.FingerprintLen+one_location_info.CmdArrayLen;
 	POneLocationInfo p_one_location_info=(POneLocationInfo)malloc(one_location_info_length);
+
 	if(p_one_location_info)
 	{
 		memcpy(p_one_location_info,&one_location_info,sizeof(one_location_info));
 		memcpy(p_one_location_info->Data,name,one_location_info.NameLen);
+
 		if(disasm_buffer.length()>0)
 		{
 			memcpy((char *)p_one_location_info->Data+one_location_info.NameLen,
@@ -784,6 +791,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 		{
 			*((char *)p_one_location_info->Data+one_location_info.NameLen)=NULL;
 		}
+
 		for(size_t fi=0;fi<FingerPrint.size();fi++)
 		{
 			((unsigned char *)p_one_location_info->Data)[one_location_info.NameLen+one_location_info.DisasmLinesLen+fi]=FingerPrint.at(fi);
@@ -799,6 +807,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 				memcpy(&CmdsPtr[CmdArrayIndex],&(*iter),sizeof(insn_t));
 			}
 		}
+
 		if(!Callback(Context,
 			ONE_LOCATION_INFO,
 			(PBYTE)p_one_location_info,
@@ -1193,6 +1202,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 }
 
 void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,list <AddressRegion> *pAddressRegions,int GatherCmdArray=FALSE);
+
 void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,list <AddressRegion> *pAddressRegions,int GatherCmdArray)
 {
 	if(!pAddressRegions)
@@ -1200,11 +1210,14 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 
 	list <AddressRegion>::iterator AddressRegionsIter;
 	hash_map <ea_t,ea_t> AdditionallyAnalyzedBlocks;
+
 	for(AddressRegionsIter=pAddressRegions->begin();AddressRegionsIter!=pAddressRegions->end();AddressRegionsIter++)
 	{
 		ea_t startEA=(*AddressRegionsIter).startEA;
 		ea_t endEA=(*AddressRegionsIter).endEA;
+		
 		WriteToLogFile(gLogFile,"Analyzing %X~%X\n",startEA,endEA);
+
 		ea_t CurrentAddress;
 		for(CurrentAddress=startEA;CurrentAddress<endEA;)
 		{
@@ -1218,12 +1231,16 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 				multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> InstructionMap;
 				hash_map <ea_t,insn_t> InstructionHash;
 				hash_map <int,ea_t> FlagsHash;
+
 				for(list <insn_t>::iterator CmdArrayIter=CmdArray.begin();CmdArrayIter!=CmdArray.end();CmdArrayIter++)
 				{			
 					UpdateInstructionMap(OperandsHash,FlagsHash,InstructionMap,InstructionHash,*CmdArrayIter);
 				}
+				
 				list <insn_t> *NewCmdArray=ReoderInstructions(InstructionMap,InstructionHash);
+				
 				WriteToLogFile(gLogFile,"NewCmdArray=%X\n",NewCmdArray);
+
 				if(NewCmdArray)
 				{
 					DumpOneLocationInfo(Callback,Context,CurrentAddress,NewCmdArray,Flag,GatherCmdArray);
@@ -1233,9 +1250,12 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 			{
 				DumpOneLocationInfo(Callback,Context,CurrentAddress,&CmdArray,Flag,GatherCmdArray);
 			}
+
 			CmdArray.clear();
+
 			if(CurrentAddress==NextAddress)
 				break;
+
 			CurrentAddress=NextAddress;
 		}
 	}
@@ -1433,7 +1453,9 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 			AddressRegions.push_back(address_region);
 		}
 	}
+	
 	AnalyzeIDADataByRegion(Callback,Context,&AddressRegions,GatherCmdArray);
+	
 	if(!Callback(Context,
 		END_OF_DATA,
 		(PBYTE)"A",
