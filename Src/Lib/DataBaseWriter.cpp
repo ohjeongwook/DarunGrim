@@ -41,6 +41,7 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 						}
 					}
 				}
+
 				CurrentAddress=pOneLocationInfo->StartAddress;
 				Status=db->ExecuteStatement(NULL,NULL,INSERT_ONE_LOCATION_INFO_TABLE_STATEMENT,
 					FileID,
@@ -53,10 +54,12 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 					pOneLocationInfo->Data+pOneLocationInfo->NameLen,
 					FingerprintHexStringBuffer?FingerprintHexStringBuffer:""
 					);
+
 				if(FingerprintHexStringBuffer)
 					free(FingerprintHexStringBuffer);
 			}
 			break;
+
 		case MAP_INFO:
 			if(sizeof(MapInfo)<=Length)
 			{
@@ -70,6 +73,7 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 					);
 			}
 			break;
+
 		case FILE_INFO:
 			if(sizeof(FileInfo)<=Length)
 			{
@@ -89,6 +93,7 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 				FileID=db->GetLastInsertRowID();
 			}
 			break;
+
 	}
 	Status=TRUE;
 	return FileID;
