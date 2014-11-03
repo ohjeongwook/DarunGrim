@@ -172,7 +172,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;dprintf=PrintToDbg;__NT__;HAVE_STRING_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\UI\FlowGrapher;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -213,7 +213,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;dprintf=PrintToDbg;__NT__;HAVE_STRING_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\UI\FlowGrapher;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -260,7 +260,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;dprintf=printf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\UI\FlowGrapher;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -309,7 +309,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;dprintf=printf;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\UI\FlowGrapher;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -351,10 +351,10 @@
     <ClInclude Include="..\..\Lib\TLV.h" />
     <ClInclude Include="..\..\Lib\Varray.h" />
     <ClInclude Include="..\..\Lib\XGetopt.h" />
+    <ClInclude Include="..\FlowGrapher\DrawingInfo.h" />
+    <ClInclude Include="..\FlowGrapher\FlowGrapher.h" />
     <ClInclude Include="aboutdlg.h" />
-    <ClInclude Include="CGraphVizProcessor.h" />
     <ClInclude Include="CGraphVizWindow.h" />
-    <ClInclude Include="DrawingInfo.h" />
     <ClInclude Include="IDAConnectionDlg.h" />
     <ClInclude Include="LogViewerDlg.h" />
     <ClInclude Include="MainFrame.h" />
@@ -385,7 +385,7 @@
     <ClCompile Include="..\..\Lib\sqlite3.c" />
     <ClCompile Include="..\..\Lib\Varray.cpp" />
     <ClCompile Include="..\..\Lib\XGetopt.cpp" />
-    <ClCompile Include="CGraphVizProcessor.cpp" />
+    <ClCompile Include="..\FlowGrapher\FlowGrapher.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

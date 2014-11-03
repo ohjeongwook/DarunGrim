@@ -168,7 +168,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;dprintf=printf;__NT__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;$(SolutionDir)\Src\UI\FlowGrapher</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -202,7 +202,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;dprintf=printf;__NT__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;$(SolutionDir)\Src\UI\FlowGrapher</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -243,7 +243,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;dprintf=printf;__NT__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;$(SolutionDir)\Src\UI\FlowGrapher</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -285,7 +285,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;dprintf=printf;__NT__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Src\UI\WTL;$(SolutionDir)\Src\DiffEngine;$(SolutionDir)\Src\Lib;%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;$(SolutionDir)\Src\UI\FlowGrapher</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -300,12 +300,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\WTL\CGraphVizProcessor.h" />
+    <ClInclude Include="..\FlowGrapher\DrawingInfo.h" />
+    <ClInclude Include="..\FlowGrapher\FlowGrapher.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\WTL\CGraphVizProcessor.cpp" />
+    <ClCompile Include="..\FlowGrapher\FlowGrapher.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="TestGraphViz.cpp" />
   </ItemGroup>

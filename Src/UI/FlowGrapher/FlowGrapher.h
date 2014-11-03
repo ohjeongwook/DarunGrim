@@ -15,7 +15,7 @@ using namespace stdext;
 #include "DrawingInfo.h"
 //#include "MapPipe.h"
 
-class CGraphVizProcessor
+class FlowGrapher
 {
 private:
 	Agraph_t *g;
@@ -37,8 +37,8 @@ private:
 	void GetDrawingInfo(DWORD address,list<DrawingInfo *> *p_drawing_info_map,BYTE type,char *str);
 
 public:
-	CGraphVizProcessor();
-	~CGraphVizProcessor();
+	FlowGrapher();
+	~FlowGrapher();
 
 	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontsize = "18");
 	void AddNode(DWORD node_id,LPCSTR node_name,LPCSTR node_data);

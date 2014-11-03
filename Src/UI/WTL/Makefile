@@ -35,8 +35,8 @@ all: $(OUTDIR) $(OUTDIR)\DarunGrim2.exe
 $(OUTDIR) :
     if not exist "$(OUTDIR)/$(NULL)" mkdir $(OUTDIR)
 
-$(OUTDIR)\CGraphVizProcessor.obj: $(GRAPHVIZ_INTERFACE)\CGraphVizProcessor.cpp
-    $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" $(GRAPHVIZ_INTERFACE)\CGraphVizProcessor.cpp
+$(OUTDIR)\FlowGrapher.obj: $(GRAPHVIZ_INTERFACE)\FlowGrapher.cpp
+    $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" $(GRAPHVIZ_INTERFACE)\FlowGrapher.cpp
 
 $(OUTDIR)\Main.res: Main.rc 
     rc -r /fo $(OUTDIR)\Main.res -I$(WTL_DIR)\include Main.rc
@@ -44,8 +44,8 @@ $(OUTDIR)\Main.res: Main.rc
 $(OUTDIR)\Main.obj: Main.cpp MainFrame.h SelectFilesDlg.h LogViewerDlg.h stdafx.h $(GRAPHVIZ_INTERFACE)\CGraphVizWindow.h $(OUTDIR)\Main.res 
     $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" Main.cpp    
 
-$(OUTDIR)\DarunGrim2.exe: $(OUTDIR)\Main.obj $(OUTDIR)\Main.res $(OUTDIR)\CGraphVizProcessor.obj $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\RegistryUtil.obj $(OUTDIR)\DarunGrim.obj $(OUTDIR)\LogOperation.obj
-    $(link) $(guiflags) $(graphviz_flags) -out:$(OUTDIR)\DarunGrim2.exe $(OUTDIR)\Main.obj $(OUTDIR)\CGraphVizProcessor.obj $(OUTDIR)\Main.res $(guilibs) $(graphviz_libs) $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(conlibs) $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\RegistryUtil.obj $(OUTDIR)\DarunGrim.obj $(OUTDIR)\LogOperation.obj
+$(OUTDIR)\DarunGrim2.exe: $(OUTDIR)\Main.obj $(OUTDIR)\Main.res $(OUTDIR)\FlowGrapher.obj $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(ZLIB_LIB)\zlib.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\RegistryUtil.obj $(OUTDIR)\DarunGrim.obj $(OUTDIR)\LogOperation.obj
+    $(link) $(guiflags) $(graphviz_flags) -out:$(OUTDIR)\DarunGrim2.exe $(OUTDIR)\Main.obj $(OUTDIR)\FlowGrapher.obj $(OUTDIR)\Main.res $(guilibs) $(graphviz_libs) $(OUTDIR)\IDAClientManager.obj $(OUTDIR)\OneIDAClientManager.obj $(OUTDIR)\DiffMachine.obj $(OUTDIR)\SharedMemory.obj $(OUTDIR)\SharedSocket.obj $(OUTDIR)\ProcessUtils.obj $(OUTDIR)\SocketOperation.obj $(conlibs) $(ZLIB_LIB)\zlib.lib $(SQLITE_DIR_LIB)\sqlite3.lib $(OUTDIR)\dprintf.obj $(OUTDIR)\Diff.obj $(OUTDIR)\Varray.obj $(OUTDIR)\DataBaseWriter.obj $(OUTDIR)\RegistryUtil.obj $(OUTDIR)\DarunGrim.obj $(OUTDIR)\LogOperation.obj
 
 $(OUTDIR)\DarunGrim.obj: $(DIFF_ENGINE)\DarunGrim.cpp
     $(cc) $(cflags) $(cvars) /WX /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\" $(DIFF_ENGINE)\DarunGrim.cpp

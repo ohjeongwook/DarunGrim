@@ -1,6 +1,6 @@
 #pragma warning(disable:4005)
 #pragma warning(disable:4996)
-#include "CGraphVizProcessor.h"
+#include "FlowGrapher.h"
 #include "dprintf.h"
 #include <gvc.h>
 
@@ -9,7 +9,7 @@ using namespace std;
 #define MAX_SIZE 1000
 int GraphVizInterfaceProcessorDebugLevel = 0;
 
-CGraphVizProcessor::CGraphVizProcessor() : FontColor(NULL), FillColor(NULL), FontSize("18")
+FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontSize("18")
 {
 	aginit();
 	gvc = gvContext();
@@ -19,7 +19,7 @@ CGraphVizProcessor::CGraphVizProcessor() : FontColor(NULL), FillColor(NULL), Fon
 	NodeToUserDataMap = new stdext::hash_map<Agnode_t *, DWORD>;
 }
 
-CGraphVizProcessor::~CGraphVizProcessor()
+FlowGrapher::~FlowGrapher()
 {
 	delete NodeToUserDataMap;
 }
@@ -46,14 +46,14 @@ char *EscapeString(char *src)
 	return dst;
 }
 
-void CGraphVizProcessor::SetNodeShape(char *fontcolor, char *fillcolor, char *fontsize)
+void FlowGrapher::SetNodeShape(char *fontcolor, char *fillcolor, char *fontsize)
 {
 	FontColor = fontcolor;
 	FillColor = fillcolor;
 	FontSize = fontsize;
 }
 
-void CGraphVizProcessor::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
+void FlowGrapher::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 {
 
 	Agnode_t *n;
@@ -93,7 +93,7 @@ void CGraphVizProcessor::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_da
 	free(escaped_node_data);
 }
 
-void CGraphVizProcessor::AddLink(DWORD src, DWORD dst)
+void FlowGrapher::AddLink(DWORD src, DWORD dst)
 {
 	Agedge_t *e;
 	stdext::hash_map<DWORD, Agnode_t *>::iterator AddressToNodeMapIterator;
@@ -120,7 +120,7 @@ void CGraphVizProcessor::AddLink(DWORD src, DWORD dst)
 	return;
 }
 
-list <DrawingInfo *> *CGraphVizProcessor::ParseXDOTAttributeString(char *buffer)
+list <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 {
 	int pos = 0;
 	int ch_consumed;
@@ -402,7 +402,7 @@ list <DrawingInfo *> *CGraphVizProcessor::ParseXDOTAttributeString(char *buffer)
 	return p_drawing_infos;
 }
 
-void CGraphVizProcessor::DumpNodeInfo(Agnode_t *n)
+void FlowGrapher::DumpNodeInfo(Agnode_t *n)
 {
 	int i;
 
@@ -417,7 +417,7 @@ void CGraphVizProcessor::DumpNodeInfo(Agnode_t *n)
 	}
 }
 
-void CGraphVizProcessor::DumpEdgeInfo(Agedge_t *e)
+void FlowGrapher::DumpEdgeInfo(Agedge_t *e)
 {
 	int i;
 
@@ -432,7 +432,7 @@ void CGraphVizProcessor::DumpEdgeInfo(Agedge_t *e)
 	}
 }
 
-char *CGraphVizProcessor::GetGraphAttribute(Agraph_t *g, char *attr)
+char *FlowGrapher::GetGraphAttribute(Agraph_t *g, char *attr)
 {
 	char *val;
 	Agsym_t *a;
@@ -445,7 +445,7 @@ char *CGraphVizProcessor::GetGraphAttribute(Agraph_t *g, char *attr)
 	return val;
 }
 
-char *CGraphVizProcessor::GetNodeAttribute(Agnode_t *n, char *attr)
+char *FlowGrapher::GetNodeAttribute(Agnode_t *n, char *attr)
 {
 	Agraph_t *g;
 	Agsym_t *a;
@@ -466,7 +466,7 @@ char *CGraphVizProcessor::GetNodeAttribute(Agnode_t *n, char *attr)
 	return val;
 }
 
-char *CGraphVizProcessor::GetEdgeAttribute(Agedge_t *e, char *attr)
+char *FlowGrapher::GetEdgeAttribute(Agedge_t *e, char *attr)
 {
 	Agraph_t *g;
 	Agsym_t *a;
@@ -483,7 +483,7 @@ char *CGraphVizProcessor::GetEdgeAttribute(Agedge_t *e, char *attr)
 	return val;
 }
 
-void CGraphVizProcessor::GetDrawingInfo(DWORD address, list<DrawingInfo *> *p_drawing_info_map, BYTE type, char *str)
+void FlowGrapher::GetDrawingInfo(DWORD address, list<DrawingInfo *> *p_drawing_info_map, BYTE type, char *str)
 {
 	if (type == TYPE_DI_FILLCOLOR || type == TYPE_DI_COLOR || type == TYPE_DI_BGCOLOR || type == TYPE_DI_FONTCOLOR)
 	{
@@ -571,7 +571,7 @@ void CGraphVizProcessor::GetDrawingInfo(DWORD address, list<DrawingInfo *> *p_dr
 	}
 }
 
-int CGraphVizProcessor::RenderToFile(char *format, char *filename)
+int FlowGrapher::RenderToFile(char *format, char *filename)
 {
 
 	/* parse command line args - minimally argv[0] sets layout engine */
@@ -586,7 +586,7 @@ int CGraphVizProcessor::RenderToFile(char *format, char *filename)
 	return gvRenderFilename(gvc, g, format, filename);
 }
 
-list<DrawingInfo *> *CGraphVizProcessor::GetDrawingInfo()
+list<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
 {
 	list<DrawingInfo *> *DrawingInfoMap = new list<DrawingInfo *>;
 

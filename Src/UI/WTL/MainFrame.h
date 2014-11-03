@@ -10,7 +10,7 @@
 #include "DiffMachine.h"
 #include "DarunGrim.h"
 //DiffEngine
-#include "CGraphVizProcessor.h"
+#include "FlowGrapher.h"
 
 #include "dprintf.h"
 
@@ -517,7 +517,7 @@ public:
 
 	void DrawOnGraphVizWindow(int index,CGraphVizWindow *pGraphVizWindow,IDAController *pIDAController,DWORD address)
 	{
-		CGraphVizProcessor *pGraphVizProcessor=new CGraphVizProcessor();
+		FlowGrapher *pGraphVizProcessor=new FlowGrapher();
 		if(address>0)
 		{
 			char name[100];

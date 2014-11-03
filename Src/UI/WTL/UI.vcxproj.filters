@@ -45,9 +45,6 @@
     <ClInclude Include="CGraphVizWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DrawingInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\DiffEngine\DiffMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,9 +120,6 @@
     <ClInclude Include="VirtualListViewCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CGraphVizProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IDAConnectionDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -133,6 +127,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DiffEngine\IDAController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FlowGrapher\FlowGrapher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FlowGrapher\DrawingInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -191,10 +191,10 @@
     <ClCompile Include="..\..\Lib\sqlite3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CGraphVizProcessor.cpp">
+    <ClCompile Include="..\..\DiffEngine\IDAController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\DiffEngine\IDAController.cpp">
+    <ClCompile Include="..\FlowGrapher\FlowGrapher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

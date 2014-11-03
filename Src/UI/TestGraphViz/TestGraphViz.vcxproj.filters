@@ -24,7 +24,10 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\WTL\CGraphVizProcessor.h">
+    <ClInclude Include="..\FlowGrapher\DrawingInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FlowGrapher\FlowGrapher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +38,7 @@
     <ClCompile Include="TestGraphViz.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\WTL\CGraphVizProcessor.cpp">
+    <ClCompile Include="..\FlowGrapher\FlowGrapher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
