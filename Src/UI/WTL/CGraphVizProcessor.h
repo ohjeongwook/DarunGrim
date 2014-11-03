@@ -21,6 +21,10 @@ private:
 	Agraph_t *g;
 	GVC_t *gvc;
 
+	char *FontColor;
+	char *FillColor;
+	char *FontSize;
+
 	stdext::hash_map<DWORD,Agnode_t *> AddressToNodeMap;
 	stdext::hash_map<Agnode_t *,DWORD> *NodeToUserDataMap;
 
@@ -35,9 +39,10 @@ private:
 public:
 	CGraphVizProcessor();
 	~CGraphVizProcessor();
-	void SetNodeData(DWORD NodeID,LPCSTR NodeName,LPCSTR NodeData,char *FontColor=NULL,char *FillColor=NULL,char *FontSize="18");
-	void SetMapData(DWORD src,DWORD dst);
-	int RenderToFile(char *format,char *filename);
-	list<DrawingInfo *> *GenerateDrawingInfo();
-};
 
+	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontsize = "18");
+	void AddNode(DWORD node_id,LPCSTR node_name,LPCSTR node_data);
+	void AddLink(DWORD src, DWORD dst);
+	int RenderToFile(char *format,char *filename);
+	list<DrawingInfo *> *GetDrawingInfo();
+};

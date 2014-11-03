@@ -539,7 +539,9 @@ public:
 					fill_color="yellow";
 				}
 			}
-			pGraphVizProcessor->SetNodeData(address,name,disasm_line?disasm_line:"",font_color,fill_color,"12");
+
+			pGraphVizProcessor->SetNodeShape(font_color, fill_color, "12");
+			pGraphVizProcessor->AddNode(address, name, disasm_line ? disasm_line : "");
 			if(disasm_line)
 				free(disasm_line);
 		}
@@ -586,17 +588,19 @@ public:
 									fill_color="yellow";
 								}
 							}
-							pGraphVizProcessor->SetNodeData(current_address,name,disasm_line?disasm_line:"",font_color,fill_color,"12");
+
+							pGraphVizProcessor->SetNodeShape(font_color, fill_color, "12");
+							pGraphVizProcessor->AddNode(current_address, name, disasm_line ? disasm_line : "");
 							if(disasm_line)
 								free(disasm_line);
 						}
-						pGraphVizProcessor->SetMapData(*address_list_iter,current_address);
+						pGraphVizProcessor->AddLink(*address_list_iter, current_address);
 					}
 				}
 				free(p_addresses);
 			}
 		}
-		DrawingInfoMap=pGraphVizProcessor->GenerateDrawingInfo();
+		DrawingInfoMap=pGraphVizProcessor->GetDrawingInfo();
 		delete pGraphVizProcessor;
 
 		pGraphVizWindow->SetDrawingInfoMap(DrawingInfoMap);

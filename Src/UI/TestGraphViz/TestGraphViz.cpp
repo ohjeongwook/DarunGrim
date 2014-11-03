@@ -7,10 +7,10 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	CGraphVizProcessor *pGraphVizProcessor = new CGraphVizProcessor();
-	pGraphVizProcessor->SetNodeData(0, "Test", "Disasm lines", "black", "red", "12");
+	pGraphVizProcessor->AddNode(0, "Test", "Disasm lines", "black", "red", "12");
 
 	list<DrawingInfo *> *DrawingInfoMap;
-	DrawingInfoMap = pGraphVizProcessor->GenerateDrawingInfo();
+	DrawingInfoMap = pGraphVizProcessor->GetDrawingInfo();
 	return 0;
 }
 

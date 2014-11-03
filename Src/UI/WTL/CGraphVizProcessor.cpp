@@ -9,15 +9,12 @@ using namespace std;
 #define MAX_SIZE 1000
 int GraphVizInterfaceProcessorDebugLevel = 0;
 
-CGraphVizProcessor::CGraphVizProcessor()
+CGraphVizProcessor::CGraphVizProcessor() : FontColor(NULL), FillColor(NULL), FontSize("18")
 {
 	aginit();
 	gvc = gvContext();
 
 	g = agopen("g", AGDIGRAPH);
-
-	//char *argv[2] = { "dot", NULL };
-	//gvParseArgs(gvc, 1, argv);
 
 	NodeToUserDataMap = new stdext::hash_map<Agnode_t *, DWORD>;
 }
@@ -27,67 +24,76 @@ CGraphVizProcessor::~CGraphVizProcessor()
 	delete NodeToUserDataMap;
 }
 
-char *EscapeString(char *Src)
+char *EscapeString(char *src)
 {
 	//<>{}|
-	int SrcLen = strlen(Src);
-	char *Dst = (char *)malloc(strlen(Src) * 2 + 1);
+	int src_len = strlen(src);
+	char *dst = (char *)malloc(strlen(src) * 2 + 1);
 	int j = 0;
-	for (int i = 0; i<SrcLen + 1; i++, j++)
+	for (int i = 0; i<src_len + 1; i++, j++)
 	{
-		if (Src[i] == '<' || Src[i] == '>' || Src[i] == '{' || Src[i] == '}' || Src[i] == '|')
+		if (src[i] == '<' || src[i] == '>' || src[i] == '{' || src[i] == '}' || src[i] == '|')
 		{
-			Dst[j] = '\\';
+			dst[j] = '\\';
 			j++;
-			Dst[j] = Src[i];
+			dst[j] = src[i];
 		}
 		else
 		{
-			Dst[j] = Src[i];
+			dst[j] = src[i];
 		}
 	}
-	return Dst;
+	return dst;
 }
 
-void CGraphVizProcessor::SetNodeData(DWORD NodeID, LPCSTR NodeName, LPCSTR NodeData, char *FontColor, char *FillColor, char *FontSize)
+void CGraphVizProcessor::SetNodeShape(char *fontcolor, char *fillcolor, char *fontsize)
+{
+	FontColor = fontcolor;
+	FillColor = fillcolor;
+	FontSize = fontsize;
+}
+
+void CGraphVizProcessor::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 {
 
 	Agnode_t *n;
 	char name[1024 * 4];
-	//Escape NodeName and NodeData
-	char *EscapedNodeName = EscapeString((char *)NodeName);
-	char *EscapedNodeData = EscapeString((char *)NodeData);
+	char *escaped_node_name = EscapeString((char *)node_name);
+	char *escaped_node_data = EscapeString((char *)node_data);
 
 	_snprintf(name, sizeof(name),
 		"{%s|%s}",
-		EscapedNodeName,
-		EscapedNodeData);
+		escaped_node_name,
+		escaped_node_data);
 	n = agnode(g, name);
 	agsafeset(n, "label", name, "");
-	if (NodeData)
+	if (node_data)
 		agsafeset(n, "shape", "record", "");
 	else
 		agsafeset(n, "shape", "rect", "");
+
 	agsafeset(n, "fontname", "Sans Serif", "");
 	agsafeset(n, "fontsize", FontSize, "");
 	if (FontColor)
 	{
-		if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set to [%s]\n", __FUNCTION__, FontColor);
+		if (GraphVizInterfaceProcessorDebugLevel>0)
+			dprintf("%s: [fontcolor] set to [%s]\n", __FUNCTION__, FontColor);
 		agsafeset(n, "fontcolor", FontColor, "");
 	}
 	if (FillColor)
 	{
 		agsafeset(n, "style", "filled", "");
-		if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: NodeName=%s [fillcolor] set to [%s]\n", __FUNCTION__, NodeName, FillColor);
+		if (GraphVizInterfaceProcessorDebugLevel>0)
+			dprintf("%s: node_name=%s [fillcolor] set to [%s]\n", __FUNCTION__, node_name, FillColor);
 		agsafeset(n, "fillcolor", FillColor, "");
 	}
-	AddressToNodeMap.insert(std::pair <DWORD, Agnode_t *>(NodeID, n));
-	NodeToUserDataMap->insert(std::pair <Agnode_t *, DWORD>(n, NodeID));
-	free(EscapedNodeName);
-	free(EscapedNodeData);
+	AddressToNodeMap.insert(std::pair <DWORD, Agnode_t *>(node_id, n));
+	NodeToUserDataMap->insert(std::pair <Agnode_t *, DWORD>(n, node_id));
+	free(escaped_node_name);
+	free(escaped_node_data);
 }
 
-void CGraphVizProcessor::SetMapData(DWORD src, DWORD dst)
+void CGraphVizProcessor::AddLink(DWORD src, DWORD dst)
 {
 	Agedge_t *e;
 	stdext::hash_map<DWORD, Agnode_t *>::iterator AddressToNodeMapIterator;
@@ -580,24 +586,15 @@ int CGraphVizProcessor::RenderToFile(char *format, char *filename)
 	return gvRenderFilename(gvc, g, format, filename);
 }
 
-list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
+list<DrawingInfo *> *CGraphVizProcessor::GetDrawingInfo()
 {
 	list<DrawingInfo *> *DrawingInfoMap = new list<DrawingInfo *>;
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	/* Compute a layout using layout engine from command line args */
 	gvLayoutJobs(gvc, g);
-	/* Write the graph according to -T and -o options */
 	gvRenderJobs(gvc, g);
 
 	agsafeset(g, "charset", "Latin1", "");
-
-	/*agsafeset(g,"mode","hier","");
-	gvLayout(gvc,g,"neato");*/
 	gvLayout(gvc, g, "dot");
-
-	//gvRenderFilename(gvc,g,"xdot","test.xdot");
-	//gvRenderFilename(gvc,g,"gif","test.gif");
 
 	try
 	{
@@ -627,44 +624,6 @@ list<DrawingInfo *> *CGraphVizProcessor::GenerateDrawingInfo()
 
 	for (Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
-		/*
-		digraph g {
-		graph
-		[
-		bb="0,0,86,180",
-		_draw_="c 5 -white C 5 -white P 4 0 0 0 180 86 180 86 0 ",
-		xdotversion="1.1"
-		];
-		"{0xff00ff00|TestFunc@1|xxxx}" [
-		label="{0xff00ff00|TestFunc@1|xxxx}",
-		color=blue,
-		shape=record,
-		pos="43,144",rects="0,156,86,180 0,132,86,156 0,108,86,132",
-		width="1.19",
-		height="1.00",
-		_draw_="c 4 -blue p 4 0 108 0 180 86 180 86 108 c 4 -blue L 2 0 156 86 156 c 4 -blue L 2 0 132 86 132 ",
-		_ldraw_="F 14.000000 11 -Times-Roman c 5 -black T 43 162 0 59 10 -0xff00ff00 F 14.000000 11 -Times-Roman c 5 -black T 43 138 0 70 10 -Tes\
-		tFunc@1 F 14.000000 11 -Times-Roman c 5 -black T 43 114 0 29 4 -xxxx "
-		];
-		t2 [
-		label="{0xff00ff00|TestFunc@1|xxxx}",
-		color=blue,
-		shape=record,
-		pos="43,36",rects="0,48,86,72 0,24,86,48 0,0,86,24",
-		width="1.19",
-		height="1.00",
-		_draw_="c 4 -blue p 4 0 0 0 72 86 72 86 0 c 4 -blue L 2 0 48 86 48 c 4 -blue L 2 0 24 86 24 ",
-		_ldraw_="F 14.000000 11 -Times-Roman c 5 -black T 43 54 0 59 10 -0xff00ff00 F 14.000000 11 -Times-Roman c 5 -black T 43 30 0 70 10 -TestF\
-		unc@1 F 14.000000 11 -Times-Roman c 5 -black T 43 6 0 29 4 -xxxx "
-		];
-		"{0xff00ff00|TestFunc@1|xxxx}" -> t2 [
-		pos="e,43,72 43,108 43,99 43,91 43,82",
-		_draw_="c 5 -black B 4 43 108 43 99 43 91 43 82 ",
-		_hdraw_="S 5 -solid S 15 -setlinewidth(1) c 5 -black C 5 -black P 3 47 82 43 72 40 82 "
-		];
-		}
-		*/
-
 		DWORD address = NodeToUserDataMap->find(n)->second;
 
 		if (GraphVizInterfaceProcessorDebugLevel > -1)
