@@ -139,7 +139,7 @@ private:
 	string m_TargetFileName;
 	CLogViwerDlg m_LogViewerDlg;
 
-	list<DrawingInfo *> *DrawingInfoMap;
+	vector<DrawingInfo *> *DrawingObjectList;
 	CCommandBarCtrl m_CmdBar;
 	float m_Zoom;
 	bool m_RetrieveClientManagersDatabase;
@@ -517,7 +517,7 @@ public:
 
 	void DrawOnGraphVizWindow(int index,CGraphVizWindow *pGraphVizWindow,IDAController *pIDAController,DWORD address)
 	{
-		FlowGrapher *pGraphVizProcessor=new FlowGrapher();
+		FlowGrapher *p_flow_grapher=new FlowGrapher();
 		if(address>0)
 		{
 			char name[100];
@@ -540,8 +540,8 @@ public:
 				}
 			}
 
-			pGraphVizProcessor->SetNodeShape(font_color, fill_color, "12");
-			pGraphVizProcessor->AddNode(address, name, disasm_line ? disasm_line : "");
+			p_flow_grapher->SetNodeShape(font_color, fill_color, "12");
+			p_flow_grapher->AddNode(address, name, disasm_line ? disasm_line : "");
 			if(disasm_line)
 				free(disasm_line);
 		}
@@ -589,21 +589,22 @@ public:
 								}
 							}
 
-							pGraphVizProcessor->SetNodeShape(font_color, fill_color, "12");
-							pGraphVizProcessor->AddNode(current_address, name, disasm_line ? disasm_line : "");
+							p_flow_grapher->SetNodeShape(font_color, fill_color, "12");
+							p_flow_grapher->AddNode(current_address, name, disasm_line ? disasm_line : "");
 							if(disasm_line)
 								free(disasm_line);
 						}
-						pGraphVizProcessor->AddLink(*address_list_iter, current_address);
+						p_flow_grapher->AddLink(*address_list_iter, current_address);
 					}
 				}
 				free(p_addresses);
 			}
 		}
-		DrawingInfoMap=pGraphVizProcessor->GetDrawingInfo();
-		delete pGraphVizProcessor;
+		p_flow_grapher->GenerateDrawingInfo();
+		DrawingObjectList = p_flow_grapher->GetDrawingInfo();
+		delete p_flow_grapher;
 
-		pGraphVizWindow->SetDrawingInfoMap(DrawingInfoMap);
+		pGraphVizWindow->SetDrawingObjectList(DrawingObjectList);
 	}
 
 	typedef struct

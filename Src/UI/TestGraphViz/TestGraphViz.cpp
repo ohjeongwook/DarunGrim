@@ -6,12 +6,12 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	FlowGrapher *pGraphVizProcessor = new FlowGrapher();
-	pGraphVizProcessor->SetNodeShape("black", "red", "12");
-	pGraphVizProcessor->AddNode(0, "Test", "Disasm lines");
+	FlowGrapher *p_flow_grapher = new FlowGrapher();
+	p_flow_grapher->SetNodeShape("black", "red", "12");
+	p_flow_grapher->AddNode(0, "Test", "Disasm lines");
 
-	list<DrawingInfo *> *DrawingInfoMap;
-	DrawingInfoMap = pGraphVizProcessor->GetDrawingInfo();
+	p_flow_grapher->GenerateDrawingInfo();
+	list<DrawingInfo *> *DrawingObjectList = p_flow_grapher->GetDrawingInfo();
 	return 0;
 }
 

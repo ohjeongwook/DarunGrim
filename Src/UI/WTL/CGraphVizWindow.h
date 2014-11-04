@@ -120,7 +120,7 @@ private:
 		CHAIN_MSG_MAP_ALT(CScrollWindowImpl<CGraphVizWindow>,1)
 	END_MSG_MAP()
 
-	list<DrawingInfo *> *DrawingInfoMap;
+	vector<DrawingInfo *> *DrawingObjectList;
 
 	LRESULT OnCreate(LPCREATESTRUCT lpcs)
 	{
@@ -130,7 +130,7 @@ private:
 		SetScrollLine(20,20);
 		SetScrollPage(40,40);
 		SetMsgHandled(false);
-		DrawingInfoMap=NULL;
+		DrawingObjectList=NULL;
 		xWinOrg=0;
 		yWinOrg=0;
 		MemDC=NULL;
@@ -155,19 +155,19 @@ private:
 		int x=(int)((float)(MAKEPOINTS(lParam).x+ScrollOffset.x)/(float)m_ZoomLevel);
 		int y=(int)((float)(MAKEPOINTS(lParam).y+ScrollOffset.y)/(float)m_ZoomLevel);
 
-		if(!DrawingInfoMap)
+		if(!DrawingObjectList)
 			return 0;
 
 		DWORD address=0;
-		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
+		vector<DrawingInfo *>::iterator DrawingObjectListIterator;
 
 		int offset_x=0;
 		int offset_y=0;
-		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-			DrawingInfoMapIterator!=DrawingInfoMap->end();
-			DrawingInfoMapIterator++)
+		for(DrawingObjectListIterator=DrawingObjectList->begin();
+			DrawingObjectListIterator!=DrawingObjectList->end();
+			DrawingObjectListIterator++)
 		{
-			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+			DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 
 			if(p_drawing_info->type==TYPE_DI_RECTS)
 			{
@@ -228,17 +228,17 @@ private:
 
 	LRESULT ShowNode(DWORD address,DWORD offset_x=0,DWORD offset_y=0)
 	{
-		if(!DrawingInfoMap)
+		if(!DrawingObjectList)
 			return 0;
 
 		int min_x=-1;
 		int min_y=-1;
-		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
-		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-			DrawingInfoMapIterator!=DrawingInfoMap->end();
-			DrawingInfoMapIterator++)
+		vector<DrawingInfo *>::iterator DrawingObjectListIterator;
+		for(DrawingObjectListIterator=DrawingObjectList->begin();
+			DrawingObjectListIterator!=DrawingObjectList->end();
+			DrawingObjectListIterator++)
 		{
-			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+			DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 			if(address==p_drawing_info->address && p_drawing_info->type==TYPE_DI_RECTS)
 			{
 				if(p_drawing_info->points && p_drawing_info->count>0)
@@ -289,40 +289,40 @@ private:
 				WindowWidth,WindowHeight,SWP_NOMOVE|SWP_NOZORDER);
 	}
 
-	void SetDrawingInfoMap(list<DrawingInfo *> *NewDrawingInfoMap)
+	void SetDrawingObjectList(vector<DrawingInfo *> *NewDrawingObjectList)
 	{
-		//Clean up NewDrawingInfoMap
-		if(DrawingInfoMap)
+		//Clean up NewDrawingObjectList
+		if(DrawingObjectList)
 		{
-			list<DrawingInfo *>::iterator DrawingInfoMapIterator;
-			for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-				DrawingInfoMapIterator!=DrawingInfoMap->end();
-				DrawingInfoMapIterator++)
+			vector<DrawingInfo *>::iterator DrawingObjectListIterator;
+			for(DrawingObjectListIterator=DrawingObjectList->begin();
+				DrawingObjectListIterator!=DrawingObjectList->end();
+				DrawingObjectListIterator++)
 			{
-				DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+				DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 				if(p_drawing_info->points)
 					free(p_drawing_info->points);
 				if(p_drawing_info->text)
 					free(p_drawing_info->text);
 				free(p_drawing_info);
 			}
-			delete DrawingInfoMap;
+			delete DrawingObjectList;
 		}
 
-		DrawingInfoMap=NewDrawingInfoMap;
+		DrawingObjectList=NewDrawingObjectList;
 		
-		if(!DrawingInfoMap)
+		if(!DrawingObjectList)
 			return;
 
 		m_ClientWidth=0;
 		m_ClientHeight=0;
-		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
+		vector<DrawingInfo *>::iterator DrawingObjectListIterator;
 
-		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-			DrawingInfoMapIterator!=DrawingInfoMap->end();
-			DrawingInfoMapIterator++)
+		for(DrawingObjectListIterator=DrawingObjectList->begin();
+			DrawingObjectListIterator!=DrawingObjectList->end();
+			DrawingObjectListIterator++)
 		{
-			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+			DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 			if(DebugLevel>0) 
 				dprintf("%s: p_drawing_info=%x\n",__FUNCTION__,p_drawing_info);
 			
@@ -340,11 +340,11 @@ private:
 			}
 		}
 
-		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-			DrawingInfoMapIterator!=DrawingInfoMap->end();
-			DrawingInfoMapIterator++)
+		for(DrawingObjectListIterator=DrawingObjectList->begin();
+			DrawingObjectListIterator!=DrawingObjectList->end();
+			DrawingObjectListIterator++)
 		{
-			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+			DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 			int pos;
 			for(pos=0;pos<p_drawing_info->count;pos+=1)
 			{
@@ -1159,11 +1159,11 @@ private:
 	{
 		if(DebugLevel>0) dprintf("%s: entry\n",__FUNCTION__);
 
-		if(!DrawingInfoMap)
+		if(!DrawingObjectList)
 			return;
 
 		//SetViewportOrgEx(dc,10,10,NULL);
-		list<DrawingInfo *>::iterator DrawingInfoMapIterator;
+		vector<DrawingInfo *>::iterator DrawingObjectListIterator;
 
 		char *CurrentFontName="Helvetica";
 		float CurrentFontSize=10.0;
@@ -1175,11 +1175,11 @@ private:
 		char *BgColor=NULL;
 		char *FontColor=NULL;
 
-		for(DrawingInfoMapIterator=DrawingInfoMap->begin();
-			DrawingInfoMapIterator!=DrawingInfoMap->end();
-			DrawingInfoMapIterator++)
+		for(DrawingObjectListIterator=DrawingObjectList->begin();
+			DrawingObjectListIterator!=DrawingObjectList->end();
+			DrawingObjectListIterator++)
 		{
-			DrawingInfo *p_drawing_info=*DrawingInfoMapIterator;
+			DrawingInfo *p_drawing_info=*DrawingObjectListIterator;
 			DWORD user_data=p_drawing_info->address;
 
 			printf("%s: p_drawing_info=%p\n",__FUNCTION__,p_drawing_info);

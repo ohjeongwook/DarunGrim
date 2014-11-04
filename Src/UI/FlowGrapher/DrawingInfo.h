@@ -19,4 +19,10 @@ typedef struct _DrawingInfo_{
 	POINT *points;
 	char *text;
 	float size;
+
+	POINT GetPoint(int i)
+	{
+		return points[i];
+	}
 } DrawingInfo;
+

@@ -1,7 +1,6 @@
 #pragma warning(disable:4005)
 #pragma warning(disable:4996)
 #include "FlowGrapher.h"
-#include "dprintf.h"
 #include <gvc.h>
 
 using namespace std;
@@ -11,6 +10,7 @@ int GraphVizInterfaceProcessorDebugLevel = 0;
 
 FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontSize("18")
 {
+	DrawingObjectList = new vector<DrawingInfo *>;
 	aginit();
 	gvc = gvContext();
 
@@ -120,13 +120,13 @@ void FlowGrapher::AddLink(DWORD src, DWORD dst)
 	return;
 }
 
-list <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
+vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 {
 	int pos = 0;
 	int ch_consumed;
 	int n;
 	int i;
-	list <DrawingInfo *> *p_drawing_infos = new list <DrawingInfo *>;
+	vector <DrawingInfo *> *p_drawing_infos = new vector <DrawingInfo *>;
 
 	if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s\n", buffer);
 	while (buffer[pos])
@@ -483,18 +483,10 @@ char *FlowGrapher::GetEdgeAttribute(Agedge_t *e, char *attr)
 	return val;
 }
 
-void FlowGrapher::GetDrawingInfo(DWORD address, list<DrawingInfo *> *p_drawing_info_map, BYTE type, char *str)
+void FlowGrapher::AddDrawingInfo(DWORD address, vector<DrawingInfo *> *p_drawing_info_map, BYTE type, char *str)
 {
 	if (type == TYPE_DI_FILLCOLOR || type == TYPE_DI_COLOR || type == TYPE_DI_BGCOLOR || type == TYPE_DI_FONTCOLOR)
 	{
-		if (type == TYPE_DI_FONTCOLOR)
-		{
-			if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fontcolor] set %s\n", __FUNCTION__, str);
-		}
-		if (type == TYPE_DI_FILLCOLOR)
-		{
-			if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s: [fillcolor] set %s\n", __FUNCTION__, str);
-		}
 		DrawingInfo *p_drawing_info = (DrawingInfo *)malloc(sizeof(DrawingInfo));
 		p_drawing_info->address = address;
 		p_drawing_info->type = type;
@@ -556,8 +548,8 @@ void FlowGrapher::GetDrawingInfo(DWORD address, list<DrawingInfo *> *p_drawing_i
 		c 5 -black F 14.000000 11 -Times-Roman T 1295 355 0 177 25 -_ObjectFromDIBResource@24
 		c 5 -black F 14.000000 11 -Times-Roman T 1295 331 0 250 41 -call _pfnLockResource; _LockResource(x,x)
 		*/
-		list <DrawingInfo *>::iterator drawing_info_iterator;
-		list <DrawingInfo *> *ret = ParseXDOTAttributeString(str);
+		vector <DrawingInfo *>::iterator drawing_info_iterator;
+		vector <DrawingInfo *> *ret = ParseXDOTAttributeString(str);
 		for (drawing_info_iterator = ret->begin();
 			drawing_info_iterator != ret->end();
 			drawing_info_iterator++)
@@ -586,10 +578,9 @@ int FlowGrapher::RenderToFile(char *format, char *filename)
 	return gvRenderFilename(gvc, g, format, filename);
 }
 
-list<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
+void FlowGrapher::GenerateDrawingInfo()
 {
-	list<DrawingInfo *> *DrawingInfoMap = new list<DrawingInfo *>;
-
+	DrawingObjectList->clear();
 	gvLayoutJobs(gvc, g);
 	gvRenderJobs(gvc, g);
 
@@ -602,12 +593,16 @@ list<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
 	}
 	catch (...)
 	{
-		return DrawingInfoMap;
+		return;
 	}
-	if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("gvRender\n");
 
-	if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("bb=%s\n", GetGraphAttribute(g, "bb"));
-	if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("_draw_=%s\n", GetGraphAttribute(g, "_draw_"));
+	if (GraphVizInterfaceProcessorDebugLevel > 0)
+	{
+		dprintf("gvRender\n");
+		dprintf("bb=%s\n", GetGraphAttribute(g, "bb"));
+		dprintf("_draw_=%s\n", GetGraphAttribute(g, "_draw_"));
+	}
+
 	DrawingInfo *p_drawing_info = (DrawingInfo *)malloc(sizeof(DrawingInfo));
 	p_drawing_info->type = TYPE_DI_GRAPH;
 	p_drawing_info->count = 2;
@@ -620,7 +615,7 @@ list<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
 	p_drawing_info->points[1].y = (int)pos[3];
 	p_drawing_info->text = NULL;
 	p_drawing_info->address = 0;
-	DrawingInfoMap->push_back(p_drawing_info);
+	DrawingObjectList->push_back(p_drawing_info);
 
 	for (Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
@@ -632,50 +627,62 @@ list<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
 			char *width = GetNodeAttribute(n, "width");
 			char *height = GetNodeAttribute(n, "height");
 
-			dprintf("name=%s\n", name);
-			dprintf("width=%s\n", width);
-			dprintf("height=%s\n", height);
+			if (GraphVizInterfaceProcessorDebugLevel > 0)
+			{
+				dprintf("name=%s\n", name);
+				dprintf("width=%s\n", width);
+				dprintf("height=%s\n", height);
 
-			dprintf("shape=%s\n", GetNodeAttribute(n, "shape"));
-			dprintf("color=%s\n", GetNodeAttribute(n, "color"));
-			dprintf("pos=%s\n", GetNodeAttribute(n, "pos"));
-			dprintf("rects=%s\n", GetNodeAttribute(n, "rects"));
-			dprintf("_draw_=%s\n", GetNodeAttribute(n, "_draw_"));
-			dprintf("_ldraw_=%s\n", GetNodeAttribute(n, "_ldraw_"));
+				dprintf("shape=%s\n", GetNodeAttribute(n, "shape"));
+				dprintf("color=%s\n", GetNodeAttribute(n, "color"));
+				dprintf("pos=%s\n", GetNodeAttribute(n, "pos"));
+				dprintf("rects=%s\n", GetNodeAttribute(n, "rects"));
+				dprintf("_draw_=%s\n", GetNodeAttribute(n, "_draw_"));
+				dprintf("_ldraw_=%s\n", GetNodeAttribute(n, "_ldraw_"));
+			}
 		}
 
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_COLOR, GetNodeAttribute(n, "color"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_FILLCOLOR, GetNodeAttribute(n, "fillcolor"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_BGCOLOR, GetNodeAttribute(n, "bgcolor"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_FONTCOLOR, GetNodeAttribute(n, "fontcolor"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_RECTS, GetNodeAttribute(n, "rects"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_DRAW, GetNodeAttribute(n, "_draw_"));
-		GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_DRAW, GetNodeAttribute(n, "_ldraw_"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_COLOR, GetNodeAttribute(n, "color"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_FILLCOLOR, GetNodeAttribute(n, "fillcolor"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_BGCOLOR, GetNodeAttribute(n, "bgcolor"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_FONTCOLOR, GetNodeAttribute(n, "fontcolor"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_RECTS, GetNodeAttribute(n, "rects"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_DRAW, GetNodeAttribute(n, "_draw_"));
+		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_DRAW, GetNodeAttribute(n, "_ldraw_"));
 
 		for (Agedge_t *e = agfstedge(g, n); e; e = agnxtedge(g, e, n))
 		{
 			GetEdgeAttribute(e, "pos");
-			GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_DRAW, GetEdgeAttribute(e, "_draw_"));
-			GetDrawingInfo(address, DrawingInfoMap, TYPE_DI_DRAW, GetEdgeAttribute(e, "_hdraw_"));
+			AddDrawingInfo(address, DrawingObjectList, TYPE_DI_DRAW, GetEdgeAttribute(e, "_draw_"));
+			AddDrawingInfo(address, DrawingObjectList, TYPE_DI_DRAW, GetEdgeAttribute(e, "_hdraw_"));
 
 			for (int i = 0;
 				i<dtsize(e->tail->graph->univ->edgeattr->dict);
 				i++)
 			{
-				if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("edge: %s-%s\n",
-					e->tail->graph->univ->edgeattr->list[i]->name,
-					agxget(e, e->tail->graph->univ->edgeattr->list[i]->index));
+				if (GraphVizInterfaceProcessorDebugLevel>0) 
+					dprintf("edge: %s-%s\n",
+						e->tail->graph->univ->edgeattr->list[i]->name,
+						agxget(e, e->tail->graph->univ->edgeattr->list[i]->index));
 			}
 		}
 	}
-
-	/* Free layout data */
 	gvFreeLayout(gvc, g);
-	/* Free graph structures */
 	agclose(g);
-	/* close output file, free context, and return number of errors */
 	gvFreeContext(gvc);
-	return DrawingInfoMap;
 }
 
+vector<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
+{
+	return DrawingObjectList;
+}
 
+int FlowGrapher::GetDrawingInfoLength()
+{
+	return DrawingObjectList->size();
+}
+
+DrawingInfo *FlowGrapher::GetDrawingInfoMember(int i)
+{
+	return DrawingObjectList->at(i);
+}
