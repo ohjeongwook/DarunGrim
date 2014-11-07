@@ -1,7 +1,7 @@
 import sqlite3
 from math import sqrt
 import sys
-import DarunGrim
+import DarunGrimEngine
 #from pylab import *
 #import matplotlib.pyplot as plt
 #import numpy as np

@@ -6,7 +6,7 @@ sys.path.append(r'..\Diff Inspector')
 import os
 
 import PatchTimeline
-import DarunGrim
+import DarunGrimEngine
 import PatchDatabaseWrapper
 import SecurityImplications
 import DarunGrimDatabase
