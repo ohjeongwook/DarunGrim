@@ -110,7 +110,7 @@ public:
 
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 
-	bool GenerateDB( 
+	bool CreateDGF( 
 		char *storage_filename, 
 		char *log_filename, 
 		char *ida_log_filename_for_source,
@@ -165,7 +165,7 @@ public:
 	void SetIDAPath(const char *ParamIDAPath);
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDB(const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress);
+	void RunIDAToCreateDGF(const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress);
 	void ConnectToDarunGrim(const char *ida_filename);
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();
