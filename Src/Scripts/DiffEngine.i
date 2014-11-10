@@ -59,7 +59,7 @@ class DarunGrim
 public:
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 	void SetIDAPath( const char *path );
-	bool GenerateDB( 
+	bool CreateDGF( 
 		char *storage_filename, 
 		char *log_filename, 
 		char *ida_log_filename_for_source,
@@ -83,7 +83,7 @@ public:
 	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDB(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
+	void RunIDAToCreateDGF(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
 	void ConnectToDarunGrim(char *ida_filename);
 	const char *GetIDALogFilename();
 };

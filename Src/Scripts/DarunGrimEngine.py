@@ -23,7 +23,7 @@ class Differ:
 		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
 
-		self.DarunGrim.GenerateDB(
+		self.DarunGrim.CreateDGF(
 			storage_filename, log_filename, 
 			ida_log_filename_for_source,
 			ida_logfilename_for_target,
@@ -58,4 +58,3 @@ if __name__ == '__main__':
 	darun_grim = DiffEngine.DarunGrim()
 	darun_grim.SetLogParameters(LogToStdout, 100, "");  
 	darun_grim.DiffDatabaseFiles(src_filename, options.source_address, target_filename, options.target_address, result_filename)
-

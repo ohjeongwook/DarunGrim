@@ -188,7 +188,7 @@ class Manager:
 
 		self.DatabaseName = full_databasename
 		if not differ:
-			differ = DarunGrim.Differ( source_filename, target_filename )
+			differ = DarunGrimEngine.Differ( source_filename, target_filename )
 			differ.SetIDAPath( self.IDAPath )
 			if self.DebugLevel > 2:
 				print 'source_filename',source_filename
@@ -213,7 +213,7 @@ class Manager:
 			del database
 
 			if function_match_info_count > 0:
-				differ = DarunGrim.Differ( source_filename, target_filename )
+				differ = DarunGrimEngine.Differ( source_filename, target_filename )
 				differ.SetIDAPath( self.IDAPath )
 				if self.DebugLevel > 0:
 					print 'Already analyzed',databasename

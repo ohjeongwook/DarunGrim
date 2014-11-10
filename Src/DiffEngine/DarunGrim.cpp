@@ -71,7 +71,7 @@ void DarunGrim::SetIDAPath(const char *ParamIDAPath)
 	IDAPath = _strdup(ParamIDAPath);
 }
 
-bool DarunGrim::GenerateDB( 
+bool DarunGrim::CreateDGF( 
 	char *storage_filename, 
 	char *log_filename, 
 	char *ida_log_filename_for_source,
@@ -84,9 +84,9 @@ bool DarunGrim::GenerateDB(
 	SetOutputFilename(storage_filename);
 	SetLogFilename( log_filename );
 	SetIDALogFilename( ida_log_filename_for_source );
-	RunIDAToGenerateDB( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
+	RunIDAToCreateDGF( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
 	SetIDALogFilename( ida_log_filename_for_target );
-	RunIDAToGenerateDB( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
+	RunIDAToCreateDGF( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
 	return OpenDatabase(storage_filename);
 }
 
@@ -634,7 +634,7 @@ void DarunGrim::SetLogFilename(char *LogFilename)
 	}
 }
 
-void DarunGrim::RunIDAToGenerateDB(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
+void DarunGrim::RunIDAToCreateDGF(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
 {
 	char *idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
 		EscapedLogFilename ? EscapedLogFilename : "",

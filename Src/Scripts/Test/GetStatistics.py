@@ -13,7 +13,7 @@ def Draw( Values ):
 	ax.plot( r )
 	plt.show()
 
-darungrim=DarunGrim.DGFAnalyzer(sys.argv[1])
+darungrim=DarunGrimEngine.DGFAnalyzer(sys.argv[1])
 
 #FunctionMemberCounts = darungrim.RetrieveFunctionBasicBlockMap(1)
 #Draw( FunctionMemberCounts )

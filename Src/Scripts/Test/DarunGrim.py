@@ -254,8 +254,8 @@ class DGFAnalyzer:
 
 	def GetMatchedFunctionMemberList( self, FunctionAddresses ):
 		DisasmLineHash=[]
-		DisasmLineHash.append( self.GetFunctionDisasmLinesHash( 1, FunctionAddresses[0] ) )
-		DisasmLineHash.append( self.GetFunctionDisasmLinesHash( 2, FunctionAddresses[1] ) )
+		DisasmLineHash.append( self.GetFunctionDisasmLines( "Source", FunctionAddresses[0] ) )
+		DisasmLineHash.append( self.GetFunctionDisasmLines( "Target", FunctionAddresses[1] ) )
 		
 		#self.DumpDisasmLineHash( DisasmLineHash[0] )
 		#self.DumpDisasmLineHash( DisasmLineHash[1] )
