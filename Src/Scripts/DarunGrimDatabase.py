@@ -3,8 +3,23 @@ from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import engine
+import os
 
 Base=declarative_base()
+
+class FileList(Base):
+	__tablename__='FileList'
+
+	id=Column(Integer,primary_key=True)
+	type=Column(String, name='Type')
+	filename=Column(String,name='Filename')
+	file_id=Column(Integer,name='FileID')
+
+	def __init__(self):
+		pass
+
+	def __repr__(self):
+		return "<FileList('%d', '%s', '%s', '%d')>" % (self.id,self.type,self.filename,self.file_id)
 
 class OneLocationInfo(Base):
 	__tablename__='OneLocationInfo'
@@ -143,14 +158,34 @@ class Database:
 		if self.DebugLevel > 2:
 			echo = True
 
-		self.Engine = create_engine( 'sqlite:///' + filename, echo = echo )
+		engine = create_engine( 'sqlite:///' + filename, echo = echo )
+		metadata=Base.metadata
+		metadata.create_all(engine)
 
-		metadata = Base.metadata
-		metadata.create_all( self.Engine )
-
-		self.Session = sessionmaker()
-		self.Session.configure( bind = self.Engine )	
+		self.Session=sessionmaker()
+		self.Session.configure(bind=engine)	
 		self.SessionInstance = self.Session()
+
+		dirname=os.path.dirname(filename)
+		self.SessionsInstances={}
+		for file_list in self.SessionInstance.query( FileList ).all():
+			filename=file_list.filename
+			if not os.path.isfile(filename):
+				filename=os.path.join(dirname,os.path.basename(file_list.filename))
+
+			engine = create_engine( 'sqlite:///' + filename, echo = echo )
+			metadata=Base.metadata
+			metadata.create_all(engine)
+
+			self.Session=sessionmaker()
+			self.Session.configure(bind=engine)	
+			self.SessionsInstances[file_list.type] = self.Session()
+
+		if not self.SessionsInstances.has_key('Source'):
+			self.SessionsInstances['Source']=self.SessionInstance
+
+		if not self.SessionsInstances.has_key('Target'):
+			self.SessionsInstances['Target']=self.SessionInstance
 
 	def GetOneLocationInfo( self ):
 		return self.SessionInstance.query( OneLocationInfo ).all()
@@ -170,51 +205,57 @@ class Database:
 		return ""
 
 	def GetFunctionDisasmLinesMapOrig( self, file_id, function_address):
-		disasm_lines_hash={}
+		disasms={}
 		for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, function_address=function_address ).all():
-			disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
-		return disasm_lines_hash
+			disasms[one_location_info.start_address] = one_location_info.disasm_lines
+		return disasms
 
-	def GetFunctionDisasmLinesMap( self, file_id, function_address):
-		disasm_lines_hash={}
-		block_addresses = [ function_address ]
+	def GetFunctionDisasmLines( self, type, function_address):
+		disasms={}
+		bb_addresses = [ function_address ]
+		links = {}
 		
-		for block_address in block_addresses:
-			for map_info in self.SessionInstance.query( MapInfo ).filter_by( file_id=file_id, src_block=block_address, type = CREF_FROM ).all():
-				if not map_info.dst in block_addresses:
-					block_addresses.append( map_info.dst )
+		for bb_address in bb_addresses:
+			for map_info in self.SessionsInstances[type].query( MapInfo ).filter_by( src_block=bb_address, type = CREF_FROM ).all():
+				if not map_info.dst in bb_addresses:
+					bb_addresses.append( map_info.dst )
 
-		for block_address in block_addresses:
+				if not links.has_key(bb_address):
+					links[bb_address]=[]
+				links[bb_address].append(map_info.dst)
+
+		for bb_address in bb_addresses:
 			try:
-				for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
-					disasm_lines_hash[one_location_info.start_address] = one_location_info.disasm_lines
+				for one_location_info in self.SessionsInstances[type].query( OneLocationInfo ).filter_by( start_address=bb_address ).all():
+					disasms[one_location_info.start_address] = one_location_info.disasm_lines
 			except:
 				pass
 
-		return disasm_lines_hash
+		return (disasms,links)
 
-	def GetFunctionBlockAddresses( self, file_id, function_address ):
-		block_addresses = [ function_address ]
+	def GetFunctionBlockAddresses( self, type, function_address ):
+		bb_addresses = [ function_address ]
+		file_id=1
 
-		for block_address in block_addresses:
-			for map_info in self.SessionInstance.query( MapInfo ).filter_by( file_id=file_id, src_block=block_address, type = CREF_FROM ).all():
-				if not map_info.dst in block_addresses:
-					block_addresses.append( map_info.dst )
+		for bb_address in bb_addresses:
+			for map_info in self.SessionsInstances[type].query( MapInfo ).filter_by( file_id=file_id, src_block=bb_address, type = CREF_FROM ).all():
+				if not map_info.dst in bb_addresses:
+					bb_addresses.append( map_info.dst )
 
 		block_range_addresses = []
-		for block_address in block_addresses:
-			for one_location_info in self.SessionInstance.query( OneLocationInfo ).filter_by( file_id=file_id, start_address=block_address ).all():
+		for bb_address in bb_addresses:
+			for one_location_info in self.SessionsInstances[type].query( OneLocationInfo ).filter_by( file_id=file_id, start_address=bb_address ).all():
 				block_range_addresses.append( ( one_location_info.start_address, one_location_info.end_address ) )
 		return block_range_addresses
 
-	def GetMatchMapForAddresses( self, file_id, block_addresses ):
+	def GetMatchMapForAddresses( self, file_id, bb_addresses ):
 		match_hash = {}
-		for block_address in block_addresses:
+		for bb_address in bb_addresses:
 			if file_id == 1:
-				for match_map in self.SessionInstance.query( MatchMap ).filter_by( source_address=block_address).all():
+				for match_map in self.SessionInstance.query( MatchMap ).filter_by( source_address=bb_address).all():
 					match_hash[ match_map.source_address ] = ( match_map.target_address, match_map.match_rate )			
 			else:
-				for match_map in self.SessionInstance.query( MatchMap ).filter_by( target_address=block_address).all():
+				for match_map in self.SessionInstance.query( MatchMap ).filter_by( target_address=bb_address).all():
 					match_hash[ match_map.target_address ] = ( match_map.source_address, match_map.match_rate )
 		return match_hash
 
@@ -359,21 +400,18 @@ class Database:
 		return self.GetAlignedDisasmText( disasm_lines )
 
 	def GetDisasmComparisonTextByFunctionAddress( self, source_function_address, target_function_address ):
-		source_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 1, source_function_address )
-		target_disasm_lines_hash = self.GetFunctionDisasmLinesMap( 2, target_function_address )
+		(source_disasms,source_links) = self.GetFunctionDisasmLines( "Source", source_function_address )
+		(target_disasms,target_links) = self.GetFunctionDisasmLines( "Target", target_function_address )
 		
-		match_map = self.GetMatchMapForAddresses( 1, source_disasm_lines_hash.keys() )
-		return self.GetDisasmComparisonTable( source_disasm_lines_hash, target_disasm_lines_hash, match_map )
+		match_map = self.GetMatchMapForAddresses( 1, source_disasms.keys() )
+		return self.GetDisasmComparisonTable( source_disasms, target_disasms, match_map )
 
 	def GetBlockAddressMatchTableByFunctionAddress( self, source_function_address, target_function_address ):
-		source_block_addresses = self.GetFunctionBlockAddresses( 1, source_function_address )
-		target_block_addresses = self.GetFunctionBlockAddresses( 2, target_function_address )
-
-		print 'source_block_addresses', source_block_addresses 
-		print 'target_block_addresses', target_block_addresses 
+		source_bb_addresses = self.GetFunctionBlockAddresses( "Source", source_function_address )
+		target_bb_addresses = self.GetFunctionBlockAddresses( "Target", target_function_address )
 
 		source_block_start_addresses = []
-		for (start_address, end_address) in source_block_addresses:
+		for (start_address, end_address) in source_bb_addresses:
 			source_block_start_addresses.append( start_address )
 		match_map = self.GetMatchMapForAddresses( 1, source_block_start_addresses )
 
@@ -384,20 +422,31 @@ class Database:
 			target_address_match_rate_hash[ target_address ] = match_rate
 
 		source_address_match_rate_infos = []
-		for ( start_address, end_address ) in source_block_addresses:
+		for ( start_address, end_address ) in source_bb_addresses:
 			match_rate = 0
 			if source_address_match_rate_hash.has_key( start_address ):
 				match_rate = source_address_match_rate_hash[ start_address ] 
 			source_address_match_rate_infos.append( ( start_address, end_address+1, match_rate ) )
 
 		target_address_match_rate_infos = []
-		for ( start_address, end_address ) in target_block_addresses:
+		for ( start_address, end_address ) in target_bb_addresses:
 			match_rate = 0
 			if target_address_match_rate_hash.has_key( start_address ):
 				match_rate = target_address_match_rate_hash[ start_address ] 
 			target_address_match_rate_infos.append( ( start_address, end_address+1, match_rate ) )
 
 		return ( source_address_match_rate_infos, target_address_match_rate_infos )
+
+	def GetBlockMatches( self, source_function_address, target_function_address ):
+		source_bb_addresses = self.GetFunctionBlockAddresses( "Source", source_function_address )
+		target_bb_addresses = self.GetFunctionBlockAddresses( "Target", target_function_address )
+
+		source_block_start_addresses = []
+		for (start_address, end_address) in source_bb_addresses:
+			source_block_start_addresses.append( start_address )
+		match_map = self.GetMatchMapForAddresses( 1, source_block_start_addresses )
+
+		return match_map.items()
 
 	def Commit( self ):
 		self.SessionInstance.commit()
@@ -409,16 +458,21 @@ if __name__ == '__main__':
 	database = Database( filename )
 	for function_match_info in database.GetFunctionMatchInfo():
 		if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
-			#print function_match_info.id, function_match_info.source_file_id, function_match_info.target_file_id, 
-			#function_match_info.end_address, 
-			print function_match_info.source_function_name + hex(function_match_info.source_address) + '\t',
-			print function_match_info.target_function_name + hex(function_match_info.target_address) + '\t',
-			print str(function_match_info.block_type) + '\t',
-			print str(function_match_info.type) + '\t',
-			print str( function_match_info.match_rate ) + "%" + '\t',
-			print function_match_info.match_count_for_the_source, function_match_info.non_match_count_for_the_source, function_match_info.match_count_with_modificationfor_the_source, function_match_info.match_count_for_the_target, function_match_info.non_match_count_for_the_target, function_match_info.match_count_with_modification_for_the_target
-			#print database.GetFunctionDisasmLinesMap( function_match_info.source_file_id, function_match_info.source_address )
-			#print database.GetMatchMapForFunction( function_match_info.source_file_id, function_match_info.source_address )
-			disasm_table = database.GetDisasmComparisonTextByFunctionAddress( function_match_info.source_address, function_match_info.target_address )
-			print database. GetDisasmText( disasm_table )
+			#print function_match_info.id, function_match_info.source_file_id, function_match_info.target_file_id, function_match_info.end_address, 
+			
+			print "%s\t%s\t%s\t%s\t%s%%\t%d\t%d\t%d\t%d\t%d\t%d" % (function_match_info.source_function_name,
+													function_match_info.target_function_name,
+													str(function_match_info.block_type),
+													str(function_match_info.type),
+													str( function_match_info.match_rate ),
+													function_match_info.match_count_for_the_source, 
+													function_match_info.non_match_count_for_the_source, 
+													function_match_info.match_count_with_modificationfor_the_source, 
+													function_match_info.match_count_for_the_target, 
+													function_match_info.non_match_count_for_the_target, 
+													function_match_info.match_count_with_modification_for_the_target)
 
+			#print database.GetFunctionDisasmLines( function_match_info.source_file_id, function_match_info.source_address )
+			#print database.GetMatchMapForFunction( function_match_info.source_file_id, function_match_info.source_address )
+			#disasm_table = database.GetDisasmComparisonTextByFunctionAddress( function_match_info.source_address, function_match_info.target_address )
+			#print database.GetDisasmText( disasm_table )
