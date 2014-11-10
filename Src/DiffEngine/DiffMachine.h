@@ -36,8 +36,7 @@ const enum {DiffMachineFileSQLiteFormat};
 			id INTEGER PRIMARY KEY AUTOINCREMENT, \n\
 			Type VARCHAR(25), \n\
 			Filename VARCHAR(255), \n\
-			FileID INTEGER, \n\
-			FunctionAddress INTEGER\n\
+			FileID INTEGER \n\
 		 );"
 
 #define INSERT_FILE_LIST_TABLE_STATEMENT "INSERT INTO  "FILE_LIST_TABLE" ( Type, Filename, FileID, FunctionAddress ) values ( '%s', '%s', '%d', '%d' );"
