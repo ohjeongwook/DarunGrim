@@ -23,6 +23,7 @@ private:
 
 	char *FontColor;
 	char *FillColor;
+	char *FontName;
 	char *FontSize;
 
 	stdext::hash_map<DWORD,Agnode_t *> AddressToNodeMap;
@@ -40,7 +41,7 @@ public:
 	FlowGrapher();
 	~FlowGrapher();
 
-	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontsize = "18");
+	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontname="helvetica", char *fontsize = "18");
 	void AddNode(DWORD node_id,LPCSTR node_name,LPCSTR node_data);
 	void AddLink(DWORD src, DWORD dst);
 	int RenderToFile(char *format,char *filename);

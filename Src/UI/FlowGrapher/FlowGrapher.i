@@ -32,7 +32,7 @@ typedef struct _DrawingInfo_{
 class FlowGrapher
 {
 public:
-	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontsize = "18");
+	void SetNodeShape(char *fontcolor = NULL, char *fillcolor = NULL, char *fontname="arial", char *fontsize = "18");
 	void AddNode(DWORD node_id,char *node_name,char *node_data);
 	void AddLink(DWORD src, DWORD dst);
 	int RenderToFile(char *format,char *filename);

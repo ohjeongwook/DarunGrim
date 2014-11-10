@@ -8,7 +8,7 @@ using namespace std;
 #define MAX_SIZE 1000
 int GraphVizInterfaceProcessorDebugLevel = 0;
 
-FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontSize("18")
+FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), FontSize("18")
 {
 	DrawingObjectList = new vector<DrawingInfo *>;
 	aginit();
@@ -46,10 +46,11 @@ char *EscapeString(char *src)
 	return dst;
 }
 
-void FlowGrapher::SetNodeShape(char *fontcolor, char *fillcolor, char *fontsize)
+void FlowGrapher::SetNodeShape(char *fontcolor, char *fillcolor, char *fontname, char *fontsize)
 {
 	FontColor = fontcolor;
 	FillColor = fillcolor;
+	FontName = fontname;
 	FontSize = fontsize;
 }
 
@@ -72,7 +73,7 @@ void FlowGrapher::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 	else
 		agsafeset(n, "shape", "rect", "");
 
-	agsafeset(n, "fontname", "Sans Serif", "");
+	agsafeset(n, "fontname", FontName, "");
 	agsafeset(n, "fontsize", FontSize, "");
 	if (FontColor)
 	{

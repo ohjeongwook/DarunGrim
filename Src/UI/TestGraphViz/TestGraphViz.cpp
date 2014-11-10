@@ -7,7 +7,7 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	FlowGrapher *p_flow_grapher = new FlowGrapher();
-	p_flow_grapher->SetNodeShape("black", "red", "12");
+	p_flow_grapher->SetNodeShape("black", "red", "Arial", "12");
 	p_flow_grapher->AddNode(0, "Test", "Disasm lines");
 
 	p_flow_grapher->GenerateDrawingInfo();
