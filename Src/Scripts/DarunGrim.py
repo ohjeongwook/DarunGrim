@@ -2,40 +2,58 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtSql import *
 import DarunGrimDatabase
+import DiffEngine
 from Graphs import *
-import pprint
 import FlowGrapher
+
+import pprint
+from multiprocessing import Process
+import time
+import os
+
+def DiffDatabaseFiles(src_filename,target_filename,result_filename):
+	darun_grim = DiffEngine.DarunGrim()
+
+	LogToStdout = 0x1
+	LogToDbgview = 0x2
+	LogToFile = 0x4
+	LogToIDAMessageBox = 0x8
+
+	darun_grim.SetLogParameters(LogToStdout, 0, "");
+	darun_grim.DiffDatabaseFiles(src_filename, 0, target_filename, 0, result_filename)
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
-	def __init__(self,parent, database_name, *args):
+	def __init__(self,parent, database_name='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
-		self.database = DarunGrimDatabase.Database(database_name)
-
 		self.match_list=[]
 		self.full_fmi_list=[]
-		for function_match_info in self.database.GetFunctionMatchInfo():
-			if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
-				#print function_match_info.id, function_match_info.source_file_id, function_match_info.target_file_id, function_match_info.end_address, 
+
+		if database_name:
+			self.database = DarunGrimDatabase.Database(database_name)
+
+			for function_match_info in self.database.GetFunctionMatchInfo():
+				if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
+					#print function_match_info.id, function_match_info.source_file_id, function_match_info.target_file_id, function_match_info.end_address, 
 			
-				if self.Debug>0:
-					print "%s\t%s\t%s\t%s\t%s%%\t%d\t%d\t%d\t%d\t%d\t%d" % (function_match_info.source_function_name,
-															function_match_info.target_function_name,
-															str(function_match_info.block_type),
-															str(function_match_info.type),
-															str( function_match_info.match_rate ),
-															function_match_info.match_count_for_the_source, 
-															function_match_info.non_match_count_for_the_source, 
-															function_match_info.match_count_with_modificationfor_the_source, 
-															function_match_info.match_count_for_the_target, 
-															function_match_info.non_match_count_for_the_target, 
-															function_match_info.match_count_with_modification_for_the_target)
+					if self.Debug>0:
+						print "%s\t%s\t%s\t%s\t%s%%\t%d\t%d\t%d\t%d\t%d\t%d" % (function_match_info.source_function_name,
+																function_match_info.target_function_name,
+																str(function_match_info.block_type),
+																str(function_match_info.type),
+																str( function_match_info.match_rate ),
+																function_match_info.match_count_for_the_source, 
+																function_match_info.non_match_count_for_the_source, 
+																function_match_info.match_count_with_modificationfor_the_source, 
+																function_match_info.match_count_for_the_target, 
+																function_match_info.non_match_count_for_the_target, 
+																function_match_info.match_count_with_modification_for_the_target)
 
-				self.match_list.append([function_match_info.source_function_name,
-									function_match_info.target_function_name,
-									str( function_match_info.match_rate)])
+					self.match_list.append([function_match_info.source_function_name,
+										function_match_info.target_function_name,
+										str( function_match_info.match_rate)])
 
-				self.full_fmi_list.append(function_match_info)
+					self.full_fmi_list.append(function_match_info)
 
 	def GetFunctionAddresses(self,index):
 		return [self.full_fmi_list[index].source_address, self.full_fmi_list[index].target_address]
@@ -111,9 +129,78 @@ class MyGraphicsView(QGraphicsView):
 		else:
 			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
 
+class NewDiffingDialog(QDialog):
+	def __init__(self,parent=None):
+		super(NewDiffingDialog,self).__init__(parent)
+
+		self.Filenames={}
+
+		orig_button=QPushButton('Orig File:',self)
+		orig_button.clicked.connect(self.getOrigFilename)
+		self.orig_line=QLineEdit("")
+		self.orig_line.setAlignment(Qt.AlignCenter)
+
+		patched_button=QPushButton('Patched File:',self)
+		patched_button.clicked.connect(self.getPatchedFilename)
+		self.patched_line=QLineEdit("")
+		self.patched_line.setAlignment(Qt.AlignCenter)		
+
+		result_button=QPushButton('Result:',self)
+		result_button.clicked.connect(self.getResultFilename)
+		self.result_line=QLineEdit("")
+		self.result_line.setAlignment(Qt.AlignCenter)
+
+		ok_button=QPushButton('OK',self)
+		ok_button.clicked.connect(self.pressedOK)
+		cancel_button=QPushButton('Cancel',self)
+		cancel_button.clicked.connect(self.pressedCancel)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(orig_button,0,0)
+		main_layout.addWidget(self.orig_line,0,1)
+		main_layout.addWidget(patched_button,1,0)
+		main_layout.addWidget(self.patched_line,1,1)
+		main_layout.addWidget(result_button,2,0)
+		main_layout.addWidget(self.result_line,2,1)
+		main_layout.addWidget(ok_button,3,0)
+		main_layout.addWidget(cancel_button,3,1)
+		self.setLayout(main_layout)
+
+	def pressedOK(self):
+		self.close()
+
+	def pressedCancel(self):
+		self.Filenames.clear()
+		self.close()
+
+	def getOrigFilename(self):
+		filename=self.getFilename("Orig")
+		self.orig_line.setText(filename)
+
+	def getPatchedFilename(self):
+		filename=self.getFilename("Patched")
+		self.patched_line.setText(filename)
+
+	def getResultFilename(self):
+		filename=self.getFilename("Result")
+
+		if filename[-4:0].lower()!='.dgf':
+			filename+='.dgf'
+		self.result_line.setText(filename)
+
+	def getFilename(self,type):
+		dialog=QFileDialog()
+		filename=''
+		if dialog.exec_():
+			filename=dialog.selectedFiles()[0]
+			self.Filenames[type]=filename
+
+		return filename
 
 class MainWindow(QMainWindow):
 	UseDock=False
+	DebugDiffDatabaseFiles=False
+
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
@@ -223,17 +310,55 @@ class MainWindow(QMainWindow):
 
 		self.readSettings()
 
+	def clearAreas(self):
+		self.OrigFunctionGraph.clear()
+		self.PatchedFunctionGraph.clear()
+
+		self.functions_match_table_model=FunctionMatchTable(self)
+		self.functions_match_table_view.setModel(self.functions_match_table_model)
+
+		self.block_table_model=BlockMatchTable(self)
+		self.block_table_view.setModel(self.block_table_model)
+
 	def new(self):
-		pass
+		dialog=NewDiffingDialog()
+		dialog.setFixedSize(300,200)
+		dialog.exec_()
+
+		if len(dialog.Filenames)==0:
+			return
+
+		src_filename = str(dialog.Filenames['Orig'])
+		target_filename = str(dialog.Filenames['Patched'])
+		result_filename = str(dialog.Filenames['Result'])
+
+		print src_filename, os.path.isfile(src_filename)
+		print target_filename, os.path.isfile(target_filename)
+		print result_filename, os.path.isfile(result_filename)
+
+		self.clearAreas()
+
+		if self.DebugDiffDatabaseFiles:
+			DiffDatabaseFiles(src_filename,target_filename,result_filename)
+		else:
+			p=Process(target=DiffDatabaseFiles,args=(src_filename,target_filename,result_filename))
+			p.start()
+
+		while True:
+			time.sleep(0.01)
+			if not p.is_alive():
+				break
+
+			qApp.processEvents()
+
+		print 'diffing finished'
+		self.OpenDatabase(result_filename)
 
 	def open(self):
 		dialog=QFileDialog()
 		if dialog.exec_():
+			self.clearAreas()
 			self.OpenDatabase(dialog.selectedFiles()[0])
-			self.OrigFunctionGraph.clear()
-			self.PatchedFunctionGraph.clear()
-			self.block_table_model=BlockMatchTable(self)
-			self.block_table_view.setModel(self.block_table_model)
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
@@ -308,22 +433,6 @@ class MainWindow(QMainWindow):
 
 		self.restoreState(settings.value("windowState"))
 
-		"""
-		if settings.contains("geometry/functions_match_table"):
-			self.functions_match_table_view.restoreGeometry(settings.value("geometry/functions_match_table_view"))
-		else:
-			self.functions_match_table_view.resize(200,400)
-
-		if settings.contains("geometry/block_table_view"):
-			self.block_table_view.restoreGeometry(settings.value("geometry/block_table_view"))
-		else:
-			self.block_table_view.resize(200,400)
-
-		
-		self.functions_match_table_view.resize(200,400)
-		self.block_table_view.resize(200,400)
-		"""
-
 	def closeEvent(self, event):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("geometry", self.saveGeometry())
@@ -332,17 +441,14 @@ class MainWindow(QMainWindow):
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)
 
-	def resizeEvent(self,event):
-		print 'resizeEvent'
-		"""
-		self.functions_match_table_view.resize(200,400)
-		self.block_table_view.resize(200,400)
-		"""
-
 if __name__=='__main__':
 	import sys
 
-	database_name=sys.argv[1]
+	if len(sys.argv)>1:
+		database_name=sys.argv[1]
+	else:
+		database_name=''
+
 	app=QApplication(sys.argv)
 	mainWindow=MainWindow(database_name)
 	mainWindow.show()
