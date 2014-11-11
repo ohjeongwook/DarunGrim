@@ -94,16 +94,41 @@ class BlockMatchTable(QAbstractTableModel):
 	def sort(self,col,order):
 		pass
 
+class MyGraphicsView(QGraphicsView):
+	def __init__(self,parent=None):
+		QGraphicsView.__init__(self,parent)
+		self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
+		self.setRenderHints(QPainter.Antialiasing|QPainter.SmoothPixmapTransform)
+		self.setDragMode(self.ScrollHandDrag)
+
+	def wheelEvent(self,event):
+		self.setTransformationAnchor(self.AnchorUnderMouse)
+
+		scaleFactor=1.15
+
+		if	event.delta()>0:
+			self.scale(scaleFactor,scaleFactor)
+		else:
+			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
+
+
 class MainWindow(QMainWindow):
+	UseDock=False
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
-		self.DatabaseName=database_name
 		self.setWindowTitle("DarunGrim 4")
 
+		# Menu
+		self.createActions()
+		self.createMenus()
+
+		#
+		if not self.UseDock:
+			bottom_splitter=QSplitter()
+			graph_splitter=QSplitter()
+
 		# Functions
-		self.functions_match_table_model=FunctionMatchTable(self,self.DatabaseName)
 		view=QTableView()
-		view.setModel(self.functions_match_table_model)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
@@ -114,15 +139,18 @@ class MainWindow(QMainWindow):
 		hheader.setResizeMode(QHeaderView.Stretch)
 		view.setHorizontalHeader(hheader)
 
-		selection=view.selectionModel()
-		selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
-
-		dock=QDockWidget("Functions",self)
-		dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-		dock.setWidget(view)
-		self.addDockWidget(Qt.BottomDockWidgetArea,dock)
 		self.functions_match_table_view=view
-		self.functions_match_table_dock=dock
+
+		if database_name:
+			self.OpenDatabase(database_name)
+		if self.UseDock:
+			dock=QDockWidget("Functions",self)
+			dock.setObjectName("Functions")
+			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
+			dock.setWidget(view)
+			self.addDockWidget(Qt.BottomDockWidgetArea,dock)
+		else:
+			bottom_splitter.addWidget(view)
 
 		# Blocks
 		self.block_table_model=BlockMatchTable(self)
@@ -137,34 +165,84 @@ class MainWindow(QMainWindow):
 		hheader=QHeaderView(Qt.Orientation.Horizontal)
 		hheader.setResizeMode(QHeaderView.Stretch)
 		view.setHorizontalHeader(hheader)
-
-		dock=QDockWidget("Blocks",self)
-		dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-		dock.setWidget(view)
-		self.addDockWidget(Qt.BottomDockWidgetArea,dock)
 		self.block_table_view=view
+
+		if self.UseDock:
+			dock=QDockWidget("Blocks",self)
+			dock.setObjectName("Blocks")
+			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
+			dock.setWidget(view)
+			self.addDockWidget(Qt.BottomDockWidgetArea,dock)		
+		else:
+			bottom_splitter.addWidget(view)
 
 		# Function Graph
 		self.OrigFunctionGraph=FunctionGraphScene()
-		view=QGraphicsView(self.OrigFunctionGraph)
+		view=MyGraphicsView(self.OrigFunctionGraph)
 		view.setRenderHints(QPainter.Antialiasing)
 
-		dock=QDockWidget("Orig",self)
-		dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-		dock.setWidget(view)
-		self.addDockWidget(Qt.TopDockWidgetArea,dock)
+		if self.UseDock:
+			dock=QDockWidget("Orig",self)
+			dock.setObjectName("Orig")
+			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
+			dock.setWidget(view)
+			self.addDockWidget(Qt.TopDockWidgetArea,dock)
+		else:
+			graph_splitter.addWidget(view)
 
 		# Function Graph
 		self.PatchedFunctionGraph=FunctionGraphScene()
-		view=QGraphicsView(self.PatchedFunctionGraph)
+		view=MyGraphicsView(self.PatchedFunctionGraph)
 		view.setRenderHints(QPainter.Antialiasing)
 
-		dock=QDockWidget("Patched",self)
-		dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-		dock.setWidget(view)
-		self.addDockWidget(Qt.TopDockWidgetArea,dock)
+		if self.UseDock:
+			dock=QDockWidget("Patched",self)
+			dock.setObjectName("Patched")
+			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
+			dock.setWidget(view)
+			self.addDockWidget(Qt.TopDockWidgetArea,dock)
+		else:
+			graph_splitter.addWidget(view)
+
+		if not self.UseDock:
+			virt_splitter=QSplitter()
+			virt_splitter.setOrientation(Qt.Vertical)
+
+			virt_splitter.addWidget(graph_splitter)
+			virt_splitter.addWidget(bottom_splitter)
+
+			virt_splitter.setStretchFactor(0,1)
+			virt_splitter.setStretchFactor(1,0)
+
+			main_widget=QWidget()
+			vlayout=QVBoxLayout()
+			vlayout.addWidget(virt_splitter)
+			main_widget.setLayout(vlayout)
+			self.setCentralWidget(main_widget)
+			self.show()
 
 		self.readSettings()
+
+	def new(self):
+		pass
+
+	def open(self):
+		dialog=QFileDialog()
+		if dialog.exec_():
+			self.OpenDatabase(dialog.selectedFiles()[0])
+			self.OrigFunctionGraph.clear()
+			self.PatchedFunctionGraph.clear()
+			self.block_table_model=BlockMatchTable(self)
+			self.block_table_view.setModel(self.block_table_model)
+
+	def createActions(self):
+		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
+		self.openAct = QAction("Open...",self,shortcut=QKeySequence.Open,statusTip="Open a dgf database",triggered=self.open)
+
+	def createMenus(self):
+		self.fileMenu = self.menuBar().addMenu("&File")
+		self.fileMenu.addAction(self.newAct)
+		self.fileMenu.addAction(self.openAct)
 
 	def DrawFunctionGraph(self,type,function_address,graph_scene,match_info):
 		database=DarunGrimDatabase.Database(self.DatabaseName)
@@ -188,6 +266,13 @@ class MainWindow(QMainWindow):
 			for dst in dsts:
 				flow_grapher.AddLink(src,dst)
 		graph_scene.Draw(flow_grapher)
+
+	def OpenDatabase(self,databasename):
+		self.DatabaseName=databasename
+		self.functions_match_table_model=FunctionMatchTable(self,self.DatabaseName)
+		self.functions_match_table_view.setModel(self.functions_match_table_model)
+		selection=self.functions_match_table_view.selectionModel()
+		selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
 
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
@@ -215,37 +300,44 @@ class MainWindow(QMainWindow):
 
 	def readSettings(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
-
+		
 		if settings.contains("geometry"):
 			self.restoreGeometry(settings.value("geometry"))
 		else:
 			self.resize(800,600)
 
-		if settings.contains("geometry/functions_match_table"):
-			self.functions_match_table_dock.restoreGeometry(settings.value("geometry/functions_match_table_dock"))
-		else:
-			self.functions_match_table_dock.resize(200,400)
+		self.restoreState(settings.value("windowState"))
 
 		"""
+		if settings.contains("geometry/functions_match_table"):
+			self.functions_match_table_view.restoreGeometry(settings.value("geometry/functions_match_table_view"))
+		else:
+			self.functions_match_table_view.resize(200,400)
+
 		if settings.contains("geometry/block_table_view"):
 			self.block_table_view.restoreGeometry(settings.value("geometry/block_table_view"))
 		else:
 			self.block_table_view.resize(200,400)
-		"""
 
-		self.restoreState(settings.value("windowState"))
+		
+		self.functions_match_table_view.resize(200,400)
+		self.block_table_view.resize(200,400)
+		"""
 
 	def closeEvent(self, event):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("geometry/functions_match_table_dock", self.functions_match_table_dock.saveGeometry())
-		#settings.setValue("geometry/block_table_view", self.block_table_view.saveGeometry())
+		settings.setValue("geometry/functions_match_table_view", self.functions_match_table_view.saveGeometry())
+		settings.setValue("geometry/block_table_view", self.block_table_view.saveGeometry())
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)
 
 	def resizeEvent(self,event):
 		print 'resizeEvent'
-		#self.functions_match_table_dock.resize(200,400)
+		"""
+		self.functions_match_table_view.resize(200,400)
+		self.block_table_view.resize(200,400)
+		"""
 
 if __name__=='__main__':
 	import sys
