@@ -17,6 +17,7 @@ using namespace stdext;
 class FlowGrapher
 {
 private:
+	int Debug;
 	Agraph_t *g;
 	GVC_t *gvc;
 	vector<DrawingInfo *> *DrawingObjectList;

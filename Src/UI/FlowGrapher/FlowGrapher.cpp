@@ -6,9 +6,8 @@
 using namespace std;
 
 #define MAX_SIZE 1000
-int GraphVizInterfaceProcessorDebugLevel = 0;
 
-FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), FontSize("18")
+FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), FontSize("18"), Debug(0)
 {
 	DrawingObjectList = new vector<DrawingInfo *>;
 	aginit();
@@ -77,14 +76,14 @@ void FlowGrapher::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 	agsafeset(n, "fontsize", FontSize, "");
 	if (FontColor)
 	{
-		if (GraphVizInterfaceProcessorDebugLevel>0)
+		if (Debug>0)
 			dprintf("%s: [fontcolor] set to [%s]\n", __FUNCTION__, FontColor);
 		agsafeset(n, "fontcolor", FontColor, "");
 	}
 	if (FillColor)
 	{
 		agsafeset(n, "style", "filled", "");
-		if (GraphVizInterfaceProcessorDebugLevel>0)
+		if (Debug>0)
 			dprintf("%s: node_name=%s [fillcolor] set to [%s]\n", __FUNCTION__, node_name, FillColor);
 		agsafeset(n, "fillcolor", FillColor, "");
 	}
@@ -111,8 +110,13 @@ void FlowGrapher::AddLink(DWORD src, DWORD dst)
 	{
 		dst_node = AddressToNodeMapIterator->second;
 	}
-	dprintf("src=%x src_node=%x\n", src, src_node);
-	dprintf("dst=%x dst_node=%x\n", dst, dst_node);
+
+	if (Debug > 0)
+	{
+		dprintf("src=%x src_node=%x\n", src, src_node);
+		dprintf("dst=%x dst_node=%x\n", dst, dst_node);
+	}
+
 	if (src_node && dst_node)
 	{
 		e = agedge(g, src_node, dst_node);
@@ -129,7 +133,9 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 	int i;
 	vector <DrawingInfo *> *p_drawing_infos = new vector <DrawingInfo *>;
 
-	if (GraphVizInterfaceProcessorDebugLevel>0) dprintf("%s\n", buffer);
+	if (Debug>0)
+		dprintf("%s\n", buffer);
+
 	while (buffer[pos])
 	{
 		bool is_valid_type = TRUE;
@@ -138,7 +144,9 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 		sscanf(buffer + pos, "%c%n", &p_drawing_info->subtype, &ch_consumed);
 		pos += ch_consumed;
 
-		dprintf("Type is [%c]\n", p_drawing_info->subtype);
+		if (Debug > 0)
+			dprintf("Type is [%c]\n", p_drawing_info->subtype);
+
 		switch (p_drawing_info->subtype)
 		{
 		case 'E':
@@ -234,7 +242,10 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					//Filled B-spline using the given n control points (1.1)
 					sscanf(buffer + pos, " %u%n", &p_drawing_info->count, &ch_consumed);
 					pos += ch_consumed;
-					dprintf("\tp_drawing_info->count=%u\n", p_drawing_info->count);
+
+					if (Debug > 0)
+						dprintf("\tp_drawing_info->count=%u\n", p_drawing_info->count);
+
 					if (MAX_SIZE<p_drawing_info->count || p_drawing_info->count<0)
 						break;
 
@@ -286,9 +297,15 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					memset(p_drawing_info->text, 0, n + 1);
 					char format_str[20];
 					_snprintf(format_str, sizeof(format_str), " -%%%uc%%n", n);
-					dprintf("\tformat_str=%s\n", format_str);
+
+					if (Debug > 0)
+						dprintf("\tformat_str=%s\n", format_str);
+
 					sscanf(buffer + pos, format_str, p_drawing_info->text, &ch_consumed);
-					dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+
+					if (Debug > 0)
+						dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+
 					pos += ch_consumed;
 					break;
 		}
@@ -298,20 +315,28 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					//Set pen color. The color value consists of the n characters following '-'. (1.1)
 					sscanf(buffer + pos, " %u%n", &n, &ch_consumed);
 					pos += ch_consumed;
-					if (MAX_SIZE<n || n<0)
+					if (MAX_SIZE < n || n<0)
 						break;
 
-					dprintf("\tn=%u\n", n);
+					if (Debug > 0)
+						dprintf("\tn=%u\n", n);
+
 					p_drawing_info->text = (char *)malloc(sizeof(char)*(n + 1));
 					memset(p_drawing_info->text, 0, n + 1);
 
 					char format_str[20];
 					_snprintf(format_str, sizeof(format_str), " -%%%uc%%n", n);
-					dprintf("\tformat_str=%s\n", format_str);
+
+					if (Debug > 0)
+						dprintf("\tformat_str=%s\n", format_str);
 
 					sscanf(buffer + pos, format_str, p_drawing_info->text, &ch_consumed);
-					dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
-					dprintf("\tch_consumed=%u\n", ch_consumed);
+
+					if (Debug > 0)
+					{
+						dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+						dprintf("\tch_consumed=%u\n", ch_consumed);
+					}
 
 					pos += ch_consumed;
 					break;
@@ -332,10 +357,13 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					char format_str[20];
 					_snprintf(format_str, sizeof(format_str), " -%%%uc%%n", n);
 
-					dprintf("\tformat_str=%s\n", format_str);
+					if (Debug > 0)
+						dprintf("\tformat_str=%s\n", format_str);
 
 					sscanf(buffer + pos, format_str, p_drawing_info->text, &ch_consumed);
-					dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+
+					if (Debug > 0)
+						dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
 
 					pos += ch_consumed;
 					break;
@@ -353,9 +381,13 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					memset(p_drawing_info->text, 0, n + 1);
 					char format_str[20];
 					_snprintf(format_str, sizeof(format_str), " -%%%uc%%n", n);
-					dprintf("\tformat_str=%s\n", format_str);
+					
+					if (Debug > 0)
+						dprintf("\tformat_str=%s\n", format_str);
 					sscanf(buffer + pos, format_str, p_drawing_info->text, &ch_consumed);
-					dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+
+					if (Debug > 0)
+						dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
 					pos += ch_consumed;
 					break;
 		}
@@ -379,9 +411,13 @@ vector <DrawingInfo *> *FlowGrapher::ParseXDOTAttributeString(char *buffer)
 					memset(p_drawing_info->text, 0, n + 1);
 					char format_str[20];
 					_snprintf(format_str, sizeof(format_str), " -%%%uc%%n", n);
-					dprintf("\tformat_str=%s\n", format_str);
+					
+					if (Debug > 0)
+						dprintf("\tformat_str=%s\n", format_str);
 					sscanf(buffer + pos, format_str, p_drawing_info->text, &ch_consumed);
-					dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
+					
+					if (Debug > 0)
+						dprintf("\tp_drawing_info->text=%s\n", p_drawing_info->text);
 					pos += ch_consumed;
 					break;
 		}
@@ -505,7 +541,9 @@ void FlowGrapher::AddDrawingInfo(DWORD address, vector<DrawingInfo *> *p_drawing
 		p_drawing_info->count = 0;
 		p_drawing_info->text = NULL;
 
-		dprintf("* TYPE_DI_RECTS: %s\n", str);
+		if (Debug > 0)
+			dprintf("* TYPE_DI_RECTS: %s\n", str);
+
 		for (DWORD i = 0; i<strlen(str); i++)
 		{
 			if (i == 0 || str[i - 1] == ' ')
@@ -513,7 +551,9 @@ void FlowGrapher::AddDrawingInfo(DWORD address, vector<DrawingInfo *> *p_drawing
 				float x1, y1, x2, y2;
 				sscanf((const char *)str + i, "%f,%f,%f,%f", &x1, &y1, &x2, &y2);
 
-				dprintf("	%f,%f,%f,%f\n", x1, y1, x2, y2);
+				if (Debug > 0)
+					dprintf("	%f,%f,%f,%f\n", x1, y1, x2, y2);
+
 				p_drawing_info->count += 2;
 			}
 		}
@@ -532,11 +572,12 @@ void FlowGrapher::AddDrawingInfo(DWORD address, vector<DrawingInfo *> *p_drawing
 				p_drawing_info->points[pos + 1].x = x2;
 				p_drawing_info->points[pos + 1].y = y2;
 
-				dprintf("	%u,%u,%u,%u\n",
-					p_drawing_info->points[pos].x,
-					p_drawing_info->points[pos].y,
-					p_drawing_info->points[pos + 1].x,
-					p_drawing_info->points[pos + 1].y);
+				if (Debug > 0)
+					dprintf("	%u,%u,%u,%u\n",
+						p_drawing_info->points[pos].x,
+						p_drawing_info->points[pos].y,
+						p_drawing_info->points[pos + 1].x,
+						p_drawing_info->points[pos + 1].y);
 				pos += 2;
 			}
 		}
@@ -597,7 +638,7 @@ void FlowGrapher::GenerateDrawingInfo()
 		return;
 	}
 
-	if (GraphVizInterfaceProcessorDebugLevel > 0)
+	if (Debug > 0)
 	{
 		dprintf("gvRender\n");
 		dprintf("bb=%s\n", GetGraphAttribute(g, "bb"));
@@ -622,25 +663,22 @@ void FlowGrapher::GenerateDrawingInfo()
 	{
 		DWORD address = NodeToUserDataMap->find(n)->second;
 
-		if (GraphVizInterfaceProcessorDebugLevel > -1)
+		if (Debug > 0)
 		{
 			char *name = n->name;
 			char *width = GetNodeAttribute(n, "width");
 			char *height = GetNodeAttribute(n, "height");
+			
+			dprintf("name=%s\n", name);
+			dprintf("width=%s\n", width);
+			dprintf("height=%s\n", height);
 
-			if (GraphVizInterfaceProcessorDebugLevel > 0)
-			{
-				dprintf("name=%s\n", name);
-				dprintf("width=%s\n", width);
-				dprintf("height=%s\n", height);
-
-				dprintf("shape=%s\n", GetNodeAttribute(n, "shape"));
-				dprintf("color=%s\n", GetNodeAttribute(n, "color"));
-				dprintf("pos=%s\n", GetNodeAttribute(n, "pos"));
-				dprintf("rects=%s\n", GetNodeAttribute(n, "rects"));
-				dprintf("_draw_=%s\n", GetNodeAttribute(n, "_draw_"));
-				dprintf("_ldraw_=%s\n", GetNodeAttribute(n, "_ldraw_"));
-			}
+			dprintf("shape=%s\n", GetNodeAttribute(n, "shape"));
+			dprintf("color=%s\n", GetNodeAttribute(n, "color"));
+			dprintf("pos=%s\n", GetNodeAttribute(n, "pos"));
+			dprintf("rects=%s\n", GetNodeAttribute(n, "rects"));
+			dprintf("_draw_=%s\n", GetNodeAttribute(n, "_draw_"));
+			dprintf("_ldraw_=%s\n", GetNodeAttribute(n, "_ldraw_"));
 		}
 
 		AddDrawingInfo(address, DrawingObjectList, TYPE_DI_COLOR, GetNodeAttribute(n, "color"));
@@ -661,7 +699,7 @@ void FlowGrapher::GenerateDrawingInfo()
 				i<dtsize(e->tail->graph->univ->edgeattr->dict);
 				i++)
 			{
-				if (GraphVizInterfaceProcessorDebugLevel>0) 
+				if (Debug>0) 
 					dprintf("edge: %s-%s\n",
 						e->tail->graph->univ->edgeattr->list[i]->name,
 						agxget(e, e->tail->graph->univ->edgeattr->list[i]->index));

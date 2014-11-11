@@ -87,15 +87,17 @@ class FunctionGraphScene(QGraphicsScene):
 						pen=QPen(self.GetColor(pen_color))
 
 					if type_ch=='P' and fill_color!='':
-						print type_ch, fill_color
+						if self.Debug>0:
+							print type_ch, fill_color
 						brush=QBrush(self.GetColor(fill_color))
 
 					self.addPolygon(polygon, pen, brush)
 
 				elif type_ch=='B' or type_ch=='b':
-					print 'Bezier:'
-					for j in range(0, di.count,1):
-						print '\t%d,%d' % (di.GetPoint(j).x, di.GetPoint(j).y)
+					if self.Debug>0:
+						print 'Bezier:'
+						for j in range(0, di.count,1):
+							print '\t%d,%d' % (di.GetPoint(j).x, di.GetPoint(j).y)
 
 					for i in range(0,di.count-1,3):
 						path=QPainterPath(self.InvertedQPointF(di.GetPoint(i).x, di.GetPoint(i).y))
