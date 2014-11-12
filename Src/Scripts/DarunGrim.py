@@ -332,10 +332,6 @@ class MainWindow(QMainWindow):
 		target_filename = str(dialog.Filenames['Patched'])
 		result_filename = str(dialog.Filenames['Result'])
 
-		print src_filename, os.path.isfile(src_filename)
-		print target_filename, os.path.isfile(target_filename)
-		print result_filename, os.path.isfile(result_filename)
-
 		self.clearAreas()
 
 		if self.DebugDiffDatabaseFiles:
@@ -359,14 +355,28 @@ class MainWindow(QMainWindow):
 			self.clearAreas()
 			self.OpenDatabase(dialog.selectedFiles()[0])
 
+	def saveOrigGraph(self):
+		dialog=QFileDialog()
+		if dialog.exec_():
+			self.OrigFunctionGraph.SaveImg(dialog.selectedFiles()[0])
+
+	def savePatchedGraph(self):
+		dialog=QFileDialog()
+		if dialog.exec_():
+			self.PatchedFunctionGraph.SaveImg(dialog.selectedFiles()[0])
+
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
 		self.openAct = QAction("Open...",self,shortcut=QKeySequence.Open,statusTip="Open a dgf database",triggered=self.open)
+		self.saveOrigGraphAct = QAction("Save orig graph...",self,shortcut=QKeySequence.Open,statusTip="Save original graph",triggered=self.saveOrigGraph)
+		self.savePatchedGraphAct = QAction("Save patched graph...",self,shortcut=QKeySequence.Open,statusTip="Save patched graph",triggered=self.savePatchedGraph)
 
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
 		self.fileMenu.addAction(self.openAct)
+		self.fileMenu.addAction(self.saveOrigGraphAct)
+		self.fileMenu.addAction(self.savePatchedGraphAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename

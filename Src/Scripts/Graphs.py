@@ -19,6 +19,7 @@ class GraphScene(QGraphicsScene):
 	Debug=0
 	def __init__(self,parent=None):
 		QGraphicsScene.__init__(self,parent)
+		self.setBackgroundBrush(Qt.white)
 		self.BlockRects={}
 		self.SelectedAddress=None
 		self.GraphRect=[0,0,0,0]
@@ -203,7 +204,7 @@ class MyGraphicsView(QGraphicsView):
 	def __init__(self):
 		self.scene=GraphScene()
 		QGraphicsView.__init__(self,self.scene)
-		self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
+		#self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
 		self.setRenderHints(QPainter.Antialiasing|QPainter.SmoothPixmapTransform)
 		self.setDragMode(self.ScrollHandDrag)
 		self.last_items=[]
@@ -285,6 +286,14 @@ class MyGraphicsView(QGraphicsView):
 		if self.scene.SelectedAddress!=None:
 			self.HilightAddress(self.scene.SelectedAddress,False)
 			self.SelectBlockCallback(self,self.scene.SelectedAddress)
+
+	def SaveImg(self,filename):
+		[start_x,start_y,end_x,end_y]=self.scene.GraphRect
+		img=QImage(end_x,end_y,QImage.Format_ARGB32_Premultiplied)
+		p=QPainter(img)
+		self.scene.render(p)
+		p.end()
+		img.save(filename)
 
 if __name__=='__main__':
 	class MainWindow(QMainWindow):
