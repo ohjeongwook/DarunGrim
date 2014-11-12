@@ -221,7 +221,7 @@ $(function () {
 			if overwrite_mode and overwrite_mode == 'yes':
 				overwrite_mode_val = True
 
-			file_store.IndexFilesInFolder( folder , target_dirname = self.BinariesStorageDirectory, copy_file = copy_file, overwrite_mode = overwrite_mode_val )
+			file_store.CheckInFiles( folder , target_dirname = self.BinariesStorageDirectory, copy_file = copy_file, overwrite_mode = overwrite_mode_val )
 		return mytemplate.render( folder = folder )
 	ShowFileImport.exposed = True
 

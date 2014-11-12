@@ -72,7 +72,7 @@ class FileProcessor:
 			ret = '_'
 		return ret
 
-	def IndexFilesInFolder( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False ):
+	def CheckInFiles( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -80,7 +80,7 @@ class FileProcessor:
 			current_path = os.path.join( src_dirname, file )
 			if os.path.isdir( current_path ):
 				try:
-					self.IndexFilesInFolder( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode )
+					self.CheckInFiles( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode )
 				except:
 					import traceback
 					traceback.print_exc()
@@ -286,7 +286,7 @@ class MSFileProcessor( FileProcessor ):
 			if self.DebugLevel > 1:
 				print 'Filename', filename
 			if self.ExtractMSArchive( filename ):
-				self.file_processor.IndexFilesInFolder( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
+				self.file_processor.CheckInFiles( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
 				self.RemoveTemporaryFiles()
 
 	def ExtractMSArchive( self, filename ):		
@@ -300,7 +300,7 @@ class MSFileProcessor( FileProcessor ):
 				if self.DebugLevel > 1:
 					print full_path
 				if self.ExtractFile( full_path ):
-					self.IndexFilesInFolder( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, self.Download )
+					self.CheckInFiles( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, self.Download )
 					self.RemoveTemporaryFiles()
 
 	def ExtractFile( self, filename ):
@@ -336,70 +336,97 @@ class MSFileProcessor( FileProcessor ):
 				os.remove( full_path )
 		"""
 
-import unittest, sys, os
-
-# These strings are rather system dependant.
-EXPECTEDSTRINGS = [
-	("OriginalFilename", "REGEDIT.EXE"),
-	("ProductVersion", "5.00.2134.1"),
-	("FileVersion", "5.00.2134.1"),
-	("FileDescription", "Registry Editor"),
-	("Comments", None),
-	("InternalName", "REGEDIT"),
-	#("ProductName", "Microsoft(R) Windows (R) 2000 Operating System"),
-	("CompanyName", "Microsoft Corporation"),
-	("LegalCopyright", "Copyright (C) Microsoft Corp. 1981-1999"),
-	("LegalTrademarks", None),
-	#("PrivateBuild", None),
-	("SpecialBuild", None)]
-
-TESTFILE = os.path.join(os.environ['windir'], 'regedit.exe')
-
-class Win32VerTest(unittest.TestCase):
-	def setUp(self):
-		self.info = win32ver.GetFileVersionInfo( TESTFILE )
-		assert(self.info is not None)
-
-	def tearDown(self):
-		pass
-
-	def testLCList(self):
-		'''Retrive language codepair list'''
-		# Calling VerQueryValue with no path should return a list
-		# of language, codepage pairs.
-		lclist = win32ver.VerQueryValue(self.info)
-		print 'lclist', lclist
-		self.assertEquals(lclist, [(1033, 1200)])
-
-	def testValues(self):
-		'''Retrieve version strings'''
-		lclist = win32ver.VerQueryValue(self.info)
-		block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
-		for s, expected in EXPECTEDSTRINGS:
-			value = win32ver.VerQueryValue(self.info, block+s)
-			print s, value
-			#self.assertEquals(value, expected)
-
 if __name__=='__main__':
-	#unittest.main()
+	from optparse import OptionParser
 	import sys
 
-	test = 2
-	if test == 1:
-		TemporaryExtractedFilesFolderFolder = "Out"
-		#TemporaryExtractedFilesFolderFolder = r"T:\mat\Projects\Binaries\Windows XP"
-		TargetBinariesFolder = r"T:\mat\Projects\Binaries\Windows XP"
-		PatchBinary = r'Patches\WindowsXP-KB950762-x86-ENU.exe'
-	
-		file_store = MSFileProcessor( TemporaryExtractedFilesFolderFolder, TargetBinariesFolder, databasename = 'ms.db' )
-		print file_store.ExtractFilesInDatabase()
-		#file_store.ExtractFilesInDirectory( "Patches" )
-		#if file_store.ExtractFile( PatchBinary ):
-		#	file_store.IndexFilesInFolder()
-		#	file_store.RemoveTemporaryFiles()
-	elif test == 2:
+	parser=OptionParser()
+	parser.add_option('-s','--store',
+					dest='store',help="Store files to the depot", 
+					action="store_true", default=False, 
+					metavar="STORE")
+
+	parser.add_option('-e','--extract',
+					dest='extract',help="Extract patch files", 
+					action="store_true", default=False, 
+					metavar="EXTRACT")
+
+	parser.add_option('-E','--extract_ms_patches',
+					dest='extract_ms_patches',help="Extract MS patch files", 
+					action="store_true", default=False, 
+					metavar="EXTRACT_MS_PATCHES")
+
+	parser.add_option('-t','--test',
+					dest='test',help="Test functionalities", 
+					action="store_true", default=False, 
+					metavar="TEST")
+
+	(options,args)=parser.parse_args()
+
+	if options.store:
 		file_store = FileProcessor( databasename = r'index.db' )
 
-		folder_name = sys.argv[1]
-		target_dirname = sys.argv[2]
-		file_store.IndexFilesInFolder( folder_name, target_dirname = target_dirname )
+		src_dirname = args[0]
+		target_dirname = args[1]
+
+		print 'Store: %s -> %s' % (src_dirname, target_dirname)
+		file_store.CheckInFiles( src_dirname, target_dirname = target_dirname )
+
+	elif options.extract_ms_patches:
+		src_dirname = args[0]
+		target_dirname = args[1]
+	
+		file_store = MSFileProcessor( src_dirname, target_dirname, databasename = 'ms.db' )
+		print file_store.ExtractFilesInDatabase()
+
+	elif options.extract:
+		src_dirname = args[0]
+		target_dirname = args[1]
+
+		file_store = FileStore( src_dirname, target_dirname )
+		file_store.ExtractFilesInDatabase()
+
+	elif options.test:
+		import unittest, sys, os
+
+		# These strings are rather system dependant.
+		EXPECTEDSTRINGS = [
+			("OriginalFilename", "REGEDIT.EXE"),
+			("ProductVersion", "5.00.2134.1"),
+			("FileVersion", "5.00.2134.1"),
+			("FileDescription", "Registry Editor"),
+			("Comments", None),
+			("InternalName", "REGEDIT"),
+			#("ProductName", "Microsoft(R) Windows (R) 2000 Operating System"),
+			("CompanyName", "Microsoft Corporation"),
+			("LegalCopyright", "Copyright (C) Microsoft Corp. 1981-1999"),
+			("LegalTrademarks", None),
+			#("PrivateBuild", None),
+			("SpecialBuild", None)]
+
+		TESTFILE = os.path.join(os.environ['windir'], 'regedit.exe')
+
+		class Win32VerTest(unittest.TestCase):
+			def setUp(self):
+				self.info = win32ver.GetFileVersionInfo( TESTFILE )
+				assert(self.info is not None)
+
+			def tearDown(self):
+				pass
+
+			def testLCList(self):
+				'''Retrive language codepair list'''
+				# Calling VerQueryValue with no path should return a list
+				# of language, codepage pairs.
+				lclist = win32ver.VerQueryValue(self.info)
+				print 'lclist', lclist
+				self.assertEquals(lclist, [(1033, 1200)])
+
+			def testValues(self):
+				'''Retrieve version strings'''
+				lclist = win32ver.VerQueryValue(self.info)
+				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
+				for s, expected in EXPECTEDSTRINGS:
+					value = win32ver.VerQueryValue(self.info, block+s)
+					print s, value
+					#self.assertEquals(value, expected)
