@@ -1,7 +1,10 @@
 import sys
+import pprint
+
 from PySide.QtGui import *
 from PySide.QtCore import *
 import FlowGrapher
+import DarunGrimDatabase
 
 TYPE_DI_RECTS=0
 TYPE_DI_DRAW=1
@@ -12,10 +15,11 @@ TYPE_DI_FILLCOLOR=4
 TYPE_DI_BGCOLOR=5
 TYPE_DI_FONTCOLOR=6
 
-class FunctionGraphScene(QGraphicsScene):
+class GraphScene(QGraphicsScene):
 	Debug=0
 	def __init__(self,parent=None):
 		QGraphicsScene.__init__(self,parent)
+		self.BlockRects={}
 
 	def InvertedQPointF(self,x,y):
 		return QPointF(x,self.GraphRect[3]-y)
@@ -30,6 +34,7 @@ class FunctionGraphScene(QGraphicsScene):
 		font_size=''
 		font_name=''
 
+		self.BlockRects={}
 		self.GraphRect=[0,0,0,0]
 
 		for i in range(0,len,1):
@@ -79,7 +84,26 @@ class FunctionGraphScene(QGraphicsScene):
 				elif type_ch=='P' or type_ch=='p':
 					polygon=QPolygonF()
 					for j in range(0, di.count,1):
-						polygon.append(self.InvertedQPointF(di.GetPoint(j).x, di.GetPoint(j).y))
+						x=di.GetPoint(j).x
+						y=di.GetPoint(j).y
+
+						if di.count==4:
+							if not self.BlockRects.has_key(di.address):
+								self.BlockRects[di.address]=[0xffffffff,0xffffffff,0,0]
+
+							if self.BlockRects[di.address][0]>x:
+								self.BlockRects[di.address][0]=x
+
+							if self.BlockRects[di.address][1]>y:
+								self.BlockRects[di.address][1]=y
+
+							if self.BlockRects[di.address][2]<x:
+								self.BlockRects[di.address][2]=x
+
+							if self.BlockRects[di.address][3]<y:
+								self.BlockRects[di.address][3]=y
+
+						polygon.append(self.InvertedQPointF(x,y))
 
 					pen=None
 					brush=None
@@ -137,6 +161,20 @@ class FunctionGraphScene(QGraphicsScene):
 
 					self.addItem(text_item)
 
+	def FindPolygon(self,address):
+		if self.BlockRects.has_key(address):
+			return self.BlockRects[address]
+		return None
+
+	def FindAddress(self,x,y):
+		y=self.GraphRect[3]-y
+
+		for (address, [start_x, start_y, end_x, end_y]) in self.BlockRects.items():
+			if x > start_x and x < end_x and y > start_y and y < end_y:
+				return address
+
+		return None
+
 	def GetColor(self, color_str):
 		if color_str:
 			if color_str[0]=='#':
@@ -153,6 +191,97 @@ class FunctionGraphScene(QGraphicsScene):
 		color=QColor(color_name)
 		color.setAlpha(alpha)
 		return color
+
+	def mousePressEvent(self,event):
+		(x,y)=event.scenePos().x(), event.scenePos().y()
+		self.SelectedAddress=self.FindAddress(x,y)
+
+class MyGraphicsView(QGraphicsView):
+	def __init__(self):
+		self.scene=GraphScene()
+		QGraphicsView.__init__(self,self.scene)
+		self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
+		self.setRenderHints(QPainter.Antialiasing|QPainter.SmoothPixmapTransform)
+		self.setDragMode(self.ScrollHandDrag)
+		self.last_items=[]
+
+	def wheelEvent(self,event):
+		self.setTransformationAnchor(self.AnchorUnderMouse)
+
+		scaleFactor=1.15
+
+		if	event.delta()>0:
+			self.scale(scaleFactor,scaleFactor)
+		else:
+			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
+
+	def clear(self):
+		self.scene.clear()
+
+	def SetDatabaseName(self,database_name):
+		self.DatabaseName=database_name
+
+	def DrawFunctionGraph(self,type,function_address,match_info):
+		database=DarunGrimDatabase.Database(self.DatabaseName)
+
+		(source_disasms, source_links) = database.GetFunctionDisasmLines(type, function_address)
+		flow_grapher=FlowGrapher.FlowGrapher()
+		
+		for (address,disasm) in source_disasms.items():
+			if not match_info.has_key(address):
+				flow_grapher.SetNodeShape("white", "red", "Verdana", "12")
+			else:
+				if match_info[address][1]!=100:
+					flow_grapher.SetNodeShape("black", "yellow", "Verdana", "12")
+				else:
+					flow_grapher.SetNodeShape("black", "white", "Verdana", "12")
+
+			name="%.8X" % address
+			flow_grapher.AddNode(address, name, str(disasm))
+
+		for (src,dsts) in source_links.items():
+			for dst in dsts:
+				flow_grapher.AddLink(src,dst)
+		self.scene.Draw(flow_grapher)
+
+	def DrawRect(self,start_x, start_y, end_x, end_y):
+		polygon=QPolygonF()
+		polygon.append(self.scene.InvertedQPointF(start_x,start_y))
+		polygon.append(self.scene.InvertedQPointF(end_x,start_y))
+		polygon.append(self.scene.InvertedQPointF(end_x,end_y))
+		polygon.append(self.scene.InvertedQPointF(start_x,end_y))
+
+		pen=QPen(self.scene.GetColor("green"))
+		brush=QBrush(self.scene.GetColor("green"))
+		self.last_items.append(self.scene.addPolygon(polygon, pen, brush))
+
+	def HilightAddress(self,address,center=True):
+		[start_x, start_y, end_x, end_y]=self.scene.FindPolygon(address)
+
+		for item in self.last_items:
+			try:
+				self.scene.removeItem(item)
+			except:
+				pass
+		self.last_items=[]
+
+		self.DrawRect(start_x-5, start_y-5, start_x,end_y+5)
+		self.DrawRect(end_x+5, start_y-5, end_x, end_y+5)
+
+		self.DrawRect(start_x,start_y-5,end_x,start_y)
+		self.DrawRect(start_x,end_y,end_x,end_y+5)
+
+		if center:
+			self.centerOn(self.scene.InvertedQPointF((start_x+end_x)/2,(start_y+end_y)/2))
+
+	def SetSelectBlockCallback(self,callback):
+		self.SelectBlockCallback=callback
+
+	def mousePressEvent(self,event):
+		QGraphicsView.mousePressEvent(self,event)
+		if self.scene.SelectedAddress!=None:
+			self.HilightAddress(self.scene.SelectedAddress,False)
+			self.SelectBlockCallback(self,self.scene.SelectedAddress)
 
 if __name__=='__main__':
 	class MainWindow(QMainWindow):

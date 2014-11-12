@@ -86,6 +86,17 @@ class BlockMatchTable(QAbstractTableModel):
 
 		self.match_list=[]
 
+	def GetBlockAddresses(self,index):
+		return [self.match_list[index][0], self.match_list[index][1]]
+
+	def GetMatchAddresses(self,col,address):
+		for (addr1,addr2,match_rate) in self.match_list:
+			if col==0 and address==addr1:
+				return addr2
+			if col==1 and address==addr2:
+				return addr1
+		return None
+
 	def ShowFunctionAddresses(self,match_list):
 		self.match_list=match_list
 		self.dataChanged.emit(0, len(self.match_list))
@@ -102,7 +113,14 @@ class BlockMatchTable(QAbstractTableModel):
 		elif role!=Qt.DisplayRole:
 			return None
 
-		return self.match_list[index.row()][index.column()]
+		value=self.match_list[index.row()][index.column()]
+		if index.column()<2:
+			return "%.8X" % value
+
+		elif index.column()==2:
+			return "%d%%" % value
+
+		return value
 
 	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
@@ -111,23 +129,6 @@ class BlockMatchTable(QAbstractTableModel):
 
 	def sort(self,col,order):
 		pass
-
-class MyGraphicsView(QGraphicsView):
-	def __init__(self,parent=None):
-		QGraphicsView.__init__(self,parent)
-		self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
-		self.setRenderHints(QPainter.Antialiasing|QPainter.SmoothPixmapTransform)
-		self.setDragMode(self.ScrollHandDrag)
-
-	def wheelEvent(self,event):
-		self.setTransformationAnchor(self.AnchorUnderMouse)
-
-		scaleFactor=1.15
-
-		if	event.delta()>0:
-			self.scale(scaleFactor,scaleFactor)
-		else:
-			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
 
 class NewDiffingDialog(QDialog):
 	def __init__(self,parent=None):
@@ -186,6 +187,7 @@ class NewDiffingDialog(QDialog):
 
 		if filename[-4:0].lower()!='.dgf':
 			filename+='.dgf'
+			self.Filenames['Result']=filename
 		self.result_line.setText(filename)
 
 	def getFilename(self,type):
@@ -209,7 +211,7 @@ class MainWindow(QMainWindow):
 		self.createActions()
 		self.createMenus()
 
-		#
+		#Use dock? not yet
 		if not self.UseDock:
 			bottom_splitter=QSplitter()
 			graph_splitter=QSplitter()
@@ -264,9 +266,8 @@ class MainWindow(QMainWindow):
 			bottom_splitter.addWidget(view)
 
 		# Function Graph
-		self.OrigFunctionGraph=FunctionGraphScene()
-		view=MyGraphicsView(self.OrigFunctionGraph)
-		view.setRenderHints(QPainter.Antialiasing)
+		self.OrigFunctionGraph=MyGraphicsView()
+		self.OrigFunctionGraph.setRenderHints(QPainter.Antialiasing)
 
 		if self.UseDock:
 			dock=QDockWidget("Orig",self)
@@ -275,12 +276,11 @@ class MainWindow(QMainWindow):
 			dock.setWidget(view)
 			self.addDockWidget(Qt.TopDockWidgetArea,dock)
 		else:
-			graph_splitter.addWidget(view)
+			graph_splitter.addWidget(self.OrigFunctionGraph)
 
 		# Function Graph
-		self.PatchedFunctionGraph=FunctionGraphScene()
-		view=MyGraphicsView(self.PatchedFunctionGraph)
-		view.setRenderHints(QPainter.Antialiasing)
+		self.PatchedFunctionGraph=MyGraphicsView()
+		self.PatchedFunctionGraph.setRenderHints(QPainter.Antialiasing)
 
 		if self.UseDock:
 			dock=QDockWidget("Patched",self)
@@ -289,7 +289,7 @@ class MainWindow(QMainWindow):
 			dock.setWidget(view)
 			self.addDockWidget(Qt.TopDockWidgetArea,dock)
 		else:
-			graph_splitter.addWidget(view)
+			graph_splitter.addWidget(self.PatchedFunctionGraph)
 
 		if not self.UseDock:
 			virt_splitter=QSplitter()
@@ -351,7 +351,6 @@ class MainWindow(QMainWindow):
 
 			qApp.processEvents()
 
-		print 'diffing finished'
 		self.OpenDatabase(result_filename)
 
 	def open(self):
@@ -368,29 +367,6 @@ class MainWindow(QMainWindow):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
 		self.fileMenu.addAction(self.openAct)
-
-	def DrawFunctionGraph(self,type,function_address,graph_scene,match_info):
-		database=DarunGrimDatabase.Database(self.DatabaseName)
-
-		(source_disasms, source_links) = database.GetFunctionDisasmLines(type, function_address)
-		flow_grapher=FlowGrapher.FlowGrapher()
-		
-		for (address,disasm) in source_disasms.items():
-			if not match_info.has_key(address):
-				flow_grapher.SetNodeShape("white", "red", "Verdana", "12")
-			else:
-				if match_info[address][1]!=100:
-					flow_grapher.SetNodeShape("black", "yellow", "Verdana", "12")
-				else:
-					flow_grapher.SetNodeShape("black", "white", "Verdana", "12")
-
-			name="%.8X" % address
-			flow_grapher.AddNode(address, name, str(disasm))
-
-		for (src,dsts) in source_links.items():
-			for dst in dsts:
-				flow_grapher.AddLink(src,dst)
-		graph_scene.Draw(flow_grapher)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -409,19 +385,46 @@ class MainWindow(QMainWindow):
 				source_match_info={}
 				target_match_info={}
 				for ( source_address, ( target_address, match_rate ) ) in database.GetBlockMatches( source_function_address, target_function_address ):
-					match_list.append(["%x" % source_address, "%x" % target_address, "%d%%" % match_rate])
+					match_list.append([source_address, target_address, match_rate])
 					source_match_info[source_address]=[target_address, match_rate]
 					target_match_info[target_address]=[source_address, match_rate]
 
 				self.block_table_model=BlockMatchTable(self)
 				self.block_table_model.ShowFunctionAddresses(match_list)
 				self.block_table_view.setModel(self.block_table_model)
+				
+				selection=self.block_table_view.selectionModel()
+				selection.selectionChanged.connect(self.handleBlockTableChanged)
 
 				# Draw graphs
-				self.DrawFunctionGraph("Source", source_function_address, self.OrigFunctionGraph, source_match_info)
-				self.DrawFunctionGraph("Target", target_function_address, self.PatchedFunctionGraph, target_match_info)
+				self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
+				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_match_info)
+				self.OrigFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
+				self.PatchedFunctionGraph.SetDatabaseName(self.DatabaseName)
+				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, target_match_info)
+				self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
 
 				break
+
+	def handleBlockTableChanged(self,selected,dselected):
+		for item in selected:
+			for index in item.indexes():
+				[orig_address,patched_address]=self.block_table_model.GetBlockAddresses(index.row())
+				self.OrigFunctionGraph.HilightAddress(orig_address)
+				self.PatchedFunctionGraph.HilightAddress(patched_address)
+
+				break
+
+	def SelectedBlock(self,graph,address):
+		if graph==self.OrigFunctionGraph:
+			matched_address=self.block_table_model.GetMatchAddresses(0,address)
+			if matched_address!=None:
+				self.PatchedFunctionGraph.HilightAddress(matched_address)
+
+		elif graph==self.PatchedFunctionGraph:
+			matched_address=self.block_table_model.GetMatchAddresses(1,address)
+			if matched_address!=None:
+				self.OrigFunctionGraph.HilightAddress(matched_address)
 
 	def readSettings(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
