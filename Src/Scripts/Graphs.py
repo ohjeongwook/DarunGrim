@@ -20,6 +20,8 @@ class GraphScene(QGraphicsScene):
 	def __init__(self,parent=None):
 		QGraphicsScene.__init__(self,parent)
 		self.BlockRects={}
+		self.SelectedAddress=None
+		self.GraphRect=[0,0,0,0]
 
 	def InvertedQPointF(self,x,y):
 		return QPointF(x,self.GraphRect[3]-y)
@@ -35,6 +37,7 @@ class GraphScene(QGraphicsScene):
 		font_name=''
 
 		self.BlockRects={}
+		self.SelectedAddress=None
 		self.GraphRect=[0,0,0,0]
 
 		for i in range(0,len,1):
@@ -215,7 +218,13 @@ class MyGraphicsView(QGraphicsView):
 		else:
 			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
 
+	def clearLastItems(self):
+		for item in self.last_items:
+			self.scene.removeItem(item)
+		self.last_items=[]
+
 	def clear(self):
+		self.clearLastItems()
 		self.scene.clear()
 
 	def SetDatabaseName(self,database_name):
@@ -257,13 +266,7 @@ class MyGraphicsView(QGraphicsView):
 
 	def HilightAddress(self,address,center=True):
 		[start_x, start_y, end_x, end_y]=self.scene.FindPolygon(address)
-
-		for item in self.last_items:
-			try:
-				self.scene.removeItem(item)
-			except:
-				pass
-		self.last_items=[]
+		self.clearLastItems()
 
 		self.DrawRect(start_x-5, start_y-5, start_x,end_y+5)
 		self.DrawRect(end_x+5, start_y-5, end_x, end_y+5)
