@@ -264,78 +264,6 @@ class FileProcessor:
 						VersionInfo[s] = value
 		return VersionInfo
 
-class MSFileProcessor( FileProcessor ):
-	DebugLevel = 0
-	def __init__(self, source_binaries_folder, target_binaries_folder, database = None, databasename = 'test.db' ):
-		self.TemporaryExtractedFilesFolderFolder = source_binaries_folder
-		self.TargetBinariesFolder = target_binaries_folder
-
-		self.file_processor = FileProcessor( databasename = databasename, database = database )
-		self.Download = None
-
-	def ExtractFilesInDatabase( self ):
-		for download in self.Database.GetDownloads():
-			self.ExtractDownload( download )
-
-	def ExtractDownload( self, download , filename = None ):
-		if self.DebugLevel > 1:
-			print 'ExtractDownload', download, filename
-		if not filename:
-			filename = download.filename
-		if os.path.isfile( filename ) and filename[-4:]=='.exe':
-			if self.DebugLevel > 1:
-				print 'Filename', filename
-			if self.ExtractMSArchive( filename ):
-				self.file_processor.CheckInFiles( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, download )
-				self.RemoveTemporaryFiles()
-
-	def ExtractMSArchive( self, filename ):		
-		popen2.popen2( filename + " /x:"+self.TemporaryExtractedFilesFolderFolder + " /quiet" )
-		return True
-
-	def ExtractFilesInDirectory( self, dirname ):
-		for file in dircache.listdir( dirname ):
-			full_path = os.path.join( dirname, file )
-			if os.path.isfile( full_path ) and full_path[-4:]=='.exe':
-				if self.DebugLevel > 1:
-					print full_path
-				if self.ExtractFile( full_path ):
-					self.CheckInFiles( self.TemporaryExtractedFilesFolderFolder, self.TargetBinariesFolder, self.Download )
-					self.RemoveTemporaryFiles()
-
-	def ExtractFile( self, filename ):
-		#Filename
-		if self.DebugLevel > 1:
-			print 'Filename', filename
-		self.Download = self.Database.GetDownloadByFilename( filename )
-		if self.DebugLevel > 1:
-			print 'Download', self.Download
-		if self.Download:
-			self.ExtractMSArchive( filename )
-			return True
-		return False
-
-
-	def RemoveTemporaryFiles( self, dirname = None ):
-		if self.TemporaryExtractedFilesFolderFolder != self.TargetBinariesFolder:
-			if not dirname:
-				dirname = self.TemporaryExtractedFilesFolderFolder
-			if os.path.isdir( dirname ):
-				shutil.rmtree( dirname )
-
-		"""
-		for file in dircache.listdir( dirname ):
-			full_path = os.path.join( dirname, file )
-			if os.path.isdir( full_path ):
-				self.RemoveTemporaryFiles( full_path )
-				#Remove directory
-				os.remove( full_path )
-			else:
-				print full_path
-				#Remove file
-				os.remove( full_path )
-		"""
-
 if __name__=='__main__':
 	from optparse import OptionParser
 	import sys
@@ -345,16 +273,6 @@ if __name__=='__main__':
 					dest='store',help="Store files to the depot", 
 					action="store_true", default=False, 
 					metavar="STORE")
-
-	parser.add_option('-e','--extract',
-					dest='extract',help="Extract patch files", 
-					action="store_true", default=False, 
-					metavar="EXTRACT")
-
-	parser.add_option('-E','--extract_ms_patches',
-					dest='extract_ms_patches',help="Extract MS patch files", 
-					action="store_true", default=False, 
-					metavar="EXTRACT_MS_PATCHES")
 
 	parser.add_option('-t','--test',
 					dest='test',help="Test functionalities", 
@@ -371,20 +289,6 @@ if __name__=='__main__':
 
 		print 'Store: %s -> %s' % (src_dirname, target_dirname)
 		file_store.CheckInFiles( src_dirname, target_dirname = target_dirname )
-
-	elif options.extract_ms_patches:
-		src_dirname = args[0]
-		target_dirname = args[1]
-	
-		file_store = MSFileProcessor( src_dirname, target_dirname, databasename = 'ms.db' )
-		print file_store.ExtractFilesInDatabase()
-
-	elif options.extract:
-		src_dirname = args[0]
-		target_dirname = args[1]
-
-		file_store = FileStore( src_dirname, target_dirname )
-		file_store.ExtractFilesInDatabase()
 
 	elif options.test:
 		import unittest, sys, os
