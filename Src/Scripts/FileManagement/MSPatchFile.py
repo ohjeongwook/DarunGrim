@@ -75,9 +75,27 @@ if __name__=='__main__':
 					action="store_true", default=False, 
 					metavar="EXTRACT")
 
+	parser.add_option('-s','--store',
+					dest='store',help="Store MS patch files", 
+					action="store_true", default=False, 
+					metavar="STORE")
+
 	(options,args)=parser.parse_args()
 
 	if options.extract:
 		filename=args[0]
 		ms_patch_handler=MSPatchHandler()
 		print ms_patch_handler.Extract(filename)
+
+	elif options.store:
+		import FileStore
+		file_store = FileProcessor( databasename = r'index.db' )
+
+		filename=args[0]
+		src_dirname = args[1]
+		target_dirname = args[2]
+
+		ms_patch_handler=MSPatchHandler()
+		for dir in ms_patch_handler.Extract(filename):
+			print 'Store: %s -> %s' % (src_dirname, target_dirname)
+			file_store.CheckInFiles( src_dirname, target_dirname = target_dirname )	
