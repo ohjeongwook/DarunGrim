@@ -5,9 +5,8 @@ sys.path.append(r'..')
 sys.path.append(r'..\Diff Inspector')
 import os
 
-import PatchTimeline
 import DarunGrimEngine
-import PatchDatabaseWrapper
+import FileStoreDatabase
 import SecurityImplications
 import DarunGrimDatabase
 
@@ -46,7 +45,7 @@ class Manager:
 			print 'OutputDirectory=', self.OutputDirectory
 			print 'IDAPath=', self.IDAPath
 	
-		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( self.DatabaseFilename )
+		self.PatchTimelineAnalyzer = FileStoreDatabase.Analyzer( self.DatabaseFilename )
 
 	def InstallPlugin( self ):
 		plugins_dst_dir = os.path.join( os.path.dirname( self.IDAPath ), "plugins" )
@@ -77,7 +76,7 @@ class Manager:
 	def InitMSFileDiff( self, patch_name, filename ):
 		if self.DebugLevel > 0:
 			print 'Analyzing', patch_name, filename
-		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename, patch_name ):
+		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.FileStoreDatabase.GetPatchPairsForAnalysis( filename, patch_name ):
 			if self.DebugLevel > 0:
 				print '='*80
 				print target_patch_name,source_patch_name
@@ -89,7 +88,7 @@ class Manager:
 			differ = self.InitFileDiff( source_patch_name, source_filename, target_patch_name, target_filename )
 
 	def InitFileDiffByID( self, source_id, target_id, databasename = None, reset_database = False ):
-		database = PatchDatabaseWrapper.Database( self.DatabaseFilename )
+		database = FileStoreDatabase.Database( self.DatabaseFilename )
 		source_file_entries = database.GetFileByID( source_id )
 		if self.DebugLevel > 0:
 			print 'source', source_id, source_file_entries
@@ -270,7 +269,7 @@ class Manager:
 		database.Commit()
 
 	def InitMSFileDiffAll( self ):
-		for ( patch_name, filename ) in self.PatchTimelineAnalyzer.GetPatchFileNamePairs():
+		for ( patch_name, filename ) in self.FileStoreDatabase.GetPatchFileNamePairs():
 			self.InitMSFileDiff( patch_name, filename )
 
 if __name__ == '__main__':

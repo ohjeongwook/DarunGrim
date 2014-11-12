@@ -8,7 +8,7 @@ import time
 import datetime
 import hashlib
 
-import PatchDatabaseWrapper
+import FileStoreDatabase
 
 class FileProcessor:
 	DebugLevel = 2
@@ -22,7 +22,7 @@ class FileProcessor:
 		if database:
 			self.Database = database
 		else:
-			self.Database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			self.Database = FileStoreDatabase.Database( self.DatabaseName )
 
 	def IsExecutable( self , filename ):
 		try:

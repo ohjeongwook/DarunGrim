@@ -6,8 +6,7 @@ import unittest
 import re
 import os
 
-import PatchDatabaseWrapper
-import PatchTimeline
+import FileStoreDatabase
 import DarunGrimSessions
 import DarunGrimDatabase
 import SecurityImplications
@@ -44,21 +43,21 @@ class WebServer(object):
 			self.PatchTemporaryStore = config.get("Directories", "PatchTemporaryStore")
 		
 		#Operation
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
-		self.PatchTimelineAnalyzer = PatchTimeline.Analyzer( database = database )
+		database = FileStoreDatabase.Database( self.DatabaseName )
+		self.PatchTimelineAnalyzer = FileStoreDatabase.Analyzer( database = database )
 		self.DarunGrimSessionsInstance = DarunGrimSessions.Manager( self.DatabaseName, self.BinariesStorageDirectory, self.DGFDirectory, self.IDAPath )
 		self.PatternAnalyzer = SecurityImplications.PatternAnalyzer()
 
 	def index(self):
 		mytemplate = Template( IndexTemplateText )
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		patches = database.GetPatches()
 		return mytemplate.render()
 	index.exposed = True
 
 	def ShowFileList(self, company_name = None, filename = None, version_string = None ):
 		filenames = []
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		if company_name:
 			if filename:
 				if version_string:
@@ -67,7 +66,7 @@ class WebServer(object):
 				else:
 					#List version strings
 					file_information_list = []
-					database = PatchDatabaseWrapper.Database( self.DatabaseName )
+					database = FileStoreDatabase.Database( self.DatabaseName )
 					for file_info in database.GetFileByCompanyFileName( company_name, filename ):
 						fullFilename = os.path.join( self.BinariesStorageDirectory, file_info.full_path)
 						archInfo = self.Is32bitExecutable( fullFilename)
@@ -163,7 +162,7 @@ $(function () {
 
 	def FileTreeJSON(self, company_name = None, filename = None, version_string = None ):
 		names = []
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		if company_name:
 			if filename:
 				if version_string:
@@ -227,7 +226,7 @@ $(function () {
 
 	def ShowFileSearch( self, type = None, search_str = None,sub_type = None, sub_search_str = None, date_type = None, datepicker_from = None, datepicker_to = None ):
 		if type and search_str:
-			database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			database = FileStoreDatabase.Database( self.DatabaseName )
 
 			file_infos = []
 			if type == 'Filename':
@@ -315,20 +314,20 @@ $(function () {
 			patch_downloader.DownloadCurrentYearPatches()
 
 		mytemplate = Template( PatchesTemplateText )
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		patches = database.GetPatches()
 		return mytemplate.render( patches=patches )
 	ShowMSPatchList.exposed = True
 
 	def PatchInfo( self, id ):
 		mytemplate = Template( PatchInfoTemplateText )
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		downloads = database.GetDownloadByPatchID( id )
 		return mytemplate.render( id=id, downloads=downloads )
 	PatchInfo.exposed = True
 
 	def DownloadInfo(self, patch_id, id, operation = '' ):
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		if operation == 'extract':
 			patch_temporary_folder = tempfile.mkdtemp()
 			patch_temporary_folder2 = tempfile.mkdtemp()
@@ -361,8 +360,8 @@ $(function () {
 	DownloadInfo.exposed = True
 
 	def FileInfo( self, patch_id, download_id, id ):
-		#PatchTimeline
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		#FileStoreDatabase
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		files = database.GetFileByID( id )
 		print 'files', files
 		[ file_index_entry ] = files
@@ -375,7 +374,7 @@ $(function () {
 		target_filename = filename
 		target_id = 0
 		print 'FileInfo: filename=', filename
-		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.PatchTimelineAnalyzer.GetPatchPairsForAnalysis( filename = filename, id = id, patch_name = target_patch_name ):
+		for ( target_patch_name, target_file_entry, source_patch_name, source_file_entry ) in self.FileStoreDatabase.GetPatchPairsForAnalysis( filename = filename, id = id, patch_name = target_patch_name ):
 			print '='*80
 			print target_patch_name,source_patch_name
 
@@ -386,7 +385,7 @@ $(function () {
 			target_id = target_file_entry['id']
 
 		mytemplate = Template( FileInfoTemplateText )
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		return mytemplate.render(
 			patch_id = patch_id,
 			patch_name = database.GetPatchNameByID( patch_id ), 
@@ -434,7 +433,7 @@ $(function () {
 		</%def>
 		""" + BodyHTML )
 
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		items = []
 		try:
 			projects = database.GetProjects()
@@ -464,7 +463,7 @@ $(function () {
 		""" + BodyHTML )
 		
 		#pass project_id name, description info
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		project = database.GetProject( project_id )	
 		return mytemplate.render( project_id = project_id, name = project.name, description = project.description )		
 
@@ -472,21 +471,21 @@ $(function () {
 	
 	def UpdateProject( self, project_id, name, description ):
 		#Edit project by project_id
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		database.UpdateProject( project_id, name, description )
 		return self.ShowProjects()
 	UpdateProject.exposed = True
 
 	def RemoveProject( self, project_id ):
 		#Remove project by project_id
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		database.RemoveProject( project_id )
 		return self.ShowProjects()
 	RemoveProject.exposed = True
 	
 	def RemoveFromProject( self, project_member_id, project_id ):
 		#Remove project_member_id from project		
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		
 		#Add to project
 		if type(project_member_id)!=type(list()):
@@ -520,7 +519,7 @@ $(function () {
 	ShowAddProjectPage.exposed = True
 
 	def AddProjectImpl( self, name, description = '' ):
-			database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			database = FileStoreDatabase.Database( self.DatabaseName )
 			project = database.AddProject( name, description )
 			database.Commit()
 			return project
@@ -535,7 +534,7 @@ $(function () {
 	AddProject.exposed = True
 
 	def ShowProject( self, project_id = None ):
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		project_members = database.GetProjectMembers( project_id )
 
 		file_information_list = []
@@ -595,7 +594,7 @@ $(function () {
 		if type(id)!=type(list()):
 			id = [id]
 		
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		if not project_id:
 			projects = database.GetProjects()
 			mytemplate = Template( ProjectSelectionTemplate + BodyHTML )
@@ -637,7 +636,7 @@ $(function () {
 
 		#Add or Update Project
 		if project_id:
-			patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
+			patch_database = FileStoreDatabase.Database( self.DatabaseName )
 			patch_database.AddProjectResult( project_id, source_id, target_id, databasename)
 
 		databasename = self.GenerateDGFName( source_id, target_id )
@@ -740,7 +739,7 @@ $(function () {
 				function_match_info.match_count_with_modificationfor_the_source > 0:
 				function_match_infos.append( function_match_info )
 
-		patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		patch_database = FileStoreDatabase.Database( self.DatabaseName )
 		source_file = patch_database.GetFileByID( source_id )[0]
 		target_file = patch_database.GetFileByID( target_id )[0]
 
@@ -776,7 +775,7 @@ $(function () {
 			source_id, target_id, source_address, target_address, 
 			source_function_name = None, target_function_name = None ):
 
-		patch_database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		patch_database = FileStoreDatabase.Database( self.DatabaseName )
 		source_file = patch_database.GetFileByID( source_id )[0]
 		target_file = patch_database.GetFileByID( target_id )[0]
 	
@@ -846,7 +845,7 @@ $(function () {
 	SyncIDA.exposed = True
 	
 	def OpenInIDA( self, id ):
-		database = PatchDatabaseWrapper.Database( self.DatabaseName )
+		database = FileStoreDatabase.Database( self.DatabaseName )
 		file_path = ''
 		for file in database.GetFileByID( id ):
 			file_path = file.full_path
