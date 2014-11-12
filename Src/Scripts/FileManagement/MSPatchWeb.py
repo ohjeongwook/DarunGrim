@@ -1,7 +1,7 @@
 import os
 import mechanize
 from BeautifulSoup import BeautifulSoup
-import PatchDatabaseWrapper
+import FileStoreDatabase
 import datetime
 
 class PatchDownloader:
@@ -11,7 +11,7 @@ class PatchDownloader:
 		self.DownloadFolder = download_folder
 		if not os.path.isdir( self.DownloadFolder ):
 			os.makedirs( self.DownloadFolder )
-		self.Database = PatchDatabaseWrapper.Database( databasename )
+		self.Database = FileStoreDatabase.Database( databasename )
 		self.BR = mechanize.Browser()
 
 	def DownloadFileByLink( self, link ):
