@@ -11,7 +11,7 @@ import PatchTimeline
 import DarunGrimSessions
 import DarunGrimDatabase
 import SecurityImplications
-import DownloadMSPatches
+import MSPatchWeb
 import FileStore
 
 from mako.template import Template
@@ -311,7 +311,7 @@ $(function () {
 
 	def ShowMSPatchList( self, operation = '' ):
 		if operation == 'update':
-			patch_downloader = DownloadMSPatches.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
+			patch_downloader = MSPatchWeb.PatchDownloader( self.PatchTemporaryStore, self.DatabaseName )
 			patch_downloader.DownloadCurrentYearPatches()
 
 		mytemplate = Template( PatchesTemplateText )
@@ -333,7 +333,7 @@ $(function () {
 			patch_temporary_folder = tempfile.mkdtemp()
 			patch_temporary_folder2 = tempfile.mkdtemp()
 			file_store = FileStore.MSFileProcessor( patch_temporary_folder, self.MicrosoftBinariesStorageDirectory, database = database )
-			patch_downloader = DownloadMSPatches.PatchDownloader( patch_temporary_folder2, self.DatabaseName )
+			patch_downloader = MSPatchWeb.PatchDownloader( patch_temporary_folder2, self.DatabaseName )
 			for download in database.GetDownloadByID( id ):
 				print 'Extracting', download.filename, download.url
 				if not os.path.isfile( download.filename ):
