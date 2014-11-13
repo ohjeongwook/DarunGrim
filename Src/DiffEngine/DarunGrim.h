@@ -110,8 +110,8 @@ public:
 
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 
-	bool CreateDGF( 
-		char *storage_filename, 
+	bool GenerateDGF( 
+		char *dgf_output_filename, 
 		char *log_filename, 
 		char *ida_log_filename_for_source,
 		char *ida_log_filename_for_target,
@@ -120,10 +120,12 @@ public:
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	
 	void ListDiffDatabase(const char *storage_filename);
-	bool DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename);
-
 	bool Load( const char *storage_filename );
-	bool Analyze();
+
+	bool PerformDiff();
+	bool PerformDiff(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename);
+
+
 	bool ShowOnIDA();
 
 	const char *GetSourceFilename();
@@ -165,7 +167,7 @@ public:
 	void SetIDAPath(const char *ParamIDAPath);
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
-	void RunIDAToCreateDGF(const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress);
+	void RunIDAToGenerateDGF(const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress);
 	void ConnectToDarunGrim(const char *ida_filename);
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();

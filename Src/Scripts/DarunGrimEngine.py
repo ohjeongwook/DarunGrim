@@ -8,23 +8,24 @@ LogToFile = 0x4
 LogToIDAMessageBox = 0x8
 
 class Differ:
-	def __init__ ( self, SourceFilename, TargetFilename ):
-		self.SourceFilename = str(SourceFilename)
-		self.TargetFilename = str(TargetFilename)
+	def __init__ ( self, orig_filename, patched_filename ):
+		self.OrigFilename = str(orig_filename)
+		self.PatchedFilename = str(patched_filename)
 		self.DarunGrim = DiffEngine.DarunGrim()
-		self.DarunGrim.SetSourceFilename( self.SourceFilename )
-		self.DarunGrim.SetTargetFilename( self.TargetFilename )
-		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA\idag.exe' )
+		self.DarunGrim.SetSourceFilename( self.OrigFilename )
+		self.DarunGrim.SetTargetFilename( self.PatchedFilename )
+		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA 6.6\idaq.exe' )
+		self.DarunGrim.SetLogParameters(LogToStdout, 100, "")
 
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
 
-	def DiffFile( self, storage_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
-		storage_filename = os.path.join( os.getcwd(), str(storage_filename) )
+	def Start( self, dgf_output_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
+		filename = os.path.join( os.getcwd(), str(dgf_output_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
 
-		self.DarunGrim.CreateDGF(
-			storage_filename,
+		self.DarunGrim.GenerateDGF(
+			dgf_output_filename,
 			log_filename, 
 			ida_log_filename_for_source,
 			ida_logfilename_for_target,
@@ -52,11 +53,16 @@ if __name__ == '__main__':
 
 	(options, args) = parser.parse_args()
 
-	src_filename = args[0]
-	target_filename = args[1]
-	result_filename = args[2]
+	orig_filename = args[0]
+	patched_filename = args[1]
+	dgf_output_filename = args[2]
 
+	"""
 	darun_grim = DiffEngine.DarunGrim()
-	darun_grim.SetLogParameters(LogToStdout, 100, "");  
+	darun_grim.SetLogParameters(LogToStdout, 100, "")  
 
-	darun_grim.DiffDatabaseFiles(src_filename, options.source_address, target_filename, options.target_address, result_filename)
+	darun_grim.PerformDiff(src_filename, options.source_address, target_filename, options.target_address, result_filename)
+	"""
+
+	differ=Differ(orig_filename, patched_filename)
+	differ.Start( dgf_output_filename, "log.txt")

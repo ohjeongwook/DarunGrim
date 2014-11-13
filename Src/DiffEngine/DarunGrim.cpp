@@ -71,8 +71,8 @@ void DarunGrim::SetIDAPath(const char *ParamIDAPath)
 	IDAPath = _strdup(ParamIDAPath);
 }
 
-bool DarunGrim::CreateDGF( 
-	char *storage_filename, 
+bool DarunGrim::GenerateDGF( 
+	char *dgf_output_filename, 
 	char *log_filename, 
 	char *ida_log_filename_for_source,
 	char *ida_log_filename_for_target,
@@ -81,13 +81,13 @@ bool DarunGrim::CreateDGF(
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 
-	SetOutputFilename(storage_filename);
+	SetOutputFilename(dgf_output_filename);
 	SetLogFilename( log_filename );
 	SetIDALogFilename( ida_log_filename_for_source );
-	RunIDAToCreateDGF( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
+	RunIDAToGenerateDGF( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
 	SetIDALogFilename( ida_log_filename_for_target );
-	RunIDAToCreateDGF( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
-	return OpenDatabase(storage_filename);
+	RunIDAToGenerateDGF( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
+	return OpenDatabase(dgf_output_filename);
 }
 
 DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
@@ -200,7 +200,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 
 	if( !pDiffMachine )
 	{
-		Analyze();
+		PerformDiff();
 	}
 
 	CreateIDACommandProcessorThread();
@@ -227,7 +227,7 @@ void DarunGrim::ListDiffDatabase(const char *storage_filename)
 	pStorageDB->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 }
 
-bool DarunGrim::DiffDatabaseFiles(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
+bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
 {
 	Logger.Log(10, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
 
@@ -289,7 +289,7 @@ bool DarunGrim::Load( const char *storage_filename )
 	return FALSE;
 }
 
-bool DarunGrim::Analyze()
+bool DarunGrim::PerformDiff()
 {
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	int source_file_id=1;
@@ -575,7 +575,7 @@ bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
 #define RUN_DARUNGRIM_PLUGIN_STR "static main()\n\
 {\n\
 	Wait();\n\
-	RunPlugin( \"DarunGrim\", 1 );\n\
+	RunPlugin( \"DarunGrimPlugin\", 1 );\n\
 	SetLogFile( \"%s\" );\n\
 	SaveAnalysisData( \"%s\", %d, %d );\n\
 	Exit( 0 );\n\
@@ -584,7 +584,7 @@ bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
 #define CONNECT_TO_DARUNGRIM_STR "static main()\n\
 {\n\
 	Wait();\n\
-	RunPlugin( \"DarunGrim\", 1 );\n\
+	RunPlugin( \"DarunGrimPlugin\", 1 );\n\
 	SetLogFile( \"%s\" );\n\
 	ConnectToDarunGrim();\n\
 }"
@@ -634,7 +634,7 @@ void DarunGrim::SetLogFilename(char *LogFilename)
 	}
 }
 
-void DarunGrim::RunIDAToCreateDGF(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
+void DarunGrim::RunIDAToGenerateDGF(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
 {
 	char *idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
 		EscapedLogFilename ? EscapedLogFilename : "",
@@ -642,19 +642,20 @@ void DarunGrim::RunIDAToCreateDGF(const char *ida_filename, unsigned long StartA
 		StartAddress,
 		EndAddress);
 
+	char *Options = ""; //Or "-A" (Non interactive)
 	if (idc_filename)
 	{
 		//Run IDA
 		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
 		if (IDALogFilename[0])
 		{
-			Logger.Log(10, "Executing \"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" -A -L\"%s\" -S\"%s\" \"%s\"", IDAPath, IDALogFilename, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, Options, IDALogFilename, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, Options, IDALogFilename, idc_filename, ida_filename);
 		}
 		else
 		{
-			Logger.Log(10, "Executing \"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" -A -S\"%s\" \"%s\"", IDAPath, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -S\"%s\" \"%s\"\n", IDAPath, Options, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -S\"%s\" \"%s\"", IDAPath, Options, idc_filename, ida_filename);
 		}
 		free(idc_filename);
 	}

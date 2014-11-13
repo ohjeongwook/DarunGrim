@@ -59,7 +59,7 @@ class DarunGrim
 public:
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 	void SetIDAPath( const char *path );
-	bool CreateDGF( 
+	bool GenerateDGF( 
 		char *storage_filename, 
 		char *log_filename, 
 		char *ida_log_filename_for_source,
@@ -67,8 +67,8 @@ public:
 		unsigned long start_address_for_source, unsigned long end_address_for_source, 
 		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
-	bool DiffDatabaseFiles(char *src_storage_filename, unsigned long source_address, char *target_storage_filename, unsigned long target_address, char *output_storage_filename);
-	bool Analyze();
+	bool PerformDiff(char *src_storage_filename, unsigned long source_address, char *target_storage_filename, unsigned long target_address, char *output_storage_filename);
+	bool PerformDiff();
 	
 	void SetSourceFilename( char *source_filename );
 	void SetTargetFilename( char *target_filename );	
@@ -80,10 +80,9 @@ public:
 	void SetDatabase( DBWrapper *OutputDB );
 	bool StartIDAListener( unsigned short port );
 
-	void SetIDAPath( const char *ParamIDAPath );
 	void SetOutputFilename(char *OutputFilename);
 	void SetLogFilename(char *LogFilename);
-	void RunIDAToCreateDGF(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
+	void RunIDAToGenerateDGF(char *ida_filename,unsigned long StartAddress,unsigned long EndAddress);
 	void ConnectToDarunGrim(char *ida_filename);
 	const char *GetIDALogFilename();
 };

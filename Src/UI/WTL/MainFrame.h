@@ -48,7 +48,7 @@ extern int GraphVizInterfaceProcessorDebugLevel;
 
 
 int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_x,int offset_y);
-DWORD WINAPI DiffDatabaseFilesThread(LPVOID pParam);
+DWORD WINAPI PerformDiffThread(LPVOID pParam);
 DWORD WINAPI OpenDatabaseThread(LPVOID pParam);
 
 class DiffListSorter
@@ -998,11 +998,11 @@ public:
 		}
 	}
 
-	DWORD WINAPI DiffDatabaseFiles()
+	DWORD WINAPI PerformDiff()
 	{
 		PrintToLogView("Starting analysis...\r\n");
 
-		pDarunGrim->DiffDatabaseFiles(
+		pDarunGrim->PerformDiff(
 			m_SourceFileName.c_str(), 0,
 			m_TargetFileName.c_str(), 0,
 			m_DiffFilename.c_str());
@@ -1043,7 +1043,7 @@ public:
 			if(m_DiffFilename.length()>0 && m_SourceFileName.length()>0 && m_TargetFileName.length()>0)
 			{
 				DWORD dwThreadId;
-				CreateThread(NULL,0,DiffDatabaseFilesThread,(PVOID)this,0,&dwThreadId);
+				CreateThread(NULL,0,PerformDiffThread,(PVOID)this,0,&dwThreadId);
 				m_LogViewerDlg.ShowWindow(TRUE);
 			}
 		}
@@ -1388,10 +1388,10 @@ int GraphViewSelectProxyCallback(DWORD address,DWORD ptr,DWORD index,int offset_
 	return 0;
 }
 
-DWORD WINAPI DiffDatabaseFilesThread(LPVOID pParam)
+DWORD WINAPI PerformDiffThread(LPVOID pParam)
 {
 	CMainFrame *pCMainFrame=(CMainFrame *)pParam;
-	pCMainFrame->DiffDatabaseFiles();
+	pCMainFrame->PerformDiff();
 	return 0;
 }
 

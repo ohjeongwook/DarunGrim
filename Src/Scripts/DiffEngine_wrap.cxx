@@ -4726,7 +4726,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_CreateDGF(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_GenerateDGF(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -4770,53 +4770,53 @@ SWIGINTERN PyObject *_wrap_DarunGrim_CreateDGF(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj8 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:DarunGrim_CreateDGF",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:DarunGrim_GenerateDGF",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_CreateDGF" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateDGF" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_CreateDGF" "', argument " "2"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_GenerateDGF" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_CreateDGF" "', argument " "3"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_GenerateDGF" "', argument " "3"" of type '" "char *""'");
   }
   arg3 = reinterpret_cast< char * >(buf3);
   res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DarunGrim_CreateDGF" "', argument " "4"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DarunGrim_GenerateDGF" "', argument " "4"" of type '" "char *""'");
   }
   arg4 = reinterpret_cast< char * >(buf4);
   res5 = SWIG_AsCharPtrAndSize(obj4, &buf5, NULL, &alloc5);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "DarunGrim_CreateDGF" "', argument " "5"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "DarunGrim_GenerateDGF" "', argument " "5"" of type '" "char *""'");
   }
   arg5 = reinterpret_cast< char * >(buf5);
   ecode6 = SWIG_AsVal_unsigned_SS_long(obj5, &val6);
   if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "DarunGrim_CreateDGF" "', argument " "6"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "DarunGrim_GenerateDGF" "', argument " "6"" of type '" "unsigned long""'");
   } 
   arg6 = static_cast< unsigned long >(val6);
   ecode7 = SWIG_AsVal_unsigned_SS_long(obj6, &val7);
   if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "DarunGrim_CreateDGF" "', argument " "7"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "DarunGrim_GenerateDGF" "', argument " "7"" of type '" "unsigned long""'");
   } 
   arg7 = static_cast< unsigned long >(val7);
   ecode8 = SWIG_AsVal_unsigned_SS_long(obj7, &val8);
   if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "DarunGrim_CreateDGF" "', argument " "8"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "DarunGrim_GenerateDGF" "', argument " "8"" of type '" "unsigned long""'");
   } 
   arg8 = static_cast< unsigned long >(val8);
   ecode9 = SWIG_AsVal_unsigned_SS_long(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "DarunGrim_CreateDGF" "', argument " "9"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "DarunGrim_GenerateDGF" "', argument " "9"" of type '" "unsigned long""'");
   } 
   arg9 = static_cast< unsigned long >(val9);
-  result = (bool)(arg1)->CreateDGF(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  result = (bool)(arg1)->GenerateDGF(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -4930,7 +4930,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_DiffDatabaseFiles(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_PerformDiff__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -4961,38 +4961,38 @@ SWIGINTERN PyObject *_wrap_DarunGrim_DiffDatabaseFiles(PyObject *SWIGUNUSEDPARM(
   PyObject * obj5 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:DarunGrim_DiffDatabaseFiles",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:DarunGrim_PerformDiff",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_PerformDiff" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "2"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_PerformDiff" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
   ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "3"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_PerformDiff" "', argument " "3"" of type '" "unsigned long""'");
   } 
   arg3 = static_cast< unsigned long >(val3);
   res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "4"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DarunGrim_PerformDiff" "', argument " "4"" of type '" "char *""'");
   }
   arg4 = reinterpret_cast< char * >(buf4);
   ecode5 = SWIG_AsVal_unsigned_SS_long(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "5"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "DarunGrim_PerformDiff" "', argument " "5"" of type '" "unsigned long""'");
   } 
   arg5 = static_cast< unsigned long >(val5);
   res6 = SWIG_AsCharPtrAndSize(obj5, &buf6, NULL, &alloc6);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "DarunGrim_DiffDatabaseFiles" "', argument " "6"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "DarunGrim_PerformDiff" "', argument " "6"" of type '" "char *""'");
   }
   arg6 = reinterpret_cast< char * >(buf6);
-  result = (bool)(arg1)->DiffDatabaseFiles(arg2,arg3,arg4,arg5,arg6);
+  result = (bool)(arg1)->PerformDiff(arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
@@ -5006,7 +5006,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_Analyze(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_PerformDiff__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   void *argp1 = 0 ;
@@ -5014,17 +5014,79 @@ SWIGINTERN PyObject *_wrap_DarunGrim_Analyze(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:DarunGrim_Analyze",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:DarunGrim_PerformDiff",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_Analyze" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_PerformDiff" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
-  result = (bool)(arg1)->Analyze();
+  result = (bool)(arg1)->PerformDiff();
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
   return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_PerformDiff(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[7];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = args ? (int)PyObject_Length(args) : 0;
+  for (ii = 0; (ii < 6) && (ii < argc); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 1) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DarunGrim, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      return _wrap_DarunGrim_PerformDiff__SWIG_1(self, args);
+    }
+  }
+  if (argc == 6) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_DarunGrim, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        {
+          int res = SWIG_AsVal_unsigned_SS_long(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          int res = SWIG_AsCharPtrAndSize(argv[3], 0, NULL, 0);
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            {
+              int res = SWIG_AsVal_unsigned_SS_long(argv[4], NULL);
+              _v = SWIG_CheckState(res);
+            }
+            if (_v) {
+              int res = SWIG_AsCharPtrAndSize(argv[5], 0, NULL, 0);
+              _v = SWIG_CheckState(res);
+              if (_v) {
+                return _wrap_DarunGrim_PerformDiff__SWIG_0(self, args);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'DarunGrim_PerformDiff'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    DarunGrim::PerformDiff(char *,unsigned long,char *,unsigned long,char *)\n"
+    "    DarunGrim::PerformDiff()\n");
+  return 0;
 }
 
 
@@ -5351,7 +5413,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_RunIDAToCreateDGF(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_RunIDAToGenerateDGF(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -5371,28 +5433,28 @@ SWIGINTERN PyObject *_wrap_DarunGrim_RunIDAToCreateDGF(PyObject *SWIGUNUSEDPARM(
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_RunIDAToCreateDGF",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_RunIDAToGenerateDGF",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_RunIDAToCreateDGF" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_RunIDAToGenerateDGF" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_RunIDAToCreateDGF" "', argument " "2"" of type '" "char *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_RunIDAToGenerateDGF" "', argument " "2"" of type '" "char *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
   ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_RunIDAToCreateDGF" "', argument " "3"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_RunIDAToGenerateDGF" "', argument " "3"" of type '" "unsigned long""'");
   } 
   arg3 = static_cast< unsigned long >(val3);
   ecode4 = SWIG_AsVal_unsigned_SS_long(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DarunGrim_RunIDAToCreateDGF" "', argument " "4"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DarunGrim_RunIDAToGenerateDGF" "', argument " "4"" of type '" "unsigned long""'");
   } 
   arg4 = static_cast< unsigned long >(val4);
-  (arg1)->RunIDAToCreateDGF(arg2,arg3,arg4);
+  (arg1)->RunIDAToGenerateDGF(arg2,arg3,arg4);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
@@ -5531,10 +5593,9 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DiffMachine_swigregister", DiffMachine_swigregister, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetLogParameters", _wrap_DarunGrim_SetLogParameters, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetIDAPath", _wrap_DarunGrim_SetIDAPath, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_CreateDGF", _wrap_DarunGrim_CreateDGF, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_GenerateDGF", _wrap_DarunGrim_GenerateDGF, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_AcceptIDAClientsFromSocket", _wrap_DarunGrim_AcceptIDAClientsFromSocket, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_DiffDatabaseFiles", _wrap_DarunGrim_DiffDatabaseFiles, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_Analyze", _wrap_DarunGrim_Analyze, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_PerformDiff", _wrap_DarunGrim_PerformDiff, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetSourceFilename", _wrap_DarunGrim_SetSourceFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetTargetFilename", _wrap_DarunGrim_SetTargetFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_Load", _wrap_DarunGrim_Load, METH_VARARGS, NULL},
@@ -5544,7 +5605,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_StartIDAListener", _wrap_DarunGrim_StartIDAListener, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetOutputFilename", _wrap_DarunGrim_SetOutputFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetLogFilename", _wrap_DarunGrim_SetLogFilename, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_RunIDAToCreateDGF", _wrap_DarunGrim_RunIDAToCreateDGF, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_RunIDAToGenerateDGF", _wrap_DarunGrim_RunIDAToGenerateDGF, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ConnectToDarunGrim", _wrap_DarunGrim_ConnectToDarunGrim, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GetIDALogFilename", _wrap_DarunGrim_GetIDALogFilename, METH_VARARGS, NULL},
 	 { (char *)"new_DarunGrim", _wrap_new_DarunGrim, METH_VARARGS, NULL},

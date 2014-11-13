@@ -1391,7 +1391,7 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));
 
-	printf("Retrieving File Information\n");
+	msg("Retrieving File Information\n");
 	DWORD ComputerNameLen=sizeof(file_info.ComputerName);
 	GetComputerName(file_info.ComputerName,&ComputerNameLen);
 	DWORD UserNameLen=sizeof(file_info.UserName);

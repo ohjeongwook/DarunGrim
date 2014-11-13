@@ -81,6 +81,7 @@ static error_t idaapi SaveAnalysisData( value_t *argv, value_t *res )
 	{
 		OutputFilename=NULL;
 	}
+
 	if( argv[1].str )
 		StartEA=strtoul( argv[1].str, NULL, 10 );
 	if( argv[2].str )

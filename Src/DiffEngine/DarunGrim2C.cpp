@@ -140,7 +140,7 @@ void main(int argc,char *argv[])
 	}
 	else if (SourceFilename && TargetFilename && DiffDatabaseFilename)
 	{
-		pDarunGrim->DiffDatabaseFiles(
+		pDarunGrim->PerformDiff(
 			SourceFilename, SourceFunctionAddress,
 			TargetFilename, TargetFunctionAddress,
 			DiffDatabaseFilename);
@@ -148,7 +148,7 @@ void main(int argc,char *argv[])
 	else
 	{
 		pDarunGrim->AcceptIDAClientsFromSocket();
-		pDarunGrim->Analyze();
+		pDarunGrim->PerformDiff();
 	}
 
 
