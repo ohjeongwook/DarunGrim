@@ -197,9 +197,10 @@ class FileProcessor:
 						pe = pefile.PE(current_path)
 						_32bitFlag = pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE']
 
-						if ( _32bitFlag & pe.FILE_HEADER.Machine ) == _32bitFlag:
+						if ( pe.FILE_HEADER.Machine & _32bitFlag ) == _32bitFlag:
 							arch="x86"
-						arch="64"
+						else:
+							arch="64"
 
 						if files and len(files)>0:
 							#Update
