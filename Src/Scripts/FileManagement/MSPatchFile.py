@@ -80,6 +80,11 @@ if __name__=='__main__':
 					action="store_true", default=False, 
 					metavar="STORE")
 
+	parser.add_option('-t','--tags',
+					dest='tags',help="Set tags files", 
+					default="", 
+					metavar="TAGS")
+
 	(options,args)=parser.parse_args()
 
 	if options.extract:
@@ -89,13 +94,14 @@ if __name__=='__main__':
 
 	elif options.store:
 		import FileStore
-		file_store = FileProcessor( databasename = r'index.db' )
+		file_store = FileStore.FileProcessor( databasename = r'index.db' )
 
 		filename=args[0]
 		src_dirname = args[1]
 		target_dirname = args[2]
+		tags=options.tags.split(',')
 
 		ms_patch_handler=MSPatchHandler()
 		for dir in ms_patch_handler.Extract(filename):
-			print 'Store: %s -> %s' % (src_dirname, target_dirname)
-			file_store.CheckInFiles( src_dirname, target_dirname = target_dirname )	
+			print 'Store: %s -> %s (tags:%s)' % (src_dirname, target_dirname, ','.join(tags))
+			file_store.CheckInFiles( src_dirname, target_dirname = target_dirname, tags=tags )
