@@ -1,17 +1,23 @@
 import os
 import mechanize
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import FileStoreDatabase
 import datetime
+import pprint
 
 class PatchDownloader:
 	DebugLevel = 3
 	ShowErrorMessage = True
-	def __init__( self, download_folder, databasename = 'test.db' ):
+	def __init__( self, download_folder, databasename = None ):
 		self.DownloadFolder = download_folder
 		if not os.path.isdir( self.DownloadFolder ):
 			os.makedirs( self.DownloadFolder )
-		self.Database = FileStoreDatabase.Database( databasename )
+
+		if databasename!=None:
+			self.Database = FileStoreDatabase.Database( databasename )
+		else:
+			self.Database = None
+
 		self.BR = mechanize.Browser()
 
 	def DownloadFileByLink( self, link ):
@@ -74,8 +80,10 @@ class PatchDownloader:
 					print ''
 		return family_id
 
-	def DownloadMSPatch( self, Year, PatchNumber, download_patch_files = False ):
-		url = 'http://www.microsoft.com/technet/security/Bulletin/MS%.2d-%.3d.mspx' % ( Year, PatchNumber )
+	def DownloadMSPatch( self, year, bulletin_number, download_patch_files = False ):
+		url = 'https://technet.microsoft.com/en-us/library/security/ms%.2d-%.3d.aspx' % ( year, bulletin_number )
+
+		print 'Opening %s' % url
 		try:
 			data = self.BR.open( url ).get_data()
 		except:
@@ -83,6 +91,64 @@ class PatchDownloader:
 				print 'Downloading Failed'
 			return None
 
+		print 'Downloaded %d bytes' % len(data)
+		cache_filename='MS%.2d-%.3d.html' % ( year, bulletin_number )
+		fd=open(cache_filename,"w")
+		fd.write(data)
+		fd.close()
+
+		return self.ParseBulletin(data, url, 'MS%.2d-%.3d' % ( year, bulletin_number ))
+
+	def ParseTable(self,start_tag):
+		# Go through each tr and td inside them
+		table_info=[]
+		tr_members = []
+		if table_tag:
+			for tr in table_tag.findAll( "tr" ):
+				td_members = []
+				for td in tr.findAll( "td" ):
+					td_member = {}
+					td_member['text'] = ''
+					url_str = ''
+					if td.string:
+						td_member['text'] = td.string
+					for tag in td.findAll(True):
+						if tag.name == 'a':
+							td_member['url']  = tag.attrs['href']
+						if tag.string:
+							td_member['text'] += tag.string
+					
+					td_members.append( td_member )
+				tr_members.append( td_members )
+
+		for td_members in tr_members[1:]:
+			column = 0 
+			td_member_hash = {}
+			for td_member in td_members:
+
+				td_member_hash[ tr_members[0][column]['text'] ] = td_member
+				column += 1
+
+			table_info.append( td_member_hash )
+			"""
+				url = None
+				if td_member.has_key( 'url' ):
+					url = td_member['url']
+
+				family_id = self.GetFamilyID( url )
+				if download_patch_files:	
+					if family_id:
+						td_member['files'] = self.DownloadFileByFamilyID( family_id )
+				elif family_id:
+					td_member['files'] = ( family_id )
+			"""
+					
+			if self.DebugLevel > -3:
+				pprint.pprint(table_info)
+
+		return table_info
+
+	def ParseBulletin(self,data, url='', label='', download_patch_files=False):
 		soup = BeautifulSoup( data )
 
 		title = ''
@@ -93,7 +159,7 @@ class PatchDownloader:
 			title += h2_tag.string
 
 		patch_info = {}
-		patch_info['label'] = 'MS%.2d-%.3d' % ( Year, PatchNumber )
+		patch_info['label'] = label
 		patch_info['url'] = url
 		patch_info['title'] = title
 
@@ -116,141 +182,58 @@ class PatchDownloader:
 
 		for h3_tag in soup.findAll( "h3" ):
 			if h3_tag.string == 'Vulnerability Details':
-				#print 'h3_tag',h3_tag.string
+				print 'h3_tag',h3_tag.string
 				pass
 
-		for h4_tag in soup.findAll( "h4" ):
-			if h4_tag.string:
-				cve_pos = h4_tag.string.find('CVE-')
-				can_pos = h4_tag.string.find('CAN-')
-
-				if  cve_pos >= 0:
-					cve_str=h4_tag.string[cve_pos:cve_pos+13]
-					CVEs.append( ( cve_str, h4_tag.string ) )
-
-				if can_pos >= 0:
-					cve_str=h4_tag.string[can_pos:can_pos+13]
-					CVEs.append( ( cve_str, h4_tag.string ) )
+		for table_tag in soup.findAll( "table" ):
+			for tr in table_tag.findAll( "tr" ):
+				for td in tr.findAll( "td" ):
+					print 'td: [%s]' % td.getText()
+					break
+				break
 
 		patch_info['CVE'] = CVEs
 		patch_info['HtmlData'] = data
 
-		patch_data = []
-		for p_tag in soup.findAll( "p" ):
-			if p_tag.text == 'Affected Software':
-				table_tag = p_tag.nextSibling
+		affected_software_table_infos=[]
+		for h3_tag in soup.findAll( "h3" ):
+			if h3_tag.text == 'Affected Software' or h3_tag.text == 'Affected Software:' or h3_tag.text == 'Affected Components:':
+				# Find affected software table
+				current_tag=h3_tag.nextSibling
+				while current_tag:
+					try:
+						if current_tag.name=='table':
+							affected_software_table_infos.append(self.ParseTable(current_tag))
+					except:
+						pass
+					current_tag = current_tag.nextSibling
 
-				tr_members = []
-				if table_tag:
-					for tr in table_tag.findAll( "tr" ):
-						if self.DebugLevel > 3:
-							print "=" * 80
-						td_members = []
-						for td in tr.findAll( "td" ):
-							td_str = ''
-							url_str = ''
-							if td.string:
-								td_str = td.string
-							for tag in td.findAll(True):
-								if tag.name == 'a':
-									for name, link in tag.attrs:
-										if name == 'href':
-											url_str = link
-								if tag.string:
-									td_str += tag.string
-							if self.DebugLevel > 3:
-								print '>',td_str
-							
-							td_member = {}
-							td_member['text'] = td_str
-							td_member['url'] = url_str
-							td_members.append( td_member )
-						if self.DebugLevel > 3:
-							print ""
-						tr_members.append( td_members )
+		return ( patch_info, affected_software_table_infos )
 
-				for td_members in tr_members[1:]:
-					column = 0 
-					td_member_hash = {}
-					for td_member in td_members:
-						link = None
-						if td_member.has_key( 'url' ):
-							link = td_member['url']
-						#print td_member['text'] + "(" + link + ")", 
-						column_text = ''
-						if len( tr_members[0] ) > column:
-							column_text = tr_members[0][column]['text']
-					
-						family_id = self.GetFamilyID( link )
-						if download_patch_files:	
-							if family_id:
-								td_member['files'] = self.DownloadFileByFamilyID( family_id )
-						elif family_id:
-							td_member['files'] = ( family_id )
-						td_member_hash[ column_text ] = td_member
-						column += 1
+	def DownloadMSPatchAndIndex( self, year, bulletin_number, download_patch_files = False ):
+		name = 'MS%.2d-%.3d' % ( year, bulletin_number )
 
-					if self.DebugLevel > 3:
-						print td_member_hash
-						print ''
-
-					patch_data.append( td_member_hash )
-
-			elif p_tag.text == 'Affected Software:' or p_tag.text == 'Affected Components:':
-				table_tag = p_tag.nextSibling
-				for td_tag in table_tag.findAll('td'):
-					td_member_hash = {}
-					td_member = {}
-
-					for p_tag in td_tag.findAll('p'):
-						if self.DebugLevel > 3:
-							print 'p_tag=',p_tag.contents[0]
-						td_member['text'] = str( p_tag.contents[0] )
-
-					for a_tag in td_tag.findAll('a'):					
-						for name, link in a_tag.attrs:
-							if name == 'href':
-								td_member['url'] = link
-								family_id = self.GetFamilyID( link )
-								if download_patch_files:	
-									if self.DebugLevel > 3:
-										print link
-										print family_id
-									if family_id:
-										td_member['files'] = self.DownloadFileByFamilyID( family_id )
-								elif family_id:
-									td_member['files'] = ( family_id )
-
-						td_member_hash['Data'] = td_member
-						td_member_hash['Maximum Security Impact']={}
-						td_member_hash['Maximum Security Impact']['text'] = ''
-						td_member_hash['Aggregate Severity Rating']={}
-						td_member_hash['Aggregate Severity Rating']['text'] = ''
-					patch_data.append( td_member_hash )
-
-		return ( patch_info, patch_data )
-
-	def DownloadMSPatchAndIndex( self, Year, PatchNumber, download_patch_files = False ):
-		name = 'MS%.2d-%.3d' % ( Year, PatchNumber )
-		if self.Database.GetPatch( name ):
-			return ( {},{} )
+		if self.Database!=None:
+			if self.Database.GetPatch( name ):
+				return ( {},{} )
 
 		print 'Downloading',name
-		ret = self.DownloadMSPatch( Year, PatchNumber, download_patch_files )
+		ret = self.DownloadMSPatch( year, bulletin_number, download_patch_files )
 
 		if not ret:
 			if self.ShowErrorMessage:
 				print 'Nothing to do'
 			return ret
 
-		(patch_info, patch_data) = ret
+		(patch_info, affected_software_table_info) = ret
 		
-		patch = self.Database.AddPatch( patch_info['label'], patch_info['title'], patch_info['url'], patch_info['HtmlData'] )
+		if self.Database!=None:
+			patch = self.Database.AddPatch( patch_info['label'], patch_info['title'], patch_info['url'], patch_info['HtmlData'] )
 
-		for (cve_str, name) in patch_info['CVE']:
-			self.Database.AddCVE( patch, cve_str, name )
+			for (cve_str, name) in patch_info['CVE']:
+				self.Database.AddCVE( patch, cve_str, name )
 
-		for td_member_hash in patch_data:
+		for td_member_hash in affected_software_table_info:
 			for ( column_text, td_member ) in td_member_hash.items():
 				if td_member.has_key( 'files' ):
 					if self.DebugLevel > 3:
@@ -293,22 +276,26 @@ class PatchDownloader:
 
 					if self.DebugLevel > 2:
 						print 'Calling AddDownload', patch, filename
-					self.Database.AddDownload( 
-						patch, 
-						operating_system, 
-						td_member['text'], 
-						td_member['url'], 
-						filename,
-						maximum_security_impact,
-						aggregate_severity_rating,
-						bulletins_replaced 
-					)
 
-		if not self.Database.Commit():
-			print 'Failed Downloading',name
+					if self.Database!=None:
+						self.Database.AddDownload( 
+							patch, 
+							operating_system, 
+							td_member['text'], 
+							td_member['url'], 
+							filename,
+							maximum_security_impact,
+							aggregate_severity_rating,
+							bulletins_replaced 
+						)
+
+		if self.Database!=None:
+			if not self.Database.Commit():
+				print 'Failed Downloading',name
 		return ret
 
 	def DownloadPatches( self, start_year, start_number, end_year, end_number ):
+		print start_year, start_number, end_year, end_number
 		for year in range( start_year, end_year+1 ):
 			current_start_number = 1
 			current_end_number = 999
@@ -331,9 +318,9 @@ class PatchDownloader:
 
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
+	#patch_downloader.DownloadCurrentYearPatches()
 
-	#patch_downloader.DownloadMSPatchAndIndex( 9, 18 )
-	#patch_downloader.DownloadMSPatchAndIndex( 8, 1 )
-	#patch_downloader.DownloadMSPatchAndIndex( 10, 31 )
-	patch_downloader.DownloadCurrentYearPatches()
-
+	fd=open('MS14-001.html','r')
+	data=fd.read()
+	fd.close()
+	patch_downloader.ParseBulletin(data)
