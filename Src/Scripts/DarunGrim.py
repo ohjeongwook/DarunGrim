@@ -5,6 +5,7 @@ import DarunGrimDatabase
 import DiffEngine
 from Graphs import *
 import FlowGrapher
+import FileStoreBrowser
 
 import pprint
 from multiprocessing import Process
@@ -199,6 +200,76 @@ class NewDiffingDialog(QDialog):
 
 		return filename
 
+class FileStoreBrowserDialog(QDialog):
+	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
+		super(FileStoreBrowserDialog,self).__init__(parent)
+		
+		self.DarunGrimStorageDir=darungrim_storage_dir
+		self.OrigFilename=''
+		self.PatchedFilename=''
+		self.ResultFilename=''
+
+		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
+
+		orig_button=QPushButton('Orig File >> ',self)
+		orig_button.clicked.connect(self.getOrigFilename)
+		self.orig_line=QLineEdit("")
+		self.orig_line.setAlignment(Qt.AlignCenter)
+
+		patched_button=QPushButton('Patched File >> ',self)
+		patched_button.clicked.connect(self.getPatchedFilename)
+		self.patched_line=QLineEdit("")
+		self.patched_line.setAlignment(Qt.AlignCenter)		
+
+		result_button=QPushButton('Result:',self)
+		result_button.clicked.connect(self.getResultFilename)
+		self.result_line=QLineEdit("")
+		self.result_line.setAlignment(Qt.AlignCenter)
+
+		ok_button=QPushButton('OK',self)
+		ok_button.clicked.connect(self.pressedOK)
+		cancel_button=QPushButton('Cancel',self)
+		cancel_button.clicked.connect(self.pressedCancel)
+
+		bottom_layout=QGridLayout()
+		bottom_layout.addWidget(orig_button,0,0)
+		bottom_layout.addWidget(self.orig_line,0,1)
+		bottom_layout.addWidget(patched_button,1,0)
+		bottom_layout.addWidget(self.patched_line,1,1)
+		bottom_layout.addWidget(result_button,2,0)
+		bottom_layout.addWidget(self.result_line,2,1)
+		bottom_layout.addWidget(ok_button,3,0)
+		bottom_layout.addWidget(cancel_button,3,1)
+
+		main_layout=QVBoxLayout()
+		main_layout.addWidget(self.filesWidgetsTemplate.tab_widget)
+		main_layout.addLayout(bottom_layout)
+		self.setLayout(main_layout)
+		self.show()
+
+	def pressedOK(self):
+		self.close()
+
+	def pressedCancel(self):
+		self.close()
+
+	def getOrigFilename(self):
+		self.OrigFilename=os.path.join(self.DarunGrimStorageDir,self.filesWidgetsTemplate.getCurrentSelection())
+		self.orig_line.setText(self.OrigFilename)
+
+	def getPatchedFilename(self):
+		self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,self.filesWidgetsTemplate.getCurrentSelection())
+		self.patched_line.setText(self.PatchedFilename)
+
+	def getResultFilename(self):
+		dialog=QFileDialog()
+		filename=''
+		if dialog.exec_():
+			self.ResultFilename=dialog.selectedFiles()[0]
+			if self.ResultFilename[-4:0].lower()!='.dgf':
+				self.ResultFilename+='.dgf'
+			self.result_line.setText(self.ResultFilename)
+
 class MainWindow(QMainWindow):
 	UseDock=False
 	DebugDiffDatabaseFiles=False
@@ -309,6 +380,7 @@ class MainWindow(QMainWindow):
 			self.show()
 
 		self.readSettings()
+		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:]
 
 	def clearAreas(self):
 		self.OrigFunctionGraph.clear()
@@ -319,6 +391,18 @@ class MainWindow(QMainWindow):
 
 		self.block_table_model=BlockMatchTable(self)
 		self.block_table_view.setModel(self.block_table_model)
+
+	def new_from_file_store(self):
+		dialog=FileStoreBrowserDialog(database_name='index.db', darungrim_storage_dir=self.DarunGrimStorageDir)
+		dialog.exec_()
+
+		if len(dialog.OrigFilename) and len(dialog.PatchedFilename) and len(dialog.ResultFilename):
+			self.DebugDiffDatabaseFiles=True
+			self.StartDiffDatabaseFiles(dialog.OrigFilename,
+										dialog.PatchedFilename,
+										dialog.ResultFilename
+									)
+			self.DebugDiffDatabaseFiles=False
 
 	def new(self):
 		dialog=NewDiffingDialog()
@@ -331,10 +415,13 @@ class MainWindow(QMainWindow):
 		src_filename = str(dialog.Filenames['Orig'])
 		target_filename = str(dialog.Filenames['Patched'])
 		result_filename = str(dialog.Filenames['Result'])
+		self.StartDiffDatabaseFiles(src_filename,target_filename,result_filename)
 
+	def StartDiffDatabaseFiles(self,src_filename,target_filename,result_filename):
 		self.clearAreas()
 
 		if self.DebugDiffDatabaseFiles:
+			print 'DiffDatabaseFiles: ', src_filename,target_filename,result_filename
 			DiffDatabaseFiles(src_filename,target_filename,result_filename)
 		else:
 			p=Process(target=DiffDatabaseFiles,args=(src_filename,target_filename,result_filename))
@@ -367,6 +454,7 @@ class MainWindow(QMainWindow):
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
+		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new_from_file_store)
 		self.openAct = QAction("Open...",self,shortcut=QKeySequence.Open,statusTip="Open a dgf database",triggered=self.open)
 		self.saveOrigGraphAct = QAction("Save orig graph...",self,shortcut=QKeySequence.Open,statusTip="Save original graph",triggered=self.saveOrigGraph)
 		self.savePatchedGraphAct = QAction("Save patched graph...",self,shortcut=QKeySequence.Open,statusTip="Save patched graph",triggered=self.savePatchedGraph)
@@ -374,6 +462,7 @@ class MainWindow(QMainWindow):
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
+		self.fileMenu.addAction(self.newFromFileStoreAct)
 		self.fileMenu.addAction(self.openAct)
 		self.fileMenu.addAction(self.saveOrigGraphAct)
 		self.fileMenu.addAction(self.savePatchedGraphAct)

@@ -119,6 +119,7 @@ class FileIndexTableModel(QAbstractTableModel):
 	def __init__(self,parent, database_name='', name='', tag='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.FileIndexes=[]
+		self.Filenames=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
@@ -128,10 +129,13 @@ class FileIndexTableModel(QAbstractTableModel):
 					if tags!=None:
 						tag=tags.tag
 					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-
+					self.Filenames.append(fileindex.full_path)
 			elif tag:
-				for (ret,tags) in database.GetFilesByTag(tag):
-					self.FileIndexes.append([ret.filename, ret.arch, ret.company_name, ret.version_string, tag, ret.sha1 ])
+				for (fileindex,tags) in database.GetFilesByTag(tag):
+					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
+					self.Filenames.append(fileindex.full_path)
+	def GetFilename(self,row):
+		return self.Filenames[row]
 
 	def GetName(self,row):
 		return str(self.FileIndexes[row][0])
@@ -163,12 +167,17 @@ class VersionsTableModel(QAbstractTableModel):
 	def __init__(self,parent, database_name='', company_name='', filename='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.Versions=[]
+		self.Filenames=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
-			for version in database.GetVersionStrings(company_name,filename):
-				self.Versions.append((version,))
+			for fileindex in database.GetFilesByCompanyFilename(company_name,filename):
+				self.Versions.append((fileindex.version_string,fileindex.sha1))
+				self.Filenames.append(fileindex.full_path)
 			del database
+
+	def GetFilename(self,row):
+		return self.Filenames[row]
 
 	def GetName(self,row):
 		return str(self.Versions[row][0])
@@ -177,7 +186,7 @@ class VersionsTableModel(QAbstractTableModel):
 		return len(self.Versions)
 	
 	def columnCount(self,parent):
-		return 1
+		return 2
 
 	def data(self,index,role):
 		if not index.isValid():
@@ -189,7 +198,7 @@ class VersionsTableModel(QAbstractTableModel):
 
 	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-			return ["Versions",][col]
+			return ["Versions","SHA1"][col]
 		return None
 
 	def sort(self,col,order):
@@ -241,16 +250,10 @@ class ImportMSUDialog(QDialog):
 
 		self.file_line.setText(self.Filename)
 
-class MainWindow(QMainWindow):
-	def __init__(self,database_name):
-		super(MainWindow,self).__init__()
+class FilesWidgetsTemplate:
+	def __init__(self,parent,database_name):
 		self.DatabaseName=database_name
-
-		self.setWindowTitle("FileStore Browser")
-
-		self.createActions()
-		self.createMenus()
-
+		self.parent=parent
 		vert_splitter=QSplitter()
 		# Company
 		view=QTableView()
@@ -266,7 +269,7 @@ class MainWindow(QMainWindow):
 		vert_splitter.addWidget(view)
 		self.CompanyNamesTable=view
 
-		self.CompanyNames=CompanyNamesTableModel(self,self.DatabaseName)
+		self.CompanyNames=CompanyNamesTableModel(parent,self.DatabaseName)
 		self.CompanyNamesTable.setModel(self.CompanyNames)
 		selection=self.CompanyNamesTable.selectionModel()
 		selection.selectionChanged.connect(self.handleCompanyNamesTableChanged)
@@ -323,7 +326,7 @@ class MainWindow(QMainWindow):
 		search_pane_splitter.addWidget(view)
 		self.TagsTable=view
 
-		self.Tags=TagsTableModel(self,self.DatabaseName)
+		self.Tags=TagsTableModel(parent,self.DatabaseName)
 		self.TagsTable.setModel(self.Tags)
 		selection=self.TagsTable.selectionModel()
 		selection.selectionChanged.connect(self.handleTagsTableChanged)
@@ -332,7 +335,7 @@ class MainWindow(QMainWindow):
 		self.search_line=QLineEdit()
 		self.search_line.editingFinished.connect(self.searchLineFinished)
 
-		search_button=QPushButton('Search',self)
+		search_button=QPushButton('Search',parent)
 		search_button.clicked.connect(self.SearchName)
 
 		search_widget=QWidget()
@@ -372,67 +375,22 @@ class MainWindow(QMainWindow):
 		vlayout.addWidget(search_tab_vert_splitter)
 		search_files_tab_widget.setLayout(vlayout)
 
-		tab_widget=QTabWidget()
-		tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
-		tab_widget.addTab(search_files_tab_widget,"Search Files...")
-
-		central_widget=QWidget()
-		vlayout=QVBoxLayout()
-		vlayout.addWidget(tab_widget)
-		central_widget.setLayout(vlayout)
-
-		self.setCentralWidget(central_widget)
-		self.show()
-
-		self.readSettings()
-		self.TargetDirname = "Z:\\DarunGrimStore" #TOOD:
-
-	def importFiles(self):
-		pass
-
-	def importMSUFiles(self):
-		dialog=ImportMSUDialog()
-		dialog.setFixedSize(300,200)
-		dialog.exec_()
-
-		if dialog.Filename:
-			filename=dialog.Filename
-			tags=dialog.Tag.split(',')
-
-			if len(tags)==0 or (len(tags)==1 and tags[0]==''):
-				tags=[os.path.basename(filename)]				
-
-			import FileStore
-			import MSPatchFile
-			file_store = FileStore.FileProcessor( databasename = r'index.db' )
-
-			ms_patch_handler=MSPatchFile.MSPatchHandler()
-
-			for src_dirname in ms_patch_handler.Extract(filename):
-				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
-				file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
-
-	def createActions(self):
-		self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)
-		self.ImportMSUAct = QAction("Import MSU files...",self,statusTip="Import file",triggered=self.importMSUFiles)
-
-	def createMenus(self):
-		self.fileMenu = self.menuBar().addMenu("&File")
-		self.fileMenu.addAction(self.ImportAct)
-		self.fileMenu.addAction(self.ImportMSUAct)
+		self.tab_widget=QTabWidget()
+		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
+		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
 			for index in item.indexes():
 				self.CompanyName=self.CompanyNames.GetName(index.row())
 
-				self.FileNames=FileNamesTableModel(self,self.DatabaseName,self.CompanyName)
+				self.FileNames=FileNamesTableModel(self.parent,self.DatabaseName,self.CompanyName)
 				self.FileNamesTable.setModel(self.FileNames)
 
 				selection=self.FileNamesTable.selectionModel()
 				selection.selectionChanged.connect(self.handleFileNamesTableChanged)
 
-				self.Versions=VersionsTableModel(self)
+				self.Versions=VersionsTableModel(self.parent)
 				self.VersionsTable.setModel(self.Versions)
 
 				break
@@ -441,8 +399,7 @@ class MainWindow(QMainWindow):
 		for item in selected:
 			for index in item.indexes():
 				file_name=self.FileNames.GetName(index.row())
-				print self.CompanyName, file_name
-				self.Versions=VersionsTableModel(self,self.DatabaseName,self.CompanyName,file_name)
+				self.Versions=VersionsTableModel(self.parent,self.DatabaseName,self.CompanyName,file_name)
 				self.VersionsTable.setModel(self.Versions)
 
 	def handleTagsTableChanged(self,selected,dselected):
@@ -450,41 +407,107 @@ class MainWindow(QMainWindow):
 			for index in item.indexes():
 				tag=self.Tags.GetName(index.row())
 
-				self.FileIndexes=FileIndexTableModel(self,self.DatabaseName,tag=tag)
+				self.FileIndexes=FileIndexTableModel(self.parent,self.DatabaseName,tag=tag)
 				self.FileIndexTable.setModel(self.FileIndexes)
 				break
 				
 	def searchLineFinished(self):
 		name=self.search_line.text()
-		self.FileIndexes=FileIndexTableModel(self,self.DatabaseName,name=name)
+		self.FileIndexes=FileIndexTableModel(self.parent,self.DatabaseName,name=name)
 		self.FileIndexTable.setModel(self.FileIndexes)
 
 	def SearchName(self):
 		name=self.search_line.text()
-		self.FileIndexes=FileIndexTableModel(self,self.DatabaseName,name=name)
+		self.FileIndexes=FileIndexTableModel(self.parent,self.DatabaseName,name=name)
 		self.FileIndexTable.setModel(self.FileIndexes)
 
-	def clearAreas(self):
-		self.CompanyNames=CompanyNamesTableModel(self)
-		self.CompanyNamesTable.setModel(self.CompanyNames)
-
-	def readSettings(self):
-		settings=QSettings("DarunGrim LLC", "FileStoreBrowser")
-		
-		if settings.contains("geometry"):
-			self.restoreGeometry(settings.value("geometry"))
+	def getCurrentSelection(self):
+		tab_selection=self.tab_widget.currentIndex()
+		if tab_selection==0:
+			for index in self.VersionsTable.selectionModel().selection().indexes():
+				return self.Versions.GetFilename(index.row())
 		else:
-			self.resize(800,600)
-
-		self.restoreState(settings.value("windowState"))
-
-	def closeEvent(self, event):
-		settings = QSettings("DarunGrim LLC", "DarunGrim")
-		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("windowState", self.saveState())
-		QMainWindow.closeEvent(self, event)
+			for index in self.FileIndexTable.selectionModel().selection().indexes():
+				return self.FileIndexes.GetFilename(index.row())
 
 if __name__=='__main__':
+	class MainWindow(QMainWindow):
+		def __init__(self,database_name):
+			super(MainWindow,self).__init__()
+			self.DatabaseName=database_name
+
+			self.setWindowTitle("FileStore Browser")
+
+			self.createActions()
+			self.createMenus()
+
+			self.filesWidgetsTemplate=FilesWidgetsTemplate(self,database_name)
+
+			self.central_widget=QWidget()
+			vlayout=QVBoxLayout()
+			vlayout.addWidget(self.filesWidgetsTemplate.tab_widget)
+			self.central_widget.setLayout(vlayout)
+			self.setCentralWidget(self.central_widget)
+			self.show()
+
+			self.readSettings()
+			self.TargetDirname = "Z:\\DarunGrimStore" #TOOD:
+
+		def clearAreas(self):
+			self.CompanyNames=CompanyNamesTableModel(self)
+			self.CompanyNamesTable.setModel(self.CompanyNames)
+
+		def importFiles(self):
+			pass
+
+		def importMSUFiles(self):
+			dialog=ImportMSUDialog()
+			dialog.setFixedSize(300,200)
+			dialog.exec_()
+
+			if dialog.Filename:
+				filename=dialog.Filename
+				tags=dialog.Tag.split(',')
+
+				if len(tags)==0 or (len(tags)==1 and tags[0]==''):
+					tags=[os.path.basename(filename)]				
+
+				import FileStore
+				import MSPatchFile
+				file_store = FileStore.FileProcessor( databasename = r'index.db' )
+
+				ms_patch_handler=MSPatchFile.MSPatchHandler()
+
+				for src_dirname in ms_patch_handler.Extract(filename):
+					print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
+					file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
+
+		def createActions(self):
+			self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)
+			self.ImportMSUAct = QAction("Import MSU files...",self,statusTip="Import file",triggered=self.importMSUFiles)
+
+		def createMenus(self):
+			self.fileMenu = self.menuBar().addMenu("&File")
+			self.fileMenu.addAction(self.ImportAct)
+			self.fileMenu.addAction(self.ImportMSUAct)
+
+
+		def readSettings(self):
+			settings=QSettings("DarunGrim LLC", "FileStoreBrowser")
+		
+			if settings.contains("geometry"):
+				self.restoreGeometry(settings.value("geometry"))
+			else:
+				self.resize(800,600)
+
+			self.restoreState(settings.value("windowState"))
+
+		def closeEvent(self, event):
+			settings = QSettings("DarunGrim LLC", "DarunGrim")
+			settings.setValue("geometry", self.saveGeometry())
+			settings.setValue("windowState", self.saveState())
+			QMainWindow.closeEvent(self, event)
+
 	import sys
 
 	if len(sys.argv)>1:
