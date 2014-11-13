@@ -18,11 +18,10 @@ class FileProcessor:
 	def __init__( self, databasename = None, database = None ):
 		if self.DebugLevel > 3:
 			print 'FileProcessor', databasename, database
-		self.DatabaseName = databasename
 		if database:
 			self.Database = database
 		else:
-			self.Database = FileStoreDatabase.Database( self.DatabaseName )
+			self.Database = FileStoreDatabase.Database( databasename )
 
 	def IsExecutable( self , filename ):
 		try:
@@ -72,7 +71,7 @@ class FileProcessor:
 			ret = '_'
 		return ret
 
-	def CheckInFiles( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False ):
+	def CheckInFiles( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False, tags=[] ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -80,7 +79,7 @@ class FileProcessor:
 			current_path = os.path.join( src_dirname, file )
 			if os.path.isdir( current_path ):
 				try:
-					self.CheckInFiles( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode )
+					self.CheckInFiles( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags )
 				except:
 					import traceback
 					traceback.print_exc()
@@ -131,10 +130,8 @@ class FileProcessor:
 						if version_info.has_key( 'CompanyName' ) and version_info.has_key( 'FileVersion' ):
 							company_name = version_info['CompanyName']
 							file_version = version_info['FileVersion']
-							target_relative_directory = os.path.join( self.SanitizeForFilename( company_name ), self.SanitizeForFilename( filename ) , self.SanitizeForFilename( file_version ) )
-						else:
-							target_relative_directory = "etc"
 
+						target_relative_directory = "%s\\%s\%s\\%s" % (sha1[0:2],sha1[2:4],sha1[4:6],sha1[6:8])
 						if not target_dirname:
 							target_dirname = os.getcwd()
 
@@ -181,22 +178,34 @@ class FileProcessor:
 
 								if not os.path.exists( target_full_filename ):
 									try:
+										if self.DebugLevel > 1:
+											if copy_file:
+												op="Copy"
+											else:
+												op="Move"
+											print '%s %s -> %s' % (op, current_path, target_full_filename)
+
 										if copy_file:
-											if self.DebugLevel > 1:
-												print 'Copy from', current_path ,'to',target_full_filename
 											shutil.copyfile( current_path, target_full_filename )
 										else:
-											if self.DebugLevel > 1:
-												print 'Move to',target_full_filename
 											shutil.move( current_path, target_full_filename )
 									except:
 										import traceback
 										traceback.print_exc()
 
+						import pefile
+						pe = pefile.PE(current_path)
+						_32bitFlag = pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE']
+
+						if ( _32bitFlag & pe.FILE_HEADER.Machine ) == _32bitFlag:
+							arch="x86"
+						arch="64"
+
 						if files and len(files)>0:
 							#Update
 							if self.DebugLevel > 2:
 								print 'Already there:', current_path, version_info,sha1,files
+
 							for file in files:
 								# timestamp comparision and update
 								if file.mtime < mtime_dt or overwrite_mode:
@@ -206,11 +215,12 @@ class FileProcessor:
 									self.Database.UpdateFileByObject(
 										file,
 										download,
+										arch,
 										operating_system, 
 										service_pack, 
 										filename, 
-										company_name, 
-										file_version, 
+										company_name,
+										file_version,
 										patch_identifier,
 										current_path,
 										target_relative_filename,
@@ -218,12 +228,14 @@ class FileProcessor:
 										mtime = mtime_dt,
 										added_time = added_time_dt,
 										md5 = md5,
-										sha1 = sha1
+										sha1 = sha1,
+										tags = tags
 									)
 						else:
 							#New
 							self.Database.AddFile( 
 								download,
+								arch,
 								operating_system, 
 								service_pack, 
 								filename, 
@@ -236,8 +248,10 @@ class FileProcessor:
 								mtime = mtime_dt,
 								added_time = added_time_dt,
 								md5 = md5,
-								sha1 = sha1
+								sha1 = sha1,
+								tags = tags
 							)
+
 					except:
 						import traceback
 						traceback.print_exc()
@@ -274,7 +288,12 @@ if __name__=='__main__':
 					action="store_true", default=False, 
 					metavar="STORE")
 
-	parser.add_option('-t','--test',
+	parser.add_option('-t','--tags',
+					dest='tags',help="Set tags files", 
+					default="", 
+					metavar="TAGS")
+
+	parser.add_option('-T','--test',
 					dest='test',help="Test functionalities", 
 					action="store_true", default=False, 
 					metavar="TEST")
@@ -287,8 +306,9 @@ if __name__=='__main__':
 		src_dirname = args[0]
 		target_dirname = args[1]
 
-		print 'Store: %s -> %s' % (src_dirname, target_dirname)
-		file_store.CheckInFiles( src_dirname, target_dirname = target_dirname )
+		tags=options.tags.split(',')
+		print 'Store: %s -> %s (tags:%s)' % (src_dirname, target_dirname, ','.join(tags))
+		file_store.CheckInFiles( src_dirname, target_dirname = target_dirname, tags=tags )
 
 	elif options.test:
 		import unittest, sys, os
