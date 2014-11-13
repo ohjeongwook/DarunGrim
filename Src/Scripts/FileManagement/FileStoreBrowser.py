@@ -18,7 +18,7 @@ class CompanyNamesTableModel(QAbstractTableModel):
 				self.CompanyNames.append((company_name,))
 
 	def GetName(self,row):
-		return str(self.CompanyNames[row][0])
+		return self.CompanyNames[row][0]
 
 	def rowCount(self,parent):
 		return len(self.CompanyNames)
@@ -127,7 +127,7 @@ class FileIndexTableModel(QAbstractTableModel):
 					tag=''
 					if tags!=None:
 						tag=tags.tag
-					self.FileIndexes.append([fileindex.filename, ret.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
+					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
 
 			elif tag:
 				for (ret,tags) in database.GetFilesByTag(tag):
@@ -195,12 +195,61 @@ class VersionsTableModel(QAbstractTableModel):
 	def sort(self,col,order):
 		pass
 
+class ImportMSUDialog(QDialog):
+	def __init__(self,parent=None):
+		super(ImportMSUDialog,self).__init__(parent)
+
+		self.Filename=''
+
+		file_button=QPushButton('Orig File:',self)
+		file_button.clicked.connect(self.getFilename)
+		self.file_line=QLineEdit("")
+		self.file_line.setAlignment(Qt.AlignCenter)
+
+		tag_button=QLabel('Tag:',self)
+		self.tag_line=QLineEdit("")
+		self.tag_line.setAlignment(Qt.AlignCenter)
+
+		ok_button=QPushButton('OK',self)
+		ok_button.clicked.connect(self.pressedOK)
+		cancel_button=QPushButton('Cancel',self)
+		cancel_button.clicked.connect(self.pressedCancel)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(file_button,0,0)
+		main_layout.addWidget(self.file_line,0,1)
+		main_layout.addWidget(tag_button,2,0)
+		main_layout.addWidget(self.tag_line,2,1)
+		main_layout.addWidget(ok_button,3,0)
+		main_layout.addWidget(cancel_button,3,1)
+		self.setLayout(main_layout)
+
+	def pressedOK(self):
+		self.Tag=self.tag_line.text()
+		self.close()
+
+	def pressedCancel(self):
+		self.Filename=''
+		self.close()
+
+	def getFilename(self):
+		dialog=QFileDialog()
+		dialog.setNameFilter("MSU Files (*.msu)")
+		filename=''
+		if dialog.exec_():
+			self.Filename=dialog.selectedFiles()[0]
+
+		self.file_line.setText(self.Filename)
+
 class MainWindow(QMainWindow):
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
+		self.DatabaseName=database_name
+
 		self.setWindowTitle("FileStore Browser")
 
-		self.DatabaseName=database_name
+		self.createActions()
+		self.createMenus()
 
 		vert_splitter=QSplitter()
 		# Company
@@ -253,6 +302,8 @@ class MainWindow(QMainWindow):
 		#selection.selectionChanged.connect(self.handleFileNamesTableChanged)
 
 		search_tab_vert_splitter=QSplitter()
+		search_tab_vert_splitter.setStretchFactor(0,0)
+		search_tab_vert_splitter.setStretchFactor(1,1)
 
 		#Search pane
 		search_pane_splitter=QSplitter()
@@ -292,7 +343,7 @@ class MainWindow(QMainWindow):
 		search_pane_splitter.addWidget(search_widget)
 		
 		search_tab_vert_splitter.addWidget(search_pane_splitter)
-
+					
 		# File
 		view=QTableView()
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -308,6 +359,9 @@ class MainWindow(QMainWindow):
 		self.FileIndexTable=view
 
 		# Layout
+		vert_splitter.setStretchFactor(0,0)
+		vert_splitter.setStretchFactor(1,1)
+
 		browe_files_tab_widget=QWidget()
 		vlayout=QVBoxLayout()
 		vlayout.addWidget(vert_splitter)
@@ -331,6 +385,41 @@ class MainWindow(QMainWindow):
 		self.show()
 
 		self.readSettings()
+		self.TargetDirname = "Z:\\DarunGrimStore" #TOOD:
+
+	def importFiles(self):
+		pass
+
+	def importMSUFiles(self):
+		dialog=ImportMSUDialog()
+		dialog.setFixedSize(300,200)
+		dialog.exec_()
+
+		if dialog.Filename:
+			filename=dialog.Filename
+			tags=dialog.Tag.split(',')
+
+			if len(tags)==0 or (len(tags)==1 and tags[0]==''):
+				tags=[os.path.basename(filename)]				
+
+			import FileStore
+			import MSPatchFile
+			file_store = FileStore.FileProcessor( databasename = r'index.db' )
+
+			ms_patch_handler=MSPatchFile.MSPatchHandler()
+
+			for src_dirname in ms_patch_handler.Extract(filename):
+				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
+				file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
+
+	def createActions(self):
+		self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)
+		self.ImportMSUAct = QAction("Import MSU files...",self,statusTip="Import file",triggered=self.importMSUFiles)
+
+	def createMenus(self):
+		self.fileMenu = self.menuBar().addMenu("&File")
+		self.fileMenu.addAction(self.ImportAct)
+		self.fileMenu.addAction(self.ImportMSUAct)
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
