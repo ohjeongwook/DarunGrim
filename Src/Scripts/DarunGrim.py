@@ -30,9 +30,7 @@ class FunctionMatchTable(QAbstractTableModel):
 			self.database = DarunGrimDatabase.Database(database_name)
 
 			for function_match_info in self.database.GetFunctionMatchInfo():
-				if function_match_info.non_match_count_for_the_source > 0 or function_match_info.non_match_count_for_the_target > 0:
-					#print function_match_info.id, function_match_info.source_file_id, function_match_info.target_file_id, function_match_info.end_address, 
-			
+				if function_match_info.match_rate < 100:
 					if self.Debug>0:
 						print "%s\t%s\t%s\t%s\t%s%%\t%d\t%d\t%d\t%d\t%d\t%d" % (function_match_info.source_function_name,
 																function_match_info.target_function_name,
