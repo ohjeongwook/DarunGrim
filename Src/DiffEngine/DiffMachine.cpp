@@ -1370,8 +1370,9 @@ void DiffMachine::GetMatchStatistics(
 	int index, 
 	int *p_found_match_number, 
 	int *p_found_match_with_difference_number, 
-	int *p_not_found_match_number
-	 )
+	int *p_not_found_match_number,
+	float &match_rate
+)
 {
 	list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(address);
 	list <BLOCK>::iterator address_list_iter;
@@ -1379,6 +1380,7 @@ void DiffMachine::GetMatchStatistics(
 	( *p_found_match_number )=0;
 	( *p_not_found_match_number )=0;
 	( *p_found_match_with_difference_number )=0;
+	float total_match_rate = 0;
 	for( address_list_iter=address_list.begin();
 		address_list_iter!=address_list.end();
 		address_list_iter++
@@ -1395,11 +1397,14 @@ void DiffMachine::GetMatchStatistics(
 			{
 				( *p_found_match_with_difference_number )++;
 			}
+			total_match_rate += pMatchData->MatchRate;
 		}else
 		{
 			( *p_not_found_match_number )++;
 		}
 	}
+
+	match_rate = total_match_rate/address_list.size();
 }
 
 int DiffMachine::GetFunctionMatchInfoCount()
@@ -1665,7 +1670,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			match_info.EndAddress=p_one_location_info->EndAddress;
 			match_info.Type=match_map_iter->second.Type;
 			match_info.TheTargetAddress=match_map_iter->second.Addresses[1];
-			match_info.MatchRate=match_map_iter->second.MatchRate;
+			match_info.MatchRate=99;
 
 			if( last_unpatched_addr!=match_info.TheSourceAddress &&
 				last_patched_addr!=match_info.TheTargetAddress
@@ -1673,23 +1678,37 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			{
 				match_info.TheSourceFunctionName = SourceController->GetName( match_info.TheSourceAddress );
 				match_info.TheTargetFunctionName = TargetController->GetName( match_info.TheTargetAddress );
+				
+				float source_match_rate = 0.0;
 				GetMatchStatistics( 
 					match_info.TheSourceAddress, 
 					SourceController, 
 					0, 
 					&match_info.MatchCountForTheSource, 
 					&match_info.MatchCountWithModificationForTheSource, 
-					&match_info.NoneMatchCountForTheSource
+					&match_info.NoneMatchCountForTheSource,
+					source_match_rate
 				 );
 
+				float target_match_rate = 0;
 				GetMatchStatistics( 
 					match_info.TheTargetAddress, 
 					TargetController, 
 					1, 
 					&match_info.MatchCountForTheTarget, 
 					&match_info.MatchCountWithModificationForTheTarget, 
-					&match_info.NoneMatchCountForTheTarget
+					&match_info.NoneMatchCountForTheTarget,
+					target_match_rate
 				 );
+
+				float match_rate = (source_match_rate + target_match_rate) / 2;
+				match_info.MatchRate = match_rate;
+
+				if (match_rate != 100 && match_info.MatchRate == 100)
+				{
+					match_info.MatchRate = 99;
+				}
+					
 				FunctionMatchInfoList.push_back( match_info );
 			}
 			last_unpatched_addr=match_info.TheSourceAddress;

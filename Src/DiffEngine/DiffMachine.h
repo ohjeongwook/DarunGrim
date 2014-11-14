@@ -224,8 +224,9 @@ public:
 		int index, 
 		int *p_found_match_number, 
 		int *p_found_match_with_difference_number, 
-		int *p_not_found_match_number
-		 );
+		int *p_not_found_match_number,
+		float &matchrate
+	);
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
 
 	MatchData *GetMatchData( int index, DWORD address, BOOL erase = FALSE );
