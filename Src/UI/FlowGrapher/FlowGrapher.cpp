@@ -20,6 +20,8 @@ FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), F
 
 FlowGrapher::~FlowGrapher()
 {
+	agclose(g);
+	gvFreeContext(gvc); //Disabled due to unknown crashes
 	delete NodeToUserDataMap;
 }
 
@@ -607,12 +609,7 @@ void FlowGrapher::AddDrawingInfo(DWORD address, vector<DrawingInfo *> *p_drawing
 
 int FlowGrapher::RenderToFile(char *format, char *filename)
 {
-
-	/* parse command line args - minimally argv[0] sets layout engine */
-	//gvParseArgs(gvc,argc,argv);
-	/* Compute a layout using layout engine from command line args */
 	gvLayoutJobs(gvc, g);
-	/* Write the graph according to -T and -o options */
 	gvRenderJobs(gvc, g);
 	agsafeset(g, "charset", "Latin1", "");
 	gvLayout(gvc, g, "dot");
@@ -623,11 +620,18 @@ int FlowGrapher::RenderToFile(char *format, char *filename)
 void FlowGrapher::GenerateDrawingInfo()
 {
 	DrawingObjectList->clear();
+
 	gvLayoutJobs(gvc, g);
 	gvRenderJobs(gvc, g);
-
 	agsafeset(g, "charset", "Latin1", "");
-	gvLayout(gvc, g, "dot");
+
+	try
+	{
+		gvLayout(gvc, g, "dot");
+	}
+	catch (...)
+	{
+	}
 
 	try
 	{
@@ -707,8 +711,6 @@ void FlowGrapher::GenerateDrawingInfo()
 		}
 	}
 	gvFreeLayout(gvc, g);
-	agclose(g);
-	gvFreeContext(gvc);
 }
 
 vector<DrawingInfo *> *FlowGrapher::GetDrawingInfo()
