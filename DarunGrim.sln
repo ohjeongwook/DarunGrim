@@ -7,11 +7,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiffEngine", "Src\DiffEngin
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythonExt", "Src\Scripts\PythonExt.vcxproj", "{D1EB17BB-8711-49C8-B00C-3C5B10F280ED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IDAPlugin", "Src\IDAPlugin\IDAPlugin.vcxproj", "{D459EDD6-410D-4C0C-889D-1889E0531441}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DarunGrimPlugin", "Src\IDAPlugin\IDAPlugin.vcxproj", "{D459EDD6-410D-4C0C-889D-1889E0531441}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DarunGrim", "Src\UI\WTL\UI.vcxproj", "{1238DCFB-7CF2-40F3-BE02-191AE6F594DC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DarunGrimC", "Src\DiffEngine\DarunGrimC.vcxproj", "{3684763C-77AF-462F-8706-70747594D4C6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1238DCFB-7CF2-40F3-BE02-191AE6F594DC} = {1238DCFB-7CF2-40F3-BE02-191AE6F594DC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FlowGrapher", "Src\UI\FlowGrapher\FlowGrapher.vcxproj", "{92816224-6D8B-42F8-BAC3-D967E15D341C}"
 EndProject
