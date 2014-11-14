@@ -346,17 +346,15 @@ class FilesWidgetsTemplate:
 		search_widget.setLayout(hlayout)
 
 		search_pane_splitter.addWidget(search_widget)
-
-		import_msu_button=QPushButton('Import MSU',parent)
-
-		size_policy=QSizePolicy(QSizePolicy.Minimum,QSizePolicy.Minimum)
-		size_policy.setHorizontalStretch(0)
-		size_policy.setVerticalStretch(0)
-		import_msu_button.setSizePolicy(size_policy)
-		import_msu_button.clicked.connect(self.importMSU)
-		search_pane_splitter.addWidget(import_msu_button)
 		
+		button_box=QDialogButtonBox()
+
+		import_msu_button=button_box.addButton("Import MSU", QDialogButtonBox.ActionRole)
+		import_msu_button.clicked.connect(self.importMSU)
+		search_pane_splitter.addWidget(button_box)
+
 		search_tab_vert_splitter.addWidget(search_pane_splitter)
+		
 					
 		# File
 		view=QTableView()
