@@ -6,6 +6,7 @@ import DiffEngine
 from Graphs import *
 import FlowGrapher
 import FileStoreBrowser
+import DarunGrimEngine
 
 import pprint
 from multiprocessing import Process
@@ -13,15 +14,9 @@ import time
 import os
 
 def PerformDiff(src_filename,target_filename,result_filename):
-	darun_grim = DiffEngine.DarunGrim()
-
-	LogToStdout = 0x1
-	LogToDbgview = 0x2
-	LogToFile = 0x4
-	LogToIDAMessageBox = 0x8
-
-	darun_grim.SetLogParameters(LogToStdout, 0, "");
-	darun_grim.PerformDiff(src_filename, 0, target_filename, 0, result_filename)
+	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
+	darungrim.SetDGFSotrage(os.getcwd())
+	darungrim.PerformDiff(result_filename)
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
@@ -263,9 +258,9 @@ class FileStoreBrowserDialog(QDialog):
 
 	def getResultFilename(self):
 		dialog=QFileDialog()
-		filename=''
 		if dialog.exec_():
-			self.ResultFilename=dialog.selectedFiles()[0]
+			filename=dialog.selectedFiles()[0]
+			self.ResultFilename=str(filename.replace("/","\\"))
 			if self.ResultFilename[-4:0].lower()!='.dgf':
 				self.ResultFilename+='.dgf'
 			self.result_line.setText(self.ResultFilename)
@@ -422,17 +417,19 @@ class MainWindow(QMainWindow):
 
 		if self.DebugPerformDiff:
 			print 'PerformDiff: ', src_filename,target_filename,result_filename
+			p=None
 			PerformDiff(src_filename,target_filename,result_filename)
 		else:
 			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename))
 			p.start()
 
-		while True:
-			time.sleep(0.01)
-			if not p.is_alive():
-				break
+		if p!=None:
+			while True:
+				time.sleep(0.01)
+				if not p.is_alive():
+					break
 
-			qApp.processEvents()
+				qApp.processEvents()
 
 		self.OpenDatabase(result_filename)
 

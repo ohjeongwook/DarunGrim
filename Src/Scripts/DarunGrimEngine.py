@@ -49,6 +49,7 @@ class DarunGrim:
 	def PerformDiff( self, output_storage, src_ida_log_filename = "src.log", target_ida_log_filename = "target.log" ):
 		src_storage=self.GetDGFName(self.SrcFilename)
 		target_storage=self.GetDGFName(self.TargetFilename)
+		output_storage=str(output_storage)
 
 		src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
 		target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
@@ -59,6 +60,9 @@ class DarunGrim:
 		if not os.path.isfile(target_storage):
 			self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename)
 
+		print 'src_storage:', src_storage
+		print 'target_storage:', target_storage
+		print 'output_storage:', output_storage
 		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
 
 	def SyncIDA( self ):
@@ -89,4 +93,4 @@ if __name__ == '__main__':
 	#options.source_address, options.target_address
 	darungrim=DarunGrim(src_storage, target_storage)
 	darungrim.SetDGFSotrage(os.getcwd())
-	darungrim.PerformDiff( "out.dgf")
+	darungrim.PerformDiff("out.dgf")
