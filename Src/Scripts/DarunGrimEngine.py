@@ -1,6 +1,7 @@
 import sys
 import DiffEngine
 import os
+import hashlib
 
 LogToStdout = 0x1
 LogToDbgview = 0x2
@@ -16,6 +17,7 @@ class DarunGrim:
 		self.DarunGrim.SetTargetFilename( self.TargetFilename )
 		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA 6.6\idaq.exe' )
 		self.DarunGrim.SetLogParameters(LogToStdout, 100, "")
+		self.DGFSotrage=''
 
 	def SetLogFile(self,log_filename):
 		self.LogFilename=os.path.join( os.getcwd(), str(log_filename) )
@@ -23,10 +25,26 @@ class DarunGrim:
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
 
+	def SetDGFSotrage(self,dgf_dir):
+		self.DGFSotrage=dgf_dir
+
 	def GetDGFName(self,filename):
-		if filename[-4]=='.':
-			return filename[0:-4] + ".dgf"
-		return filename + '.dgf'
+		if self.DGFSotrage:
+			fd=open(filename,'rb')
+			data=fd.read()
+			fd.close()
+
+			s=hashlib.sha1()
+			s.update(data)
+
+			filename=os.path.join(self.DGFSotrage,"%s.dgf" % s.hexdigest())
+		else:
+			if filename[-4]=='.':
+				filename=filename[0:-4] + ".dgf"
+			else:
+				filename=filename + '.dgf'
+
+		return filename
 
 	def PerformDiff( self, output_storage, src_ida_log_filename = "src.log", target_ida_log_filename = "target.log" ):
 		src_storage=self.GetDGFName(self.SrcFilename)
@@ -35,8 +53,12 @@ class DarunGrim:
 		src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
 		target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
 
-		self.DarunGrim.GenerateSourceDGFFromIDA(src_storage, src_ida_log_filename)
-		self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename)
+		if not os.path.isfile(src_storage):
+			self.DarunGrim.GenerateSourceDGFFromIDA(src_storage, src_ida_log_filename)
+
+		if not os.path.isfile(target_storage):
+			self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename)
+
 		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
 
 	def SyncIDA( self ):
@@ -66,4 +88,5 @@ if __name__ == '__main__':
 	
 	#options.source_address, options.target_address
 	darungrim=DarunGrim(src_storage, target_storage)
+	darungrim.SetDGFSotrage(os.getcwd())
 	darungrim.PerformDiff( "out.dgf")
