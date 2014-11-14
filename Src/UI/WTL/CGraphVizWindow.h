@@ -1347,7 +1347,7 @@ private:
 						//TODO: Calcuate accurate font size
 						CFont CurrentFont;
 						if(!CurrentFont.CreatePointFont((int)(CurrentFontSize*7),CurrentFontName))
-							CurrentFont.CreatePointFont((int)(CurrentFontSize*7),"Arial");
+							CurrentFont.CreatePointFont((int)(CurrentFontSize*7),"Verdana");
 						HFONT hOldFont=dc.SelectFont(CurrentFont);
 						dc.SetTextColor(GetColorFromName(FontColor));
 						if(p_drawing_info->points[1].y==-1)//left-aligned

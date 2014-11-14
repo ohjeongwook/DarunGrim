@@ -540,7 +540,7 @@ public:
 				}
 			}
 
-			p_flow_grapher->SetNodeShape(font_color, fill_color, "Arial", "12");
+			p_flow_grapher->SetNodeShape(font_color, fill_color, "Verdana", "12");
 			p_flow_grapher->AddNode(address, name, disasm_line ? disasm_line : "");
 			if(disasm_line)
 				free(disasm_line);
@@ -589,7 +589,7 @@ public:
 								}
 							}
 
-							p_flow_grapher->SetNodeShape(font_color, fill_color, "Arial", "12");
+							p_flow_grapher->SetNodeShape(font_color, fill_color, "Verdana", "12");
 							p_flow_grapher->AddNode(current_address, name, disasm_line ? disasm_line : "");
 							if(disasm_line)
 								free(disasm_line);
