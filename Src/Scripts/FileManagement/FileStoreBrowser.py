@@ -129,14 +129,14 @@ class FileIndexTableModel(QAbstractTableModel):
 					if tags!=None:
 						tag=tags.tag
 					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
+					self.FilenameAndSHA1s.append([fileindex.id,fileindex.full_path,fileindex.sha1])
 			elif tag:
 				for (fileindex,tags) in database.GetFilesByTag(tag):
 					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
+					self.FilenameAndSHA1s.append([fileindex.id,fileindex.full_path,fileindex.sha1])
 
 	def GetFilename(self,row):
-		return self.FilenameAndSHA1s[row][0]
+		return self.FilenameAndSHA1s[row][1]
 
 	def GetFilenameAndSHA1(self,row):
 		return self.FilenameAndSHA1s[row]
@@ -177,11 +177,11 @@ class VersionsTableModel(QAbstractTableModel):
 			database=FileStoreDatabase.Database(database_name)
 			for fileindex in database.GetFilesByCompanyFilename(company_name,filename):
 				self.Versions.append((fileindex.version_string,fileindex.sha1))
-				self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
+				self.FilenameAndSHA1s.append([fileindex.id, fileindex.full_path,fileindex.sha1])
 			del database
 
 	def GetFilename(self,row):
-		return self.FilenameAndSHA1s[row][0]
+		return self.FilenameAndSHA1s[row][1]
 
 	def GetFilenameAndSHA1(self,row):
 		return self.FilenameAndSHA1s[row]

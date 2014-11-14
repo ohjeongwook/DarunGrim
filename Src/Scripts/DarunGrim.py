@@ -6,6 +6,7 @@ import DiffEngine
 from Graphs import *
 import FlowGrapher
 import FileStoreBrowser
+import FileStoreDatabase
 import DarunGrimEngine
 
 import pprint
@@ -202,11 +203,7 @@ class FileStoreBrowserDialog(QDialog):
 		super(FileStoreBrowserDialog,self).__init__(parent)
 		
 		self.DarunGrimStorageDir=darungrim_storage_dir
-		self.OrigFilename=''
-		self.OrigFileSHA1=''
-		self.PatchedFilename=''
-		self.PatchedFileSHA1=''
-		self.ResultFilename=''
+		self.InitVars()
 
 		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
 
@@ -226,6 +223,14 @@ class FileStoreBrowserDialog(QDialog):
 			self.result_line=QLineEdit("")
 			self.result_line.setAlignment(Qt.AlignLeft)
 
+		name_label=QLabel('Name:')
+		self.name_line=QLineEdit("")
+		self.name_line.setAlignment(Qt.AlignLeft)
+
+		description_label=QLabel('Description:')
+		self.description_line=QLineEdit("")
+		self.description_line.setAlignment(Qt.AlignLeft)
+
 		ok_button=QPushButton('OK',self)
 		ok_button.clicked.connect(self.pressedOK)
 		cancel_button=QPushButton('Cancel',self)
@@ -240,8 +245,15 @@ class FileStoreBrowserDialog(QDialog):
 		if self.ShowResultButton:
 			bottom_layout.addWidget(result_button,2,0)
 			bottom_layout.addWidget(self.result_line,2,1)
-		bottom_layout.addWidget(ok_button,3,0)
-		bottom_layout.addWidget(cancel_button,3,1)
+
+		bottom_layout.addWidget(name_label,2,0)
+		bottom_layout.addWidget(self.name_line,2,1)
+
+		bottom_layout.addWidget(description_label,3,0)
+		bottom_layout.addWidget(self.description_line,3,1)
+
+		bottom_layout.addWidget(ok_button,4,0)
+		bottom_layout.addWidget(cancel_button,4,1)
 
 		main_layout=QVBoxLayout()
 		main_layout.addWidget(self.filesWidgetsTemplate.tab_widget)
@@ -249,20 +261,37 @@ class FileStoreBrowserDialog(QDialog):
 		self.setLayout(main_layout)
 		self.show()
 
+	def InitVars(self):
+		self.OrigFileID=0
+		self.OrigFilename=''
+		self.OrigFileSHA1=''
+		self.PatchedFileID=0
+		self.PatchedFilename=''
+		self.PatchedFileSHA1=''
+		self.ResultFilename=''
+
+		self.Name=''
+		self.Description=''
+
 	def pressedOK(self):
+		self.Name=self.name_line.text()
+		self.Description=self.description_line.text()
 		self.close()
 
 	def pressedCancel(self):
+		self.InitVars()
 		self.close()
 
 	def getOrigFilename(self):
-		[filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		[id,filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		self.OrigFileID=id
 		self.OrigFilename=os.path.join(self.DarunGrimStorageDir,filename)
 		self.OrigFileSHA1=sha1
 		self.orig_line.setText(self.OrigFilename)
 
 	def getPatchedFilename(self):
-		[filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		[id,filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		self.PatchedFileID=id
 		self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,filename)
 		self.PatchedFileSHA1=sha1
 		self.patched_line.setText(self.PatchedFilename)
@@ -275,6 +304,89 @@ class FileStoreBrowserDialog(QDialog):
 			if self.ResultFilename[-4:0].lower()!='.dgf':
 				self.ResultFilename+='.dgf'
 			self.result_line.setText(self.ResultFilename)
+
+class SessionTable(QAbstractTableModel):
+	def __init__(self,parent,database_name='',*args):
+		QAbstractTableModel.__init__(self,parent,*args)
+		self.list=[]
+		self.filenames=[]
+		database=FileStoreDatabase.Database(database_name)
+		for session in database.GetSessions():
+			self.list.append([session.name, session.description, database.GetFileNameWithVersionByID(session.src),database.GetFileNameWithVersionByID(session.dst)])
+			self.filenames.append(session.result)
+
+	def GetFilename(self,row):
+		return self.filenames[row]
+
+	def rowCount(self,parent):
+		return len(self.list)
+
+	def columnCount(self,parent):
+		return 4
+
+	def data(self,index,role):
+		if not index.isValid():
+			return None
+		elif role!=Qt.DisplayRole:
+			return None
+
+		return self.list[index.row()][index.column()]
+
+	def headerDAta(self,col,orientation,role):
+		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
+			return ["Name", "Description", "Orig", "Patched"][col]
+		return None
+
+	def sor(self,col,order):
+		pass
+
+class SessionsDialog(QDialog):
+	def __init__(self,parent=None,database_name=''):
+		super(SessionsDialog,self).__init__(parent)
+
+		self.Filename=''
+		view=QTableView()
+		view.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+		vheader=QHeaderView(Qt.Orientation.Vertical)
+		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		view.setVerticalHeader(vheader)
+
+		hheader=QHeaderView(Qt.Orientation.Horizontal)
+		hheader.setResizeMode(QHeaderView.Stretch)
+		view.setHorizontalHeader(hheader)
+
+		self.session_table_view=view
+
+		self.session_table_model=SessionTable(self,database_name)
+		self.session_table_view.setModel(self.session_table_model)
+
+		vlayout=QVBoxLayout()
+		vlayout.addWidget(view)
+
+		ok_button=QPushButton('OK',self)
+		ok_button.clicked.connect(self.pressedOK)
+		cancel_button=QPushButton('Cancel',self)
+		cancel_button.clicked.connect(self.pressedCancel)
+
+		hlayout=QHBoxLayout()
+		hlayout.addWidget(ok_button)
+		hlayout.addWidget(cancel_button)
+
+		vlayout.addLayout(hlayout)
+		self.setLayout(vlayout)
+		self.show()
+
+	def pressedOK(self):
+		for index in self.session_table_view.selectionModel().selection().indexes():
+			self.Filename=self.session_table_model.GetFilename(index.row())
+
+		print 'self.Filename',self.Filename
+		self.close()
+
+	def pressedCancel(self):
+		self.Filename=''
+		self.close()
 
 class MainWindow(QMainWindow):
 	UseDock=False
@@ -385,7 +497,6 @@ class MainWindow(QMainWindow):
 			self.show()
 
 		self.readSettings()
-		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:]
 
 	def clearAreas(self):
 		self.OrigFunctionGraph.clear()
@@ -397,19 +508,27 @@ class MainWindow(QMainWindow):
 		self.block_table_model=BlockMatchTable(self)
 		self.block_table_view.setModel(self.block_table_model)
 
-	def new_from_file_store(self):
-		self.FileIndexDB='index.db'
-		self.DarunGrimDGFDir='z:\\DarunGrimDGFStore'
-		dialog=FileStoreBrowserDialog(database_name=self.FileIndexDB, darungrim_storage_dir=self.DarunGrimStorageDir)
+	def newFromFileStore(self):
+		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.DarunGrimStorageDir)
 		dialog.exec_()
 
 		if len(dialog.OrigFilename) and len(dialog.PatchedFilename):
-			result_filename = os.path.join(self.DarunGrimDGFDir, '%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1))
+			result_filename='%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 
 			self.StartPerformDiff(dialog.OrigFilename,
 								dialog.PatchedFilename,
-								result_filename
+								os.path.join(self.DarunGrimDGFDir, result_filename)
 							)
+
+			file_store_database=FileStoreDatabase.Database(self.FileStoreDatabase)
+			file_store_database.AddSession(dialog.Name, dialog.Description, dialog.OrigFileID, dialog.PatchedFileID, result_filename)
+
+	def openFromFileStore(self):
+		dialog=SessionsDialog(database_name=self.FileStoreDatabase)
+		dialog.exec_()
+
+		if len(dialog.Filename)>0:	
+			self.OpenDatabase(os.path.join(self.DarunGrimDGFDir, dialog.Filename))
 
 	def new(self):
 		dialog=NewDiffingDialog()
@@ -467,16 +586,20 @@ class MainWindow(QMainWindow):
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
-		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new_from_file_store)
 		self.openAct = QAction("Open...",self,shortcut=QKeySequence.Open,statusTip="Open a dgf database",triggered=self.open)
+
+		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.newFromFileStore)
+		self.openFromFileStoreAct = QAction("Open Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Open diffing output",triggered=self.openFromFileStore)
+
 		self.saveOrigGraphAct = QAction("Save orig graph...",self,shortcut=QKeySequence.Open,statusTip="Save original graph",triggered=self.saveOrigGraph)
 		self.savePatchedGraphAct = QAction("Save patched graph...",self,shortcut=QKeySequence.Open,statusTip="Save patched graph",triggered=self.savePatchedGraph)
 
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
-		self.fileMenu.addAction(self.newFromFileStoreAct)
 		self.fileMenu.addAction(self.openAct)
+		self.fileMenu.addAction(self.newFromFileStoreAct)
+		self.fileMenu.addAction(self.openFromFileStoreAct)
 		self.fileMenu.addAction(self.saveOrigGraphAct)
 		self.fileMenu.addAction(self.savePatchedGraphAct)
 
@@ -547,6 +670,10 @@ class MainWindow(QMainWindow):
 			self.resize(800,600)
 
 		self.restoreState(settings.value("windowState"))
+
+		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:
+		self.FileStoreDatabase='index.db'
+		self.DarunGrimDGFDir='z:\\DarunGrimDGFStore'
 
 	def closeEvent(self, event):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
