@@ -131,7 +131,7 @@ class NewDiffingDialog(QDialog):
 	def __init__(self,parent=None):
 		super(NewDiffingDialog,self).__init__(parent)
 
-		self.Filenames={}
+		self.Filenames={'Orig':'','Patched':'','Result':''}
 
 		orig_button=QPushButton('Orig File:',self)
 		orig_button.clicked.connect(self.getOrigFilename)
@@ -148,10 +148,9 @@ class NewDiffingDialog(QDialog):
 		self.result_line=QLineEdit("")
 		self.result_line.setAlignment(Qt.AlignLeft)
 
-		ok_button=QPushButton('OK',self)
-		ok_button.clicked.connect(self.pressedOK)
-		cancel_button=QPushButton('Cancel',self)
-		cancel_button.clicked.connect(self.pressedCancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
 
 		main_layout=QGridLayout()
 		main_layout.addWidget(orig_button,0,0)
@@ -160,16 +159,8 @@ class NewDiffingDialog(QDialog):
 		main_layout.addWidget(self.patched_line,1,1)
 		main_layout.addWidget(result_button,2,0)
 		main_layout.addWidget(self.result_line,2,1)
-		main_layout.addWidget(ok_button,3,0)
-		main_layout.addWidget(cancel_button,3,1)
+		main_layout.addWidget(buttonBox,3,1)
 		self.setLayout(main_layout)
-
-	def pressedOK(self):
-		self.close()
-
-	def pressedCancel(self):
-		self.Filenames.clear()
-		self.close()
 
 	def getOrigFilename(self):
 		filename=self.getFilename("Orig")
@@ -231,10 +222,9 @@ class FileStoreBrowserDialog(QDialog):
 		self.description_line=QLineEdit("")
 		self.description_line.setAlignment(Qt.AlignLeft)
 
-		ok_button=QPushButton('OK',self)
-		ok_button.clicked.connect(self.pressedOK)
-		cancel_button=QPushButton('Cancel',self)
-		cancel_button.clicked.connect(self.pressedCancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
 
 		bottom_layout=QGridLayout()
 		bottom_layout.addWidget(orig_button,0,0)
@@ -252,8 +242,7 @@ class FileStoreBrowserDialog(QDialog):
 		bottom_layout.addWidget(description_label,3,0)
 		bottom_layout.addWidget(self.description_line,3,1)
 
-		bottom_layout.addWidget(ok_button,4,0)
-		bottom_layout.addWidget(cancel_button,4,1)
+		bottom_layout.addWidget(buttonBox,4,1)
 
 		main_layout=QVBoxLayout()
 		main_layout.addWidget(self.filesWidgetsTemplate.tab_widget)
@@ -283,18 +272,22 @@ class FileStoreBrowserDialog(QDialog):
 		self.close()
 
 	def getOrigFilename(self):
-		[id,filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
-		self.OrigFileID=id
-		self.OrigFilename=os.path.join(self.DarunGrimStorageDir,filename)
-		self.OrigFileSHA1=sha1
-		self.orig_line.setText(self.OrigFilename)
+		ret = self.filesWidgetsTemplate.getCurrentSelection()
+		if ret!=None:
+			[id,filename,sha1] = ret
+			self.OrigFileID=id
+			self.OrigFilename=os.path.join(self.DarunGrimStorageDir,filename)
+			self.OrigFileSHA1=sha1
+			self.orig_line.setText(self.OrigFilename)
 
 	def getPatchedFilename(self):
-		[id,filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
-		self.PatchedFileID=id
-		self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,filename)
-		self.PatchedFileSHA1=sha1
-		self.patched_line.setText(self.PatchedFilename)
+		ret = self.filesWidgetsTemplate.getCurrentSelection()
+		if ret!=None:
+			[id,filename,sha1]=ret
+			self.PatchedFileID=id
+			self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,filename)
+			self.PatchedFileSHA1=sha1
+			self.patched_line.setText(self.PatchedFilename)
 
 	def getResultFilename(self):
 		dialog=QFileDialog()
@@ -364,29 +357,20 @@ class SessionsDialog(QDialog):
 		vlayout=QVBoxLayout()
 		vlayout.addWidget(view)
 
-		ok_button=QPushButton('OK',self)
-		ok_button.clicked.connect(self.pressedOK)
-		cancel_button=QPushButton('Cancel',self)
-		cancel_button.clicked.connect(self.pressedCancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
 
-		hlayout=QHBoxLayout()
-		hlayout.addWidget(ok_button)
-		hlayout.addWidget(cancel_button)
-
-		vlayout.addLayout(hlayout)
+		vlayout.addWidget(buttonBox)
 		self.setLayout(vlayout)
 		self.show()
 
-	def pressedOK(self):
-		for index in self.session_table_view.selectionModel().selection().indexes():
-			self.Filename=self.session_table_model.GetFilename(index.row())
-
-		print 'self.Filename',self.Filename
-		self.close()
-
-	def pressedCancel(self):
-		self.Filename=''
-		self.close()
+	def GetFilename(self):
+		selection=self.session_table_view.selectionModel()
+		if selection!=None:
+			for index in sm.selection().indexes():
+				return self.session_table_model.GetFilename(index.row())
+		return ''
 
 class MainWindow(QMainWindow):
 	UseDock=False
@@ -510,9 +494,7 @@ class MainWindow(QMainWindow):
 
 	def newFromFileStore(self):
 		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.DarunGrimStorageDir)
-		dialog.exec_()
-
-		if len(dialog.OrigFilename) and len(dialog.PatchedFilename):
+		if dialog.exec_():
 			result_filename='%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 
 			self.StartPerformDiff(dialog.OrigFilename,
@@ -525,23 +507,16 @@ class MainWindow(QMainWindow):
 
 	def openFromFileStore(self):
 		dialog=SessionsDialog(database_name=self.FileStoreDatabase)
-		dialog.exec_()
-
-		if len(dialog.Filename)>0:	
-			self.OpenDatabase(os.path.join(self.DarunGrimDGFDir, dialog.Filename))
+		if dialog.exec_():
+			self.OpenDatabase(os.path.join(self.DarunGrimDGFDir, dialog.GetFilename()))
 
 	def new(self):
 		dialog=NewDiffingDialog()
-		dialog.setFixedSize(300,200)
-		dialog.exec_()
-
-		if len(dialog.Filenames)==0:
-			return
-
-		src_filename = str(dialog.Filenames['Orig'])
-		target_filename = str(dialog.Filenames['Patched'])
-		result_filename = str(dialog.Filenames['Result'])
-		self.StartPerformDiff(src_filename,target_filename,result_filename)
+		if dialog.exec_():
+			src_filename = str(dialog.Filenames['Orig'])
+			target_filename = str(dialog.Filenames['Patched'])
+			result_filename = str(dialog.Filenames['Result'])
+			self.StartPerformDiff(src_filename,target_filename,result_filename)
 
 	def StartPerformDiff(self,src_filename,target_filename,result_filename,debug=False):
 		self.clearAreas()
@@ -608,7 +583,8 @@ class MainWindow(QMainWindow):
 		self.functions_match_table_model=FunctionMatchTable(self,self.DatabaseName)
 		self.functions_match_table_view.setModel(self.functions_match_table_model)
 		selection=self.functions_match_table_view.selectionModel()
-		selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
 
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
@@ -629,7 +605,8 @@ class MainWindow(QMainWindow):
 				self.block_table_view.setModel(self.block_table_model)
 				
 				selection=self.block_table_view.selectionModel()
-				selection.selectionChanged.connect(self.handleBlockTableChanged)
+				if selection!=None:
+					selection.selectionChanged.connect(self.handleBlockTableChanged)
 
 				# Draw graphs
 				self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)

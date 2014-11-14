@@ -226,27 +226,20 @@ class ImportMSUDialog(QDialog):
 		self.tag_line=QLineEdit("")
 		self.tag_line.setAlignment(Qt.AlignLeft)
 
-		ok_button=QPushButton('OK',self)
-		ok_button.clicked.connect(self.pressedOK)
-		cancel_button=QPushButton('Cancel',self)
-		cancel_button.clicked.connect(self.pressedCancel)
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
 
 		main_layout=QGridLayout()
 		main_layout.addWidget(file_button,0,0)
 		main_layout.addWidget(self.file_line,0,1)
-		main_layout.addWidget(tag_button,2,0)
-		main_layout.addWidget(self.tag_line,2,1)
-		main_layout.addWidget(ok_button,3,0)
-		main_layout.addWidget(cancel_button,3,1)
+		main_layout.addWidget(tag_button,1,0)
+		main_layout.addWidget(self.tag_line,1,1)
+		main_layout.addWidget(buttonBox,2,1)
 		self.setLayout(main_layout)
 
-	def pressedOK(self):
-		self.Tag=self.tag_line.text()
-		self.close()
-
-	def pressedCancel(self):
-		self.Filename=''
-		self.close()
+	def getTags(self):
+		return self.tag_line.text()
 
 	def getFilename(self):
 		dialog=QFileDialog()
@@ -279,7 +272,8 @@ class FilesWidgetsTemplate:
 		self.CompanyNames=CompanyNamesTableModel(parent,self.DatabaseName)
 		self.CompanyNamesTable.setModel(self.CompanyNames)
 		selection=self.CompanyNamesTable.selectionModel()
-		selection.selectionChanged.connect(self.handleCompanyNamesTableChanged)
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleCompanyNamesTableChanged)
 
 		# File
 		view=QTableView()
@@ -308,8 +302,6 @@ class FilesWidgetsTemplate:
 		view.setHorizontalHeader(hheader)
 		vert_splitter.addWidget(view)
 		self.VersionsTable=view
-		#selection=self.VersionsTable.selectionModel()
-		#selection.selectionChanged.connect(self.handleFileNamesTableChanged)
 
 		search_tab_vert_splitter=QSplitter()
 		search_tab_vert_splitter.setStretchFactor(0,0)
@@ -336,7 +328,8 @@ class FilesWidgetsTemplate:
 		self.Tags=TagsTableModel(parent,self.DatabaseName)
 		self.TagsTable.setModel(self.Tags)
 		selection=self.TagsTable.selectionModel()
-		selection.selectionChanged.connect(self.handleTagsTableChanged)
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleTagsTableChanged)
 
 		#Search box
 		self.search_line=QLineEdit()
@@ -351,7 +344,17 @@ class FilesWidgetsTemplate:
 		hlayout.addWidget(self.search_line)
 		hlayout.addWidget(search_button)
 		search_widget.setLayout(hlayout)
+
 		search_pane_splitter.addWidget(search_widget)
+
+		import_msu_button=QPushButton('Import MSU',parent)
+
+		size_policy=QSizePolicy(QSizePolicy.Minimum,QSizePolicy.Minimum)
+		size_policy.setHorizontalStretch(0)
+		size_policy.setVerticalStretch(0)
+		import_msu_button.setSizePolicy(size_policy)
+		import_msu_button.clicked.connect(self.importMSU)
+		search_pane_splitter.addWidget(import_msu_button)
 		
 		search_tab_vert_splitter.addWidget(search_pane_splitter)
 					
@@ -387,6 +390,25 @@ class FilesWidgetsTemplate:
 		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 
+	def importMSU(self):
+		dialog=ImportMSUDialog()
+		if dialog.exec_():
+			filename=dialog.Filename
+			tags=dialog.getTags().split(',')
+
+			if len(tags)==0 or (len(tags)==1 and tags[0]==''):
+				tags=[os.path.basename(filename)]				
+
+			import FileStore
+			import MSPatchFile
+			file_store = FileStore.FileProcessor( databasename = r'index.db' )
+
+			ms_patch_handler=MSPatchFile.MSPatchHandler()
+
+			for src_dirname in ms_patch_handler.Extract(filename):
+				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
+				file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
+
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
 			for index in item.indexes():
@@ -396,7 +418,8 @@ class FilesWidgetsTemplate:
 				self.FileNamesTable.setModel(self.FileNames)
 
 				selection=self.FileNamesTable.selectionModel()
-				selection.selectionChanged.connect(self.handleFileNamesTableChanged)
+				if selection!=None:
+					selection.selectionChanged.connect(self.handleFileNamesTableChanged)
 
 				self.Versions=VersionsTableModel(self.parent)
 				self.VersionsTable.setModel(self.Versions)
@@ -432,11 +455,16 @@ class FilesWidgetsTemplate:
 	def getCurrentSelection(self):
 		tab_selection=self.tab_widget.currentIndex()
 		if tab_selection==0:
-			for index in self.VersionsTable.selectionModel().selection().indexes():
-				return self.Versions.GetFilenameAndSHA1(index.row())
+			selection=self.VersionsTable.selectionModel()
+			if selection!=None:
+				for index in selection.selection().indexes():
+					return self.Versions.GetFilenameAndSHA1(index.row())
 		else:
-			for index in self.FileIndexTable.selectionModel().selection().indexes():
-				return self.FileIndexes.GetFilenameAndSHA1(index.row())
+			selection=self.FileIndexTable.selectionModel()
+			if selection!=None:
+				for index in selection.selection().indexes():
+					return self.FileIndexes.GetFilenameAndSHA1(index.row())
+		return None
 
 if __name__=='__main__':
 	class MainWindow(QMainWindow):
@@ -470,12 +498,9 @@ if __name__=='__main__':
 
 		def importMSUFiles(self):
 			dialog=ImportMSUDialog()
-			dialog.setFixedSize(300,200)
-			dialog.exec_()
-
-			if dialog.Filename:
+			if dialog.exec_():
 				filename=dialog.Filename
-				tags=dialog.Tag.split(',')
+				tags=dialog.getTags.split(',')
 
 				if len(tags)==0 or (len(tags)==1 and tags[0]==''):
 					tags=[os.path.basename(filename)]				
