@@ -135,17 +135,17 @@ class NewDiffingDialog(QDialog):
 		orig_button=QPushButton('Orig File:',self)
 		orig_button.clicked.connect(self.getOrigFilename)
 		self.orig_line=QLineEdit("")
-		self.orig_line.setAlignment(Qt.AlignCenter)
+		self.orig_line.setAlignment(Qt.AlignLeft)
 
 		patched_button=QPushButton('Patched File:',self)
 		patched_button.clicked.connect(self.getPatchedFilename)
 		self.patched_line=QLineEdit("")
-		self.patched_line.setAlignment(Qt.AlignCenter)		
+		self.patched_line.setAlignment(Qt.AlignLeft)	
 
 		result_button=QPushButton('Result:',self)
 		result_button.clicked.connect(self.getResultFilename)
 		self.result_line=QLineEdit("")
-		self.result_line.setAlignment(Qt.AlignCenter)
+		self.result_line.setAlignment(Qt.AlignLeft)
 
 		ok_button=QPushButton('OK',self)
 		ok_button.clicked.connect(self.pressedOK)
@@ -196,12 +196,16 @@ class NewDiffingDialog(QDialog):
 		return filename
 
 class FileStoreBrowserDialog(QDialog):
+	ShowResultButton=False
+
 	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
 		super(FileStoreBrowserDialog,self).__init__(parent)
 		
 		self.DarunGrimStorageDir=darungrim_storage_dir
 		self.OrigFilename=''
+		self.OrigFileSHA1=''
 		self.PatchedFilename=''
+		self.PatchedFileSHA1=''
 		self.ResultFilename=''
 
 		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
@@ -209,17 +213,18 @@ class FileStoreBrowserDialog(QDialog):
 		orig_button=QPushButton('Orig File >> ',self)
 		orig_button.clicked.connect(self.getOrigFilename)
 		self.orig_line=QLineEdit("")
-		self.orig_line.setAlignment(Qt.AlignCenter)
+		self.orig_line.setAlignment(Qt.AlignLeft)
 
 		patched_button=QPushButton('Patched File >> ',self)
 		patched_button.clicked.connect(self.getPatchedFilename)
 		self.patched_line=QLineEdit("")
-		self.patched_line.setAlignment(Qt.AlignCenter)		
+		self.patched_line.setAlignment(Qt.AlignLeft)		
 
-		result_button=QPushButton('Result:',self)
-		result_button.clicked.connect(self.getResultFilename)
-		self.result_line=QLineEdit("")
-		self.result_line.setAlignment(Qt.AlignCenter)
+		if self.ShowResultButton:
+			result_button=QPushButton('Result:',self)
+			result_button.clicked.connect(self.getResultFilename)
+			self.result_line=QLineEdit("")
+			self.result_line.setAlignment(Qt.AlignLeft)
 
 		ok_button=QPushButton('OK',self)
 		ok_button.clicked.connect(self.pressedOK)
@@ -231,8 +236,10 @@ class FileStoreBrowserDialog(QDialog):
 		bottom_layout.addWidget(self.orig_line,0,1)
 		bottom_layout.addWidget(patched_button,1,0)
 		bottom_layout.addWidget(self.patched_line,1,1)
-		bottom_layout.addWidget(result_button,2,0)
-		bottom_layout.addWidget(self.result_line,2,1)
+
+		if self.ShowResultButton:
+			bottom_layout.addWidget(result_button,2,0)
+			bottom_layout.addWidget(self.result_line,2,1)
 		bottom_layout.addWidget(ok_button,3,0)
 		bottom_layout.addWidget(cancel_button,3,1)
 
@@ -249,11 +256,15 @@ class FileStoreBrowserDialog(QDialog):
 		self.close()
 
 	def getOrigFilename(self):
-		self.OrigFilename=os.path.join(self.DarunGrimStorageDir,self.filesWidgetsTemplate.getCurrentSelection())
+		[filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		self.OrigFilename=os.path.join(self.DarunGrimStorageDir,filename)
+		self.OrigFileSHA1=sha1
 		self.orig_line.setText(self.OrigFilename)
 
 	def getPatchedFilename(self):
-		self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,self.filesWidgetsTemplate.getCurrentSelection())
+		[filename,sha1] = self.filesWidgetsTemplate.getCurrentSelection()
+		self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,filename)
+		self.PatchedFileSHA1=sha1
 		self.patched_line.setText(self.PatchedFilename)
 
 	def getResultFilename(self):
@@ -267,7 +278,6 @@ class FileStoreBrowserDialog(QDialog):
 
 class MainWindow(QMainWindow):
 	UseDock=False
-	DebugPerformDiff=False
 
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
@@ -388,16 +398,18 @@ class MainWindow(QMainWindow):
 		self.block_table_view.setModel(self.block_table_model)
 
 	def new_from_file_store(self):
-		dialog=FileStoreBrowserDialog(database_name='index.db', darungrim_storage_dir=self.DarunGrimStorageDir)
+		self.FileIndexDB='index.db'
+		self.DarunGrimDGFDir='z:\\DarunGrimDGFStore'
+		dialog=FileStoreBrowserDialog(database_name=self.FileIndexDB, darungrim_storage_dir=self.DarunGrimStorageDir)
 		dialog.exec_()
 
-		if len(dialog.OrigFilename) and len(dialog.PatchedFilename) and len(dialog.ResultFilename):
-			self.DebugPerformDiff=True
+		if len(dialog.OrigFilename) and len(dialog.PatchedFilename):
+			result_filename = os.path.join(self.DarunGrimDGFDir, '%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1))
+
 			self.StartPerformDiff(dialog.OrigFilename,
-										dialog.PatchedFilename,
-										dialog.ResultFilename
-									)
-			self.DebugPerformDiff=False
+								dialog.PatchedFilename,
+								result_filename
+							)
 
 	def new(self):
 		dialog=NewDiffingDialog()
@@ -412,10 +424,15 @@ class MainWindow(QMainWindow):
 		result_filename = str(dialog.Filenames['Result'])
 		self.StartPerformDiff(src_filename,target_filename,result_filename)
 
-	def StartPerformDiff(self,src_filename,target_filename,result_filename):
+	def StartPerformDiff(self,src_filename,target_filename,result_filename,debug=False):
 		self.clearAreas()
 
-		if self.DebugPerformDiff:
+		try:
+			os.makedirs(os.path.dirname(result_filename))
+		except:
+			pass
+
+		if debug:
 			print 'PerformDiff: ', src_filename,target_filename,result_filename
 			p=None
 			PerformDiff(src_filename,target_filename,result_filename)
@@ -430,7 +447,6 @@ class MainWindow(QMainWindow):
 					break
 
 				qApp.processEvents()
-
 		self.OpenDatabase(result_filename)
 
 	def open(self):

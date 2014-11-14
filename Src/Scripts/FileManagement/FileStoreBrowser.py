@@ -119,7 +119,7 @@ class FileIndexTableModel(QAbstractTableModel):
 	def __init__(self,parent, database_name='', name='', tag='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.FileIndexes=[]
-		self.Filenames=[]
+		self.FilenameAndSHA1s=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
@@ -129,13 +129,17 @@ class FileIndexTableModel(QAbstractTableModel):
 					if tags!=None:
 						tag=tags.tag
 					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.Filenames.append(fileindex.full_path)
+					self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
 			elif tag:
 				for (fileindex,tags) in database.GetFilesByTag(tag):
 					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.Filenames.append(fileindex.full_path)
+					self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
+
 	def GetFilename(self,row):
-		return self.Filenames[row]
+		return self.FilenameAndSHA1s[row][0]
+
+	def GetFilenameAndSHA1(self,row):
+		return self.FilenameAndSHA1s[row]
 
 	def GetName(self,row):
 		return str(self.FileIndexes[row][0])
@@ -167,17 +171,20 @@ class VersionsTableModel(QAbstractTableModel):
 	def __init__(self,parent, database_name='', company_name='', filename='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.Versions=[]
-		self.Filenames=[]
+		self.FilenameAndSHA1s=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
 			for fileindex in database.GetFilesByCompanyFilename(company_name,filename):
 				self.Versions.append((fileindex.version_string,fileindex.sha1))
-				self.Filenames.append(fileindex.full_path)
+				self.FilenameAndSHA1s.append([fileindex.full_path,fileindex.sha1])
 			del database
 
 	def GetFilename(self,row):
-		return self.Filenames[row]
+		return self.FilenameAndSHA1s[row][0]
+
+	def GetFilenameAndSHA1(self,row):
+		return self.FilenameAndSHA1s[row]
 
 	def GetName(self,row):
 		return str(self.Versions[row][0])
@@ -213,11 +220,11 @@ class ImportMSUDialog(QDialog):
 		file_button=QPushButton('Orig File:',self)
 		file_button.clicked.connect(self.getFilename)
 		self.file_line=QLineEdit("")
-		self.file_line.setAlignment(Qt.AlignCenter)
+		self.file_line.setAlignment(Qt.AlignLeft)
 
 		tag_button=QLabel('Tag:',self)
 		self.tag_line=QLineEdit("")
-		self.tag_line.setAlignment(Qt.AlignCenter)
+		self.tag_line.setAlignment(Qt.AlignLeft)
 
 		ok_button=QPushButton('OK',self)
 		ok_button.clicked.connect(self.pressedOK)
@@ -333,6 +340,7 @@ class FilesWidgetsTemplate:
 
 		#Search box
 		self.search_line=QLineEdit()
+		self.search_line.setAlignment(Qt.AlignLeft)
 		self.search_line.editingFinished.connect(self.searchLineFinished)
 
 		search_button=QPushButton('Search',parent)
@@ -425,10 +433,10 @@ class FilesWidgetsTemplate:
 		tab_selection=self.tab_widget.currentIndex()
 		if tab_selection==0:
 			for index in self.VersionsTable.selectionModel().selection().indexes():
-				return self.Versions.GetFilename(index.row())
+				return self.Versions.GetFilenameAndSHA1(index.row())
 		else:
 			for index in self.FileIndexTable.selectionModel().selection().indexes():
-				return self.FileIndexes.GetFilename(index.row())
+				return self.FileIndexes.GetFilenameAndSHA1(index.row())
 
 if __name__=='__main__':
 	class MainWindow(QMainWindow):
