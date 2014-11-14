@@ -12,7 +12,7 @@ from multiprocessing import Process
 import time
 import os
 
-def DiffDatabaseFiles(src_filename,target_filename,result_filename):
+def PerformDiff(src_filename,target_filename,result_filename):
 	darun_grim = DiffEngine.DarunGrim()
 
 	LogToStdout = 0x1
@@ -21,7 +21,7 @@ def DiffDatabaseFiles(src_filename,target_filename,result_filename):
 	LogToIDAMessageBox = 0x8
 
 	darun_grim.SetLogParameters(LogToStdout, 0, "");
-	darun_grim.DiffDatabaseFiles(src_filename, 0, target_filename, 0, result_filename)
+	darun_grim.PerformDiff(src_filename, 0, target_filename, 0, result_filename)
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
@@ -272,7 +272,7 @@ class FileStoreBrowserDialog(QDialog):
 
 class MainWindow(QMainWindow):
 	UseDock=False
-	DebugDiffDatabaseFiles=False
+	DebugPerformDiff=False
 
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
@@ -397,12 +397,12 @@ class MainWindow(QMainWindow):
 		dialog.exec_()
 
 		if len(dialog.OrigFilename) and len(dialog.PatchedFilename) and len(dialog.ResultFilename):
-			self.DebugDiffDatabaseFiles=True
-			self.StartDiffDatabaseFiles(dialog.OrigFilename,
+			self.DebugPerformDiff=True
+			self.StartPerformDiff(dialog.OrigFilename,
 										dialog.PatchedFilename,
 										dialog.ResultFilename
 									)
-			self.DebugDiffDatabaseFiles=False
+			self.DebugPerformDiff=False
 
 	def new(self):
 		dialog=NewDiffingDialog()
@@ -415,16 +415,16 @@ class MainWindow(QMainWindow):
 		src_filename = str(dialog.Filenames['Orig'])
 		target_filename = str(dialog.Filenames['Patched'])
 		result_filename = str(dialog.Filenames['Result'])
-		self.StartDiffDatabaseFiles(src_filename,target_filename,result_filename)
+		self.StartPerformDiff(src_filename,target_filename,result_filename)
 
-	def StartDiffDatabaseFiles(self,src_filename,target_filename,result_filename):
+	def StartPerformDiff(self,src_filename,target_filename,result_filename):
 		self.clearAreas()
 
-		if self.DebugDiffDatabaseFiles:
-			print 'DiffDatabaseFiles: ', src_filename,target_filename,result_filename
-			DiffDatabaseFiles(src_filename,target_filename,result_filename)
+		if self.DebugPerformDiff:
+			print 'PerformDiff: ', src_filename,target_filename,result_filename
+			PerformDiff(src_filename,target_filename,result_filename)
 		else:
-			p=Process(target=DiffDatabaseFiles,args=(src_filename,target_filename,result_filename))
+			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename))
 			p.start()
 
 		while True:

@@ -24,6 +24,8 @@ class Differ:
 		filename = os.path.join( os.getcwd(), str(dgf_output_filename) )
 		log_filename = os.path.join( os.getcwd(), str(log_filename) )
 
+		print 'dgf_output_filename:', dgf_output_filename
+		#TODO: Fix
 		self.DarunGrim.GenerateDGF(
 			dgf_output_filename,
 			log_filename, 
@@ -31,7 +33,7 @@ class Differ:
 			ida_logfilename_for_target,
 			0, 0,
 			0, 0)
-		self.DarunGrim.Analyze()
+		self.DarunGrim.PerformDiff()
 
 	def SyncIDA( self ):
 		self.DarunGrim.AcceptIDAClientsFromSocket()

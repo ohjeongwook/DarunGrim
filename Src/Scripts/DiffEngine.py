@@ -145,7 +145,6 @@ class DarunGrim(_object):
     __repr__ = _swig_repr
     def SetLogParameters(self, *args): return _DiffEngine.DarunGrim_SetLogParameters(self, *args)
     def SetIDAPath(self, *args): return _DiffEngine.DarunGrim_SetIDAPath(self, *args)
-    def GenerateDGF(self, *args): return _DiffEngine.DarunGrim_GenerateDGF(self, *args)
     def AcceptIDAClientsFromSocket(self, storage_filename=None): return _DiffEngine.DarunGrim_AcceptIDAClientsFromSocket(self, storage_filename)
     def PerformDiff(self, *args): return _DiffEngine.DarunGrim_PerformDiff(self, *args)
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
@@ -155,9 +154,8 @@ class DarunGrim(_object):
     def ColorAddress(self, *args): return _DiffEngine.DarunGrim_ColorAddress(self, *args)
     def SetDatabase(self, *args): return _DiffEngine.DarunGrim_SetDatabase(self, *args)
     def StartIDAListener(self, *args): return _DiffEngine.DarunGrim_StartIDAListener(self, *args)
-    def SetOutputFilename(self, *args): return _DiffEngine.DarunGrim_SetOutputFilename(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.DarunGrim_SetLogFilename(self, *args)
-    def RunIDAToGenerateDGF(self, *args): return _DiffEngine.DarunGrim_RunIDAToGenerateDGF(self, *args)
+    def GenerateDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateDGFFromIDA(self, *args)
     def ConnectToDarunGrim(self, *args): return _DiffEngine.DarunGrim_ConnectToDarunGrim(self, *args)
     def GetIDALogFilename(self): return _DiffEngine.DarunGrim_GetIDALogFilename(self)
     def __init__(self): 

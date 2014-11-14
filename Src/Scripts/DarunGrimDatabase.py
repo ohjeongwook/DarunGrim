@@ -170,9 +170,20 @@ class Database:
 		self.SessionsInstances={}
 		for file_list in self.SessionInstance.query( FileList ).all():
 			filename=file_list.filename
+
 			if not os.path.isfile(filename):
 				filename=os.path.join(dirname,os.path.basename(file_list.filename))
 
+			if not os.path.isfile(filename):
+				if file_list.filename[-4:].lower()!='.idb':
+					idb_filename = file_list.filename[0:len(file_list.filename)] + '.idb'
+					filename = idb_filename
+
+			if not os.path.isfile(filename):
+				if file_list.filename[-4:].lower()!='.idb':
+					filename=os.path.join(dirname,os.path.basename(idb_filename))
+
+			print 'filename:', filename
 			engine = create_engine( 'sqlite:///' + filename, echo = echo )
 			metadata=Base.metadata
 			metadata.create_all(engine)

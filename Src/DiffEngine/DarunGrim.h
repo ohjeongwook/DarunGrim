@@ -110,13 +110,6 @@ public:
 
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
 
-	bool GenerateDGF( 
-		char *dgf_output_filename, 
-		char *log_filename, 
-		char *ida_log_filename_for_source,
-		char *ida_log_filename_for_target,
-		unsigned long start_address_for_source, unsigned long end_address_for_source, 
-		unsigned long start_address_for_target, unsigned long end_address_for_target );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	
 	void ListDiffDatabase(const char *storage_filename);
@@ -147,13 +140,12 @@ private:
 	IDAController *IDAControllers[2];
 
 	char *IDAPath;
-	char *EscapedOutputFilename;
-	char *EscapedLogFilename;
 	DWORD IDACommandProcessorThreadId;
 	char IDALogFilename[MAX_PATH + 1];
 
 	bool GenerateIDALogFilename();
-
+	char *EscapeFilename(char *filename);
+	char *LogFilename;
 public:
 
 	void SetDatabase(DBWrapper *OutputDB);
@@ -165,9 +157,11 @@ public:
 	DWORD IDACommandProcessor();
 	BOOL CreateIDACommandProcessorThread();
 	void SetIDAPath(const char *ParamIDAPath);
-	void SetOutputFilename(char *OutputFilename);
-	void SetLogFilename(char *LogFilename);
-	void RunIDAToGenerateDGF(const char *TheFilename, unsigned long StartAddress, unsigned long EndAddress);
+	void SetLogFilename(char *logfilename)
+	{
+		LogFilename = EscapeFilename(logfilename);
+	}
+	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename);
 	void ConnectToDarunGrim(const char *ida_filename);
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();

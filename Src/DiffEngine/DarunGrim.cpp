@@ -15,9 +15,8 @@ DarunGrim::DarunGrim():
 	pSourceController(NULL),
 	pTargetController(NULL),
 	pDiffMachine(NULL),
+	LogFilename(NULL),
 	IsLoadedSourceFile( false ),
-	EscapedOutputFilename(NULL),
-	EscapedLogFilename(NULL),
 	ListeningSocket(INVALID_SOCKET),
 	IDACommandProcessorThreadId(-1)
 {
@@ -46,12 +45,8 @@ DarunGrim::~DarunGrim()
 	if (IDAPath)
 		free(IDAPath);
 
-	if (EscapedOutputFilename)
-		free(EscapedOutputFilename);
-
-	if (EscapedLogFilename)
-		free(EscapedLogFilename);
-
+	if (LogFilename)
+		free(LogFilename);
 }
 
 void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
@@ -69,25 +64,6 @@ void DarunGrim::SetIDAPath(const char *ParamIDAPath)
 	if (IDAPath)
 		free(IDAPath);
 	IDAPath = _strdup(ParamIDAPath);
-}
-
-bool DarunGrim::GenerateDGF( 
-	char *dgf_output_filename, 
-	char *log_filename, 
-	char *ida_log_filename_for_source,
-	char *ida_log_filename_for_target,
-	unsigned long start_address_for_source, unsigned long end_address_for_source, 
-	unsigned long start_address_for_target, unsigned long end_address_for_target )
-{
-	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
-
-	SetOutputFilename(dgf_output_filename);
-	SetLogFilename( log_filename );
-	SetIDALogFilename( ida_log_filename_for_source );
-	RunIDAToGenerateDGF( SourceFilename.c_str(), start_address_for_source, end_address_for_source );
-	SetIDALogFilename( ida_log_filename_for_target );
-	RunIDAToGenerateDGF( TargetFilename.c_str(), start_address_for_target, end_address_for_target );
-	return OpenDatabase(dgf_output_filename);
 }
 
 DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
@@ -590,67 +566,49 @@ bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
 }"
 
 
-void DarunGrim::SetOutputFilename(char *OutputFilename)
+char *DarunGrim::EscapeFilename(char *filename)
 {
 	//Create IDC file
-	EscapedOutputFilename = (char *)malloc(strlen(OutputFilename) * 2 + 1);
+	char *escaped_filename = (char *)malloc(strlen(filename) * 2 + 1);
 
-	if (EscapedOutputFilename)
+	if (escaped_filename)
 	{
 		DWORD i = 0, j = 0;
-		for (; i<strlen(OutputFilename); i++, j++)
+		for (; i<strlen(filename); i++, j++)
 		{
-			EscapedOutputFilename[j] = OutputFilename[i];
-			if (OutputFilename[i] == '\\')
+			escaped_filename[j] = filename[i];
+			if (filename[i] == '\\')
 			{
 				j++;
-				EscapedOutputFilename[j] = '\\';
+				escaped_filename[j] = '\\';
 			}
 		}
-		EscapedOutputFilename[j] = NULL;
+		escaped_filename[j] = NULL;
 	}
+
+	return escaped_filename;
 }
 
-void DarunGrim::SetLogFilename(char *LogFilename)
+void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename)
 {
-	EscapedLogFilename = NULL;
-	if (LogFilename)
-	{
-		EscapedLogFilename = (char *)malloc(strlen(LogFilename) * 2 + 1);
-		if (EscapedLogFilename)
-		{
-			DWORD i = 0, j = 0;
-			for (; i<strlen(LogFilename); i++, j++)
-			{
-				EscapedLogFilename[j] = LogFilename[i];
-				if (LogFilename[i] == '\\')
-				{
-					j++;
-					EscapedLogFilename[j] = '\\';
-				}
-			}
-			EscapedLogFilename[j] = NULL;
-		}
-	}
-}
-
-void DarunGrim::RunIDAToGenerateDGF(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress)
-{
+	output_filename = EscapeFilename(output_filename);
+	log_filename = EscapeFilename(log_filename);
 	char *idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
-		EscapedLogFilename ? EscapedLogFilename : "",
-		EscapedOutputFilename ? EscapedOutputFilename : "",
+		log_filename ? log_filename : "",
+		output_filename ? output_filename:"",
 		StartAddress,
 		EndAddress);
+	free(output_filename);
 
 	char *Options = ""; //Or "-A" (Non interactive)
 	if (idc_filename)
 	{
 		//Run IDA
 		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
-		if (IDALogFilename[0])
+		if (LogFilename)
 		{
-			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, Options, IDALogFilename, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, Options, IDALogFilename, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, Options, LogFilename, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, Options, LogFilename, idc_filename, ida_filename);
 		}
 		else
 		{
@@ -664,13 +622,13 @@ void DarunGrim::RunIDAToGenerateDGF(const char *ida_filename, unsigned long Star
 
 void DarunGrim::ConnectToDarunGrim(const char *ida_filename)
 {
-	char *idc_filename = WriteToTemporaryFile(CONNECT_TO_DARUNGRIM_STR, EscapedLogFilename ? EscapedLogFilename : "");
+	char *idc_filename = WriteToTemporaryFile(CONNECT_TO_DARUNGRIM_STR, LogFilename ? LogFilename : "");
 
 	if (idc_filename)
 	{
 		//Run IDA
 		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
-		Logger.Log(10, "\"%s\" -S\"%s\" \"%s\"", IDAPath, EscapedLogFilename, idc_filename, ida_filename);
+		Logger.Log(10, "\"%s\" -S\"%s\" \"%s\"", IDAPath, LogFilename, idc_filename, ida_filename);
 
 		if (IDALogFilename[0])
 		{
