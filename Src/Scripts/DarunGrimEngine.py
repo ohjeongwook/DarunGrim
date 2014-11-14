@@ -7,33 +7,37 @@ LogToDbgview = 0x2
 LogToFile = 0x4
 LogToIDAMessageBox = 0x8
 
-class Differ:
+class DarunGrim:
 	def __init__ ( self, orig_filename, patched_filename ):
-		self.OrigFilename = str(orig_filename)
-		self.PatchedFilename = str(patched_filename)
+		self.SrcFilename = str(orig_filename)
+		self.TargetFilename = str(patched_filename)
 		self.DarunGrim = DiffEngine.DarunGrim()
-		self.DarunGrim.SetSourceFilename( self.OrigFilename )
-		self.DarunGrim.SetTargetFilename( self.PatchedFilename )
+		self.DarunGrim.SetSourceFilename( self.SrcFilename )
+		self.DarunGrim.SetTargetFilename( self.TargetFilename )
 		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA 6.6\idaq.exe' )
 		self.DarunGrim.SetLogParameters(LogToStdout, 100, "")
+
+	def SetLogFile(self,log_filename):
+		self.LogFilename=os.path.join( os.getcwd(), str(log_filename) )
 
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
 
-	def Start( self, dgf_output_filename, log_filename, ida_log_filename_for_source = None, ida_logfilename_for_target = None ):
-		filename = os.path.join( os.getcwd(), str(dgf_output_filename) )
-		log_filename = os.path.join( os.getcwd(), str(log_filename) )
+	def GetDGFName(self,filename):
+		if filename[-4]=='.':
+			return filename[0:-4] + ".dgf"
+		return filename + '.dgf'
 
-		print 'dgf_output_filename:', dgf_output_filename
-		#TODO: Fix
-		self.DarunGrim.GenerateDGF(
-			dgf_output_filename,
-			log_filename, 
-			ida_log_filename_for_source,
-			ida_logfilename_for_target,
-			0, 0,
-			0, 0)
-		self.DarunGrim.PerformDiff()
+	def PerformDiff( self, output_storage, src_ida_log_filename = "src.log", target_ida_log_filename = "target.log" ):
+		src_storage=self.GetDGFName(self.SrcFilename)
+		target_storage=self.GetDGFName(self.TargetFilename)
+
+		src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
+		target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
+
+		self.DarunGrim.GenerateSourceDGFFromIDA(src_storage, src_ida_log_filename)
+		self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename)
+		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
 
 	def SyncIDA( self ):
 		self.DarunGrim.AcceptIDAClientsFromSocket()
@@ -50,21 +54,16 @@ if __name__ == '__main__':
 	parser = OptionParser()
 	parser.add_option("-s", "--source_address", dest="source_address",
 						help="Source function address", type="int", default=0, metavar="SOURCE_ADDRESS")
+
 	parser.add_option("-t", "--target_address", dest="target_address",
 						help="Target function address", type="int", default=0, metavar="TARGET_ADDRESS")
 
 	(options, args) = parser.parse_args()
 
-	orig_filename = args[0]
-	patched_filename = args[1]
-	dgf_output_filename = args[2]
-
-	"""
-	darun_grim = DiffEngine.DarunGrim()
-	darun_grim.SetLogParameters(LogToStdout, 100, "")  
-
-	darun_grim.PerformDiff(src_filename, options.source_address, target_filename, options.target_address, result_filename)
-	"""
-
-	differ=Differ(orig_filename, patched_filename)
-	differ.Start( dgf_output_filename, "log.txt")
+	src_storage = args[0]
+	target_storage = args[1]
+	result_storage = args[2]
+	
+	#options.source_address, options.target_address
+	darungrim=DarunGrim(src_storage, target_storage)
+	darungrim.PerformDiff( "out.dgf")

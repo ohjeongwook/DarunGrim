@@ -74,6 +74,8 @@ public:
 	bool StartIDAListener( unsigned short port );
 
 	void SetLogFilename(char *LogFilename);
+	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename);
+	void GenerateTargetDGFFromIDA(char *output_filename, char *log_filename);
 	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename);
 	void ConnectToDarunGrim(char *ida_filename);
 	const char *GetIDALogFilename();

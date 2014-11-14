@@ -5274,6 +5274,96 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DarunGrim_GenerateSourceDGFFromIDA(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_GenerateSourceDGFFromIDA",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "3"" of type '" "char *""'");
+  }
+  arg3 = reinterpret_cast< char * >(buf3);
+  (arg1)->GenerateSourceDGFFromIDA(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_GenerateTargetDGFFromIDA(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_GenerateTargetDGFFromIDA",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "3"" of type '" "char *""'");
+  }
+  arg3 = reinterpret_cast< char * >(buf3);
+  (arg1)->GenerateTargetDGFFromIDA(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_DarunGrim_GenerateDGFFromIDA(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
@@ -5488,6 +5578,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_SetDatabase", _wrap_DarunGrim_SetDatabase, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_StartIDAListener", _wrap_DarunGrim_StartIDAListener, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetLogFilename", _wrap_DarunGrim_SetLogFilename, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_GenerateSourceDGFFromIDA", _wrap_DarunGrim_GenerateSourceDGFFromIDA, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_GenerateTargetDGFFromIDA", _wrap_DarunGrim_GenerateTargetDGFFromIDA, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GenerateDGFFromIDA", _wrap_DarunGrim_GenerateDGFFromIDA, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ConnectToDarunGrim", _wrap_DarunGrim_ConnectToDarunGrim, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GetIDALogFilename", _wrap_DarunGrim_GetIDALogFilename, METH_VARARGS, NULL},

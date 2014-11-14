@@ -589,6 +589,16 @@ char *DarunGrim::EscapeFilename(char *filename)
 	return escaped_filename;
 }
 
+void DarunGrim::GenerateSourceDGFFromIDA(char *output_filename, char *log_filename)
+{
+	GenerateDGFFromIDA(SourceFilename.c_str(), 0, 0, output_filename, log_filename);
+}
+
+void DarunGrim::GenerateTargetDGFFromIDA(char *output_filename, char *log_filename)
+{
+	GenerateDGFFromIDA(TargetFilename.c_str(), 0, 0, output_filename, log_filename);
+}
+
 void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename)
 {
 	output_filename = EscapeFilename(output_filename);

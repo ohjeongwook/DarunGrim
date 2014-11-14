@@ -155,6 +155,8 @@ class DarunGrim(_object):
     def SetDatabase(self, *args): return _DiffEngine.DarunGrim_SetDatabase(self, *args)
     def StartIDAListener(self, *args): return _DiffEngine.DarunGrim_StartIDAListener(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.DarunGrim_SetLogFilename(self, *args)
+    def GenerateSourceDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateSourceDGFFromIDA(self, *args)
+    def GenerateTargetDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateTargetDGFFromIDA(self, *args)
     def GenerateDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateDGFFromIDA(self, *args)
     def ConnectToDarunGrim(self, *args): return _DiffEngine.DarunGrim_ConnectToDarunGrim(self, *args)
     def GetIDALogFilename(self): return _DiffEngine.DarunGrim_GetIDALogFilename(self)
