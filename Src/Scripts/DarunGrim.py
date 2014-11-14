@@ -75,7 +75,7 @@ class FunctionMatchTable(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		print 'sort',col,order
 
 class BlockMatchTable(QAbstractTableModel):
 	def __init__(self,parent, *args):
@@ -368,7 +368,7 @@ class SessionsDialog(QDialog):
 	def GetFilename(self):
 		selection=self.session_table_view.selectionModel()
 		if selection!=None:
-			for index in sm.selection().indexes():
+			for index in selection.selection().indexes():
 				return self.session_table_model.GetFilename(index.row())
 		return ''
 
