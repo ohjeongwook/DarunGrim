@@ -705,7 +705,7 @@ public:
 		for(int i=0;i<MatchCount;i++)
 		{
 			FunctionMatchInfo match_info=pDiffMachine->GetFunctionMatchInfo(i);
-			if(match_info.BlockType==FUNCTION_BLOCK)
+			if (match_info.BlockType == FUNCTION_BLOCK && (OptionsDlg.ShowNonMatched || match_info.MatchRate < 100))
 			{
 				VirtualListDisplayItem *p_display_item = new VirtualListDisplayItem();
 
@@ -746,7 +746,7 @@ public:
 		sort(pDiffListDisplayItemArray->begin(), pDiffListDisplayItemArray->end(), m_DiffListSorter);
 
 		m_DiffListView.DeleteAllItems();
-		m_DiffListView.SetItemCount(MatchCount);
+		m_DiffListView.SetItemCount(pDiffListDisplayItemArray->size());
 		m_DiffListView.SetData(pDiffListDisplayItemArray);
 	}
 
