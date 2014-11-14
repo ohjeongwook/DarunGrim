@@ -60,9 +60,6 @@ class DarunGrim:
 		if not os.path.isfile(target_storage):
 			self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename)
 
-		print 'src_storage:', src_storage
-		print 'target_storage:', target_storage
-		print 'output_storage:', output_storage
 		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
 
 	def SyncIDA( self ):

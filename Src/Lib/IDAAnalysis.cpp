@@ -633,7 +633,6 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 	one_location_info.BlockType=UNKNOWN_BLOCK;
 	one_location_info.StartAddress=SrcBlock;
 	one_location_info.Flag=Flag;
-	
 
 	TCHAR name[225]={0,};
 
