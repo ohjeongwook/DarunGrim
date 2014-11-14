@@ -1745,7 +1745,6 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			if( p_one_location_info )
 			{
 #endif
-
 				if( p_one_location_info->BlockType==FUNCTION_BLOCK )
 				{
 					match_info.TheSourceAddress=p_one_location_info->StartAddress;
@@ -1771,8 +1770,6 @@ void DiffMachine::GenerateFunctionMatchInfo()
 				free( p_one_location_info );
 #endif
 			}
-			//if( unpatched_unidentified_number%8==7 )
-			//	if( DebugLevel&1 ) Logger.Log( 10,  "\n" );
 			unpatched_unidentified_number++;
 		}
 	}
