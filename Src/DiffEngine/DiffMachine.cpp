@@ -91,8 +91,18 @@ int DiffMachine::GetFingerPrintMatchRate( unsigned char* unpatched_finger_print,
 	{
 		char *patched_finger_print_str=BytesWithLengthAmbleToHex( patched_finger_print );
 		if( patched_finger_print_str )
-		{		
-			rate=GetStringSimilarity( unpatched_finger_print_str, patched_finger_print_str );
+		{
+			int unpatched_finger_print_str_len = strlen(unpatched_finger_print_str);
+			int patched_finger_print_str_len = strlen(patched_finger_print_str);
+			int diff_len = (unpatched_finger_print_str_len - patched_finger_print_str_len);
+			if (diff_len > unpatched_finger_print_str_len*0.5 || diff_len > patched_finger_print_str_len*0.5)
+			{
+				rate = 0;
+			}
+			else
+			{
+				rate = GetStringSimilarity(unpatched_finger_print_str, patched_finger_print_str);
+			}
 			free( unpatched_finger_print_str );
 		}
 		free( patched_finger_print_str );
@@ -301,41 +311,44 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 	vector <FunctionMatchInfo>::iterator iter;
 	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
 	{
-		Logger.Log( 10,  
-					"Source FileID: 0x%.8x\n"
-					"Target FileID: 0x % .8x\n"
-					"TheSourceAddress : 0x%.8x\n"
-					"EndAddress : 0x%.8x\n"
-					"TheTargetAddress : 0x%.8x\n"
-					"BlockType : 0x%.8x\n"
-					"MatchRate : 0x%.8x\n"
-					"TheSourceFunctionName : %s\n"
-					"Type : 0x%.8x\n"
-					"TheTargetFunctionName : %s\n"
-					"MatchCountForTheSource : 0x%.8x\n"
-					"NoneMatchCountForTheSource : 0x%.8x\n"
-					"MatchCountWithModificationForTheSource : 0x%.8x\n"
-					"MatchCountForTheTarget : 0x%.8x\n"
-					"NoneMatchCountForTheTarget : 0x%.8x\n"
-					"MatchCountWithModificationForTheTarget: 0x%.8x\n"
-					"\r\n", 
-					SourceController->GetFileID(), 
-					TargetController->GetFileID(), 
-					iter->TheSourceAddress, 
-					iter->EndAddress, 
-					iter->TheTargetAddress, 
-					iter->BlockType, 
-					iter->MatchRate, 
-					iter->TheSourceFunctionName, 
-					iter->Type, 
-					iter->TheTargetFunctionName, 
-					iter->MatchCountForTheSource, 
-					iter->NoneMatchCountForTheSource, 
-					iter->MatchCountWithModificationForTheSource, 
-					iter->MatchCountForTheTarget, 
-					iter->NoneMatchCountForTheTarget, 
-					iter->MatchCountWithModificationForTheTarget
-		);
+		if (DebugLevel & 4)
+		{
+			Logger.Log(10,
+				"Source FileID: 0x%.8x\n"
+				"Target FileID: 0x%.8x\n"
+				"TheSourceAddress : 0x%.8x\n"
+				"EndAddress : 0x%.8x\n"
+				"TheTargetAddress : 0x%.8x\n"
+				"BlockType : 0x%.8x\n"
+				"MatchRate : 0x%.8x\n"
+				"TheSourceFunctionName : %s\n"
+				"Type : 0x%.8x\n"
+				"TheTargetFunctionName : %s\n"
+				"MatchCountForTheSource : 0x%.8x\n"
+				"NoneMatchCountForTheSource : 0x%.8x\n"
+				"MatchCountWithModificationForTheSource : 0x%.8x\n"
+				"MatchCountForTheTarget : 0x%.8x\n"
+				"NoneMatchCountForTheTarget : 0x%.8x\n"
+				"MatchCountWithModificationForTheTarget: 0x%.8x\n"
+				"\r\n",
+				SourceController->GetFileID(),
+				TargetController->GetFileID(),
+				iter->TheSourceAddress,
+				iter->EndAddress,
+				iter->TheTargetAddress,
+				iter->BlockType,
+				iter->MatchRate,
+				iter->TheSourceFunctionName,
+				iter->Type,
+				iter->TheTargetFunctionName,
+				iter->MatchCountForTheSource,
+				iter->NoneMatchCountForTheSource,
+				iter->MatchCountWithModificationForTheSource,
+				iter->MatchCountForTheTarget,
+				iter->NoneMatchCountForTheTarget,
+				iter->MatchCountWithModificationForTheTarget
+				);
+		}
 
 		if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
 		{
@@ -726,12 +739,33 @@ MatchRateInfo *DiffMachine::GetMatchRate(DWORD source_address, DWORD target_addr
 
 		MatchRateInfo *pMatchRateInfoArray = new MatchRateInfo[source_addresses_number*target_addresses_number];
 
+		multimap <DWORD, DWORD> address_pair_map;
 		for (int i = 0; i < source_addresses_number; i++)
 		{
 			multimap <DWORD, unsigned char *>::iterator source_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find(source_addresses[i]);
 
 			for (int j = 0; j < target_addresses_number; j++)
 			{
+				multimap <DWORD, DWORD>::iterator it = address_pair_map.find(source_addresses[i]);
+
+				bool skip = false;
+				if (it != address_pair_map.end())
+				{
+					for (; it != address_pair_map.end(); it++)
+					{
+						if (it->second == target_addresses[j])
+						{
+							skip = true;
+							break;
+						}
+					}
+				}
+
+				if (skip)
+					continue;
+
+				address_pair_map.insert(pair<DWORD, DWORD>(source_addresses[i], target_addresses[j]));
+
 				multimap <DWORD, unsigned char *>::iterator target_fingerprint_hash_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_hash_map.find(target_addresses[j]);
 
 				if (source_fingerprint_hash_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.end() &&
@@ -739,6 +773,7 @@ MatchRateInfo *DiffMachine::GetMatchRate(DWORD source_address, DWORD target_addr
 				{
 					pMatchRateInfoArray[MatchRateInfoCount].Source = source_addresses[i];
 					pMatchRateInfoArray[MatchRateInfoCount].Target = target_addresses[j];
+
 					pMatchRateInfoArray[MatchRateInfoCount].MatchRate = GetFingerPrintMatchRate(source_fingerprint_hash_map_Iter->second, target_fingerprint_hash_map_Iter->second);
 					MatchRateInfoCount++;
 				}
@@ -1964,13 +1999,15 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 
 	DeleteMatchInfo( OutputDB );
 
-	Logger.Log( 10, "Executing %s\n", CREATE_MATCH_MAP_TABLE_STATEMENT );
+	if (DebugLevel & 8)
+		Logger.Log( 10, "Executing %s\n", CREATE_MATCH_MAP_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
 	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT);
 	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT);
 
-	Logger.Log( 10, "Executing %s\n", CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
+	if (DebugLevel & 8)
+		Logger.Log( 10, "Executing %s\n", CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
 	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT );
 
