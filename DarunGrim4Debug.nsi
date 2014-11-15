@@ -47,43 +47,30 @@ Section "" ;No components page, name is not important
   File Debug\DiffEngine.dll
   File Debug\_DiffEngine.pyd
   File Debug\DarunGrimPlugin.plw
-  File Debug\config6
+  File Debug\config
   File Debug\cdt.dll
-  File Debug\cgraph.dll
   File Debug\DiffEngine.dll
-  File Debug\fontconfig.dll
-  File Debug\freetype6.dll
   File Debug\graph.dll
   File Debug\gvc.dll
   File Debug\gvplugin_core.dll
   File Debug\gvplugin_dot_layout.dll
-  File Debug\gvplugin_gd.dll
-  File Debug\gvplugin_gdiplus.dll
-  File Debug\gvplugin_neato_layout.dll
   File Debug\gvplugin_pango.dll
   File Debug\iconv.dll
   File Debug\intl.dll
-  File Debug\jpeg62.dll
   File Debug\libcairo-2.dll
-  File Debug\libexpat-1.dll
   File Debug\libexpat.dll
   File Debug\libfontconfig-1.dll
   File Debug\libfreetype-6.dll
-  File Debug\libgdk_pixbuf-2.0-0.dll
   File Debug\libglib-2.0-0.dll
   File Debug\libgmodule-2.0-0.dll
   File Debug\libgobject-2.0-0.dll
-  File Debug\libgthread-2.0-0.dll
   File Debug\libpango-1.0-0.dll
   File Debug\libpangocairo-1.0-0.dll
   File Debug\libpangoft2-1.0-0.dll
   File Debug\libpangowin32-1.0-0.dll
-  File Debug\libpng12.dll
-  File Debug\libpng14-14.dll
   File Debug\libxml2.dll
   File Debug\ltdl.dll
   File Debug\pathplan.dll
-  File Debug\vmalloc.dll
   File Debug\zlib1.dll
   File Src\Scripts\DarunGrim.py
   File Src\Scripts\DarunGrimDatabase.py

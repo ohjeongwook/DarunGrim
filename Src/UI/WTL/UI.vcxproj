@@ -185,6 +185,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\Bin\GraphViz\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-x64|x64'">
     <ClCompile>
@@ -226,6 +229,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\Bin\GraphViz\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -275,6 +281,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\Bin\GraphViz\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-x64|x64'">
     <ClCompile>
@@ -324,6 +333,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)\Bin\GraphViz\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\DiffEngine\Common.h" />

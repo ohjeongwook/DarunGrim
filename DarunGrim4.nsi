@@ -47,43 +47,32 @@ Section "" ;No components page, name is not important
   File Release\DiffEngine.dll
   File Release\_DiffEngine.pyd
   File Release\DarunGrimPlugin.plw
-  File Release\config6
+  File Release\config
+  File Release\Conf.ini
   File Release\cdt.dll
-  File Release\cgraph.dll
   File Release\DiffEngine.dll
-  File Release\fontconfig.dll
-  File Release\freetype6.dll
   File Release\graph.dll
   File Release\gvc.dll
   File Release\gvplugin_core.dll
   File Release\gvplugin_dot_layout.dll
-  File Release\gvplugin_gd.dll
-  File Release\gvplugin_gdiplus.dll
-  File Release\gvplugin_neato_layout.dll
   File Release\gvplugin_pango.dll
   File Release\iconv.dll
   File Release\intl.dll
-  File Release\jpeg62.dll
   File Release\libcairo-2.dll
-  File Release\libexpat-1.dll
   File Release\libexpat.dll
   File Release\libfontconfig-1.dll
   File Release\libfreetype-6.dll
-  File Release\libgdk_pixbuf-2.0-0.dll
   File Release\libglib-2.0-0.dll
   File Release\libgmodule-2.0-0.dll
   File Release\libgobject-2.0-0.dll
-  File Release\libgthread-2.0-0.dll
   File Release\libpango-1.0-0.dll
   File Release\libpangocairo-1.0-0.dll
   File Release\libpangoft2-1.0-0.dll
   File Release\libpangowin32-1.0-0.dll
   File Release\libpng12.dll
-  File Release\libpng14-14.dll
   File Release\libxml2.dll
   File Release\ltdl.dll
   File Release\pathplan.dll
-  File Release\vmalloc.dll
   File Release\zlib1.dll
   File Src\Scripts\DarunGrim.py
   File Src\Scripts\DarunGrimDatabase.py
