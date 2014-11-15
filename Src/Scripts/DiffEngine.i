@@ -79,4 +79,5 @@ public:
 	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename);
 	void ConnectToDarunGrim(char *ida_filename);
 	const char *GetIDALogFilename();
+	void SetAutoMode(bool mode);
 };

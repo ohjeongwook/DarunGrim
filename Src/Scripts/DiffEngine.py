@@ -160,6 +160,7 @@ class DarunGrim(_object):
     def GenerateDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateDGFFromIDA(self, *args)
     def ConnectToDarunGrim(self, *args): return _DiffEngine.DarunGrim_ConnectToDarunGrim(self, *args)
     def GetIDALogFilename(self): return _DiffEngine.DarunGrim_GetIDALogFilename(self)
+    def SetAutoMode(self, *args): return _DiffEngine.DarunGrim_SetAutoMode(self, *args)
     def __init__(self): 
         this = _DiffEngine.new_DarunGrim()
         try: self.this.append(this)

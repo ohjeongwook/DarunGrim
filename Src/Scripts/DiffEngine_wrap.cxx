@@ -3421,6 +3421,20 @@ SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
   return res;
 }
 
+
+SWIGINTERN int
+SWIG_AsVal_bool (PyObject *obj, bool *val)
+{
+  int r;
+  if (!PyBool_Check(obj))
+    return SWIG_ERROR;
+  r = PyObject_IsTrue(obj);
+  if (r == -1)
+    return SWIG_ERROR;
+  if (val) *val = r ? true : false;
+  return SWIG_OK;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -5494,6 +5508,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DarunGrim_SetAutoMode(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  bool arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  bool val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetAutoMode",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetAutoMode" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  ecode2 = SWIG_AsVal_bool(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_SetAutoMode" "', argument " "2"" of type '" "bool""'");
+  } 
+  arg2 = static_cast< bool >(val2);
+  (arg1)->SetAutoMode(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_DarunGrim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *result = 0 ;
@@ -5583,6 +5627,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_GenerateDGFFromIDA", _wrap_DarunGrim_GenerateDGFFromIDA, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ConnectToDarunGrim", _wrap_DarunGrim_ConnectToDarunGrim, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GetIDALogFilename", _wrap_DarunGrim_GetIDALogFilename, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetAutoMode", _wrap_DarunGrim_SetAutoMode, METH_VARARGS, NULL},
 	 { (char *)"new_DarunGrim", _wrap_new_DarunGrim, METH_VARARGS, NULL},
 	 { (char *)"delete_DarunGrim", _wrap_delete_DarunGrim, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_swigregister", DarunGrim_swigregister, METH_VARARGS, NULL},

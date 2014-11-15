@@ -18,7 +18,8 @@ DarunGrim::DarunGrim():
 	LogFilename(NULL),
 	IsLoadedSourceFile( false ),
 	ListeningSocket(INVALID_SOCKET),
-	IDACommandProcessorThreadId(-1)
+	IDACommandProcessorThreadId(-1),
+	IDAAutoMode(TRUE)
 {
 	LogOperation::InitLog();
 	Logger.SetCategory( "DarunGrim" );
@@ -610,20 +611,20 @@ void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long Start
 		EndAddress);
 	free(output_filename);
 
-	char *Options = ""; //Or "-A" (Non interactive)
+	char *options = IDAAutoMode ? "-A" : "";
 	if (idc_filename)
 	{
 		//Run IDA
 		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
 		if (LogFilename)
 		{
-			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, Options, LogFilename, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, Options, LogFilename, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, options, LogFilename, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, options, LogFilename, idc_filename, ida_filename);
 		}
 		else
 		{
-			Logger.Log(10, "Executing \"%s\" %s -S\"%s\" \"%s\"\n", IDAPath, Options, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" %s -S\"%s\" \"%s\"", IDAPath, Options, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -S\"%s\" \"%s\"\n", IDAPath, options, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -S\"%s\" \"%s\"", IDAPath, options, idc_filename, ida_filename);
 		}
 		free(idc_filename);
 	}

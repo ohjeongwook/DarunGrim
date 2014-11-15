@@ -183,7 +183,6 @@ class Database:
 				if file_list.filename[-4:].lower()!='.idb':
 					filename=os.path.join(dirname,os.path.basename(idb_filename))
 
-			print 'filename:', filename
 			engine = create_engine( 'sqlite:///' + filename, echo = echo )
 			metadata=Base.metadata
 			metadata.create_all(engine)
