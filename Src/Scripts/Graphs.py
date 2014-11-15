@@ -221,7 +221,10 @@ class MyGraphicsView(QGraphicsView):
 
 	def clearLastItems(self):
 		for item in self.last_items:
-			self.scene.removeItem(item)
+			try:
+				self.scene.removeItem(item)
+			except:
+				pass
 		self.last_items=[]
 
 	def clear(self):

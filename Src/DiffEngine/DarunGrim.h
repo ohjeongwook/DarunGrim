@@ -25,6 +25,7 @@ private:
 	string TargetFilename;
 	string TargetIDBFilename;
 	bool IsLoadedSourceFile;
+	bool IDAAutoMode;
 public:
 	DarunGrim();
 	~DarunGrim();
@@ -168,4 +169,8 @@ public:
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();
 	BOOL AcceptIDAClient(IDAController *pIDAController, bool RetrieveData);
+	void SetAutoMode(bool mode)
+	{
+		IDAAutoMode = mode;
+	}
 };

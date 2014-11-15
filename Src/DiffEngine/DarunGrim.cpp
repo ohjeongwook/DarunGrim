@@ -52,8 +52,9 @@ DarunGrim::~DarunGrim()
 
 void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
 {
-	printf("SetLogParameters: %d %d %s\n", newLogOutputType, newDebugLevel, newLogFile);
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
+	Logger.Log(10, "SetLogParameters: %d %d %s\n", newLogOutputType, newDebugLevel, newLogFile);
+
 	Logger.SetOutputType(newLogOutputType);
 	if (newLogFile)
 		Logger.SetLogFilename(newLogFile);
