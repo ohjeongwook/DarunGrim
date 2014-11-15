@@ -14,11 +14,6 @@ from multiprocessing import Process
 import time
 import os
 
-def PerformDiff(src_filename,target_filename,result_filename):
-	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
-	darungrim.SetDGFSotrage(os.getcwd())
-	darungrim.PerformDiff(result_filename)
-
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
 	def __init__(self,parent, database_name='', *args):
@@ -370,6 +365,59 @@ class SessionsDialog(QDialog):
 				return self.session_table_model.GetFilename(index.row())
 		return ''
 
+def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100):
+	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
+	darungrim.SetDGFSotrage(os.getcwd())
+	if log_filename:
+		darungrim.SetLogFile(log_filename,log_level)
+	darungrim.PerformDiff(result_filename)
+
+class LogTextBoxDialog(QDialog):
+	def __init__(self,parent=None):
+		super(LogTextBoxDialog,self).__init__(parent)
+
+		self.text=QTextEdit()
+		self.text.setReadOnly(True)
+		vlayout=QVBoxLayout()
+		vlayout.addWidget(self.text)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
+		buttonBox.rejected.connect(self.reject)
+		vlayout.addWidget(buttonBox)
+
+		self.setLayout(vlayout)
+
+	def addText(self,text):
+		self.text.append(text)
+
+class LogThread(QThread):
+	data_read=Signal(object)
+
+	def __init__(self,filename):
+		QThread.__init__(self)
+		self.filename=filename
+		self.endLoop=False
+
+	def run(self):
+
+		while not self.endLoop:
+			try:
+				fd=open(self.filename,'rb')
+				break
+			except:
+				pass
+
+		while not self.endLoop:
+			data=fd.read(1024)
+
+			if data:
+				self.data_read.emit(data)
+
+		fd.close()
+
+	def end(self):
+		self.endLoop=True
+
 class MainWindow(QMainWindow):
 	UseDock=False
 
@@ -478,6 +526,9 @@ class MainWindow(QMainWindow):
 			self.setCentralWidget(main_widget)
 			self.show()
 
+		self.LogDialog=LogTextBoxDialog()
+		self.LogDialog.resize(800,600)
+
 		self.readSettings()
 
 	def clearAreas(self):
@@ -494,10 +545,12 @@ class MainWindow(QMainWindow):
 		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.DarunGrimStorageDir)
 		if dialog.exec_():
 			result_filename='%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
+			log_filename='%s-%s.log' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 
 			self.StartPerformDiff(dialog.OrigFilename,
 								dialog.PatchedFilename,
-								os.path.join(self.DarunGrimDGFDir, result_filename)
+								os.path.join(self.DarunGrimDGFDir, result_filename),
+								os.path.join(self.DarunGrimDGFDir, log_filename)
 							)
 
 			file_store_database=FileStoreDatabase.Database(self.FileStoreDatabase)
@@ -514,10 +567,17 @@ class MainWindow(QMainWindow):
 			src_filename = str(dialog.Filenames['Orig'])
 			target_filename = str(dialog.Filenames['Patched'])
 			result_filename = str(dialog.Filenames['Result'])
+			log_filename=result_filename+'.log'
 			self.StartPerformDiff(src_filename,target_filename,result_filename)
 
-	def StartPerformDiff(self,src_filename,target_filename,result_filename,debug=False):
+	def onTextBoxDataReady(self,data):
+		self.LogDialog.addText(data)
+
+	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',debug=False):
 		self.clearAreas()
+
+		if os.path.isfile(log_filename):
+			os.unlink(log_filename)
 
 		try:
 			os.makedirs(os.path.dirname(result_filename))
@@ -529,16 +589,25 @@ class MainWindow(QMainWindow):
 			p=None
 			PerformDiff(src_filename,target_filename,result_filename)
 		else:
-			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename))
+			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename))
 			p.start()
 
 		if p!=None:
+			self.LogDialog.show()
+
+			log_thread=LogThread(log_filename)
+			log_thread.data_read.connect(self.onTextBoxDataReady)
+			log_thread.start()
+
 			while True:
 				time.sleep(0.01)
 				if not p.is_alive():
 					break
 
 				qApp.processEvents()
+
+			log_thread.end()
+
 		self.OpenDatabase(result_filename)
 
 	def open(self):

@@ -16,11 +16,11 @@ class DarunGrim:
 		self.DarunGrim.SetSourceFilename( self.SrcFilename )
 		self.DarunGrim.SetTargetFilename( self.TargetFilename )
 		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA 6.6\idaq.exe' )
-		self.DarunGrim.SetLogParameters(LogToStdout, 100, "")
+		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 		self.DGFSotrage=''
 
-	def SetLogFile(self,log_filename):
-		self.LogFilename=os.path.join( os.getcwd(), str(log_filename) )
+	def SetLogFile(self,log_filename,log_level=10):
+		self.DarunGrim.SetLogParameters(LogToFile, log_level, str(log_filename))
 
 	def SetIDAPath( self, ida_path ):
 		self.DarunGrim.SetIDAPath( ida_path )
