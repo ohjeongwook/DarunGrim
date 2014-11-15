@@ -231,25 +231,28 @@ class FileStoreBrowserDialog(QDialog):
 		bottom_layout=QGridLayout()
 		bottom_layout.addWidget(orig_button,0,0)
 		bottom_layout.addWidget(self.orig_line,0,1)
-		bottom_layout.addWidget(patched_button,1,0)
-		bottom_layout.addWidget(self.patched_line,1,1)
+		bottom_layout.addWidget(patched_button,0,2)
+		bottom_layout.addWidget(self.patched_line,0,3)
 
 		if self.ShowResultButton:
-			bottom_layout.addWidget(result_button,2,0)
+			bottom_layout.addWidget(result_button,1,0)
 			bottom_layout.addWidget(self.result_line,2,1)
 
-		bottom_layout.addWidget(name_label,2,0)
-		bottom_layout.addWidget(self.name_line,2,1)
+		bottom_layout.addWidget(name_label,1,0)
+		bottom_layout.addWidget(self.name_line,1,1)
 
-		bottom_layout.addWidget(description_label,3,0)
-		bottom_layout.addWidget(self.description_line,3,1)
+		bottom_layout.addWidget(description_label,1,2)
+		bottom_layout.addWidget(self.description_line,1,3)
 
-		bottom_layout.addWidget(buttonBox,4,1)
+		bottom_layout.addWidget(buttonBox,4,3)
 
 		main_layout=QVBoxLayout()
 		main_layout.addWidget(self.filesWidgetsTemplate.tab_widget)
 		main_layout.addLayout(bottom_layout)
 		self.setLayout(main_layout)
+
+		self.resize(900,500)
+		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
 		self.show()
 
 	def keyPressEvent(self,e):
@@ -352,7 +355,7 @@ class SessionsDialog(QDialog):
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		vheader.setResizeMode(QHeaderView.Stretch)
 		view.setVerticalHeader(vheader)
 
 		hheader=QHeaderView(Qt.Orientation.Horizontal)
@@ -373,6 +376,9 @@ class SessionsDialog(QDialog):
 
 		vlayout.addWidget(buttonBox)
 		self.setLayout(vlayout)
+
+		self.resize(800,400)
+		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
 		self.show()
 
 	def GetFilename(self):
@@ -403,6 +409,7 @@ class LogTextBoxDialog(QDialog):
 		vlayout.addWidget(buttonBox)
 
 		self.setLayout(vlayout)
+		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
 
 	def addText(self,text):
 		self.text.append(text)

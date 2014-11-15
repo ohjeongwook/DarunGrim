@@ -379,6 +379,9 @@ class FilesWidgetsTemplate:
 		search_tab_vert_splitter.addWidget(view)
 		self.FileIndexTable=view
 
+		search_tab_vert_splitter.setStretchFactor(0,0)
+		search_tab_vert_splitter.setStretchFactor(1,1)
+
 		# Layout
 		vert_splitter.setStretchFactor(0,0)
 		vert_splitter.setStretchFactor(1,1)
