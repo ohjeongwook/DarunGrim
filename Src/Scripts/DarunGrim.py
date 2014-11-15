@@ -155,6 +155,14 @@ class NewDiffingDialog(QDialog):
 		main_layout.addWidget(buttonBox,3,1)
 		self.setLayout(main_layout)
 
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(NewDiffingDialog,self).keyPressEvent(e)
+
 	def getOrigFilename(self):
 		filename=self.getFilename("Orig")
 		self.orig_line.setText(filename)
@@ -243,6 +251,14 @@ class FileStoreBrowserDialog(QDialog):
 		main_layout.addLayout(bottom_layout)
 		self.setLayout(main_layout)
 		self.show()
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(FileStoreBrowserDialog,self).keyPressEvent(e)
 
 	def InitVars(self):
 		self.OrigFileID=0
@@ -390,6 +406,14 @@ class LogTextBoxDialog(QDialog):
 
 	def addText(self,text):
 		self.text.append(text)
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(LogTextBoxDialog,self).keyPressEvent(e)
 
 class LogThread(QThread):
 	data_read=Signal(object)

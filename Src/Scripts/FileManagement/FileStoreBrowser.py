@@ -238,6 +238,14 @@ class ImportMSUDialog(QDialog):
 		main_layout.addWidget(buttonBox,2,1)
 		self.setLayout(main_layout)
 
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(ImportMSUDialog,self).keyPressEvent(e)
+
 	def getTags(self):
 		return self.tag_line.text()
 
@@ -389,6 +397,14 @@ class FilesWidgetsTemplate:
 		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(FilesWidgetsTemplate,self).keyPressEvent(e)
+
 	def setDarunGrimStore(self,darungrim_store):
 		self.DarunGrimStore=darungrim_store
 
@@ -445,9 +461,7 @@ class FilesWidgetsTemplate:
 				break
 				
 	def searchLineFinished(self):
-		name=self.search_line.text()
-		self.FileIndexes=FileIndexTableModel(self.parent,self.DatabaseName,name=name)
-		self.FileIndexTable.setModel(self.FileIndexes)
+		self.SearchName()
 
 	def SearchName(self):
 		name=self.search_line.text()
