@@ -410,9 +410,13 @@ class LogTextBoxDialog(QDialog):
 
 		self.setLayout(vlayout)
 		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
+		self.textLen=0
 
 	def addText(self,text):
+		if self.textLen> 1024*1024:
+			self.text.clear()
 		self.text.append(text)
+		self.textLen+=len(text)
 
 	def keyPressEvent(self,e):
 		key=e.key()
@@ -431,7 +435,6 @@ class LogThread(QThread):
 		self.endLoop=False
 
 	def run(self):
-
 		while not self.endLoop:
 			try:
 				fd=open(self.filename,'rb')
@@ -440,8 +443,7 @@ class LogThread(QThread):
 				pass
 
 		while not self.endLoop:
-			data=fd.read(1024)
-
+			data=fd.read()
 			if data:
 				self.data_read.emit(data)
 
