@@ -253,6 +253,7 @@ class ImportMSUDialog(QDialog):
 class FilesWidgetsTemplate:
 	def __init__(self,parent,database_name):
 		self.DatabaseName=database_name
+		self.DarunGrimStore = "Z:\\DarunGrimStore" #TOOD:
 		self.parent=parent
 		vert_splitter=QSplitter()
 		# Company
@@ -388,6 +389,9 @@ class FilesWidgetsTemplate:
 		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 
+	def setDarunGrimStore(self,darungrim_store):
+		self.DarunGrimStore=darungrim_store
+
 	def importMSU(self):
 		dialog=ImportMSUDialog()
 		if dialog.exec_():
@@ -404,8 +408,8 @@ class FilesWidgetsTemplate:
 			ms_patch_handler=MSPatchFile.MSPatchHandler()
 
 			for src_dirname in ms_patch_handler.Extract(filename):
-				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
-				file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
+				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
+				file_store.CheckInFiles( src_dirname, target_dirname = self.DarunGrimStore, tags=tags )
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
@@ -485,7 +489,6 @@ if __name__=='__main__':
 			self.show()
 
 			self.readSettings()
-			self.TargetDirname = "Z:\\DarunGrimStore" #TOOD:
 
 		def clearAreas(self):
 			self.CompanyNames=CompanyNamesTableModel(self)
@@ -510,8 +513,8 @@ if __name__=='__main__':
 				ms_patch_handler=MSPatchFile.MSPatchHandler()
 
 				for src_dirname in ms_patch_handler.Extract(filename):
-					print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.TargetDirname, ','.join(tags))
-					file_store.CheckInFiles( src_dirname, target_dirname = self.TargetDirname, tags=tags )
+					print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
+					file_store.CheckInFiles( src_dirname, target_dirname = self.DarunGrimStore, tags=tags )
 
 		def createActions(self):
 			self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)

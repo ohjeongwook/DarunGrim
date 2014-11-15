@@ -190,6 +190,7 @@ class FileStoreBrowserDialog(QDialog):
 		self.InitVars()
 
 		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
+		self.filesWidgetsTemplate.setDarunGrimStore(self.DarunGrimStorageDir)
 
 		orig_button=QPushButton('Orig File >> ',self)
 		orig_button.clicked.connect(self.getOrigFilename)
@@ -365,9 +366,9 @@ class SessionsDialog(QDialog):
 				return self.session_table_model.GetFilename(index.row())
 		return ''
 
-def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100):
+def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100,dbg_storage_dir=''):
 	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
-	darungrim.SetDGFSotrage(os.getcwd())
+	darungrim.SetDGFSotrage(dbg_storage_dir)
 	if log_filename:
 		darungrim.SetLogFile(log_filename,log_level)
 	darungrim.PerformDiff(result_filename)
@@ -587,9 +588,9 @@ class MainWindow(QMainWindow):
 		if debug:
 			print 'PerformDiff: ', src_filename,target_filename,result_filename
 			p=None
-			PerformDiff(src_filename,target_filename,result_filename)
+			PerformDiff(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DarunGrimDGFDir)
 		else:
-			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename))
+			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DarunGrimDGFDir))
 			p.start()
 
 		if p!=None:
@@ -717,7 +718,8 @@ class MainWindow(QMainWindow):
 
 		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:
 		self.FileStoreDatabase='index.db'
-		self.DarunGrimDGFDir='z:\\DarunGrimDGFStore'
+		self.DarunGrimDGFDir='C:\\mat\\DarunGrimDGFs'
+		self.LogLevel=100
 
 	def closeEvent(self, event):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
