@@ -1000,11 +1000,11 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 	p_one_location_info->FunctionAddress = strtoul10(argv[3]);
 	p_one_location_info->BlockType = strtoul10(argv[4]);
 
-	if(DebugLevel&8)
+	if (DebugLevel & 0x10000000)
 	{		
 		Logger.Log( 10, "%s: %x Block Type: %d\n", __FUNCTION__, p_one_location_info->StartAddress, p_one_location_info->BlockType);
 	}
-	if(DebugLevel&1 && p_one_location_info->BlockType  ==  FUNCTION_BLOCK)
+	if (DebugLevel & 0x10000000 && p_one_location_info->BlockType == FUNCTION_BLOCK)
 	{		
 		Logger.Log( 10, "%s: Function Block: %x\n", __FUNCTION__, p_one_location_info->StartAddress);
 	}
@@ -1225,6 +1225,7 @@ unsigned char *HexToBytesWithLengthAmble(char *HexBytes)
 char *BytesWithLengthAmbleToHex(unsigned char *Bytes)
 {
 	int Len = *(unsigned short *)Bytes;
+
 	char *Hex = (char *)malloc(Len*2+1);
 	Hex[0] = NULL;
 	for(int i = 0;i<Len;i++)
@@ -1359,7 +1360,7 @@ BOOL IDAController::FixFunctionAddresses()
 		//StartAddress: AddressToFunctionMapIter->first
 		//FunctionAddress: AddressToFunctionMapIter->second
 		//Update
-		if(DebugLevel&1) 
+		if(DebugLevel&0x10000000) 
 			Logger.Log( 10, "Updating OneLocationInfoTable Address = %x Function = %x\r\n", 
 				AddressToFunctionMapIter->second, 
 				AddressToFunctionMapIter->first);

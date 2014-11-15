@@ -615,8 +615,6 @@ void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long Start
 	char *options = IDAAutoMode ? "-A" : "";
 	if (idc_filename)
 	{
-		//Run IDA
-		Logger.Log(10, "Analyzing [%s]( %s )\n", ida_filename, idc_filename);
 		if (LogFilename)
 		{
 			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, options, LogFilename, idc_filename, ida_filename);
