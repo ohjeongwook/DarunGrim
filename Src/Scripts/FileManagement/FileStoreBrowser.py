@@ -5,6 +5,7 @@ from PySide.QtSql import *
 import pprint
 import os
 import FileStoreDatabase
+import operator
 
 class CompanyNamesTableModel(QAbstractTableModel):
 	Debug=0
@@ -40,7 +41,11 @@ class CompanyNamesTableModel(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.CompanyNames=sorted(self.CompanyNames,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.CompanyNames.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class TagsTableModel(QAbstractTableModel):
 	Debug=0
@@ -76,7 +81,11 @@ class TagsTableModel(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.Tags=sorted(self.Tags,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.Tags.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class FileNamesTableModel(QAbstractTableModel):
 	Debug=0
@@ -112,14 +121,17 @@ class FileNamesTableModel(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.FileNames=sorted(self.FileNames,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.FileNames.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class FileIndexTableModel(QAbstractTableModel):
 	Debug=0
 	def __init__(self,parent, database_name='', name='', tag='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.FileIndexes=[]
-		self.FilenameAndSHA1s=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
@@ -128,18 +140,30 @@ class FileIndexTableModel(QAbstractTableModel):
 					tag=''
 					if tags!=None:
 						tag=tags.tag
-					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.FilenameAndSHA1s.append([fileindex.id,fileindex.full_path,fileindex.sha1])
+					self.FileIndexes.append([fileindex.filename, 
+											fileindex.arch, 
+											fileindex.company_name, 
+											fileindex.version_string, 
+											tag, 
+											fileindex.sha1,
+											fileindex.id,
+											fileindex.full_path ])
 			elif tag:
 				for (fileindex,tags) in database.GetFilesByTag(tag):
-					self.FileIndexes.append([fileindex.filename, fileindex.arch, fileindex.company_name, fileindex.version_string, tag, fileindex.sha1 ])
-					self.FilenameAndSHA1s.append([fileindex.id,fileindex.full_path,fileindex.sha1])
+					self.FileIndexes.append([fileindex.filename, 
+											fileindex.arch, 
+											fileindex.company_name, 
+											fileindex.version_string, 
+											tag, 
+											fileindex.sha1,
+											fileindex.id,
+											fileindex.full_path ])
 
 	def GetFilename(self,row):
-		return self.FilenameAndSHA1s[row][1]
+		return self.FileIndexes[row][7]
 
-	def GetFilenameAndSHA1(self,row):
-		return self.FilenameAndSHA1s[row]
+	def GetFileIndex(self,row):
+		return self.FileIndexes[row]
 
 	def GetName(self,row):
 		return str(self.FileIndexes[row][0])
@@ -164,27 +188,29 @@ class FileIndexTableModel(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.FileIndexes=sorted(self.FileIndexes,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.FileIndexes.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class VersionsTableModel(QAbstractTableModel):
 	Debug=0
 	def __init__(self,parent, database_name='', company_name='', filename='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.Versions=[]
-		self.FilenameAndSHA1s=[]
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
 			for fileindex in database.GetFilesByCompanyFilename(company_name,filename):
-				self.Versions.append((fileindex.version_string,fileindex.sha1))
-				self.FilenameAndSHA1s.append([fileindex.id, fileindex.full_path,fileindex.sha1])
+				self.Versions.append((fileindex.version_string,fileindex.sha1,fileindex.id, fileindex.full_path))
 			del database
 
 	def GetFilename(self,row):
-		return self.FilenameAndSHA1s[row][1]
+		return self.Versions[row][3]
 
-	def GetFilenameAndSHA1(self,row):
-		return self.FilenameAndSHA1s[row]
+	def GetVersion(self,row):
+		return self.Versions[row]
 
 	def GetName(self,row):
 		return str(self.Versions[row][0])
@@ -266,15 +292,14 @@ class FilesWidgetsTemplate:
 		vert_splitter=QSplitter()
 		# Company
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
 
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 		vert_splitter.addWidget(view)
 		self.CompanyNamesTable=view
 
@@ -286,29 +311,27 @@ class FilesWidgetsTemplate:
 
 		# File
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
 
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 		vert_splitter.addWidget(view)
 		self.FileNamesTable=view
 
 		# Version
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
 
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 		vert_splitter.addWidget(view)
 		self.VersionsTable=view
 
@@ -322,15 +345,14 @@ class FilesWidgetsTemplate:
 
 		# Tags
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
 
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 		search_pane_splitter.addWidget(view)
 		self.TagsTable=view
 
@@ -367,15 +389,14 @@ class FilesWidgetsTemplate:
 					
 		# File
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
 
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 		search_tab_vert_splitter.addWidget(view)
 		self.FileIndexTable=view
 
@@ -477,12 +498,14 @@ class FilesWidgetsTemplate:
 			selection=self.VersionsTable.selectionModel()
 			if selection!=None:
 				for index in selection.selection().indexes():
-					return self.Versions.GetFilenameAndSHA1(index.row())
+					version_info=self.Versions.GetVersion(index.row())
+					return {'id': version_info[2], 'filename': version_info[3], 'sha1': version_info[1]}
 		else:
 			selection=self.FileIndexTable.selectionModel()
 			if selection!=None:
 				for index in selection.selection().indexes():
-					return self.FileIndexes.GetFilenameAndSHA1(index.row())
+					file_index=self.FileIndexes.GetFileIndex(index.row())
+					return {'id': file_index[6], 'filename': file_index[7], 'sha1': file_index[5]}
 		return None
 
 if __name__=='__main__':

@@ -13,13 +13,13 @@ import pprint
 from multiprocessing import Process
 import time
 import os
+import operator
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
 	def __init__(self,parent, database_name='', *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.match_list=[]
-		self.full_fmi_list=[]
 
 		if database_name:
 			self.database = DarunGrimDatabase.Database(database_name)
@@ -41,12 +41,11 @@ class FunctionMatchTable(QAbstractTableModel):
 
 					self.match_list.append([function_match_info.source_function_name,
 										function_match_info.target_function_name,
-										str( function_match_info.match_rate)])
-
-					self.full_fmi_list.append(function_match_info)
+										str( function_match_info.match_rate),
+										function_match_info])
 
 	def GetFunctionAddresses(self,index):
-		return [self.full_fmi_list[index].source_address, self.full_fmi_list[index].target_address]
+		return [self.match_list[index][3].source_address, self.match_list[index][3].target_address]
 
 	def rowCount(self,parent):
 		return len(self.match_list)
@@ -68,12 +67,15 @@ class FunctionMatchTable(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		print 'sort',col,order
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.match_list=sorted(self.match_list,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.match_list.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class BlockMatchTable(QAbstractTableModel):
 	def __init__(self,parent, *args):
 		QAbstractTableModel.__init__(self,parent,*args)
-
 		self.match_list=[]
 
 	def GetBlockAddresses(self,index):
@@ -118,7 +120,11 @@ class BlockMatchTable(QAbstractTableModel):
 		return None
 
 	def sort(self,col,order):
-		pass
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.match_list=sorted(self.match_list,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.match_list.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class NewDiffingDialog(QDialog):
 	def __init__(self,parent=None):
@@ -287,19 +293,17 @@ class FileStoreBrowserDialog(QDialog):
 	def getOrigFilename(self):
 		ret = self.filesWidgetsTemplate.getCurrentSelection()
 		if ret!=None:
-			[id,filename,sha1] = ret
-			self.OrigFileID=id
-			self.OrigFilename=os.path.join(self.DarunGrimStorageDir,filename)
-			self.OrigFileSHA1=sha1
+			self.OrigFileID=ret['id']
+			self.OrigFilename=os.path.join(self.DarunGrimStorageDir,ret['filename'])
+			self.OrigFileSHA1=ret['sha1']
 			self.orig_line.setText(self.OrigFilename)
 
 	def getPatchedFilename(self):
 		ret = self.filesWidgetsTemplate.getCurrentSelection()
 		if ret!=None:
-			[id,filename,sha1]=ret
-			self.PatchedFileID=id
-			self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,filename)
-			self.PatchedFileSHA1=sha1
+			self.PatchedFileID=ret['id']
+			self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,ret['filename'])
+			self.PatchedFileSHA1=ret['sha1']
 			self.patched_line.setText(self.PatchedFilename)
 
 	def getResultFilename(self):
@@ -315,14 +319,16 @@ class SessionTable(QAbstractTableModel):
 	def __init__(self,parent,database_name='',*args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.list=[]
-		self.filenames=[]
 		database=FileStoreDatabase.Database(database_name)
 		for session in database.GetSessions():
-			self.list.append([session.name, session.description, database.GetFileNameWithVersionByID(session.src),database.GetFileNameWithVersionByID(session.dst)])
-			self.filenames.append(session.result)
+			self.list.append([session.name, 
+							session.description, 
+							database.GetFileNameWithVersionByID(session.src),
+							database.GetFileNameWithVersionByID(session.dst),
+							session.result])
 
 	def GetFilename(self,row):
-		return self.filenames[row]
+		return self.list[row][4]
 
 	def rowCount(self,parent):
 		return len(self.list)
@@ -343,8 +349,12 @@ class SessionTable(QAbstractTableModel):
 			return ["Name", "Description", "Orig", "Patched"][col]
 		return None
 
-	def sor(self,col,order):
-		pass
+	def sort(self,col,order):
+		self.emit(SIGNAL("layoutAboutToBeChanged()"))
+		self.list=sorted(self.list,key=operator.itemgetter(col))
+		if order==Qt.DescendingOrder:
+			self.list.reverse()
+		self.emit(SIGNAL("layoutChanged()"))
 
 class SessionsDialog(QDialog):
 	def __init__(self,parent=None,database_name=''):
@@ -352,15 +362,13 @@ class SessionsDialog(QDialog):
 
 		self.Filename=''
 		view=QTableView()
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.Stretch)
 		view.setVerticalHeader(vheader)
-
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
 
 		self.session_table_view=view
 
@@ -469,21 +477,18 @@ class MainWindow(QMainWindow):
 			graph_splitter=QSplitter()
 
 		# Functions
-		view=QTableView()
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
+		self.functions_match_table_view=QTableView()
+		self.functions_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.functions_match_table_view.setSortingEnabled(True)
+		self.functions_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		view.setVerticalHeader(vheader)
-
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
-
-		self.functions_match_table_view=view
+		self.functions_match_table_view.setVerticalHeader(vheader)
 
 		if database_name:
 			self.OpenDatabase(database_name)
+
 		if self.UseDock:
 			dock=QDockWidget("Functions",self)
 			dock.setObjectName("Functions")
@@ -491,31 +496,28 @@ class MainWindow(QMainWindow):
 			dock.setWidget(view)
 			self.addDockWidget(Qt.BottomDockWidgetArea,dock)
 		else:
-			bottom_splitter.addWidget(view)
+			bottom_splitter.addWidget(self.functions_match_table_view)
 
 		# Blocks
 		self.block_table_model=BlockMatchTable(self)
-		view=QTableView()
-		view.setModel(self.block_table_model)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.block_table_view=QTableView()
+		self.block_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.block_table_view.setSortingEnabled(True)
+		self.block_table_view.setModel(self.block_table_model)
+		self.block_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 		
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		view.setVerticalHeader(vheader)
-
-		hheader=QHeaderView(Qt.Orientation.Horizontal)
-		hheader.setResizeMode(QHeaderView.Stretch)
-		view.setHorizontalHeader(hheader)
-		self.block_table_view=view
+		self.block_table_view.setVerticalHeader(vheader)
 
 		if self.UseDock:
 			dock=QDockWidget("Blocks",self)
 			dock.setObjectName("Blocks")
 			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-			dock.setWidget(view)
+			dock.setWidget(self.block_table_view)
 			self.addDockWidget(Qt.BottomDockWidgetArea,dock)		
 		else:
-			bottom_splitter.addWidget(view)
+			bottom_splitter.addWidget(self.block_table_view)
 
 		# Function Graph
 		self.OrigFunctionGraph=MyGraphicsView()
@@ -686,7 +688,7 @@ class MainWindow(QMainWindow):
 		selection=self.functions_match_table_view.selectionModel()
 		if selection!=None:
 			selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
-
+		
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
 			for index in item.indexes():
