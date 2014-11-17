@@ -999,6 +999,7 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 	p_one_location_info->Flag = strtoul10(argv[2]);
 	p_one_location_info->FunctionAddress = strtoul10(argv[3]);
 	p_one_location_info->BlockType = strtoul10(argv[4]);
+	p_one_location_info->FingerprintLen = strlen(argv[5]);
 
 	if (DebugLevel & 0x10000000)
 	{		
@@ -1015,7 +1016,7 @@ POneLocationInfo IDAController::GetOneLocationInfo(DWORD address)
 {
 	POneLocationInfo p_one_location_info = (POneLocationInfo)malloc(sizeof(OneLocationInfo));
 	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(ReadOneLocationInfoCallback, p_one_location_info, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+		m_StorageDB->ExecuteStatement(ReadOneLocationInfoCallback, p_one_location_info, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	return p_one_location_info;
 }
 

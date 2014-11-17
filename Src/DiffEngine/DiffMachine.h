@@ -142,11 +142,7 @@ public:
 typedef multimap <DWORD, MatchData> MATCHMAP;
 #endif
 
-
-typedef struct _AnalysisResult_ {
-	MATCHMAP MatchMap;
-	hash_map <DWORD, DWORD> ReverseAddressMap;
-} AnalysisResult;
+class AnalysisResult;
 
 #define DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING 1
 
@@ -190,11 +186,11 @@ private:
 
 	//Algorithms
 	void DoFingerPrintMatch(MATCHMAP *pTemporaryMap);
-	void DoFingerPrintMatchInsideFunction(MATCHMAP *pTemporaryMap, DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses);
+	void DoFingerPrintMatchInsideFunction(DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses);
 	void PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap);
 
 	void DoIsomorphMatch(MATCHMAP *pTemporaryMap);
-	void DoFunctionMatch(MATCHMAP *pTemporaryMap, MATCHMAP *pTargetTemporaryMap);
+	void DoFunctionMatch(MATCHMAP *pTargetTemporaryMap);
 	bool DoFunctionLevelMatchOptimizing();
 
 	MatchRateInfo *GetMatchRate(DWORD source_address, DWORD target_address, int type, int &MatchRateInfoCount);
@@ -222,9 +218,9 @@ public:
 		DWORD address, 
 		IDAController *ClientManager, 
 		int index, 
-		int *p_found_match_number, 
-		int *p_found_match_with_difference_number, 
-		int *p_not_found_match_number,
+		int &found_match_number, 
+		int &found_match_with_difference_number,
+		int &not_found_match_number,
 		float &matchrate
 	);
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
