@@ -276,7 +276,14 @@ class Database:
 			self.SessionInstance = self.Session()
 			
 			metadata=MetaData(engine)
+
+			type_map={}
 			for file_list in self.SessionInstance.query(FileList).all():
+				if type_map.has_key(file_list.type):
+					continue
+
+				type_map[file_list.type]=1
+
 				query="ATTACH DATABASE '%s' AS %s;" % (file_list.filename,file_list.type)
 				engine.execute(query)
 
@@ -304,6 +311,9 @@ class Database:
 				self.SessionInstancesMap['Source']=self.SessionInstance
 			if not self.SessionInstancesMap.has_key('Target'):
 				self.SessionInstancesMap['Target']=self.SessionInstance
+
+	def __del__(self):
+		print '* Close datases'
 
 	def GetFilename(self,filename):
 		dirname=os.path.dirname(filename)
@@ -365,8 +375,11 @@ class Database:
 		query=query.outerjoin(TmpMatchMap, TargetOneLocationInfo.function_address==TmpMatchMap.target_address)
 		query=query.outerjoin(TmpSourceFunctionOneLocationInfo, TmpMatchMap.source_address==TmpSourceFunctionOneLocationInfo.start_address)
 
-		for ret in query.all():
-			target_non_matched.append(ret)
+		try:
+			for ret in query.all():
+				target_non_matched.append(ret)
+		except:
+			pass
 
 		return [matches,source_non_matched,target_non_matched]
 

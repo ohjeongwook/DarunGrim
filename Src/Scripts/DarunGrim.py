@@ -22,9 +22,9 @@ class FunctionMatchTable(QAbstractTableModel):
 		self.match_list=[]
 
 		if database_name:
-			self.database = DarunGrimDatabase.Database(database_name)
+			database = DarunGrimDatabase.Database(database_name)
 
-			for function_match_info in self.database.GetFunctionMatchInfo():
+			for function_match_info in database.GetFunctionMatchInfo():
 				if function_match_info.match_rate < 100:
 					if self.Debug>0:
 						print "%s\t%s\t%s\t%s\t%s%%\t%d\t%d\t%d\t%d\t%d\t%d" % (function_match_info.source_function_name,
@@ -79,9 +79,9 @@ class BBMatchTable(QAbstractTableModel):
 		self.match_list=[]
 
 		if database_name:
-			self.database = DarunGrimDatabase.Database(database_name)
+			database = DarunGrimDatabase.Database(database_name)
 
-			[matches,source_non_matched,target_non_matched]=self.database.GetBBMatchInfo()
+			[matches,source_non_matched,target_non_matched]=database.GetBBMatchInfo()
 			for (match_map,source_one_location_info,source_function_oli,target_one_location_info,target_function_oli) in matches:
 				source_function_name=''
 
@@ -496,6 +496,7 @@ class LogTextBoxDialog(QDialog):
 	def addText(self,text):
 		if self.textLen> 1024*1024:
 			self.text.clear()
+			self.textLen=0
 		self.text.append(text)
 		self.textLen+=len(text)
 
