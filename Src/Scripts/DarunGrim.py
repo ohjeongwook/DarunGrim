@@ -73,6 +73,79 @@ class FunctionMatchTable(QAbstractTableModel):
 			self.match_list.reverse()
 		self.emit(SIGNAL("layoutChanged()"))
 
+class BBMatchTable(QAbstractTableModel):
+	def __init__(self,parent, database_name='', *args):
+		QAbstractTableModel.__init__(self,parent,*args)
+		self.match_list=[]
+
+		if database_name:
+			self.database = DarunGrimDatabase.Database(database_name)
+
+			[matches,source_non_matched,target_non_matched]=self.database.GetBBMatchInfo()
+			for (match_map,source_one_location_info,source_function_oli,target_one_location_info,target_function_oli) in matches:
+				source_function_name=''
+
+				if source_function_oli!=None:
+					source_function_name=source_function_oli.name
+				target_function_name=''
+				if target_function_oli!=None:
+					target_function_name=target_function_oli.name
+
+				self.match_list.append([source_one_location_info.disasm_lines,
+									target_one_location_info.disasm_lines,
+									source_function_name,
+									target_function_name,
+									match_map.match_rate])
+
+			for (one_location_info, function_one_location_info, match_function_one_location_info) in source_non_matched:
+				function_name=''
+				if function_one_location_info!=None:
+					function_name=function_one_location_info.name
+
+				match_function_name=''
+				if match_function_one_location_info!=None:
+					match_function_name=match_function_one_location_info.name
+
+				self.match_list.append([one_location_info.disasm_lines,
+									"",
+									function_name,
+									match_function_name,
+									0])
+
+
+			for (one_location_info, function_one_location_info, match_function_one_location_info) in target_non_matched:
+				function_name=''
+				if function_one_location_info!=None:
+					function_name=function_one_location_info.name
+
+				match_function_name=''
+				if match_function_one_location_info!=None:
+					match_function_name=match_function_one_location_info.name
+
+				self.match_list.append(["",
+									one_location_info.disasm_lines,
+									match_function_name,
+									function_name,
+									0])
+	def rowCount(self,parent):
+		return len(self.match_list)
+	
+	def columnCount(self,parent):
+		return 5
+
+	def data(self,index,role):
+		if not index.isValid():
+			return None
+		elif role!=Qt.DisplayRole:
+			return None
+
+		return self.match_list[index.row()][index.column()]
+
+	def headerData(self,col,orientation,role):
+		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
+			return ["Orig", "Patched", "Orig Func", "Patched Func", "Match"][col]
+		return None
+
 class BlockMatchTable(QAbstractTableModel):
 	def __init__(self,parent, *args):
 		QAbstractTableModel.__init__(self,parent,*args)
@@ -486,14 +559,23 @@ class MainWindow(QMainWindow):
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		self.functions_match_table_view.setVerticalHeader(vheader)
 
+		self.bb_match_table_view=QTableView()
+		self.bb_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.bb_match_table_view.setSortingEnabled(True)
+		self.bb_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		
+		vheader=QHeaderView(Qt.Orientation.Vertical)
+		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		self.bb_match_table_view.setVerticalHeader(vheader)
+
 		if database_name:
 			self.OpenDatabase(database_name)
-
+				
 		if self.UseDock:
 			dock=QDockWidget("Functions",self)
 			dock.setObjectName("Functions")
 			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-			dock.setWidget(view)
+			dock.setWidget(self.functions_match_table_view)
 			self.addDockWidget(Qt.BottomDockWidgetArea,dock)
 		else:
 			bottom_splitter.addWidget(self.functions_match_table_view)
@@ -550,7 +632,13 @@ class MainWindow(QMainWindow):
 			virt_splitter.setOrientation(Qt.Vertical)
 
 			virt_splitter.addWidget(graph_splitter)
-			virt_splitter.addWidget(bottom_splitter)
+
+
+			tab_widget=QTabWidget()
+			tab_widget.addTab(bottom_splitter,"Functions..")
+			tab_widget.addTab(self.bb_match_table_view,"Basic blocks...")
+
+			virt_splitter.addWidget(tab_widget)
 
 			virt_splitter.setStretchFactor(0,1)
 			virt_splitter.setStretchFactor(1,0)
@@ -573,6 +661,9 @@ class MainWindow(QMainWindow):
 
 		self.functions_match_table_model=FunctionMatchTable(self)
 		self.functions_match_table_view.setModel(self.functions_match_table_model)
+
+		self.bb_match_table_model=BBMatchTable(self)
+		self.bb_match_table_view.setModel(self.bb_match_table_model)
 
 		self.block_table_model=BlockMatchTable(self)
 		self.block_table_view.setModel(self.block_table_model)
@@ -683,11 +774,18 @@ class MainWindow(QMainWindow):
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
+
 		self.functions_match_table_model=FunctionMatchTable(self,self.DatabaseName)
 		self.functions_match_table_view.setModel(self.functions_match_table_model)
 		selection=self.functions_match_table_view.selectionModel()
 		if selection!=None:
 			selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
+
+		self.bb_match_table_model=BBMatchTable(self,self.DatabaseName)
+		self.bb_match_table_view.setModel(self.bb_match_table_model)
+		selection=self.bb_match_table_view.selectionModel()
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleBBMatchTableChanged)
 		
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
@@ -720,6 +818,9 @@ class MainWindow(QMainWindow):
 				self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
 
 				break
+
+	def handleBBMatchTableChanged(self,selected,dselected):
+		pass
 
 	def handleBlockTableChanged(self,selected,dselected):
 		for item in selected:
@@ -760,6 +861,7 @@ class MainWindow(QMainWindow):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("geometry", self.saveGeometry())
 		settings.setValue("geometry/functions_match_table_view", self.functions_match_table_view.saveGeometry())
+		settings.setValue("geometry/bb_match_table_view", self.bb_match_table_view.saveGeometry())
 		settings.setValue("geometry/block_table_view", self.block_table_view.saveGeometry())
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)

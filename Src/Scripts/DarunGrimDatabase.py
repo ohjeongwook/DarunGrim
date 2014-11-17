@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine,Table,Column,Integer,String,Text,ForeignKey,MetaData,BLOB,CLOB
-from sqlalchemy.orm import mapper
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import mapper, sessionmaker, aliased
+from sqlalchemy.sql import exists
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import engine
 from sqlalchemy.engine.reflection import Inspector
@@ -121,7 +121,7 @@ class MatchMap(Base):
 		pass
 
 	def __repr__(self):
-		return "<MatchMap('%d')>" % (self.id)
+		return "<MatchMap('%d', '%d', '%d', '%X', '%X', '%d', '%d', '%d', '%d', '%d', '%X', '%X' )>" % (self.id, self.source_file_id, self.target_file_id, self.source_address, self.target_address, self.match_type, self.type, self.sub_type, self.status, self.match_rate, self.source_parent_address, self.target_parent_address)
 
 class FunctionMatchInfo(Base):
 	__tablename__='FunctionMatchInfo'
@@ -334,12 +334,41 @@ class Database:
 		return self.SessionInstance.query(FunctionMatchInfo).count()
 
 	def GetBBMatchInfo(self):
-		query=self.SessionInstance.query(MatchMap).filter(MatchMap.match_rate < 100)
-		rets=query.outerjoin(OneLocationInfo, MatchMap.source_address==OneLocationInfo.start_address).all()
+		SourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='SourceFunctionOneLocationInfo')
+		TargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TargetFunctionOneLocationInfo')
 
-		pprint.pprint(rets)
+		query=self.SessionInstance.query(MatchMap,SourceOneLocationInfo,SourceFunctionOneLocationInfo,TargetOneLocationInfo,TargetFunctionOneLocationInfo).filter(MatchMap.match_rate < 100)
+		query=query.outerjoin(SourceOneLocationInfo, MatchMap.source_address==SourceOneLocationInfo.start_address)
+		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TargetOneLocationInfo, MatchMap.target_address==TargetOneLocationInfo.start_address)
+		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
+		matches=query.all()
 
-		return rets
+		TmpMatchMap=aliased(MatchMap,name='TmpMatchMap')
+		TmpTargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TmpTargetOneLocationInfo')
+		TmpSourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='TmpSourceFunctionOneLocationInfo')
+
+		source_non_matched=[]
+		stmt=exists().where(SourceOneLocationInfo.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(SourceOneLocationInfo,SourceFunctionOneLocationInfo,TmpTargetFunctionOneLocationInfo).filter(SourceOneLocationInfo.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TmpMatchMap, SourceOneLocationInfo.function_address==TmpMatchMap.source_address)
+		query=query.outerjoin(TmpTargetFunctionOneLocationInfo, TmpMatchMap.target_address==TmpTargetFunctionOneLocationInfo.start_address)
+
+		for ret in query.all():
+			source_non_matched.append(ret)
+		
+		target_non_matched=[]
+		stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(TargetOneLocationInfo,TargetFunctionOneLocationInfo,TmpSourceFunctionOneLocationInfo).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TmpMatchMap, TargetOneLocationInfo.function_address==TmpMatchMap.target_address)
+		query=query.outerjoin(TmpSourceFunctionOneLocationInfo, TmpMatchMap.source_address==TmpSourceFunctionOneLocationInfo.start_address)
+
+		for ret in query.all():
+			target_non_matched.append(ret)
+
+		return [matches,source_non_matched,target_non_matched]
 
 	def GetBlockName(self, file_id, address):
 		for one_location_info in self.SessionInstance.query(OneLocationInfo).filter_by(file_id=file_id, start_address=address).all():
