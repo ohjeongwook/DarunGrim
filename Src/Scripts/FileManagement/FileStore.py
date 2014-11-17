@@ -71,32 +71,32 @@ class FileProcessor:
 			ret = '_'
 		return ret
 
-	def CheckInFiles( self, src_dirname, target_dirname = None, download = None, copy_file = True, overwrite_mode = False, tags=[] ):
+	def CheckInFiles( self, src_dirname, storage_root = None, download = None, copy_file = True, overwrite_mode = False, tags=[] ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
 		for file in dircache.listdir( src_dirname ):
-			current_path = os.path.join( src_dirname, file )
-			if os.path.isdir( current_path ):
+			src_filename = os.path.join( src_dirname, file )
+			if os.path.isdir( src_filename ):
 				try:
-					self.CheckInFiles( os.path.join( src_dirname, file ), target_dirname, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags )
+					self.CheckInFiles( os.path.join( src_dirname, file ), storage_root, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags )
 				except:
 					import traceback
 					traceback.print_exc()
 					continue
 
-			elif self.IsExecutable( current_path ):
+			elif self.IsExecutable( src_filename ):
 				#Check MZ at the start of the file
 				if self.DebugLevel > 2:
-					print current_path
+					print src_filename
 
-				filename = os.path.basename( current_path )
+				filename = os.path.basename( src_filename )
 				
 				if not filename in self.NotInterestedFiles:
-					version_info = self.QueryFile( current_path )
+					version_info = self.QueryFile( src_filename )
 					
 					try:
-						statinfo = os.stat( current_path )
+						statinfo = os.stat( src_filename )
 						if self.DebugLevel > 2:
 							print "%s=%s,%s" % ( file, time.ctime(statinfo.st_ctime), time.ctime(statinfo.st_mtime) )
 
@@ -109,7 +109,7 @@ class FileProcessor:
 						added_time = time.localtime( time.time() )
 						added_time_dt = datetime.datetime( added_time.tm_year, added_time.tm_mon, added_time.tm_mday, added_time.tm_hour, added_time.tm_min, added_time.tm_sec )
 
-						fd = open( current_path, "rb" )
+						fd = open( src_filename, "rb" )
 						data = fd.read()
 						fd.close()
 						md5 = self.GetMD5( data )
@@ -131,70 +131,43 @@ class FileProcessor:
 							company_name = version_info['CompanyName']
 							file_version = version_info['FileVersion']
 
-						target_relative_directory = "%s\\%s\%s\\%s" % (sha1[0:2],sha1[2:4],sha1[4:6],sha1[6:8])
-						if not target_dirname:
-							target_dirname = os.getcwd()
-
-						target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
 						files = self.Database.GetFileBySHA1( sha1, None,None,None,None,None )
 
-						if not files or len(files) == 0 or overwrite_mode:
-							if self.DebugLevel > 2:
-								print 'New', download, current_path, version_info, 'filename=',filename,sha1
+						if not storage_root:
+							storage_root = os.getcwd()
 
-							target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
-							target_full_directory = os.path.join( target_dirname, target_relative_directory )
-							target_full_filename = os.path.join( target_dirname, target_relative_filename )
+						target_relative_directory = "%s\\%s\%s\\%s\\%s" % (sha1[0:2],sha1[2:4],sha1[4:6],sha1[6:8],sha1[8:])
+						target_full_directory = os.path.join( storage_root, target_relative_directory )
+						target_full_filename = os.path.join( storage_root, os.path.join( target_relative_directory, os.path.basename( src_filename ) ) )
 							
-							if self.DebugLevel > 2:
-								print 'target_relative_directory', target_relative_directory
-								print 'target_relative_filename', target_relative_filename
-								print 'target_full_filename',target_full_filename
-
+						if not os.path.isfile(target_full_filename) or not files or len(files) == 0 or overwrite_mode:
 							if not os.path.isdir( target_full_directory ):
 								try:
 									os.makedirs( target_full_directory )
 								except:
 									print 'Failed to make',target_full_directory
-									print 'target_full_filename=',target_full_filename
 
-							if current_path.lower() != target_full_filename.lower():
+							if src_filename.lower() != target_full_filename.lower():
 								if self.DebugLevel > 1:
-									print "Different src and target:",current_path, target_full_filename
-
-								if os.path.exists( target_full_filename ):
-									target_relative_directory = os.path.join( target_relative_directory, sha1 )
-									target_relative_filename = os.path.join( target_relative_directory, os.path.basename( current_path ) )
-									target_full_directory = os.path.join( target_dirname, target_relative_directory )
-									target_full_filename = os.path.join( target_dirname, target_relative_filename )
-
-									if self.DebugLevel > 2:
-										print 'target_relative_directory', target_relative_directory
-										print 'target_relative_filename', target_relative_filename
-										print 'target_full_filename',target_full_filename
-
-									if not os.path.isdir( target_full_directory ):
-										os.makedirs( target_full_directory )
-
-								if not os.path.exists( target_full_filename ):
-									try:
-										if self.DebugLevel > 1:
-											if copy_file:
-												op="Copy"
-											else:
-												op="Move"
-											print '%s %s -> %s' % (op, current_path, target_full_filename)
-
+									print "Different src and target:",src_filename, target_full_filename
+								try:
+									if self.DebugLevel > -1:
 										if copy_file:
-											shutil.copyfile( current_path, target_full_filename )
+											op="Copy"
 										else:
-											shutil.move( current_path, target_full_filename )
-									except:
-										import traceback
-										traceback.print_exc()
+											op="Move"
+										print '%s %s -> %s' % (op, src_filename, target_full_filename)
+
+									if copy_file:
+										shutil.copyfile( src_filename, target_full_filename )
+									else:
+										shutil.move( src_filename, target_full_filename )
+								except:
+									import traceback
+									traceback.print_exc()
 
 						import pefile
-						pe = pefile.PE(current_path)
+						pe = pefile.PE(src_filename)
 						_32bitFlag = pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE']
 
 						if ( pe.FILE_HEADER.Machine & _32bitFlag ) == _32bitFlag:
@@ -203,15 +176,14 @@ class FileProcessor:
 							arch="64"
 
 						if files and len(files)>0:
-							#Update
 							if self.DebugLevel > 2:
-								print 'Already there:', current_path, version_info,sha1,files
+								print 'Already there:', src_filename, version_info,sha1,files
 
 							for file in files:
 								# timestamp comparision and update
 								if file.mtime < mtime_dt or overwrite_mode:
 									if self.DebugLevel > 2:
-										print 'Updating with older data:', current_path, version_info
+										print 'Updating with older data:', src_filename, version_info
 								
 									self.Database.UpdateFileByObject(
 										file,
@@ -223,7 +195,7 @@ class FileProcessor:
 										company_name,
 										file_version,
 										patch_identifier,
-										current_path,
+										src_filename,
 										target_relative_filename,
 										ctime = ctime_dt,
 										mtime = mtime_dt,
@@ -233,7 +205,6 @@ class FileProcessor:
 										tags = tags
 									)
 						else:
-							#New
 							self.Database.AddFile( 
 								download,
 								arch,
@@ -243,7 +214,7 @@ class FileProcessor:
 								company_name, 
 								file_version, 
 								patch_identifier,
-								current_path,
+								src_filename,
 								target_relative_filename,
 								ctime = ctime_dt,
 								mtime = mtime_dt,
@@ -305,11 +276,11 @@ if __name__=='__main__':
 		file_store = FileProcessor( databasename = r'index.db' )
 
 		src_dirname = args[0]
-		target_dirname = args[1]
+		storage_root = args[1]
 
 		tags=options.tags.split(',')
-		print 'Store: %s -> %s (tags:%s)' % (src_dirname, target_dirname, ','.join(tags))
-		file_store.CheckInFiles( src_dirname, target_dirname = target_dirname, tags=tags )
+		print 'Store: %s -> %s (tags:%s)' % (src_dirname, storage_root, ','.join(tags))
+		file_store.CheckInFiles( src_dirname, storage_root = storage_root, tags=tags )
 
 	elif options.test:
 		import unittest, sys, os

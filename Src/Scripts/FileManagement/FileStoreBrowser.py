@@ -449,7 +449,7 @@ class FilesWidgetsTemplate:
 
 			for src_dirname in ms_patch_handler.Extract(filename):
 				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
-				file_store.CheckInFiles( src_dirname, target_dirname = self.DarunGrimStore, tags=tags )
+				file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
@@ -554,7 +554,7 @@ if __name__=='__main__':
 
 				for src_dirname in ms_patch_handler.Extract(filename):
 					print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
-					file_store.CheckInFiles( src_dirname, target_dirname = self.DarunGrimStore, tags=tags )
+					file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
 
 		def createActions(self):
 			self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)

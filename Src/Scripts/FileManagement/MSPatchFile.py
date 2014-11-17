@@ -104,4 +104,4 @@ if __name__=='__main__':
 		ms_patch_handler=MSPatchHandler()
 		for dir in ms_patch_handler.Extract(filename):
 			print 'Store: %s -> %s (tags:%s)' % (src_dirname, target_dirname, ','.join(tags))
-			file_store.CheckInFiles( src_dirname, target_dirname = target_dirname, tags=tags )
+			file_store.CheckInFiles( src_dirname, target_dirname, tags=tags )
