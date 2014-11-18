@@ -267,6 +267,8 @@ class Database:
 		if self.DebugLevel > 2:
 			echo = True
 
+		self.FileList=[]
+
 		if self.UseAttach:
 			engine=create_engine('sqlite://',echo=False)
 			engine.execute("ATTACH DATABASE '%s' AS Diff;" % filename)
@@ -283,6 +285,7 @@ class Database:
 					continue
 
 				type_map[file_list.type]=1
+				self.FileList.append(file_list)
 
 				query="ATTACH DATABASE '%s' AS %s;" % (file_list.filename,file_list.type)
 				engine.execute(query)
@@ -306,11 +309,21 @@ class Database:
 				self.Session=sessionmaker()
 				self.Session.configure(bind=engine)	
 				self.SessionInstancesMap[file_list.type] = self.Session()
+				self.FileList.append(file_list)
 
 			if not self.SessionInstancesMap.has_key('Source'):
 				self.SessionInstancesMap['Source']=self.SessionInstance
 			if not self.SessionInstancesMap.has_key('Target'):
 				self.SessionInstancesMap['Target']=self.SessionInstance
+
+	def GetDescription(self):
+		description=''
+		for file_list in self.FileList:
+			if description:
+				description+=' - '
+			description+=os.path.basename(file_list.filename)
+
+		return description
 
 	def GetFilename(self,filename):
 		dirname=os.path.dirname(filename)

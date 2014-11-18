@@ -396,16 +396,23 @@ class SessionTable(QAbstractTableModel):
 			if dst_tag!=None:
 				dst_tag_name=dst_tag.tag
 
+			src_filename=database.GetFileNameWithVersionByID(session.src)
+			dst_filename=database.GetFileNameWithVersionByID(session.dst)
+			description="%s - %s vs %s - %s" % (src_filename, src_tag_name, dst_filename, dst_tag_name)
 			self.list.append([session.name, 
 							session.description, 
-							database.GetFileNameWithVersionByID(session.src),
+							src_filename,
 							src_tag_name,
-							database.GetFileNameWithVersionByID(session.dst),
+							dst_filename,
 							dst_tag_name,
-							session.result])
+							session.result,
+							description])
 
 	def GetFilename(self,row):
 		return self.list[row][6]
+
+	def GetDescription(self,row):
+		return self.list[row][7]
 
 	def rowCount(self,parent):
 		return len(self.list)
@@ -448,10 +455,10 @@ class SessionsDialog(QDialog):
 		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-		self.session_table_view=view
+		self.SessionTableView=view
 
-		self.session_table_model=SessionTable(self,database_name)
-		self.session_table_view.setModel(self.session_table_model)
+		self.SessionTable=SessionTable(self,database_name)
+		self.SessionTableView.setModel(self.SessionTable)
 
 		vlayout=QVBoxLayout()
 		vlayout.addWidget(view)
@@ -468,10 +475,17 @@ class SessionsDialog(QDialog):
 		self.show()
 
 	def GetFilename(self):
-		selection=self.session_table_view.selectionModel()
+		selection=self.SessionTableView.selectionModel()
 		if selection!=None:
 			for index in selection.selection().indexes():
-				return self.session_table_model.GetFilename(index.row())
+				return self.SessionTable.GetFilename(index.row())
+		return ''
+
+	def GetDescription(self):
+		selection=self.SessionTableView.selectionModel()
+		if selection!=None:
+			for index in selection.selection().indexes():
+				return self.SessionTable.GetDescription(index.row())
 		return ''
 
 	def headerData(self,col,orientation,role):
@@ -562,21 +576,21 @@ class MainWindow(QMainWindow):
 			graph_splitter=QSplitter()
 
 		# Functions
-		self.functions_match_table_view=QTableView()
+		self.FunctionMatchTableView=QTableView()
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.functions_match_table_view.setVerticalHeader(vheader)
-		self.functions_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		self.functions_match_table_view.setSortingEnabled(True)
-		self.functions_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.FunctionMatchTableView.setVerticalHeader(vheader)
+		self.FunctionMatchTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.FunctionMatchTableView.setSortingEnabled(True)
+		self.FunctionMatchTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 		
-		self.bb_match_table_view=QTableView()
+		self.BBMatchTableView=QTableView()
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.bb_match_table_view.setVerticalHeader(vheader)
-		self.bb_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		self.bb_match_table_view.setSortingEnabled(True)
-		self.bb_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.BBMatchTableView.setVerticalHeader(vheader)
+		self.BBMatchTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.BBMatchTableView.setSortingEnabled(True)
+		self.BBMatchTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		if database_name:
 			self.OpenDatabase(database_name)
@@ -585,10 +599,10 @@ class MainWindow(QMainWindow):
 			dock=QDockWidget("Functions",self)
 			dock.setObjectName("Functions")
 			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-			dock.setWidget(self.functions_match_table_view)
+			dock.setWidget(self.FunctionMatchTableView)
 			self.addDockWidget(Qt.BottomDockWidgetArea,dock)
 		else:
-			bottom_splitter.addWidget(self.functions_match_table_view)
+			bottom_splitter.addWidget(self.FunctionMatchTableView)
 
 		# Blocks
 		self.block_table_model=BlockMatchTable(self)
@@ -645,7 +659,7 @@ class MainWindow(QMainWindow):
 
 			tab_widget=QTabWidget()
 			tab_widget.addTab(bottom_splitter,"Functions..")
-			tab_widget.addTab(self.bb_match_table_view,"Basic blocks...")
+			tab_widget.addTab(self.BBMatchTableView,"Basic blocks...")
 
 			virt_splitter.addWidget(tab_widget)
 
@@ -668,11 +682,11 @@ class MainWindow(QMainWindow):
 		self.OrigFunctionGraph.clear()
 		self.PatchedFunctionGraph.clear()
 
-		self.functions_match_table_model=FunctionMatchTable(self)
-		self.functions_match_table_view.setModel(self.functions_match_table_model)
+		self.FunctionMatchTable=FunctionMatchTable(self)
+		self.FunctionMatchTableView.setModel(self.FunctionMatchTable)
 
-		self.bb_match_table_model=BBMatchTable(self)
-		self.bb_match_table_view.setModel(self.bb_match_table_model)
+		self.BBMatchTable=BBMatchTable(self)
+		self.BBMatchTableView.setModel(self.BBMatchTable)
 
 		self.block_table_model=BlockMatchTable(self)
 		self.block_table_view.setModel(self.block_table_model)
@@ -696,6 +710,7 @@ class MainWindow(QMainWindow):
 		dialog=SessionsDialog(database_name=self.FileStoreDatabase)
 		if dialog.exec_():
 			self.OpenDatabase(os.path.join(self.DarunGrimDGFDir, dialog.GetFilename()))
+			self.setWindowTitle("DarunGrim 4 %s" % dialog.GetDescription())
 
 	def new(self):
 		dialog=NewDiffingDialog()
@@ -784,22 +799,25 @@ class MainWindow(QMainWindow):
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
 
-		self.functions_match_table_model=FunctionMatchTable(self,self.DatabaseName)
-		self.functions_match_table_view.setModel(self.functions_match_table_model)
-		selection=self.functions_match_table_view.selectionModel()
+		self.FunctionMatchTable=FunctionMatchTable(self,self.DatabaseName)
+		self.FunctionMatchTableView.setModel(self.FunctionMatchTable)
+		selection=self.FunctionMatchTableView.selectionModel()
 		if selection!=None:
 			selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
 
-		self.bb_match_table_model=BBMatchTable(self,self.DatabaseName)
-		self.bb_match_table_view.setModel(self.bb_match_table_model)
-		selection=self.bb_match_table_view.selectionModel()
+		self.BBMatchTable=BBMatchTable(self,self.DatabaseName)
+		self.BBMatchTableView.setModel(self.BBMatchTable)
+		selection=self.BBMatchTableView.selectionModel()
 		if selection!=None:
 			selection.selectionChanged.connect(self.handleBBMatchTableChanged)
+
+		database = DarunGrimDatabase.Database(databasename)
+		self.setWindowTitle("DarunGrim 4 - %s" % (database.GetDescription()))
 		
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
 			for index in item.indexes():
-				[source_function_address, target_function_address] = self.functions_match_table_model.GetFunctionAddresses(index.row())
+				[source_function_address, target_function_address] = self.FunctionMatchTable.GetFunctionAddresses(index.row())
 				database = DarunGrimDatabase.Database(self.DatabaseName)
 
 				match_list=[]
@@ -869,8 +887,8 @@ class MainWindow(QMainWindow):
 	def closeEvent(self, event):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("geometry/functions_match_table_view", self.functions_match_table_view.saveGeometry())
-		settings.setValue("geometry/bb_match_table_view", self.bb_match_table_view.saveGeometry())
+		settings.setValue("geometry/functions_match_table_view", self.FunctionMatchTableView.saveGeometry())
+		settings.setValue("geometry/bb_match_table_view", self.BBMatchTableView.saveGeometry())
 		settings.setValue("geometry/block_table_view", self.block_table_view.saveGeometry())
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)
