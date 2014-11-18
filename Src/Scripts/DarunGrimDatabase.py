@@ -312,9 +312,6 @@ class Database:
 			if not self.SessionInstancesMap.has_key('Target'):
 				self.SessionInstancesMap['Target']=self.SessionInstance
 
-	def __del__(self):
-		print '* Close datases'
-
 	def GetFilename(self,filename):
 		dirname=os.path.dirname(filename)
 		if not os.path.isfile(filename):
