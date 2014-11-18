@@ -202,6 +202,7 @@ class BlockMatchTable(QAbstractTableModel):
 class NewDiffingDialog(QDialog):
 	def __init__(self,parent=None):
 		super(NewDiffingDialog,self).__init__(parent)
+		self.setWindowTitle("New Diffing")
 
 		self.Filenames={'Orig':'','Patched':'','Result':''}
 
@@ -272,7 +273,8 @@ class FileStoreBrowserDialog(QDialog):
 
 	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
 		super(FileStoreBrowserDialog,self).__init__(parent)
-		
+		self.setWindowTitle("File Store Browser")
+
 		self.DarunGrimStorageDir=darungrim_storage_dir
 		self.InitVars()
 
@@ -330,7 +332,7 @@ class FileStoreBrowserDialog(QDialog):
 		main_layout.addLayout(bottom_layout)
 		self.setLayout(main_layout)
 
-		self.resize(900,500)
+		self.resize(950,500)
 		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
 		self.show()
 
@@ -353,15 +355,6 @@ class FileStoreBrowserDialog(QDialog):
 
 		self.Name=''
 		self.Description=''
-
-	def pressedOK(self):
-		self.Name=self.name_line.text()
-		self.Description=self.description_line.text()
-		self.close()
-
-	def pressedCancel(self):
-		self.InitVars()
-		self.close()
 
 	def getOrigFilename(self):
 		ret = self.filesWidgetsTemplate.getCurrentSelection()
@@ -393,21 +386,32 @@ class SessionTable(QAbstractTableModel):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.list=[]
 		database=FileStoreDatabase.Database(database_name)
-		for session in database.GetSessions():
+		for (session,src_tag,dst_tag) in database.GetSessions():
+			src_tag_name=''
+			dst_tag_name=''
+
+			if src_tag!=None:
+				src_tag_name=src_tag.tag
+
+			if dst_tag!=None:
+				dst_tag_name=dst_tag.tag
+
 			self.list.append([session.name, 
 							session.description, 
 							database.GetFileNameWithVersionByID(session.src),
+							src_tag_name,
 							database.GetFileNameWithVersionByID(session.dst),
+							dst_tag_name,
 							session.result])
 
 	def GetFilename(self,row):
-		return self.list[row][4]
+		return self.list[row][6]
 
 	def rowCount(self,parent):
 		return len(self.list)
 
 	def columnCount(self,parent):
-		return 4
+		return 6
 
 	def data(self,index,role):
 		if not index.isValid():
@@ -417,9 +421,9 @@ class SessionTable(QAbstractTableModel):
 
 		return self.list[index.row()][index.column()]
 
-	def headerDAta(self,col,orientation,role):
+	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-			return ["Name", "Description", "Orig", "Patched"][col]
+			return ["Name", "Description", "Orig", "Tag", "Patched", "Tag"][col]
 		return None
 
 	def sort(self,col,order):
@@ -432,16 +436,17 @@ class SessionTable(QAbstractTableModel):
 class SessionsDialog(QDialog):
 	def __init__(self,parent=None,database_name=''):
 		super(SessionsDialog,self).__init__(parent)
+		self.setWindowTitle("Sessions")
 
 		self.Filename=''
 		view=QTableView()
+		vheader=QHeaderView(Qt.Orientation.Vertical)
+		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		view.setVerticalHeader(vheader)
 		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+
 		view.setSortingEnabled(True)
 		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
-		vheader=QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.Stretch)
-		view.setVerticalHeader(vheader)
 
 		self.session_table_view=view
 
@@ -469,6 +474,11 @@ class SessionsDialog(QDialog):
 				return self.session_table_model.GetFilename(index.row())
 		return ''
 
+	def headerData(self,col,orientation,role):
+		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
+			return ["Name", "Description", "Orig", "Patched"][col]
+		return None
+
 def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100,dbg_storage_dir=''):
 	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
 	darungrim.SetDGFSotrage(dbg_storage_dir)
@@ -479,6 +489,7 @@ def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log
 class LogTextBoxDialog(QDialog):
 	def __init__(self,parent=None):
 		super(LogTextBoxDialog,self).__init__(parent)
+		self.setWindowTitle("Log")
 
 		self.text=QTextEdit()
 		self.text.setReadOnly(True)
@@ -552,22 +563,20 @@ class MainWindow(QMainWindow):
 
 		# Functions
 		self.functions_match_table_view=QTableView()
+		vheader=QHeaderView(Qt.Orientation.Vertical)
+		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		self.functions_match_table_view.setVerticalHeader(vheader)
 		self.functions_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 		self.functions_match_table_view.setSortingEnabled(True)
 		self.functions_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 		
-		vheader=QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.functions_match_table_view.setVerticalHeader(vheader)
-
 		self.bb_match_table_view=QTableView()
-		self.bb_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		self.bb_match_table_view.setSortingEnabled(True)
-		self.bb_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
-		
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		self.bb_match_table_view.setVerticalHeader(vheader)
+		self.bb_match_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.bb_match_table_view.setSortingEnabled(True)
+		self.bb_match_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		if database_name:
 			self.OpenDatabase(database_name)
@@ -584,14 +593,13 @@ class MainWindow(QMainWindow):
 		# Blocks
 		self.block_table_model=BlockMatchTable(self)
 		self.block_table_view=QTableView()
+		vheader=QHeaderView(Qt.Orientation.Vertical)
+		vheader.setResizeMode(QHeaderView.ResizeToContents)
+		self.block_table_view.setVerticalHeader(vheader)
 		self.block_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 		self.block_table_view.setSortingEnabled(True)
 		self.block_table_view.setModel(self.block_table_model)
 		self.block_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
-		
-		vheader=QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.block_table_view.setVerticalHeader(vheader)
 
 		if self.UseDock:
 			dock=QDockWidget("Blocks",self)
@@ -682,7 +690,7 @@ class MainWindow(QMainWindow):
 							)
 
 			file_store_database=FileStoreDatabase.Database(self.FileStoreDatabase)
-			file_store_database.AddSession(dialog.Name, dialog.Description, dialog.OrigFileID, dialog.PatchedFileID, result_filename)
+			file_store_database.AddSession(dialog.name_line.text(), dialog.description_line.text(), dialog.OrigFileID, dialog.PatchedFileID, result_filename)
 
 	def openFromFileStore(self):
 		dialog=SessionsDialog(database_name=self.FileStoreDatabase)
