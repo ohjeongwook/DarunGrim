@@ -71,7 +71,7 @@ class FileProcessor:
 			ret = '_'
 		return ret
 
-	def CheckInFiles( self, src_dirname, storage_root = None, download = None, copy_file = True, overwrite_mode = False, tags=[] ):
+	def CheckInFiles( self, src_dirname, storage_root = None, download = None, copy_file = True, overwrite_mode = True, tags=[] ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -137,8 +137,10 @@ class FileProcessor:
 							storage_root = os.getcwd()
 
 						target_relative_directory = "%s\\%s\%s\\%s\\%s" % (sha1[0:2],sha1[2:4],sha1[4:6],sha1[6:8],sha1[8:])
+						target_relative_filename = os.path.join( target_relative_directory,  os.path.basename(src_filename))
+
 						target_full_directory = os.path.join( storage_root, target_relative_directory )
-						target_full_filename = os.path.join( storage_root, os.path.join( target_relative_directory, os.path.basename( src_filename ) ) )
+						target_full_filename = os.path.join( storage_root, target_relative_filename )
 							
 						if not os.path.isfile(target_full_filename) or not files or len(files) == 0 or overwrite_mode:
 							if not os.path.isdir( target_full_directory ):
@@ -151,13 +153,6 @@ class FileProcessor:
 								if self.DebugLevel > 1:
 									print "Different src and target:",src_filename, target_full_filename
 								try:
-									if self.DebugLevel > -1:
-										if copy_file:
-											op="Copy"
-										else:
-											op="Move"
-										print '%s %s -> %s' % (op, src_filename, target_full_filename)
-
 									if copy_file:
 										shutil.copyfile( src_filename, target_full_filename )
 									else:
@@ -165,6 +160,15 @@ class FileProcessor:
 								except:
 									import traceback
 									traceback.print_exc()
+
+									if self.DebugLevel > -1:
+										if copy_file:
+											op="Copy"
+										else:
+											op="Move"
+										print '%s %s -> %s' % (op, src_filename, target_full_filename)
+
+									print 'Error in %s %s -> %s' % (op, src_filename, target_full_filename)
 
 						import pefile
 						pe = pefile.PE(src_filename)
