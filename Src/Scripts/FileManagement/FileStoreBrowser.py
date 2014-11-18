@@ -55,8 +55,11 @@ class TagsTableModel(QAbstractTableModel):
 
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
-			for tag in database.GetTags():
-				self.Tags.append((tag,))
+			for name in database.GetTagNames():
+				if name=='':
+					continue
+
+				self.Tags.append((name,))
 
 	def GetName(self,row):
 		return str(self.Tags[row][0])
@@ -77,7 +80,7 @@ class TagsTableModel(QAbstractTableModel):
 
 	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-			return ["Name",][col]
+			return ["Tags",][col]
 		return None
 
 	def sort(self,col,order):
@@ -145,6 +148,7 @@ class FileIndexTableModel(QAbstractTableModel):
 											fileindex.company_name, 
 											fileindex.version_string, 
 											tag, 
+											str(fileindex.mtime),
 											fileindex.sha1,
 											fileindex.id,
 											fileindex.full_path ])
@@ -155,12 +159,14 @@ class FileIndexTableModel(QAbstractTableModel):
 											fileindex.company_name, 
 											fileindex.version_string, 
 											tag, 
+											str(fileindex.mtime),
 											fileindex.sha1,
 											fileindex.id,
 											fileindex.full_path ])
+		self.col_header=["Name","Arch","Company","Version","Tag","MTIME","SHA1"]
 
 	def GetFilename(self,row):
-		return self.FileIndexes[row][7]
+		return self.FileIndexes[row][8]
 
 	def GetFileIndex(self,row):
 		return self.FileIndexes[row]
@@ -172,7 +178,7 @@ class FileIndexTableModel(QAbstractTableModel):
 		return len(self.FileIndexes)
 	
 	def columnCount(self,parent):
-		return 6
+		return len(self.col_header)
 
 	def data(self,index,role):
 		if not index.isValid():
@@ -184,7 +190,7 @@ class FileIndexTableModel(QAbstractTableModel):
 
 	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-			return ["Name","Arch","Company","Version","Tag","SHA1"][col]
+			return self.col_header[col]
 		return None
 
 	def sort(self,col,order):
@@ -203,11 +209,11 @@ class VersionsTableModel(QAbstractTableModel):
 		if database_name:
 			database=FileStoreDatabase.Database(database_name)
 			for fileindex in database.GetFilesByCompanyFilename(company_name,filename):
-				self.Versions.append((fileindex.version_string,fileindex.sha1,fileindex.id, fileindex.full_path))
+				self.Versions.append((fileindex.version_string,str(fileindex.mtime),fileindex.sha1,fileindex.id, fileindex.full_path))
 			del database
 
 	def GetFilename(self,row):
-		return self.Versions[row][3]
+		return self.Versions[row][4]
 
 	def GetVersion(self,row):
 		return self.Versions[row]
@@ -219,7 +225,7 @@ class VersionsTableModel(QAbstractTableModel):
 		return len(self.Versions)
 	
 	def columnCount(self,parent):
-		return 2
+		return 3
 
 	def data(self,index,role):
 		if not index.isValid():
@@ -231,15 +237,16 @@ class VersionsTableModel(QAbstractTableModel):
 
 	def headerData(self,col,orientation,role):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-			return ["Versions","SHA1"][col]
+			return ["Versions","MTIME","SHA1"][col]
 		return None
 
 	def sort(self,col,order):
 		pass
 
-class ImportMSUDialog(QDialog):
+class ImportMSUpdatesDialog(QDialog):
 	def __init__(self,parent=None):
-		super(ImportMSUDialog,self).__init__(parent)
+		super(ImportMSUpdatesDialog,self).__init__(parent)
+		self.setWindowTitle("Import MS Update")
 
 		self.Filename=''
 
@@ -270,19 +277,54 @@ class ImportMSUDialog(QDialog):
 		if key==Qt.Key_Return or key==Qt.Key_Enter:
 			return
 		else:
-			super(ImportMSUDialog,self).keyPressEvent(e)
+			super(ImportMSUpdatesDialog,self).keyPressEvent(e)
 
 	def getTags(self):
 		return self.tag_line.text()
 
 	def getFilename(self):
 		dialog=QFileDialog()
-		dialog.setNameFilter("MSU Files (*.msu)")
+		dialog.setNameFilter("MSU & EXE Files (*.msu *.exe)")
 		filename=''
 		if dialog.exec_():
 			self.Filename=dialog.selectedFiles()[0]
 
 		self.file_line.setText(self.Filename)
+
+class NameDialog(QDialog):
+	def __init__(self,parent=None):
+		super(NameDialog,self).__init__(parent)
+		self.setWindowTitle("Name")
+
+		tag_button=QLabel('Tag:',self)
+		self.NameLine=QLineEdit("")
+		self.NameLine.setMinimumWidth(250)
+		self.NameLine.setAlignment(Qt.AlignLeft)
+		self.NameLine.editingFinished.connect(self.nameLineFinished)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(tag_button,1,0)
+		main_layout.addWidget(self.NameLine,1,1)
+		main_layout.addWidget(buttonBox,2,1)
+		self.setLayout(main_layout)
+
+	def nameLineFinished(self):
+		self.accept()
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(NameDialog,self).keyPressEvent(e)
+
+	def getTags(self):
+		return self.NameLine.text()
 
 class FilesWidgetsTemplate:
 	def __init__(self,parent,database_name):
@@ -292,13 +334,12 @@ class FilesWidgetsTemplate:
 		vert_splitter=QSplitter()
 		# Company
 		view=QTableView()
-		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		view.setSortingEnabled(True)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
+		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vert_splitter.addWidget(view)
 		self.CompanyNamesTable=view
@@ -311,26 +352,24 @@ class FilesWidgetsTemplate:
 
 		# File
 		view=QTableView()
-		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		view.setSortingEnabled(True)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
+		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vert_splitter.addWidget(view)
 		self.FileNamesTable=view
 
 		# Version
 		view=QTableView()
-		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		view.setSortingEnabled(True)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
+		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		vert_splitter.addWidget(view)
 		self.VersionsTable=view
@@ -344,23 +383,17 @@ class FilesWidgetsTemplate:
 		search_pane_splitter.setOrientation(Qt.Vertical)
 
 		# Tags
-		view=QTableView()
-		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		view.setSortingEnabled(True)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
+		self.TagsTableView=QTableView()
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		view.setVerticalHeader(vheader)
+		self.TagsTableView.setVerticalHeader(vheader)
+		self.TagsTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.TagsTableView.setSortingEnabled(True)
+		self.TagsTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-		search_pane_splitter.addWidget(view)
-		self.TagsTable=view
-
-		self.Tags=TagsTableModel(parent,self.DatabaseName)
-		self.TagsTable.setModel(self.Tags)
-		selection=self.TagsTable.selectionModel()
-		if selection!=None:
-			selection.selectionChanged.connect(self.handleTagsTableChanged)
+		search_pane_splitter.addWidget(self.TagsTableView)
+		self.TagsTableView.doubleClicked.connect(self.handleTagsTableDoubleClicked)
+		self.UpdateTagTable()
 
 		#Search box
 		self.search_line=QLineEdit()
@@ -380,22 +413,20 @@ class FilesWidgetsTemplate:
 		
 		button_box=QDialogButtonBox()
 
-		import_msu_button=button_box.addButton("Import MSU", QDialogButtonBox.ActionRole)
-		import_msu_button.clicked.connect(self.importMSU)
+		import_msu_button=button_box.addButton("Import MS Update", QDialogButtonBox.ActionRole)
+		import_msu_button.clicked.connect(self.importMSUpdate)
 		search_pane_splitter.addWidget(button_box)
 
 		search_tab_vert_splitter.addWidget(search_pane_splitter)
-		
 					
 		# File
 		view=QTableView()
-		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		view.setSortingEnabled(True)
-		view.setSelectionBehavior(QAbstractItemView.SelectRows)
-
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
 		view.setVerticalHeader(vheader)
+		view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		view.setSortingEnabled(True)
+		view.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		search_tab_vert_splitter.addWidget(view)
 		self.FileIndexTable=view
@@ -421,6 +452,13 @@ class FilesWidgetsTemplate:
 		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 
+	def UpdateTagTable(self):
+		self.Tags=TagsTableModel(self.parent,self.DatabaseName)
+		self.TagsTableView.setModel(self.Tags)
+		selection=self.TagsTableView.selectionModel()
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleTagsTableChanged)
+
 	def keyPressEvent(self,e):
 		key=e.key()
 
@@ -432,8 +470,8 @@ class FilesWidgetsTemplate:
 	def setDarunGrimStore(self,darungrim_store):
 		self.DarunGrimStore=darungrim_store
 
-	def importMSU(self):
-		dialog=ImportMSUDialog()
+	def importMSUpdate(self):
+		dialog=ImportMSUpdatesDialog()
 		if dialog.exec_():
 			filename=dialog.Filename
 			tags=dialog.getTags().split(',')
@@ -450,6 +488,7 @@ class FilesWidgetsTemplate:
 			for src_dirname in ms_patch_handler.Extract(filename):
 				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
 				file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
+			self.UpdateTagTable()
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
@@ -483,7 +522,18 @@ class FilesWidgetsTemplate:
 				self.FileIndexes=FileIndexTableModel(self.parent,self.DatabaseName,tag=tag)
 				self.FileIndexTable.setModel(self.FileIndexes)
 				break
-				
+
+	def handleTagsTableDoubleClicked(self,mi):
+		row=mi.row()
+		orig_tag=self.Tags.GetName(row)
+
+		dialog=NameDialog()
+		dialog.NameLine.setText(orig_tag)
+		if dialog.exec_():
+			database=FileStoreDatabase.Database(self.DatabaseName)
+			database.UpdateTag(orig_tag, dialog.NameLine.text())
+			self.UpdateTagTable()
+
 	def searchLineFinished(self):
 		self.SearchName()
 
@@ -499,13 +549,13 @@ class FilesWidgetsTemplate:
 			if selection!=None:
 				for index in selection.selection().indexes():
 					version_info=self.Versions.GetVersion(index.row())
-					return {'id': version_info[2], 'filename': version_info[3], 'sha1': version_info[1]}
+					return {'id': version_info[3], 'filename': version_info[4], 'sha1': version_info[2]}
 		else:
 			selection=self.FileIndexTable.selectionModel()
 			if selection!=None:
 				for index in selection.selection().indexes():
 					file_index=self.FileIndexes.GetFileIndex(index.row())
-					return {'id': file_index[6], 'filename': file_index[7], 'sha1': file_index[5]}
+					return {'id': file_index[7], 'filename': file_index[8], 'sha1': file_index[6]}
 		return None
 
 if __name__=='__main__':
@@ -537,8 +587,8 @@ if __name__=='__main__':
 		def importFiles(self):
 			pass
 
-		def importMSUFiles(self):
-			dialog=ImportMSUDialog()
+		def importMSUpdate(self):
+			dialog=ImportMSUpdatesDialog()
 			if dialog.exec_():
 				filename=dialog.Filename
 				tags=dialog.getTags.split(',')
@@ -558,7 +608,7 @@ if __name__=='__main__':
 
 		def createActions(self):
 			self.ImportAct = QAction("Import files...",self,shortcut=QKeySequence.New,statusTip="Import file",triggered=self.importFiles)
-			self.ImportMSUAct = QAction("Import MSU files...",self,statusTip="Import file",triggered=self.importMSUFiles)
+			self.ImportMSUAct = QAction("Import MS Update files...",self,statusTip="Import MS file",triggered=self.importMSUpdate)
 
 		def createMenus(self):
 			self.fileMenu = self.menuBar().addMenu("&File")
