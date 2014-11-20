@@ -161,8 +161,8 @@ class GraphScene(QGraphicsScene):
 					text_item.setFont(font)
 					text_item.setPlainText(di.text)
 					w=text_item.boundingRect().width()
-					text_item.setPos(di.GetPoint(0).x-w/2, (self.GraphRect[3] - di.GetPoint(0).y) - font_size - 3 )
-
+					#text_item.setPos(di.GetPoint(0).x-w/2, (self.GraphRect[3] - di.GetPoint(0).y) - font_size - 3 )
+					text_item.setPos(di.GetPoint(0).x-10, (self.GraphRect[3] - di.GetPoint(0).y) - font_size - 3 )
 					self.addItem(text_item)
 
 	def FindPolygon(self,address):
@@ -204,20 +204,26 @@ class MyGraphicsView(QGraphicsView):
 	def __init__(self):
 		self.scene=GraphScene()
 		QGraphicsView.__init__(self,self.scene)
-		#self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
+		self.setStyleSheet("QGraphicsView { background-color: rgb(99.5%, 99.5%, 99.5%); }")
 		self.setRenderHints(QPainter.Antialiasing|QPainter.SmoothPixmapTransform)
 		self.setDragMode(self.ScrollHandDrag)
 		self.last_items=[]
 
 	def wheelEvent(self,event):
-		self.setTransformationAnchor(self.AnchorUnderMouse)
+		modifiers = QApplication.keyboardModifiers()
+		if modifiers == Qt.ControlModifier:
+			self.setTransformationAnchor(self.AnchorUnderMouse)
 
-		scaleFactor=1.15
+			scaleFactor=1.15
 
-		if	event.delta()>0:
-			self.scale(scaleFactor,scaleFactor)
+			if	event.delta()>0:
+				self.scale(scaleFactor,scaleFactor)
+			else:
+				self.scale(1.0/scaleFactor, 1.0/scaleFactor)
 		else:
-			self.scale(1.0/scaleFactor, 1.0/scaleFactor)
+			vsb=self.verticalScrollBar()
+			dy=((-event.delta()/2)/15)* vsb.singleStep()
+			vsb.setSliderPosition(vsb.sliderPosition()+dy)
 
 	def clearLastItems(self):
 		for item in self.last_items:
@@ -249,8 +255,9 @@ class MyGraphicsView(QGraphicsView):
 				else:
 					flow_grapher.SetNodeShape("black", "white", "Verdana", "12")
 
-			name="%.8X" % address
-			flow_grapher.AddNode(address, name, str(disasm))
+			name="%.8X\\l" % address
+			disasm=str('\\l'.join(disasm.split('\n')))
+			flow_grapher.AddNode(address, name, str(disasm) )
 
 		for (src,dsts) in source_links.items():
 			for dst in dsts:
@@ -269,17 +276,19 @@ class MyGraphicsView(QGraphicsView):
 		self.last_items.append(self.scene.addPolygon(polygon, pen, brush))
 
 	def HilightAddress(self,address,center=True):
-		[start_x, start_y, end_x, end_y]=self.scene.FindPolygon(address)
-		self.clearLastItems()
+		rect=self.scene.FindPolygon(address)
+		if rect!=None:
+			[start_x, start_y, end_x, end_y]=rect
+			self.clearLastItems()
 
-		self.DrawRect(start_x-5, start_y-5, start_x,end_y+5)
-		self.DrawRect(end_x+5, start_y-5, end_x, end_y+5)
+			self.DrawRect(start_x-5, start_y-5, start_x,end_y+5)
+			self.DrawRect(end_x+5, start_y-5, end_x, end_y+5)
 
-		self.DrawRect(start_x,start_y-5,end_x,start_y)
-		self.DrawRect(start_x,end_y,end_x,end_y+5)
+			self.DrawRect(start_x,start_y-5,end_x,start_y)
+			self.DrawRect(start_x,end_y,end_x,end_y+5)
 
-		if center:
-			self.centerOn(self.scene.InvertedQPointF((start_x+end_x)/2,(start_y+end_y)/2))
+			if center:
+				self.centerOn(self.scene.InvertedQPointF((start_x+end_x)/2,(start_y+end_y)/2))
 
 	def SetSelectBlockCallback(self,callback):
 		self.SelectBlockCallback=callback
