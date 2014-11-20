@@ -1538,7 +1538,8 @@ void DiffMachine::GetMatchStatistics(
 				found_match_number++;
 			}else
 			{
-				Logger.Log(10, "%s: Different block(%d: %X): %X - %X (%d%%)\n", __FUNCTION__, index, address, pMatchData->Addresses[0], pMatchData->Addresses[1], pMatchData->MatchRate);
+				if (DebugLevel & 1)
+					Logger.Log(10, "%s: Different block(%d: %X): %X - %X (%d%%)\n", __FUNCTION__, index, address, pMatchData->Addresses[0], pMatchData->Addresses[1], pMatchData->MatchRate);
 				found_match_with_difference_number++;
 			}
 			total_match_rate += pMatchData->MatchRate;
@@ -1547,7 +1548,8 @@ void DiffMachine::GetMatchStatistics(
 			POneLocationInfo p_one_location_info = ClientManager->GetOneLocationInfo((*address_list_iter).Start);
 			if (p_one_location_info && p_one_location_info->FingerprintLen>0)
 			{
-				Logger.Log(10, "%s: Non-matched block(%d: %X): %X (fingerprint length: %d)\n", __FUNCTION__, index, address, (*address_list_iter).Start, p_one_location_info->FingerprintLen);
+				if (DebugLevel & 1)
+					Logger.Log(10, "%s: Non-matched block(%d: %X): %X (fingerprint length: %d)\n", __FUNCTION__, index, address, (*address_list_iter).Start, p_one_location_info->FingerprintLen);
 				not_found_match_number++;
 			}
 		}
