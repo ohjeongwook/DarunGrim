@@ -100,6 +100,49 @@ class FileInfo(Base):
 	def __repr__(self):
 		return "<FileInfo('%s')>" % (self.original_file_path)
 
+class SourceFileInfo(Base):
+	__tablename__='FileInfo'
+	__table_args__={'schema': 'Source'}
+	id = Column(Integer, primary_key=True)
+	original_file_path = Column(String, name = "OriginalFilePath")
+	computer_name = Column(String, name = "ComputerName")
+	user_name = Column(String, name = "UserName")
+	company_name = Column(String, name = "CompanyName")
+	file_version = Column(String, name = "FileVersion")
+	file_description = Column(String, name = "FileDescription")
+	internal_name = Column(String, name = "InternalName")
+	product_name = Column(String, name = "ProductName")
+	modified_time = Column(String, name = "ModifiedTime")
+	md5sum = Column(String, name = "MD5Sum")
+
+	def __init__(self):
+		pass
+
+	def __repr__(self):
+		return "<FileInfo('%s')>" % (self.original_file_path)
+
+class TargetFileInfo(Base):
+	__tablename__='FileInfo'
+	__table_args__={'schema': 'Target'}
+
+	id = Column(Integer, primary_key=True)
+	original_file_path = Column(String, name = "OriginalFilePath")
+	computer_name = Column(String, name = "ComputerName")
+	user_name = Column(String, name = "UserName")
+	company_name = Column(String, name = "CompanyName")
+	file_version = Column(String, name = "FileVersion")
+	file_description = Column(String, name = "FileDescription")
+	internal_name = Column(String, name = "InternalName")
+	product_name = Column(String, name = "ProductName")
+	modified_time = Column(String, name = "ModifiedTime")
+	md5sum = Column(String, name = "MD5Sum")
+
+	def __init__(self):
+		pass
+
+	def __repr__(self):
+		return "<FileInfo('%s')>" % (self.original_file_path)
+
 
 class MatchMap(Base):
 	__tablename__='MatchMap'
@@ -262,10 +305,16 @@ class TargetMapInfo(Base):
 class Database:
 	DebugLevel = 2
 	UseAttach=True
+	UseMapInfoForFunctionBlockQuery=False
+
 	def __init__(self, filename):
 		echo = False
 		if self.DebugLevel > 2:
 			echo = True
+
+		self.SessionInstance=None
+		if not filename:
+			return
 
 		self.FileList=[]
 
@@ -316,6 +365,17 @@ class Database:
 			if not self.SessionInstancesMap.has_key('Target'):
 				self.SessionInstancesMap['Target']=self.SessionInstance
 
+	def GetFileLocations(self):
+		src_file_location=''
+		target_file_location=''
+		for file_list in self.FileList:
+			if file_list.type=='Source':
+				src_file_location=file_list.filename
+			elif file_list.type=='Source':
+				target_file_location=file_list.filename
+
+		return [src_file_location,target_file_location]
+
 	def GetDescription(self):
 		description=''
 		for file_list in self.FileList:
@@ -352,46 +412,6 @@ class Database:
 
 	def GetFunctionMatchInfoCount(self):
 		return self.SessionInstance.query(FunctionMatchInfo).count()
-
-	def GetBBMatchInfo(self):
-		SourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='SourceFunctionOneLocationInfo')
-		TargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TargetFunctionOneLocationInfo')
-
-		query=self.SessionInstance.query(MatchMap,SourceOneLocationInfo,SourceFunctionOneLocationInfo,TargetOneLocationInfo,TargetFunctionOneLocationInfo).filter(MatchMap.match_rate < 100)
-		query=query.outerjoin(SourceOneLocationInfo, MatchMap.source_address==SourceOneLocationInfo.start_address)
-		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TargetOneLocationInfo, MatchMap.target_address==TargetOneLocationInfo.start_address)
-		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
-		matches=query.all()
-
-		TmpMatchMap=aliased(MatchMap,name='TmpMatchMap')
-		TmpTargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TmpTargetOneLocationInfo')
-		TmpSourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='TmpSourceFunctionOneLocationInfo')
-
-		source_non_matched=[]
-		stmt=exists().where(SourceOneLocationInfo.start_address==MatchMap.source_address)
-		query=self.SessionInstance.query(SourceOneLocationInfo,SourceFunctionOneLocationInfo,TmpTargetFunctionOneLocationInfo).filter(SourceOneLocationInfo.fingerprint!='').filter(~stmt)
-		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TmpMatchMap, SourceOneLocationInfo.function_address==TmpMatchMap.source_address)
-		query=query.outerjoin(TmpTargetFunctionOneLocationInfo, TmpMatchMap.target_address==TmpTargetFunctionOneLocationInfo.start_address)
-
-		for ret in query.all():
-			source_non_matched.append(ret)
-		
-		target_non_matched=[]
-		stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.source_address)
-		query=self.SessionInstance.query(TargetOneLocationInfo,TargetFunctionOneLocationInfo,TmpSourceFunctionOneLocationInfo).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
-		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TmpMatchMap, TargetOneLocationInfo.function_address==TmpMatchMap.target_address)
-		query=query.outerjoin(TmpSourceFunctionOneLocationInfo, TmpMatchMap.source_address==TmpSourceFunctionOneLocationInfo.start_address)
-
-		try:
-			for ret in query.all():
-				target_non_matched.append(ret)
-		except:
-			pass
-
-		return [matches,source_non_matched,target_non_matched]
 
 	def GetBlockName(self, file_id, address):
 		for one_location_info in self.SessionInstance.query(OneLocationInfo).filter_by(file_id=file_id, start_address=address).all():
@@ -457,15 +477,21 @@ class Database:
 			one_location_info=OneLocationInfo	
 			session=self.SessionInstancesMap[type]
 
-		for bb_address in bb_addresses:
-			for ret in session.query(map_info).filter_by(file_id=file_id, src_block=bb_address, type = CREF_FROM).all():
-				if not ret.dst in bb_addresses:
-					bb_addresses.append(ret.dst)
+		if self.UseMapInfoForFunctionBlockQuery:
+			for bb_address in bb_addresses:
+				for ret in session.query(map_info).filter_by(file_id=file_id, src_block=bb_address, type = CREF_FROM).all():
+					if not ret.dst in bb_addresses:
+						bb_addresses.append(ret.dst)
 
-		block_range_addresses = []
-		for bb_address in bb_addresses:
-			for ret in session.query(one_location_info).filter_by(file_id=file_id, start_address=bb_address).all():
-				block_range_addresses.append((ret.start_address, ret.end_address))
+			block_range_addresses = []
+			for bb_address in bb_addresses:
+				for ret in session.query(one_location_info).filter_by(file_id=file_id, start_address=bb_address).all():
+					block_range_addresses.append((ret.start_address, ret.end_address))
+
+		else:
+			block_range_addresses = []
+			for ret in session.query(one_location_info).filter_by(file_id=file_id, function_address=function_address).all():
+				block_range_addresses.append((ret.start_address, ret.end_address))			
 		return block_range_addresses
 
 	def GetMatchMapForAddresses(self, file_id, bb_addresses):
@@ -657,20 +683,86 @@ class Database:
 
 		return (source_address_match_rate_infos, target_address_match_rate_infos)
 
+	def GetBBMatchInfo(self, source_function_address=0, target_function_address=0):
+		SourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='SourceFunctionOneLocationInfo')
+		TargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TargetFunctionOneLocationInfo')
+
+		query=self.SessionInstance.query(MatchMap,SourceOneLocationInfo,SourceFunctionOneLocationInfo,TargetOneLocationInfo,TargetFunctionOneLocationInfo).filter(MatchMap.match_rate < 100)
+		query=query.outerjoin(SourceOneLocationInfo, MatchMap.source_address==SourceOneLocationInfo.start_address)
+		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TargetOneLocationInfo, MatchMap.target_address==TargetOneLocationInfo.start_address)
+		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
+		matches=query.all()
+
+		TmpMatchMap=aliased(MatchMap,name='TmpMatchMap')
+		TmpTargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TmpTargetOneLocationInfo')
+		TmpSourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='TmpSourceFunctionOneLocationInfo')
+
+		source_non_matched=[]
+		stmt=exists().where(SourceOneLocationInfo.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(SourceOneLocationInfo,SourceFunctionOneLocationInfo,TmpTargetFunctionOneLocationInfo).filter(SourceOneLocationInfo.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TmpMatchMap, SourceOneLocationInfo.function_address==TmpMatchMap.source_address)
+		query=query.outerjoin(TmpTargetFunctionOneLocationInfo, TmpMatchMap.target_address==TmpTargetFunctionOneLocationInfo.start_address)
+
+		for ret in query.all():
+			source_non_matched.append(ret)
+		
+		target_non_matched=[]
+		stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(TargetOneLocationInfo,TargetFunctionOneLocationInfo,TmpSourceFunctionOneLocationInfo).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
+		query=query.outerjoin(TmpMatchMap, TargetOneLocationInfo.function_address==TmpMatchMap.target_address)
+		query=query.outerjoin(TmpSourceFunctionOneLocationInfo, TmpMatchMap.source_address==TmpSourceFunctionOneLocationInfo.start_address)
+
+		try:
+			for ret in query.all():
+				target_non_matched.append(ret)
+		except:
+			pass
+
+		return [matches,source_non_matched,target_non_matched]
+
 	def GetBlockMatches(self, source_function_address, target_function_address):
-		source_bb_addresses = self.GetFunctionBlockAddresses("Source", source_function_address)
-		target_bb_addresses = self.GetFunctionBlockAddresses("Target", target_function_address)
+		match_hash = {}
+		source_non_matches=[]
 
-		source_block_start_addresses = []
-		for (start_address, end_address) in source_bb_addresses:
-			source_block_start_addresses.append(start_address)
-		match_map = self.GetMatchMapForAddresses(1, source_block_start_addresses)
+		if source_function_address!=0:
+			query=self.SessionInstance.query(SourceOneLocationInfo, MatchMap).filter_by(function_address=source_function_address)
+			query=query.outerjoin(MatchMap, MatchMap.source_address==SourceOneLocationInfo.start_address)
 
-		return match_map.items()
+			
+			for [block_info,match_map] in query.all():
+				if match_map!=None:		
+					match_hash[ match_map.source_address ] = (match_map.target_address, match_map.match_rate)	
+				else:
+					source_non_matches.append(block_info.start_address)
+
+		target_non_matches=[]
+		if target_function_address!=0:
+		
+			stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.target_address)
+			query=self.SessionInstance.query(TargetOneLocationInfo).filter_by(function_address=target_function_address).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
+
+			for block_info in query.all():
+				target_non_matches.append(block_info.start_address)
+
+		return [match_hash, source_non_matches,target_non_matches]
 
 	def Commit(self):
 		self.SessionInstance.commit()
 
+	def GetFilesLocation(self):
+		src_location=''
+		dst_location=''
+
+		for file_info in self.SessionInstance.query(SourceFileInfo).all():
+			src_location=file_info.original_file_path
+		
+		for file_info in self.SessionInstance.query(TargetFileInfo).all():
+			dst_location=file_info.original_file_path
+
+		return [src_location,dst_location]
 if __name__ == '__main__':
 	import sys
 	filename = sys.argv[1]

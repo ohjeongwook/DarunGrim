@@ -14,6 +14,7 @@ from multiprocessing import Process
 import time
 import os
 import operator
+import subprocess
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
@@ -41,7 +42,7 @@ class FunctionMatchTable(QAbstractTableModel):
 
 					self.match_list.append([function_match_info.source_function_name,
 										function_match_info.target_function_name,
-										str( function_match_info.match_rate),
+										"%d%%" % (function_match_info.match_rate),
 										function_match_info])
 
 	def GetFunctionAddresses(self,index):
@@ -146,25 +147,48 @@ class BBMatchTable(QAbstractTableModel):
 			return ["Orig", "Patched", "Orig Func", "Patched Func", "Match"][col]
 		return None
 
-class BlockMatchTable(QAbstractTableModel):
-	def __init__(self,parent, *args):
+class BlockTable(QAbstractTableModel):
+	def __init__(self,parent,database_name='',source_function_address=0, target_function_address=0, *args):
 		QAbstractTableModel.__init__(self,parent,*args)
 		self.match_list=[]
+		self.full_match_list=[]
+		self.ShowFullMatches=False
+
+		if database_name:
+			database = DarunGrimDatabase.Database(database_name)
+
+			self.SourceMatchInfo={}
+			self.TargetMatchInfo={}
+			[match_hash, source_non_matches,target_non_matches]=database.GetBlockMatches( source_function_address, target_function_address )
+			for ( source_address, ( target_address, match_rate ) ) in match_hash.items():
+				if self.ShowFullMatches or match_rate<100:
+					self.match_list.append([source_address, target_address, match_rate])
+				self.full_match_list.append([source_address, target_address, match_rate])
+				self.SourceMatchInfo[source_address]=[target_address, match_rate]
+				self.TargetMatchInfo[target_address]=[source_address, match_rate]
+
+			for non_match in source_non_matches:
+				self.match_list.append([non_match, 0, 0])
+
+			for non_match in target_non_matches:
+				self.match_list.append([0, non_match, 0])
+
+	def GetSourceMatchInfo(self):
+		return self.SourceMatchInfo
+
+	def GetTargetMatchInfo(self):
+		return self.TargetMatchInfo
 
 	def GetBlockAddresses(self,index):
 		return [self.match_list[index][0], self.match_list[index][1]]
 
 	def GetMatchAddresses(self,col,address):
-		for (addr1,addr2,match_rate) in self.match_list:
+		for (addr1,addr2,match_rate) in self.full_match_list:
 			if col==0 and address==addr1:
 				return addr2
 			if col==1 and address==addr2:
 				return addr1
 		return None
-
-	def ShowFunctionAddresses(self,match_list):
-		self.match_list=match_list
-		self.dataChanged.emit(0, len(self.match_list))
 
 	def rowCount(self,parent):
 		return len(self.match_list)
@@ -180,9 +204,13 @@ class BlockMatchTable(QAbstractTableModel):
 
 		value=self.match_list[index.row()][index.column()]
 		if index.column()<2:
+			if value==0:
+				return ""
 			return "%.8X" % value
 
 		elif index.column()==2:
+			if value==0:
+				return "Non match"
 			return "%d%%" % value
 
 		return value
@@ -561,10 +589,12 @@ class LogThread(QThread):
 
 class MainWindow(QMainWindow):
 	UseDock=False
+	ShowBBMatchTableView=False
 
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
+		self.NonMaxGeometry=None
 
 		# Menu
 		self.createActions()
@@ -584,17 +614,15 @@ class MainWindow(QMainWindow):
 		self.FunctionMatchTableView.setSortingEnabled(True)
 		self.FunctionMatchTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 		
-		self.BBMatchTableView=QTableView()
-		vheader=QHeaderView(Qt.Orientation.Vertical)
-		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.BBMatchTableView.setVerticalHeader(vheader)
-		self.BBMatchTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		self.BBMatchTableView.setSortingEnabled(True)
-		self.BBMatchTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+		if self.ShowBBMatchTableView:
+			self.BBMatchTableView=QTableView()
+			vheader=QHeaderView(Qt.Orientation.Vertical)
+			vheader.setResizeMode(QHeaderView.ResizeToContents)
+			self.BBMatchTableView.setVerticalHeader(vheader)
+			self.BBMatchTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+			self.BBMatchTableView.setSortingEnabled(True)
+			self.BBMatchTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
-		if database_name:
-			self.OpenDatabase(database_name)
-				
 		if self.UseDock:
 			dock=QDockWidget("Functions",self)
 			dock.setObjectName("Functions")
@@ -605,24 +633,27 @@ class MainWindow(QMainWindow):
 			bottom_splitter.addWidget(self.FunctionMatchTableView)
 
 		# Blocks
-		self.block_table_model=BlockMatchTable(self)
-		self.block_table_view=QTableView()
+		self.BlockTableModel=BlockTable(self,database_name)
+		self.BlockTableView=QTableView()
 		vheader=QHeaderView(Qt.Orientation.Vertical)
 		vheader.setResizeMode(QHeaderView.ResizeToContents)
-		self.block_table_view.setVerticalHeader(vheader)
-		self.block_table_view.horizontalHeader().setResizeMode(QHeaderView.Stretch)
-		self.block_table_view.setSortingEnabled(True)
-		self.block_table_view.setModel(self.block_table_model)
-		self.block_table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.BlockTableView.setVerticalHeader(vheader)
+		self.BlockTableView.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+		self.BlockTableView.setSortingEnabled(True)
+		self.BlockTableView.setModel(self.BlockTableModel)
+		self.BlockTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
 		if self.UseDock:
 			dock=QDockWidget("Blocks",self)
 			dock.setObjectName("Blocks")
 			dock.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
-			dock.setWidget(self.block_table_view)
+			dock.setWidget(self.BlockTableView)
 			self.addDockWidget(Qt.BottomDockWidgetArea,dock)		
 		else:
-			bottom_splitter.addWidget(self.block_table_view)
+			bottom_splitter.addWidget(self.BlockTableView)
+
+		bottom_splitter.setStretchFactor(0,1)
+		bottom_splitter.setStretchFactor(1,0)
 
 		# Function Graph
 		self.OrigFunctionGraph=MyGraphicsView()
@@ -656,12 +687,13 @@ class MainWindow(QMainWindow):
 
 			virt_splitter.addWidget(graph_splitter)
 
-
-			tab_widget=QTabWidget()
-			tab_widget.addTab(bottom_splitter,"Functions..")
-			tab_widget.addTab(self.BBMatchTableView,"Basic blocks...")
-
-			virt_splitter.addWidget(tab_widget)
+			if self.ShowBBMatchTableView:
+				tab_widget=QTabWidget()
+				tab_widget.addTab(bottom_splitter,"Functions..")
+				tab_widget.addTab(self.BBMatchTableView,"Basic blocks...")
+				virt_splitter.addWidget(tab_widget)
+			else:
+				virt_splitter.addWidget(bottom_splitter)
 
 			virt_splitter.setStretchFactor(0,1)
 			virt_splitter.setStretchFactor(1,0)
@@ -675,7 +707,10 @@ class MainWindow(QMainWindow):
 
 		self.LogDialog=LogTextBoxDialog()
 		self.LogDialog.resize(800,600)
-
+		
+		self.clearAreas()
+		if database_name:
+			self.OpenDatabase(database_name)
 		self.readSettings()
 
 	def clearAreas(self):
@@ -685,11 +720,12 @@ class MainWindow(QMainWindow):
 		self.FunctionMatchTable=FunctionMatchTable(self)
 		self.FunctionMatchTableView.setModel(self.FunctionMatchTable)
 
-		self.BBMatchTable=BBMatchTable(self)
-		self.BBMatchTableView.setModel(self.BBMatchTable)
+		if self.ShowBBMatchTableView:
+			self.BBMatchTable=BBMatchTable(self)
+			self.BBMatchTableView.setModel(self.BBMatchTable)
 
-		self.block_table_model=BlockMatchTable(self)
-		self.block_table_view.setModel(self.block_table_model)
+		self.BlockTableModel=BlockTable(self)
+		self.BlockTableView.setModel(self.BlockTableModel)
 
 	def newFromFileStore(self):
 		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.DarunGrimStorageDir)
@@ -767,6 +803,22 @@ class MainWindow(QMainWindow):
 			self.clearAreas()
 			self.OpenDatabase(dialog.selectedFiles()[0])
 
+	def OpenFolder(self,folder):
+		try:
+			subprocess.check_call(['explorer',  folder])
+		except:
+			pass
+
+	def openOriginalFilesLocation(self):
+		database = DarunGrimDatabase.Database(self.DatabaseName)
+		[src_location,dst_location]=database.GetFilesLocation()
+		self.OpenFolder(os.path.dirname(src_location))
+
+	def openPatchedFilesLocation(self):
+		database = DarunGrimDatabase.Database(self.DatabaseName)
+		[src_location,dst_location]=database.GetFilesLocation()
+		self.OpenFolder(os.path.dirname(dst_location))
+
 	def saveOrigGraph(self):
 		dialog=QFileDialog()
 		if dialog.exec_():
@@ -778,14 +830,59 @@ class MainWindow(QMainWindow):
 			self.PatchedFunctionGraph.SaveImg(dialog.selectedFiles()[0])
 
 	def createActions(self):
-		self.newAct = QAction("New Diffing...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.new)
-		self.openAct = QAction("Open...",self,shortcut=QKeySequence.Open,statusTip="Open a dgf database",triggered=self.open)
+		self.newAct = QAction("New Diffing...",
+								self,
+								shortcut=QKeySequence.New,
+								statusTip="Create new diffing output",
+								triggered=self.new
+							)
+		self.openAct = QAction("Open...",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Open a dgf database",
+								triggered=self.open
+							)
 
-		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Create new diffing output",triggered=self.newFromFileStore)
-		self.openFromFileStoreAct = QAction("Open Diffing (FileStore)...",self,shortcut=QKeySequence.New,statusTip="Open diffing output",triggered=self.openFromFileStore)
+		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",
+								self,
+								shortcut=QKeySequence.New,
+								statusTip="Create new diffing output",
+								triggered=self.newFromFileStore
+							)
+		self.openFromFileStoreAct = QAction("Open Diffing (FileStore)...",
+								self,
+								shortcut=QKeySequence.New,
+								statusTip="Open diffing output",
+								triggered=self.openFromFileStore
+							)
 
-		self.saveOrigGraphAct = QAction("Save orig graph...",self,shortcut=QKeySequence.Open,statusTip="Save original graph",triggered=self.saveOrigGraph)
-		self.savePatchedGraphAct = QAction("Save patched graph...",self,shortcut=QKeySequence.Open,statusTip="Save patched graph",triggered=self.savePatchedGraph)
+		self.openOriginalFilesLocationAct = QAction("Open Orininal Files Location",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Open original file location",
+								triggered=self.openOriginalFilesLocation
+							)
+
+		self.openPatchedFilesLocationAct = QAction("Open Patched Files Location",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Open patched file location",
+								triggered=self.openPatchedFilesLocation
+							)
+
+		self.saveOrigGraphAct = QAction("Save orig graph...",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Save original graph",
+								triggered=self.saveOrigGraph
+							)
+
+		self.savePatchedGraphAct = QAction("Save patched graph...",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Save patched graph",
+								triggered=self.savePatchedGraph
+							)
 
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
@@ -793,8 +890,14 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.openAct)
 		self.fileMenu.addAction(self.newFromFileStoreAct)
 		self.fileMenu.addAction(self.openFromFileStoreAct)
-		self.fileMenu.addAction(self.saveOrigGraphAct)
-		self.fileMenu.addAction(self.savePatchedGraphAct)
+
+		self.analysisMenu = self.menuBar().addMenu("&Analysis")
+
+		self.analysisMenu.addAction(self.openOriginalFilesLocationAct)
+		self.analysisMenu.addAction(self.openPatchedFilesLocationAct)
+
+		self.analysisMenu.addAction(self.saveOrigGraphAct)
+		self.analysisMenu.addAction(self.savePatchedGraphAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -805,11 +908,12 @@ class MainWindow(QMainWindow):
 		if selection!=None:
 			selection.selectionChanged.connect(self.handleFunctionMatchTableChanged)
 
-		self.BBMatchTable=BBMatchTable(self,self.DatabaseName)
-		self.BBMatchTableView.setModel(self.BBMatchTable)
-		selection=self.BBMatchTableView.selectionModel()
-		if selection!=None:
-			selection.selectionChanged.connect(self.handleBBMatchTableChanged)
+		if self.ShowBBMatchTableView:
+			self.BBMatchTable=BBMatchTable(self,self.DatabaseName)
+			self.BBMatchTableView.setModel(self.BBMatchTable)
+			selection=self.BBMatchTableView.selectionModel()
+			if selection!=None:
+				selection.selectionChanged.connect(self.handleBBMatchTableChanged)
 
 		database = DarunGrimDatabase.Database(databasename)
 		self.setWindowTitle("DarunGrim 4 - %s" % (database.GetDescription()))
@@ -818,31 +922,22 @@ class MainWindow(QMainWindow):
 		for item in selected:
 			for index in item.indexes():
 				[source_function_address, target_function_address] = self.FunctionMatchTable.GetFunctionAddresses(index.row())
-				database = DarunGrimDatabase.Database(self.DatabaseName)
-
-				match_list=[]
-				source_match_info={}
-				target_match_info={}
-				for ( source_address, ( target_address, match_rate ) ) in database.GetBlockMatches( source_function_address, target_function_address ):
-					match_list.append([source_address, target_address, match_rate])
-					source_match_info[source_address]=[target_address, match_rate]
-					target_match_info[target_address]=[source_address, match_rate]
-
-				self.block_table_model=BlockMatchTable(self)
-				self.block_table_model.ShowFunctionAddresses(match_list)
-				self.block_table_view.setModel(self.block_table_model)
-				
-				selection=self.block_table_view.selectionModel()
+				self.BlockTableModel=BlockTable(self,self.DatabaseName,source_function_address, target_function_address)
+				self.BlockTableView.setModel(self.BlockTableModel)
+				selection=self.BlockTableView.selectionModel()
 				if selection!=None:
 					selection.selectionChanged.connect(self.handleBlockTableChanged)
 
 				# Draw graphs
 				self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_match_info)
+				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, self.BlockTableModel.GetSourceMatchInfo())
 				self.OrigFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
+				self.OrigFunctionGraph.HilightAddress(source_function_address)
+
 				self.PatchedFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, target_match_info)
+				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, self.BlockTableModel.GetTargetMatchInfo())
 				self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
+				self.PatchedFunctionGraph.HilightAddress(target_function_address)
 
 				break
 
@@ -852,31 +947,50 @@ class MainWindow(QMainWindow):
 	def handleBlockTableChanged(self,selected,dselected):
 		for item in selected:
 			for index in item.indexes():
-				[orig_address,patched_address]=self.block_table_model.GetBlockAddresses(index.row())
-				self.OrigFunctionGraph.HilightAddress(orig_address)
-				self.PatchedFunctionGraph.HilightAddress(patched_address)
+				[orig_address,patched_address]=self.BlockTableModel.GetBlockAddresses(index.row())
+				if orig_address!=0:
+					self.OrigFunctionGraph.HilightAddress(orig_address)
+
+				if patched_address!=0:
+					self.PatchedFunctionGraph.HilightAddress(patched_address)
 
 				break
 
 	def SelectedBlock(self,graph,address):
 		if graph==self.OrigFunctionGraph:
-			matched_address=self.block_table_model.GetMatchAddresses(0,address)
+			matched_address=self.BlockTableModel.GetMatchAddresses(0,address)
 			if matched_address!=None:
 				self.PatchedFunctionGraph.HilightAddress(matched_address)
 
 		elif graph==self.PatchedFunctionGraph:
-			matched_address=self.block_table_model.GetMatchAddresses(1,address)
+			matched_address=self.BlockTableModel.GetMatchAddresses(1,address)
 			if matched_address!=None:
 				self.OrigFunctionGraph.HilightAddress(matched_address)
 
+	def changeEvent(self,event):
+		if event.type()==QEvent.WindowStateChange:
+			if (self.windowState()&Qt.WindowMinimized)==0 and \
+				 (self.windowState()&Qt.WindowMaximized)==0 and \
+				 (self.windowState()&Qt.WindowFullScreen)==0 and \
+				 (self.windowState()&Qt.WindowActive)==0:
+					pass
+
+	def resizeEvent(self,event):
+		if not self.isMaximized():
+			self.NonMaxGeometry=self.saveGeometry()
+
 	def readSettings(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
+			
+		if settings.contains("geometry/non_max"):
+			self.NonMaxGeometry=settings.value("geometry/non_max")
+			self.restoreGeometry(self.NonMaxGeometry)
+		else:	
+			self.NonMaxGeometry=self.saveGeometry()
 		
-		if settings.contains("geometry"):
-			self.restoreGeometry(settings.value("geometry"))
-		else:
-			self.resize(800,600)
-
+		if settings.contains("isMaximized"):
+			if settings.value("isMaximized")=="true":
+				self.setWindowState(self.windowState()|Qt.WindowMaximized)
 		self.restoreState(settings.value("windowState"))
 
 		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:
@@ -884,13 +998,17 @@ class MainWindow(QMainWindow):
 		self.DarunGrimDGFDir='C:\\mat\\DarunGrimDGFs'
 		self.LogLevel=100
 
-	def closeEvent(self, event):
+	def saveSettings(self):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
-		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("geometry/functions_match_table_view", self.FunctionMatchTableView.saveGeometry())
-		settings.setValue("geometry/bb_match_table_view", self.BBMatchTableView.saveGeometry())
-		settings.setValue("geometry/block_table_view", self.block_table_view.saveGeometry())
+
+		if self.NonMaxGeometry!=None:
+			settings.setValue("geometry/non_max", self.NonMaxGeometry)
+		settings.setValue("isMaximized", self.isMaximized())
+
 		settings.setValue("windowState", self.saveState())
+
+	def closeEvent(self, event):
+		self.saveSettings()
 		QMainWindow.closeEvent(self, event)
 
 if __name__=='__main__':
