@@ -252,12 +252,14 @@ class ImportMSUpdatesDialog(QDialog):
 
 		file_button=QPushButton('Orig File:',self)
 		file_button.clicked.connect(self.getFilename)
-		self.file_line=QLineEdit("")
-		self.file_line.setAlignment(Qt.AlignLeft)
+		self.FilenameEdit=QLineEdit("")
+		self.FilenameEdit.setAlignment(Qt.AlignLeft)
+		self.FilenameEdit.setMinimumWidth(250)
 
 		tag_button=QLabel('Tag:',self)
-		self.tag_line=QLineEdit("")
-		self.tag_line.setAlignment(Qt.AlignLeft)
+		self.TagEdit=QLineEdit("")
+		self.TagEdit.setAlignment(Qt.AlignLeft)
+		self.TagEdit.setMinimumWidth(250)
 
 		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 		buttonBox.accepted.connect(self.accept)
@@ -265,9 +267,9 @@ class ImportMSUpdatesDialog(QDialog):
 
 		main_layout=QGridLayout()
 		main_layout.addWidget(file_button,0,0)
-		main_layout.addWidget(self.file_line,0,1)
+		main_layout.addWidget(self.FilenameEdit,0,1)
 		main_layout.addWidget(tag_button,1,0)
-		main_layout.addWidget(self.tag_line,1,1)
+		main_layout.addWidget(self.TagEdit,1,1)
 		main_layout.addWidget(buttonBox,2,1)
 		self.setLayout(main_layout)
 
@@ -280,7 +282,7 @@ class ImportMSUpdatesDialog(QDialog):
 			super(ImportMSUpdatesDialog,self).keyPressEvent(e)
 
 	def getTags(self):
-		return self.tag_line.text()
+		return self.TagEdit.text()
 
 	def getFilename(self):
 		dialog=QFileDialog()
@@ -289,7 +291,10 @@ class ImportMSUpdatesDialog(QDialog):
 		if dialog.exec_():
 			self.Filename=dialog.selectedFiles()[0]
 
-		self.file_line.setText(self.Filename)
+			if not self.TagEdit.text():
+				self.TagEdit.setText(os.path.basename(self.Filename))
+
+		self.FilenameEdit.setText(self.Filename)
 
 class NameDialog(QDialog):
 	def __init__(self,parent=None):
