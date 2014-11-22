@@ -82,9 +82,19 @@ Section "" ;No components page, name is not important
   SetOutPath $INSTDIR\x64
   File x64\Release-x64\DarunGrimC.exe
 
+  ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.9_is1' "Inno Setup: App Path"
+  StrCmp $0 "" 0 read_ida_path
+  ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.8_is1' "Inno Setup: App Path"
+  StrCmp $0 "" 0 read_ida_path
+  ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.7_is1' "Inno Setup: App Path"
+  StrCmp $0 "" 0 read_ida_path
+  ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.6_is1' "Inno Setup: App Path"
+  StrCmp $0 "" 0 read_ida_path
   ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.5_is1' "Inno Setup: App Path"
   StrCmp $0 "" 0 read_ida_path
   ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.4_is1' "Inno Setup: App Path"
+  StrCmp $0 "" 0 read_ida_path
+  ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro Free_is1' "Inno Setup: App Path"
   StrCmp $0 "" 0 read_ida_path
   ReadRegStr $0 HKLM 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_is1' "Inno Setup: App Path"
   
