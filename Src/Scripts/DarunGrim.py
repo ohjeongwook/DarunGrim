@@ -819,15 +819,21 @@ class MainWindow(QMainWindow):
 		[src_location,dst_location]=database.GetFilesLocation()
 		self.OpenFolder(os.path.dirname(dst_location))
 
+	def captureWindow(self):
+		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
+		if filename:
+			pixmap=QPixmap.grabWidget(self)
+			pixmap.save(filename,"png")
+
 	def saveOrigGraph(self):
-		dialog=QFileDialog()
-		if dialog.exec_():
-			self.OrigFunctionGraph.SaveImg(dialog.selectedFiles()[0])
+		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
+		if filename:
+			self.OrigFunctionGraph.SaveImg(filename)
 
 	def savePatchedGraph(self):
-		dialog=QFileDialog()
-		if dialog.exec_():
-			self.PatchedFunctionGraph.SaveImg(dialog.selectedFiles()[0])
+		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
+		if filename:
+			self.PatchedFunctionGraph.SaveImg(filename)
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
@@ -845,41 +851,41 @@ class MainWindow(QMainWindow):
 
 		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",
 								self,
-								shortcut=QKeySequence.New,
 								statusTip="Create new diffing output",
 								triggered=self.newFromFileStore
 							)
 		self.openFromFileStoreAct = QAction("Open Diffing (FileStore)...",
 								self,
-								shortcut=QKeySequence.New,
 								statusTip="Open diffing output",
 								triggered=self.openFromFileStore
 							)
 
 		self.openOriginalFilesLocationAct = QAction("Open Orininal Files Location",
 								self,
-								shortcut=QKeySequence.Open,
 								statusTip="Open original file location",
 								triggered=self.openOriginalFilesLocation
 							)
 
 		self.openPatchedFilesLocationAct = QAction("Open Patched Files Location",
 								self,
-								shortcut=QKeySequence.Open,
 								statusTip="Open patched file location",
 								triggered=self.openPatchedFilesLocation
 							)
 
+		self.captureWindowAct = QAction("Capture...",
+								self,
+								statusTip="Save patched graph",
+								triggered=self.captureWindow
+							)
+
 		self.saveOrigGraphAct = QAction("Save orig graph...",
 								self,
-								shortcut=QKeySequence.Open,
 								statusTip="Save original graph",
 								triggered=self.saveOrigGraph
 							)
 
 		self.savePatchedGraphAct = QAction("Save patched graph...",
 								self,
-								shortcut=QKeySequence.Open,
 								statusTip="Save patched graph",
 								triggered=self.savePatchedGraph
 							)
@@ -895,7 +901,8 @@ class MainWindow(QMainWindow):
 
 		self.analysisMenu.addAction(self.openOriginalFilesLocationAct)
 		self.analysisMenu.addAction(self.openPatchedFilesLocationAct)
-
+		
+		self.analysisMenu.addAction(self.captureWindowAct)
 		self.analysisMenu.addAction(self.saveOrigGraphAct)
 		self.analysisMenu.addAction(self.savePatchedGraphAct)
 
