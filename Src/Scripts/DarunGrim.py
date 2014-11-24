@@ -713,6 +713,8 @@ class MainWindow(QMainWindow):
 			self.OpenDatabase(database_name)
 		self.readSettings()
 
+		self.DarunGrimEngine=DarunGrimEngine.DarunGrim()
+
 	def clearAreas(self):
 		self.OrigFunctionGraph.clear()
 		self.PatchedFunctionGraph.clear()
@@ -811,13 +813,33 @@ class MainWindow(QMainWindow):
 
 	def openOriginalFilesLocation(self):
 		database = DarunGrimDatabase.Database(self.DatabaseName)
-		[src_location,dst_location]=database.GetFilesLocation()
-		self.OpenFolder(os.path.dirname(src_location))
+		[src_filename,target_filename]=database.GetFilesLocation()
+		self.OpenFolder(os.path.dirname(src_filename))
 
 	def openPatchedFilesLocation(self):
 		database = DarunGrimDatabase.Database(self.DatabaseName)
-		[src_location,dst_location]=database.GetFilesLocation()
-		self.OpenFolder(os.path.dirname(dst_location))
+		[src_filename,target_filename]=database.GetFilesLocation()
+		self.OpenFolder(os.path.dirname(target_filename))
+
+	def OpenIDA(self,filename):
+		ida_filename=filename
+
+		if filename[-4:].lower()!='.idb' and filename[-4:].lower()!='.i64':
+			for path in [filename[0:-4] + '.idb', filename[0:-4] + '.i64']:
+				if os.path.isfile(path):
+					ida_filename=path
+					break
+
+		self.DarunGrimEngine.OpenIDA(ida_filename)
+
+	def synchronizeIDA(self):
+		database = DarunGrimDatabase.Database(self.DatabaseName)
+		[src_filename,target_filename]=database.GetFilesLocation()
+		
+		self.DarunGrimEngine.SetSourceController(src_filename)
+		self.DarunGrimEngine.SetTargetController(target_filename)
+		self.OpenIDA(src_filename)
+		self.OpenIDA(target_filename)
 
 	def captureWindow(self):
 		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
@@ -860,6 +882,12 @@ class MainWindow(QMainWindow):
 								triggered=self.openFromFileStore
 							)
 
+		self.synchornizeIDAAct= QAction("Synchornize IDA",
+								self,
+								statusTip="Synchronize IDA",
+								triggered=self.synchronizeIDA
+							)
+
 		self.openOriginalFilesLocationAct = QAction("Open Orininal Files Location",
 								self,
 								statusTip="Open original file location",
@@ -899,6 +927,7 @@ class MainWindow(QMainWindow):
 
 		self.analysisMenu = self.menuBar().addMenu("&Analysis")
 
+		self.analysisMenu.addAction(self.synchornizeIDAAct)
 		self.analysisMenu.addAction(self.openOriginalFilesLocationAct)
 		self.analysisMenu.addAction(self.openPatchedFilesLocationAct)
 		
@@ -924,6 +953,15 @@ class MainWindow(QMainWindow):
 
 		database = DarunGrimDatabase.Database(databasename)
 		self.setWindowTitle("DarunGrim 4 - %s" % (database.GetDescription()))
+
+	def ColorController(self, type, disasms, match_info):
+		for (address,[end_address,disasm]) in disasms.items():
+			if not match_info.has_key(address):
+				#Red block
+				self.DarunGrimEngine.ColorAddress(type, address, end_address+1, 0x0000FF)
+			elif match_info[address][1]!=100:
+				#Yellow block
+				self.DarunGrimEngine.ColorAddress(type, address, end_address+1, 0x00FFFF)
 		
 	def handleFunctionMatchTableChanged(self,selected,dselected):
 		for item in selected:
@@ -935,14 +973,27 @@ class MainWindow(QMainWindow):
 				if selection!=None:
 					selection.selectionChanged.connect(self.handleBlockTableChanged)
 
+				database=DarunGrimDatabase.Database(self.DatabaseName)
+
+				(source_disasms, source_links) = database.GetFunctionDisasmLines("Source", source_function_address)
+				(target_disasms, target_links) = database.GetFunctionDisasmLines("Target", target_function_address)
+
+				source_match_info=self.BlockTableModel.GetSourceMatchInfo()
+				target_match_info=self.BlockTableModel.GetTargetMatchInfo()
+
+				#IDA Sync
+				self.ColorController(0, source_disasms, source_match_info )
+				self.ColorController(1, target_disasms, target_match_info )
+				self.DarunGrimEngine.JumpToAddresses(source_function_address, target_function_address)
+
 				# Draw graphs
 				self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, self.BlockTableModel.GetSourceMatchInfo())
+				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_disasms, source_links, source_match_info)
 				self.OrigFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
 				self.OrigFunctionGraph.HilightAddress(source_function_address)
 
 				self.PatchedFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, self.BlockTableModel.GetTargetMatchInfo())
+				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, target_disasms, target_links, target_match_info)
 				self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
 				self.PatchedFunctionGraph.HilightAddress(target_function_address)
 
@@ -961,6 +1012,7 @@ class MainWindow(QMainWindow):
 				if patched_address!=0:
 					self.PatchedFunctionGraph.HilightAddress(patched_address)
 
+				self.DarunGrimEngine.JumpToAddresses(orig_address, patched_address)
 				break
 
 	def SelectedBlock(self,graph,address):
@@ -968,11 +1020,13 @@ class MainWindow(QMainWindow):
 			matched_address=self.BlockTableModel.GetMatchAddresses(0,address)
 			if matched_address!=None:
 				self.PatchedFunctionGraph.HilightAddress(matched_address)
+				self.DarunGrimEngine.JumpToAddresses(0, matched_address)
 
 		elif graph==self.PatchedFunctionGraph:
 			matched_address=self.BlockTableModel.GetMatchAddresses(1,address)
 			if matched_address!=None:
 				self.OrigFunctionGraph.HilightAddress(matched_address)
+				self.DarunGrimEngine.JumpToAddresses(matched_address, 0)
 
 	def changeEvent(self,event):
 		if event.type()==QEvent.WindowStateChange:

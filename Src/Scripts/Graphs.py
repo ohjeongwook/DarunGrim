@@ -240,13 +240,10 @@ class MyGraphicsView(QGraphicsView):
 	def SetDatabaseName(self,database_name):
 		self.DatabaseName=database_name
 
-	def DrawFunctionGraph(self,type,function_address,match_info):
-		database=DarunGrimDatabase.Database(self.DatabaseName)
-
-		(source_disasms, source_links) = database.GetFunctionDisasmLines(type, function_address)
+	def DrawFunctionGraph(self,type,function_address,disasms,links,match_info):
 		flow_grapher=FlowGrapher.FlowGrapher()
 		
-		for (address,disasm) in source_disasms.items():
+		for (address,[end_address,disasm]) in disasms.items():
 			if not match_info.has_key(address):
 				flow_grapher.SetNodeShape("white", "red", "Verdana", "12")
 			else:
@@ -259,7 +256,7 @@ class MyGraphicsView(QGraphicsView):
 			disasm=str('\\l'.join(disasm.split('\n')))
 			flow_grapher.AddNode(address, name, str(disasm) )
 
-		for (src,dsts) in source_links.items():
+		for (src,dsts) in links.items():
 			for dst in dsts:
 				flow_grapher.AddLink(src,dst)
 		self.scene.Draw(flow_grapher)
