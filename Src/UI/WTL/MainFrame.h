@@ -492,7 +492,7 @@ public:
 
 	int GraphViewSelectCallback(DWORD address, DWORD index, int offset_x, int offset_y)
 	{
-		pDarunGrim->ShowAddress(address, index);
+		pDarunGrim->JumpToAddress(address, index);
 
 		MatchData *pMatchData = pDiffMachine->GetMatchData(index, address);
 
@@ -502,7 +502,7 @@ public:
 			dprintf("Fingerprint Match Rate: %3.d%%\n", pMatchData->MatchRate);
 			DWORD Address = pMatchData->Addresses[index == 1 ? 0 : 1];
 
-			pDarunGrim->ShowAddress(Address, index);
+			pDarunGrim->JumpToAddress(Address, index);
 			if (index == 0)
 			{
 				m_rGraphVizView.ShowNode(Address, offset_x, offset_y);
@@ -950,7 +950,7 @@ public:
 				m_rGraphVizView.GetClientRect(&rc);
 				m_rGraphVizView.ShowNode(p_match_address_pair->patched, (rc.right - rc.left) / 2, (rc.bottom - rc.top) / 2);
 
-				pDarunGrim->ShowAddresses(p_match_address_pair->original, p_match_address_pair->patched);
+				pDarunGrim->JumpToAddresses(p_match_address_pair->original, p_match_address_pair->patched);
 			}
 		}
 		return 0;

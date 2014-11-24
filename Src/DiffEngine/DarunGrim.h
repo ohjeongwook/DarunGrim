@@ -11,6 +11,8 @@ using namespace stdext;
 #define DATA_BUFSIZE 4096
 #define DEFAULT_IDA_PATH TEXT( "c:\\Program Files\\IDA\\idag.exe" )
 
+enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
+
 class DarunGrim
 {
 private:
@@ -45,38 +47,38 @@ public:
 		return pTargetController;
 	}
 
-	void ShowAddress(DWORD address, DWORD index)
+	void JumpToAddress(DWORD address, DWORD type)
 	{
-		if (index == 0)
+		if (type == SOURCE_CONTROLLER)
 		{
 			if (pSourceController)
 			{
-				pSourceController->ShowAddress(address);
+				pSourceController->JumpToAddress(address);
 			}
 		}
 		else
 		{
 			if (pTargetController)
 			{
-				pTargetController->ShowAddress(address);
+				pTargetController->JumpToAddress(address);
 			}
 		}
 	}
 
-	void ShowReverseAddress(DWORD address, DWORD index)
+	void ShowReverseAddress(DWORD address, DWORD type)
 	{
-		if (index == 1)
+		if (type == TARGET_CONTROLLER)
 		{
 			if (pSourceController)
 			{
-				pSourceController->ShowAddress(address);
+				pSourceController->JumpToAddress(address);
 			}
 		}
 		else
 		{
 			if (pTargetController)
 			{
-				pTargetController->ShowAddress(address);
+				pTargetController->JumpToAddress(address);
 			}
 		}
 	}
@@ -131,8 +133,8 @@ public:
 	bool LoadedSourceFile();
 	void SetLoadedSourceFile( bool is_loaded );
 
-	void ShowAddresses( unsigned long source_address, unsigned long target_address );
-	void ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color );
+	void JumpToAddresses( unsigned long source_address, unsigned long target_address );
+	void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
 	DBWrapper *m_OutputDB;
@@ -147,9 +149,22 @@ private:
 	bool GenerateIDALogFilename();
 	char *EscapeFilename(char *filename);
 	char *LogFilename;
+	PSLIST_HEADER pIDAClientListHead;
+	vector<IDAController *> IDAControllerList;
+	void UpdateIDAControllers();
+
+	bool SetController(int type, const char *identity);
+	string SourceIdentity;
+	string TargetIdentity;
 public:
 
 	void SetDatabase(DBWrapper *OutputDB);
+	bool StartIDAListenerThread();
+	void ListIDAControllers();
+	IDAController *FindIDAController(const char *identity);
+	bool SetSourceController(const char *identity);
+	bool SetTargetController(const char *identity);
+
 	bool StartIDAListener(unsigned short port);
 	bool StopIDAListener();
 
@@ -168,7 +183,7 @@ public:
 	void ConnectToDarunGrim(const char *ida_filename);
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();
-	BOOL AcceptIDAClient(IDAController *pIDAController, bool RetrieveData);
+	BOOL AcceptIDAClient(IDAController *p_ida_controller, bool retrieve_Data);
 	void SetAutoMode(bool mode)
 	{
 		IDAAutoMode = mode;

@@ -229,12 +229,12 @@ class Manager:
 		if differ:
 			differ.SyncIDA();
 
-	def ShowAddresses( self, source_id, target_id, source_address, target_address ):
+	def JumpToAddresses( self, source_id, target_id, source_address, target_address ):
 		differ = self.GetDiffer( source_id, target_id )
 		if differ:
-			differ.ShowAddresses( source_address, target_address )
+			differ.JumpToAddresses( source_address, target_address )
 
-	def ColorAddresses( self, source_id, target_id, source_address_infos, target_address_infos ):
+	def ColorAddress( self, source_id, target_id, source_address_infos, target_address_infos ):
 		differ = self.GetDiffer( source_id, target_id )
 
 		if differ:

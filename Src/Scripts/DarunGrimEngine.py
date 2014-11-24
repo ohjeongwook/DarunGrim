@@ -2,6 +2,7 @@ import sys
 import DiffEngine
 import os
 import hashlib
+import subprocess
 
 LogToStdout = 0x1
 LogToDbgview = 0x2
@@ -9,15 +10,37 @@ LogToFile = 0x4
 LogToIDAMessageBox = 0x8
 
 class DarunGrim:
-	def __init__ ( self, orig_filename, patched_filename ):
-		self.SrcFilename = str(orig_filename)
-		self.TargetFilename = str(patched_filename)
+	def __init__ ( self, src_filename='', target_filename='', start_ida_listener=True ):
+		self.SetSourceFilename(src_filename)
+		self.SetTargetFilename(target_filename)
+
 		self.DarunGrim = DiffEngine.DarunGrim()
-		self.DarunGrim.SetSourceFilename( self.SrcFilename )
-		self.DarunGrim.SetTargetFilename( self.TargetFilename )
-		self.DarunGrim.SetIDAPath( r'C:\Program Files (x86)\IDA 6.6\idaq.exe' )
+	
+		self.IDAPath=r'C:\Program Files (x86)\IDA 6.6\idaq.exe' 
+		self.DarunGrim.SetIDAPath(self.IDAPath) #TODO:
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
+
+		if start_ida_listener:
+			self.DarunGrim.StartIDAListenerThread()
 		self.DGFSotrage=''
+
+	def SetSourceController(self,identity):
+		self.DarunGrim.SetSourceController(str(identity))
+
+	def SetTargetController(self,identity):
+		self.DarunGrim.SetTargetController(str(identity))
+
+	def SetSourceFilename(self,src_filename):
+		self.SrcFilename = str(src_filename)
+		
+		if self.SrcFilename:
+			self.DarunGrim.SetSourceFilename( self.SrcFilename )
+
+	def SetTargetFilename(self,target_filename):
+		self.TargetFilename = str(target_filename)
+
+		if self.TargetFilename:
+			self.DarunGrim.SetTargetFilename( self.TargetFilename )
 
 	def SetLogFile(self,log_filename,log_level=10):
 		self.DarunGrim.SetLogParameters(LogToFile, log_level, str(log_filename))
@@ -62,14 +85,17 @@ class DarunGrim:
 
 		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
 
+	def OpenIDA(self,filename):
+		subprocess.Popen([self.IDAPath,  filename])
+
 	def SyncIDA( self ):
 		self.DarunGrim.AcceptIDAClientsFromSocket()
 		
-	def ShowAddresses( self, source_address, target_address ):
-		self.DarunGrim.ShowAddresses( source_address, target_address )
+	def JumpToAddresses( self, source_address, target_address ):
+		self.DarunGrim.JumpToAddresses( source_address, target_address )
 
-	def ColorAddress( self, index, start_address, end_address, color ):
-		self.DarunGrim.ColorAddress( index, start_address, end_address, color )
+	def ColorAddress( self, type, start_address, end_address, color ):
+		self.DarunGrim.ColorAddress( type, start_address, end_address, color )
 
 if __name__ == '__main__':
 	from optparse import OptionParser

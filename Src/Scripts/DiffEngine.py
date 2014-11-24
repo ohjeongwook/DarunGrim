@@ -107,7 +107,7 @@ class IDAController(_object):
     def GetMappedAddresses(self, *args): return _DiffEngine.IDAController_GetMappedAddresses(self, *args)
     def GetDisasmLines(self, *args): return _DiffEngine.IDAController_GetDisasmLines(self, *args)
     def FreeDisasmLines(self): return _DiffEngine.IDAController_FreeDisasmLines(self)
-    def ShowAddress(self, *args): return _DiffEngine.IDAController_ShowAddress(self, *args)
+    def JumpToAddress(self, *args): return _DiffEngine.IDAController_JumpToAddress(self, *args)
     __swig_destroy__ = _DiffEngine.delete_IDAController
     __del__ = lambda self : None;
 IDAController_swigregister = _DiffEngine.IDAController_swigregister
@@ -150,10 +150,13 @@ class DarunGrim(_object):
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
     def Load(self, *args): return _DiffEngine.DarunGrim_Load(self, *args)
-    def ShowAddresses(self, *args): return _DiffEngine.DarunGrim_ShowAddresses(self, *args)
+    def JumpToAddresses(self, *args): return _DiffEngine.DarunGrim_JumpToAddresses(self, *args)
     def ColorAddress(self, *args): return _DiffEngine.DarunGrim_ColorAddress(self, *args)
     def SetDatabase(self, *args): return _DiffEngine.DarunGrim_SetDatabase(self, *args)
+    def StartIDAListenerThread(self): return _DiffEngine.DarunGrim_StartIDAListenerThread(self)
     def StartIDAListener(self, *args): return _DiffEngine.DarunGrim_StartIDAListener(self, *args)
+    def SetSourceController(self, *args): return _DiffEngine.DarunGrim_SetSourceController(self, *args)
+    def SetTargetController(self, *args): return _DiffEngine.DarunGrim_SetTargetController(self, *args)
     def SetLogFilename(self, *args): return _DiffEngine.DarunGrim_SetLogFilename(self, *args)
     def GenerateSourceDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateSourceDGFFromIDA(self, *args)
     def GenerateTargetDGFFromIDA(self, *args): return _DiffEngine.DarunGrim_GenerateTargetDGFFromIDA(self, *args)

@@ -991,6 +991,16 @@ string IDAController::GetInputName()
 	return input_name;
 }
 
+void IDAController::RetrieveIdentity()
+{
+	Identity = GetInputName();
+}
+
+string IDAController::GetIdentity()
+{
+	return Identity;
+}
+
 int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 {
 	POneLocationInfo p_one_location_info = (POneLocationInfo)arg;
@@ -1026,7 +1036,7 @@ void IDAController::FreeDisasmLines()
 		free(DisasmLine);
 }
 
-void IDAController::ShowAddress(unsigned long address)
+void IDAController::JumpToAddress(unsigned long address)
 {
 	SendTLVData(JUMP_TO_ADDR, (PBYTE)&address, sizeof(DWORD));
 }

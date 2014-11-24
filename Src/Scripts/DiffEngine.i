@@ -35,7 +35,7 @@ public:
 	unsigned long *GetMappedAddresses(unsigned long address,int type,int *OUTPUT);
 	char *GetDisasmLines(unsigned long start_addr,unsigned long end_addr);
 	void FreeDisasmLines();
-	void ShowAddress(unsigned long address);
+	void JumpToAddress(unsigned long address);
 };
 
 class DiffMachine
@@ -67,11 +67,14 @@ public:
 	void SetTargetFilename( char *target_filename );	
 	
 	bool Load( const char *storage_filename );
-	void ShowAddresses( unsigned long source_address, unsigned long target_address );
+	void JumpToAddresses( unsigned long source_address, unsigned long target_address );
 	void ColorAddress( int index, unsigned long start_address, unsigned long end_address, unsigned long color );
 
 	void SetDatabase( DBWrapper *OutputDB );
+	bool StartIDAListenerThread();
 	bool StartIDAListener( unsigned short port );
+	bool SetSourceController(const char *identity);
+	bool SetTargetController(const char *identity);
 
 	void SetLogFilename(char *LogFilename);
 	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename);

@@ -76,10 +76,16 @@ public:
 	DWORD *GetMappedAddresses(DWORD address, int type, int *p_length);
 	BOOL SendTLVData(char type, PBYTE data, DWORD data_length);
 	char *GetDisasmLines(unsigned long start_addr, unsigned long end_addr);
+
+	string Identity;
+public:
 	string GetInputName();
+	void RetrieveIdentity();
+	string GetIdentity();
+
 	POneLocationInfo GetOneLocationInfo(DWORD address);
 	void FreeDisasmLines();
-	void ShowAddress(unsigned long address);
+	void JumpToAddress(unsigned long address);
 	void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
 	list <BLOCK> GetFunctionMemberBlocks(unsigned long FunctionAddress);
 	void GenerateFingerprintHashMap();

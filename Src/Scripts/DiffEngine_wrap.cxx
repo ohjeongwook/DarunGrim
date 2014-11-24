@@ -3900,7 +3900,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_IDAController_ShowAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_IDAController_JumpToAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   IDAController *arg1 = (IDAController *) 0 ;
   unsigned long arg2 ;
@@ -3911,18 +3911,18 @@ SWIGINTERN PyObject *_wrap_IDAController_ShowAddress(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_ShowAddress",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:IDAController_JumpToAddress",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_IDAController, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_ShowAddress" "', argument " "1"" of type '" "IDAController *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IDAController_JumpToAddress" "', argument " "1"" of type '" "IDAController *""'"); 
   }
   arg1 = reinterpret_cast< IDAController * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_ShowAddress" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IDAController_JumpToAddress" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
-  (arg1)->ShowAddress(arg2);
+  (arg1)->JumpToAddress(arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5098,7 +5098,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_DarunGrim_ShowAddresses(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_DarunGrim_JumpToAddresses(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   unsigned long arg2 ;
@@ -5113,23 +5113,23 @@ SWIGINTERN PyObject *_wrap_DarunGrim_ShowAddresses(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_ShowAddresses",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_JumpToAddresses",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_ShowAddresses" "', argument " "1"" of type '" "DarunGrim *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_JumpToAddresses" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_ShowAddresses" "', argument " "2"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_JumpToAddresses" "', argument " "2"" of type '" "unsigned long""'");
   } 
   arg2 = static_cast< unsigned long >(val2);
   ecode3 = SWIG_AsVal_unsigned_SS_long(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_ShowAddresses" "', argument " "3"" of type '" "unsigned long""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_JumpToAddresses" "', argument " "3"" of type '" "unsigned long""'");
   } 
   arg3 = static_cast< unsigned long >(val3);
-  (arg1)->ShowAddresses(arg2,arg3);
+  (arg1)->JumpToAddresses(arg2,arg3);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5224,6 +5224,28 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DarunGrim_StartIDAListenerThread(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:DarunGrim_StartIDAListenerThread",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_StartIDAListenerThread" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  result = (bool)(arg1)->StartIDAListenerThread();
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_DarunGrim_StartIDAListener(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
@@ -5251,6 +5273,74 @@ SWIGINTERN PyObject *_wrap_DarunGrim_StartIDAListener(PyObject *SWIGUNUSEDPARM(s
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_SetSourceController(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetSourceController",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetSourceController" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetSourceController" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  result = (bool)(arg1)->SetSourceController((char const *)arg2);
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_SetTargetController(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetTargetController",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetTargetController" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetTargetController" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  result = (bool)(arg1)->SetTargetController((char const *)arg2);
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return NULL;
 }
 
@@ -5595,7 +5685,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IDAController_GetMappedAddresses", _wrap_IDAController_GetMappedAddresses, METH_VARARGS, NULL},
 	 { (char *)"IDAController_GetDisasmLines", _wrap_IDAController_GetDisasmLines, METH_VARARGS, NULL},
 	 { (char *)"IDAController_FreeDisasmLines", _wrap_IDAController_FreeDisasmLines, METH_VARARGS, NULL},
-	 { (char *)"IDAController_ShowAddress", _wrap_IDAController_ShowAddress, METH_VARARGS, NULL},
+	 { (char *)"IDAController_JumpToAddress", _wrap_IDAController_JumpToAddress, METH_VARARGS, NULL},
 	 { (char *)"delete_IDAController", _wrap_delete_IDAController, METH_VARARGS, NULL},
 	 { (char *)"IDAController_swigregister", IDAController_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_DiffMachine", _wrap_new_DiffMachine, METH_VARARGS, NULL},
@@ -5617,10 +5707,13 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_SetSourceFilename", _wrap_DarunGrim_SetSourceFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetTargetFilename", _wrap_DarunGrim_SetTargetFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_Load", _wrap_DarunGrim_Load, METH_VARARGS, NULL},
-	 { (char *)"DarunGrim_ShowAddresses", _wrap_DarunGrim_ShowAddresses, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_JumpToAddresses", _wrap_DarunGrim_JumpToAddresses, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_ColorAddress", _wrap_DarunGrim_ColorAddress, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetDatabase", _wrap_DarunGrim_SetDatabase, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_StartIDAListenerThread", _wrap_DarunGrim_StartIDAListenerThread, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_StartIDAListener", _wrap_DarunGrim_StartIDAListener, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetSourceController", _wrap_DarunGrim_SetSourceController, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_SetTargetController", _wrap_DarunGrim_SetTargetController, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetLogFilename", _wrap_DarunGrim_SetLogFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GenerateSourceDGFFromIDA", _wrap_DarunGrim_GenerateSourceDGFFromIDA, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_GenerateTargetDGFFromIDA", _wrap_DarunGrim_GenerateTargetDGFFromIDA, METH_VARARGS, NULL},

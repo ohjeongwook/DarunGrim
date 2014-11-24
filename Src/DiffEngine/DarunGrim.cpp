@@ -1,4 +1,5 @@
 #include <winsock2.h>
+#include <Windows.h>
 
 #include "Common.h"
 #include "DarunGrim.h"
@@ -303,32 +304,187 @@ bool DarunGrim::ShowOnIDA()
 	return TRUE;
 }
 
-void DarunGrim::ShowAddresses( unsigned long source_address, unsigned long target_address )
-{
-	if( pSourceController )
-		pSourceController->ShowAddress( source_address );
-
-	if( pTargetController )
-		pTargetController->ShowAddress( target_address );
-}
-
-void DarunGrim::ColorAddress( int index, unsigned long start_address, unsigned long end_address,unsigned long color )
-{
-	if( index == 0 )
-	{
-		if( pSourceController )
-			pSourceController->ColorAddress( start_address, end_address, color );
-	}
-	else
-	{
-		if( pTargetController )
-			pTargetController->ColorAddress( start_address, end_address, color );
-	}
-}
-
 void DarunGrim::SetDatabase(DBWrapper *OutputDB)
 {
 	m_OutputDB = OutputDB;
+}
+
+typedef struct _IDA_CONTROLLER_
+{
+	SLIST_ENTRY ItemEntry;
+	IDAController *pIDAController;
+} IDA_CONTROLLER, *PIDA_CONTROLLER;
+
+DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
+{
+	PSLIST_HEADER pListHead = (PSLIST_HEADER)lpParameter;
+	SOCKET listen_s = CreateListener(NULL, DARUNGRIM_PORT);
+	Logger.Log(10, "%s: ListeningSocket=%d\n", __FUNCTION__, listen_s);
+	DWORD dwThreadId;
+	while (1)
+	{
+		SOCKET s = accept(listen_s, NULL, NULL);
+		Logger.Log(10, "%s: accepting=%d\n", __FUNCTION__, s);
+		if (s == INVALID_SOCKET)
+		{
+			int error = WSAGetLastError();
+			Logger.Log(10, "Socket error=%d\n", error);
+			return FALSE;
+		}
+		else
+		{
+			PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)_aligned_malloc(sizeof(IDA_CONTROLLER), MEMORY_ALLOCATION_ALIGNMENT);
+			if (p_ida_controller_item == NULL)
+				return -1;
+			printf("New connection: %d", s);
+			p_ida_controller_item->pIDAController = new IDAController();
+			p_ida_controller_item->pIDAController->SetSocket(s);
+			p_ida_controller_item->pIDAController->RetrieveIdentity();
+
+			printf("Identity: %s\n", p_ida_controller_item->pIDAController->GetIdentity());
+
+			InterlockedPushEntrySList(pListHead, &(p_ida_controller_item->ItemEntry));
+		}
+	}
+	return 0;
+}
+
+bool DarunGrim::StartIDAListenerThread()
+{
+	printf("StartIDAListenerThread\n");
+	DWORD dwThreadId;
+
+	pIDAClientListHead = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+
+	if (pIDAClientListHead == NULL)
+		return FALSE;
+
+	InitializeSListHead(pIDAClientListHead);
+	HANDLE thread = CreateThread(NULL, 0, IDAListenerThread, (PVOID)pIDAClientListHead, 0, &dwThreadId);
+
+	return TRUE;
+}
+
+void DarunGrim::UpdateIDAControllers()
+{
+	while (1)
+	{
+		PSLIST_ENTRY pListEntry = InterlockedPopEntrySList(pIDAClientListHead);
+
+		if (pListEntry == NULL)
+			break;
+
+		PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)pListEntry;
+		string identity = p_ida_controller_item->pIDAController->GetIdentity();
+
+		printf("Identity: %s\n", identity.c_str());
+		IDAControllerList.push_back(p_ida_controller_item->pIDAController);
+		
+		if (identity == SourceIdentity)
+		{
+			printf("Setting source controller: %s\n", identity.c_str());
+			pSourceController = p_ida_controller_item->pIDAController;
+		}
+		else if (identity == TargetIdentity)
+		{
+			printf("Setting target controller: %s\n", identity.c_str());
+			pTargetController = p_ida_controller_item->pIDAController;
+		}
+	}
+}
+
+void DarunGrim::ListIDAControllers()
+{
+	UpdateIDAControllers();
+	//list clients from IDAControllerList
+	for (vector<IDAController *>::iterator it = IDAControllerList.begin();
+		it != IDAControllerList.end();
+		it++)
+	{
+		printf("%s\n", (*it)->GetIdentity());
+	}
+}
+
+IDAController *DarunGrim::FindIDAController(const char *identity)
+{
+	UpdateIDAControllers();
+	//list clients from IDAControllerList
+	for (vector<IDAController *>::iterator it = IDAControllerList.begin();
+		it != IDAControllerList.end();
+		it++)
+	{
+		printf("%s\n", (*it)->GetIdentity());
+
+		if ((*it)->GetIdentity() == identity)
+			return (*it);
+	}
+
+	return NULL;
+}
+
+bool DarunGrim::SetController(int type, const char *identity)
+{
+	UpdateIDAControllers();
+	//list clients from IDAControllerList
+	for (vector<IDAController *>::iterator it = IDAControllerList.begin();
+		it != IDAControllerList.end();
+		it++)
+	{
+		printf("IDAController: %s\n", (*it)->GetIdentity());
+
+		if ((*it)->GetIdentity() == identity)
+		{
+			printf("Setting source controller: %s\n", (*it)->GetIdentity());
+			if (type == SOURCE_CONTROLLER)
+				pSourceController = (*it);
+			else if (type==TARGET_CONTROLLER)
+				pTargetController = (*it);
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+bool DarunGrim::SetSourceController(const char *identity)
+{
+	SourceIdentity = identity;
+	return SetController(SOURCE_CONTROLLER, identity);
+}
+
+bool DarunGrim::SetTargetController(const char *identity)
+{
+	TargetIdentity = identity;
+	return SetController(TARGET_CONTROLLER, identity);
+}
+
+
+void DarunGrim::JumpToAddresses(unsigned long source_address, unsigned long target_address)
+{
+	UpdateIDAControllers();
+
+	if (pSourceController)
+		pSourceController->JumpToAddress(source_address);
+
+	if (pTargetController)
+		pTargetController->JumpToAddress(target_address);
+}
+
+void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color)
+{
+	UpdateIDAControllers();
+
+	if (type == SOURCE_CONTROLLER)
+	{
+		if (pSourceController)
+			pSourceController->ColorAddress(start_address, end_address, color);
+	}
+	else
+	{
+		if (pTargetController)
+			pTargetController->ColorAddress(start_address, end_address, color);
+	}
 }
 
 bool DarunGrim::StartIDAListener(unsigned short port)
@@ -356,16 +512,16 @@ bool DarunGrim::StopIDAListener()
 
 IDAController *DarunGrim::GetIDAControllerFromFile(char *DataFile)
 {
-	IDAController *pIDAController = new IDAController(m_OutputDB);
-	pIDAController->Retrieve(DataFile);
-	return pIDAController;
+	IDAController *p_ida_controller = new IDAController(m_OutputDB);
+	p_ida_controller->Retrieve(DataFile);
+	return p_ida_controller;
 }
 
-BOOL DarunGrim::AcceptIDAClient(IDAController *pIDAController, bool RetrieveData)
+BOOL DarunGrim::AcceptIDAClient(IDAController *p_ida_controller, bool retrieve_Data)
 {
-	SOCKET ClientSocket = accept(ListeningSocket, NULL, NULL);
-	Logger.Log(10, "%s: accepting=%d\n", __FUNCTION__, ClientSocket);
-	if (ClientSocket == INVALID_SOCKET)
+	SOCKET s = accept(ListeningSocket, NULL, NULL);
+	Logger.Log(10, "%s: accepting=%d\n", __FUNCTION__, s);
+	if (s == INVALID_SOCKET)
 	{
 		int error = WSAGetLastError();
 		Logger.Log(10, "Socket error=%d\n", error);
@@ -373,15 +529,15 @@ BOOL DarunGrim::AcceptIDAClient(IDAController *pIDAController, bool RetrieveData
 	}
 	else
 	{
-		if (RetrieveData)
+		if (retrieve_Data)
 		{
 			Logger.Log(10, "%s: Calling LoadIDARawDataFromSocket\n", __FUNCTION__);
-			pIDAController->LoadIDARawDataFromSocket(ClientSocket);
+			p_ida_controller->LoadIDARawDataFromSocket(s);
 		}
 		else
 		{
 			Logger.Log(10, "%s: SetSocket\n", __FUNCTION__);
-			pIDAController->SetSocket(ClientSocket);
+			p_ida_controller->SetSocket(s);
 		}
 		return TRUE;
 	}
@@ -472,11 +628,11 @@ DWORD DarunGrim::IDACommandProcessor()
 									//Show using JUMP_TO_ADDR
 									if (i == 0)
 									{
-										pTargetController->ShowAddress(MatchingAddress);
+										pTargetController->JumpToAddress(MatchingAddress);
 									}
 									else
 									{
-										pSourceController->ShowAddress(MatchingAddress);
+										pSourceController->JumpToAddress(MatchingAddress);
 									}
 								}
 							}
