@@ -595,6 +595,7 @@ class MainWindow(QMainWindow):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
 		self.NonMaxGeometry=None
+		self.readSettings()
 
 		# Menu
 		self.createActions()
@@ -603,7 +604,7 @@ class MainWindow(QMainWindow):
 		#Use dock? not yet
 		if not self.UseDock:
 			bottom_splitter=QSplitter()
-			graph_splitter=QSplitter()
+			self.GraphSplitter=QSplitter()
 
 		# Functions
 		self.FunctionMatchTableView=QTableView()
@@ -666,7 +667,7 @@ class MainWindow(QMainWindow):
 			dock.setWidget(view)
 			self.addDockWidget(Qt.TopDockWidgetArea,dock)
 		else:
-			graph_splitter.addWidget(self.OrigFunctionGraph)
+			self.GraphSplitter.addWidget(self.OrigFunctionGraph)
 
 		# Function Graph
 		self.PatchedFunctionGraph=MyGraphicsView()
@@ -679,13 +680,15 @@ class MainWindow(QMainWindow):
 			dock.setWidget(view)
 			self.addDockWidget(Qt.TopDockWidgetArea,dock)
 		else:
-			graph_splitter.addWidget(self.PatchedFunctionGraph)
+			self.GraphSplitter.addWidget(self.PatchedFunctionGraph)
+
+		self.RefreshGraphViews()
 
 		if not self.UseDock:
 			virt_splitter=QSplitter()
 			virt_splitter.setOrientation(Qt.Vertical)
 
-			virt_splitter.addWidget(graph_splitter)
+			virt_splitter.addWidget(self.GraphSplitter)
 
 			if self.ShowBBMatchTableView:
 				tab_widget=QTabWidget()
@@ -711,9 +714,19 @@ class MainWindow(QMainWindow):
 		self.clearAreas()
 		if database_name:
 			self.OpenDatabase(database_name)
-		self.readSettings()
+		self.restoreUI()
 
 		self.DarunGrimEngine=DarunGrimEngine.DarunGrim()
+
+	def RefreshGraphViews(self):
+		if self.showGraphs==True:
+			self.OrigFunctionGraph.show()
+			self.PatchedFunctionGraph.show()
+			self.GraphSplitter.show()
+		else:
+			self.OrigFunctionGraph.hide()
+			self.PatchedFunctionGraph.hide()
+			self.GraphSplitter.hide()
 
 	def clearAreas(self):
 		self.OrigFunctionGraph.clear()
@@ -857,6 +870,13 @@ class MainWindow(QMainWindow):
 		if filename:
 			self.PatchedFunctionGraph.SaveImg(filename)
 
+	def toggleShowGraphs(self):
+		if self.showGraphs==True:
+			self.showGraphs=False
+		else:
+			self.showGraphs=True
+		self.RefreshGraphViews()
+
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
 								self,
@@ -918,6 +938,15 @@ class MainWindow(QMainWindow):
 								triggered=self.savePatchedGraph
 							)
 
+		self.showGraphsAct = QAction("Show graphs...",
+								self,
+								statusTip="Show graphs",
+								triggered=self.toggleShowGraphs,
+								checkable=True
+							)
+
+		self.showGraphsAct.setChecked(self.showGraphs)
+
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
@@ -934,6 +963,9 @@ class MainWindow(QMainWindow):
 		self.analysisMenu.addAction(self.captureWindowAct)
 		self.analysisMenu.addAction(self.saveOrigGraphAct)
 		self.analysisMenu.addAction(self.savePatchedGraphAct)
+
+		self.optionsMenu = self.menuBar().addMenu("&Options")
+		self.optionsMenu.addAction(self.showGraphsAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -986,16 +1018,17 @@ class MainWindow(QMainWindow):
 				self.ColorController(1, target_disasms, target_match_info )
 				self.DarunGrimEngine.JumpToAddresses(source_function_address, target_function_address)
 
-				# Draw graphs
-				self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_disasms, source_links, source_match_info)
-				self.OrigFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
-				self.OrigFunctionGraph.HilightAddress(source_function_address)
+				if self.showGraphs:
+					# Draw graphs
+					self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
+					self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_disasms, source_links, source_match_info)
+					self.OrigFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
+					self.OrigFunctionGraph.HilightAddress(source_function_address)
 
-				self.PatchedFunctionGraph.SetDatabaseName(self.DatabaseName)
-				self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, target_disasms, target_links, target_match_info)
-				self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
-				self.PatchedFunctionGraph.HilightAddress(target_function_address)
+					self.PatchedFunctionGraph.SetDatabaseName(self.DatabaseName)
+					self.PatchedFunctionGraph.DrawFunctionGraph("Target", target_function_address, target_disasms, target_links, target_match_info)
+					self.PatchedFunctionGraph.SetSelectBlockCallback(self.SelectedBlock)
+					self.PatchedFunctionGraph.HilightAddress(target_function_address)
 
 				break
 
@@ -1006,11 +1039,13 @@ class MainWindow(QMainWindow):
 		for item in selected:
 			for index in item.indexes():
 				[orig_address,patched_address]=self.BlockTableModel.GetBlockAddresses(index.row())
-				if orig_address!=0:
-					self.OrigFunctionGraph.HilightAddress(orig_address)
 
-				if patched_address!=0:
-					self.PatchedFunctionGraph.HilightAddress(patched_address)
+				if self.showGraphs:
+					if orig_address!=0:
+						self.OrigFunctionGraph.HilightAddress(orig_address)
+
+					if patched_address!=0:
+						self.PatchedFunctionGraph.HilightAddress(patched_address)
 
 				self.DarunGrimEngine.JumpToAddresses(orig_address, patched_address)
 				break
@@ -1040,7 +1075,7 @@ class MainWindow(QMainWindow):
 		if not self.isMaximized():
 			self.NonMaxGeometry=self.saveGeometry()
 
-	def readSettings(self):
+	def restoreUI(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
 			
 		if settings.contains("geometry/non_max"):
@@ -1054,18 +1089,43 @@ class MainWindow(QMainWindow):
 				self.setWindowState(self.windowState()|Qt.WindowMaximized)
 		self.restoreState(settings.value("windowState"))
 
-		self.DarunGrimStorageDir = "Z:\\DarunGrimStore" #TOOD:
+	def readSettings(self):
+		settings=QSettings("DarunGrim LLC", "DarunGrim")
+		self.showGraphs=True
+		if settings.contains("General/ShowGraphs"):
+			if settings.value("General/ShowGraphs")=='true':
+				self.showGraphs=True
+			else:
+				self.showGraphs=False
+
+		self.DarunGrimStorageDir = "Z:\\DarunGrimStore"
+		if settings.contains("General/DarunGrimStorageDir"):
+			self.DarunGrimStorageDir=settings.value("General/DarunGrimStorageDir")
+		
 		self.FileStoreDatabase='index.db'
+		if settings.contains("General/FileStoreDatabase"):
+			self.FileStoreDatabase=settings.value("General/FileStoreDatabase")
+
 		self.DarunGrimDGFDir='C:\\mat\\DarunGrimDGFs'
+		if settings.contains("General/DarunGrimDGFDir"):
+			self.DarunGrimDGFDir=settings.value("General/DarunGrimDGFDir")
+
 		self.LogLevel=100
+		if settings.contains("General/LogLevel"):
+			self.LogLevel=int(settings.value("General/LogLevel"))
+
 
 	def saveSettings(self):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
+		settings.setValue("General/ShowGraphs", self.showGraphs)
+		settings.setValue("General/DarunGrimStorageDir", self.DarunGrimStorageDir)
+		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
+		settings.setValue("General/DarunGrimDGFDir", self.DarunGrimDGFDir)
+		settings.setValue("General/LogLevel", self.LogLevel)
 
 		if self.NonMaxGeometry!=None:
 			settings.setValue("geometry/non_max", self.NonMaxGeometry)
 		settings.setValue("isMaximized", self.isMaximized())
-
 		settings.setValue("windowState", self.saveState())
 
 	def closeEvent(self, event):
