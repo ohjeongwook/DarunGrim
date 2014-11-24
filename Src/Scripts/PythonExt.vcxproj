@@ -526,6 +526,7 @@ copy $(SolutionDir)\Src\Scripts\*.py $(OutDir)</Command>
   <ItemGroup>
     <None Include="DarunGrim.py" />
     <None Include="DarunGrimDatabase.py" />
+    <None Include="DarunGrimEngine.py" />
     <None Include="DiffEngine.i" />
     <None Include="DiffEngine.py" />
     <None Include="SecurityImplications.py" />

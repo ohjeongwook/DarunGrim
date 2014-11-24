@@ -785,7 +785,7 @@ $(function () {
 		source_address = int(source_address)
 		target_address = int(target_address)
 
-		self.DarunGrimSessionsInstance.ShowAddresses( source_id, target_id, source_address, target_address )
+		self.DarunGrimSessionsInstance.JumpToAddresses( source_id, target_id, source_address, target_address )
 
 		if not source_function_name:
 			source_function_name = darungrim_database.GetBlockName( 1, source_address )
@@ -816,7 +816,7 @@ $(function () {
 			text_comparison_table.append(( left_address, left_line_text, right_address, right_line_text, match_rate ) )
 		
 		( source_address_infos, target_address_infos ) = darungrim_database.GetBlockAddressMatchTableByFunctionAddress( source_address, target_address )
-		self.DarunGrimSessionsInstance.ColorAddresses( source_id, target_id, source_address_infos, target_address_infos )
+		self.DarunGrimSessionsInstance.ColorAddress( source_id, target_id, source_address_infos, target_address_infos )
 
 		mytemplate = Template( ComparisonTableTemplateText )
 		return mytemplate.render(

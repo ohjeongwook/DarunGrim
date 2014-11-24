@@ -16,9 +16,9 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 	}
 
 	// Create a SOCKET for listening to client
-	SOCKET a_socket;
-	a_socket=socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (a_socket==INVALID_SOCKET) {
+	SOCKET s;
+	s=socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s==INVALID_SOCKET) {
 		printf("Error at socket(): %ld\n", WSAGetLastError());
 		WSACleanup();
 		return FALSE;
@@ -29,20 +29,20 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 	service.sin_addr.s_addr=inet_addr("127.0.0.1");
 	service.sin_port=htons(listening_port);
 
-	if(bind(a_socket, 
+	if(bind(s, 
 		(SOCKADDR*)&service, 
 		sizeof(service))==SOCKET_ERROR)
 	{
 		printf("bind() failed.\r\n");
-		closesocket(a_socket);
+		closesocket(s);
 		WSACleanup();
 		return FALSE;
 	}
 
-	if(listen(a_socket,1)==SOCKET_ERROR)
+	if(listen(s,1)==SOCKET_ERROR)
 	{
 		printf("Error listening on socket.\r\n");
-		closesocket(a_socket);
+		closesocket(s);
 		WSACleanup();
 		return FALSE;
 	}
@@ -54,7 +54,7 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 		// Accept the connection.
 		while(1)
 		{
-			client_socket=accept(a_socket,NULL,NULL);
+			client_socket=accept(s,NULL,NULL);
 			printf("accepting=%d\n",client_socket);			
 			if(client_socket==INVALID_SOCKET)
 			{
@@ -75,14 +75,14 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 		return INVALID_SOCKET;
 	}else
 	{
-		return a_socket;
+		return s;
 	}
 }
 
 SOCKET ConnectToServer(char *hostname,unsigned short port)
 {
 	// Create a SOCKET for connecting to server
-	SOCKET a_socket=INVALID_SOCKET;
+	SOCKET s=INVALID_SOCKET;
 	WSADATA wsaData;
 	int result=WSAStartup(MAKEWORD(2,2),&wsaData);
 	if(result!= NO_ERROR)
@@ -91,8 +91,8 @@ SOCKET ConnectToServer(char *hostname,unsigned short port)
 		return INVALID_SOCKET;
 	}
 
-	a_socket= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (a_socket==INVALID_SOCKET) {
+	s= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s==INVALID_SOCKET) {
 		printf("Error at socket(): %ld\n", WSAGetLastError());
 		WSACleanup();
 		return INVALID_SOCKET;
@@ -106,7 +106,7 @@ SOCKET ConnectToServer(char *hostname,unsigned short port)
 
 	// Connect to server.
 	if(connect(
-		a_socket,
+		s,
 		(SOCKADDR*) &clientService,
 		sizeof(clientService) 
 	)==SOCKET_ERROR)
@@ -117,12 +117,12 @@ SOCKET ConnectToServer(char *hostname,unsigned short port)
 	}
 
 	u_long tru=1;
-	ioctlsocket(a_socket,FIONBIO,&tru);
-	return a_socket;
+	ioctlsocket(s,FIONBIO,&tru);
+	return s;
 }
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-HWND PutSocketToWSAAsyncSelect(SOCKET a_socket,LRESULT (CALLBACK *SocketMessageWndProc)(HWND wnd,UINT message,WPARAM wp,LPARAM lp),unsigned int wMsg)
+HWND PutSocketToWSAAsyncSelect(SOCKET s,LRESULT (CALLBACK *SocketMessageWndProc)(HWND wnd,UINT message,WPARAM wp,LPARAM lp),unsigned int wMsg)
 {
 	WNDCLASS wc;
 	char ClassName[100];
@@ -171,13 +171,13 @@ HWND PutSocketToWSAAsyncSelect(SOCKET a_socket,LRESULT (CALLBACK *SocketMessageW
 
 
 	if (WSAAsyncSelect(
-		a_socket,
+		s,
 		message_window,
 		wMsg,
 		FD_READ|FD_CLOSE) == SOCKET_ERROR) 
 	{
 		printf("failed to async select on server socket %d, %lu\n",
-			a_socket,
+			s,
 			WSAGetLastError()
 		);
 		return message_window;

@@ -454,7 +454,7 @@ class Database:
 		for bb_address in bb_addresses:
 			try:
 				for ret in session.query(one_location_info).filter_by(start_address=bb_address).all():
-					disasms[ret.start_address] = ret.disasm_lines
+					disasms[ret.start_address] = [ret.end_address, ret.disasm_lines]
 			except:
 				pass
 
@@ -753,16 +753,17 @@ class Database:
 		self.SessionInstance.commit()
 
 	def GetFilesLocation(self):
-		src_location=''
-		dst_location=''
+		src_filename=''
+		target_filename=''
 
 		for file_info in self.SessionInstance.query(SourceFileInfo).all():
-			src_location=file_info.original_file_path
+			src_filename=file_info.original_file_path
 		
 		for file_info in self.SessionInstance.query(TargetFileInfo).all():
-			dst_location=file_info.original_file_path
+			target_filename=file_info.original_file_path
 
-		return [src_location,dst_location]
+		return [src_filename,target_filename]
+
 if __name__ == '__main__':
 	import sys
 	filename = sys.argv[1]
