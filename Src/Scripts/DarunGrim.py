@@ -399,7 +399,7 @@ class FileStoreBrowserDialog(QDialog):
 			self.patched_line.setText(self.PatchedFilename)
 
 	def getResultFilename(self):
-		(filename,filter)=QFileDialog.getOpenFileName(self,type)
+		(filename,filter)=QFileDialog.getOpenFileName(self,"Result...")
 		if filename:
 			self.ResultFilename=str(filename.replace("/","\\"))
 			if self.ResultFilename[-4:0].lower()!='.dgf':
@@ -932,7 +932,7 @@ class MainWindow(QMainWindow):
 		self.OpenDatabase(result_filename)
 
 	def open(self):
-		(filename,filter)=QFileDialog.getOpenFileName(self,type)
+		(filename,filter)=QFileDialog.getOpenFileName(self,"Open...")
 		if filename:
 			self.clearAreas()
 			self.OpenDatabase(filename)
