@@ -1023,6 +1023,18 @@ class MainWindow(QMainWindow):
 		dialog=ServerInfoDialog(port=self.DarunGrimEngine.ListeningPort)
 		dialog.exec_()
 
+	def toggleStaysOnTop(self):
+		if self.StaysOnTop==True:
+			self.StaysOnTop=False
+			self.hide()
+			self.setWindowFlags(self.windowFlags()& ~Qt.WindowStaysOnTopHint)			
+			self.show()
+		else:
+			self.StaysOnTop=True
+			self.hide()
+			self.setWindowFlags(self.windowFlags()|Qt.WindowStaysOnTopHint)
+			self.show()
+
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
 								self,
@@ -1113,6 +1125,14 @@ class MainWindow(QMainWindow):
 								triggered=self.serverInfo
 							)
 
+		self.staysOnTopAct = QAction("Statys on top...",
+								self,
+								statusTip="Server Info",
+								triggered=self.toggleStaysOnTop,
+								checkable=True
+							)
+		self.staysOnTopAct.setChecked(self.StaysOnTop)
+
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
@@ -1133,6 +1153,7 @@ class MainWindow(QMainWindow):
 		self.optionsMenu = self.menuBar().addMenu("&Options")
 		self.optionsMenu.addAction(self.showGraphsAct)
 		self.optionsMenu.addAction(self.syncrhonizeIDAUponOpeningAct)
+		self.optionsMenu.addAction(self.staysOnTopAct)
 		self.optionsMenu.addAction(self.configurationAct)
 		self.optionsMenu.addAction(self.serverInfoAct)
 
@@ -1277,6 +1298,18 @@ class MainWindow(QMainWindow):
 			else:
 				self.SyncrhonizeIDAUponOpening=False
 
+		self.StaysOnTop=False
+		if settings.contains("General/StaysOnTop"):
+			if settings.value("General/StaysOnTop")=='true':
+				self.StaysOnTop=True
+			else:
+				self.StaysOnTop=False
+
+		if self.StaysOnTop==True:
+			self.setWindowFlags(self.windowFlags()|Qt.WindowStaysOnTopHint)			
+		else:
+			self.setWindowFlags(self.windowFlags()& ~Qt.WindowStaysOnTopHint)
+
 		self.FileStoreDir = "Z:\\DarunGrimStore"
 		if settings.contains("General/FileStoreDir"):
 			self.FileStoreDir=settings.value("General/FileStoreDir")
@@ -1316,7 +1349,8 @@ class MainWindow(QMainWindow):
 	def saveSettings(self):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("General/ShowGraphs", self.ShowGraphs)
-		settings.setValue("General/SyncrhonizeIDAUponOpening", self.SyncrhonizeIDAUponOpening)		
+		settings.setValue("General/SyncrhonizeIDAUponOpening", self.SyncrhonizeIDAUponOpening)
+		settings.setValue("General/StaysOnTop", self.StaysOnTop)
 		settings.setValue("General/FileStoreDir", self.FileStoreDir)
 		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
 		settings.setValue("General/DGFSotreDir", self.DataFilesDir)
