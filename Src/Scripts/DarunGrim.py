@@ -303,11 +303,11 @@ class FileStoreBrowserDialog(QDialog):
 		super(FileStoreBrowserDialog,self).__init__(parent)
 		self.setWindowTitle("File Store Browser")
 
-		self.DarunGrimStorageDir=darungrim_storage_dir
+		self.FileStoreDir=darungrim_storage_dir
 		self.InitVars()
 
 		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
-		self.filesWidgetsTemplate.setDarunGrimStore(self.DarunGrimStorageDir)
+		self.filesWidgetsTemplate.setDarunGrimStore(self.FileStoreDir)
 
 		orig_button=QPushButton('Orig File >> ',self)
 		orig_button.clicked.connect(self.getOrigFilename)
@@ -388,7 +388,7 @@ class FileStoreBrowserDialog(QDialog):
 		ret = self.filesWidgetsTemplate.getCurrentSelection()
 		if ret!=None:
 			self.OrigFileID=ret['id']
-			self.OrigFilename=os.path.join(self.DarunGrimStorageDir,ret['filename'])
+			self.OrigFilename=os.path.join(self.FileStoreDir,ret['filename'])
 			self.OrigFileSHA1=ret['sha1']
 			self.orig_line.setText(self.OrigFilename)
 
@@ -396,7 +396,7 @@ class FileStoreBrowserDialog(QDialog):
 		ret = self.filesWidgetsTemplate.getCurrentSelection()
 		if ret!=None:
 			self.PatchedFileID=ret['id']
-			self.PatchedFilename=os.path.join(self.DarunGrimStorageDir,ret['filename'])
+			self.PatchedFilename=os.path.join(self.FileStoreDir,ret['filename'])
 			self.PatchedFileSHA1=ret['sha1']
 			self.patched_line.setText(self.PatchedFilename)
 
@@ -521,6 +521,104 @@ class SessionsDialog(QDialog):
 			return ["Name", "Description", "Orig", "Patched"][col]
 		return None
 
+class ConfigurationDialog(QDialog):
+	def __init__(self,parent=None, file_store_dir='', data_files_dir='', ida_path='', ida64_path='', log_level=0):
+		super(ConfigurationDialog,self).__init__(parent)
+		self.setWindowTitle("Configuration")
+
+		file_store_dir_button=QPushButton('FileSotre Dir:',self)
+		file_store_dir_button.clicked.connect(self.getFileStoreDir)
+		self.file_store_dir_line=QLineEdit("")
+		self.file_store_dir_line.setAlignment(Qt.AlignLeft)
+		self.file_store_dir_line.setMinimumWidth(250)
+		self.file_store_dir_line.setText(file_store_dir)
+
+		data_files_dir_button=QPushButton('Data Files Dir:',self)
+		data_files_dir_button.clicked.connect(self.getDataFilesDir)
+		self.data_files_dir_line=QLineEdit("")
+		self.data_files_dir_line.setAlignment(Qt.AlignLeft)
+		self.data_files_dir_line.setMinimumWidth(250)
+		self.data_files_dir_line.setText(data_files_dir)
+
+		ida_path_button=QPushButton('IDA Path:',self)
+		ida_path_button.clicked.connect(self.getIDAPath)
+		self.ida_path_line=QLineEdit(ida_path)
+		self.ida_path_line.setAlignment(Qt.AlignLeft)
+		self.ida_path_line.setMinimumWidth(250)
+		self.ida_path_line.setText(ida_path)
+		self.IDAPath=ida_path
+
+		ida64_path_button=QPushButton('IDA64 Path:',self)
+		ida64_path_button.clicked.connect(self.getIDA64Path)
+		self.ida64_path_line=QLineEdit(ida64_path)
+		self.ida64_path_line.setAlignment(Qt.AlignLeft)
+		self.ida64_path_line.setMinimumWidth(250)
+		self.ida64_path_line.setText(ida64_path)
+		self.IDA64Path=ida64_path
+
+		log_level_button=QLabel('Log Level:',self)
+		self.log_level_line=QLineEdit("")
+		self.log_level_line.setAlignment(Qt.AlignLeft)
+		self.log_level_line.setMinimumWidth(250)
+		self.log_level_line.setText('%d' % log_level)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(file_store_dir_button,0,0)
+		main_layout.addWidget(self.file_store_dir_line,0,1)
+
+		main_layout.addWidget(data_files_dir_button,2,0)
+		main_layout.addWidget(self.data_files_dir_line,2,1)
+
+		main_layout.addWidget(ida_path_button,3,0)
+		main_layout.addWidget(self.ida_path_line,3,1)
+
+		main_layout.addWidget(ida64_path_button,4,0)
+		main_layout.addWidget(self.ida64_path_line,4,1)
+
+		main_layout.addWidget(log_level_button,5,0)
+		main_layout.addWidget(self.log_level_line,5,1)
+
+		main_layout.addWidget(buttonBox,6,1)
+
+		self.setLayout(main_layout)
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(NewDiffingDialog,self).keyPressEvent(e)
+
+	def getFileStoreDir(self):
+		dir_name=QFileDialog.getExistingDirectory(self,'FileStore Dir')
+		if dir_name:
+			self.file_store_dir_line.setText(dir_name)
+
+	def getFileStoreDatabase(self):
+		(filename,filter)=QFileDialog.getOpenFileName(self,'FileStore Database File')
+		if filename:
+			self.file_store_database_line.setText(filename)
+
+	def getDataFilesDir(self):
+		dir_name=QFileDialog.getExistingDirectory(self,'Data Files Dir')
+		if dir_name:
+			self.data_files_dir_line.setText(dir_name)
+
+	def getIDAPath(self):
+		(filename,filter)=QFileDialog.getOpenFileName(self,'IDA Path',filter="*.exe")
+		if filename:
+			self.ida_path_line.setText(filename)
+
+	def getIDA64Path(self):
+		(filename,filter)=QFileDialog.getOpenFileName(self,'IDA64 Path',filter="*.exe")
+		if filename:
+			self.ida64_path_line.setText(filename)
+
 def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100,dbg_storage_dir=''):
 	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
 	darungrim.SetDGFSotrage(dbg_storage_dir)
@@ -595,6 +693,8 @@ class MainWindow(QMainWindow):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
 		self.NonMaxGeometry=None
+
+		self.DarunGrimEngine=DarunGrimEngine.DarunGrim()
 		self.readSettings()
 
 		# Menu
@@ -716,8 +816,6 @@ class MainWindow(QMainWindow):
 			self.OpenDatabase(database_name)
 		self.restoreUI()
 
-		self.DarunGrimEngine=DarunGrimEngine.DarunGrim()
-
 	def RefreshGraphViews(self):
 		if self.showGraphs==True:
 			self.OrigFunctionGraph.show()
@@ -743,15 +841,15 @@ class MainWindow(QMainWindow):
 		self.BlockTableView.setModel(self.BlockTableModel)
 
 	def newFromFileStore(self):
-		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.DarunGrimStorageDir)
+		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.FileStoreDir)
 		if dialog.exec_():
 			result_filename='%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 			log_filename='%s-%s.log' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 
 			self.StartPerformDiff(dialog.OrigFilename,
 								dialog.PatchedFilename,
-								os.path.join(self.DarunGrimDGFDir, result_filename),
-								os.path.join(self.DarunGrimDGFDir, log_filename)
+								os.path.join(self.DataFilesDir, result_filename),
+								os.path.join(self.DataFilesDir, log_filename)
 							)
 
 			file_store_database=FileStoreDatabase.Database(self.FileStoreDatabase)
@@ -760,7 +858,7 @@ class MainWindow(QMainWindow):
 	def openFromFileStore(self):
 		dialog=SessionsDialog(database_name=self.FileStoreDatabase)
 		if dialog.exec_():
-			self.OpenDatabase(os.path.join(self.DarunGrimDGFDir, dialog.GetFilename()))
+			self.OpenDatabase(os.path.join(self.DataFilesDir, dialog.GetFilename()))
 			self.setWindowTitle("DarunGrim 4 %s" % dialog.GetDescription())
 
 	def new(self):
@@ -789,9 +887,9 @@ class MainWindow(QMainWindow):
 		if debug:
 			print 'PerformDiff: ', src_filename,target_filename,result_filename
 			p=None
-			PerformDiff(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DarunGrimDGFDir)
+			PerformDiff(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir)
 		else:
-			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DarunGrimDGFDir))
+			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir))
 			p.start()
 
 		if p!=None:
@@ -877,6 +975,23 @@ class MainWindow(QMainWindow):
 			self.showGraphs=True
 		self.RefreshGraphViews()
 
+	def showConfiguration(self):
+		dialog=ConfigurationDialog( file_store_dir=self.FileStoreDir, 
+									data_files_dir=self.DataFilesDir,
+									ida_path=self.IDAPath,
+									ida64_path=self.IDA64Path,
+									log_level=self.LogLevel
+								)
+		if dialog.exec_():
+			self.FileStoreDir=dialog.file_store_dir_line.text()
+			self.DataFilesDir=dialog.data_files_dir_line.text()
+			self.FileStoreDatabase=os.path.join(self.DataFilesDir,'index.db')
+			self.IDAPath=dialog.ida_path_line.text()
+			self.IDA64Path=dialog.ida64_path_line.text()
+			self.DarunGrimEngine.SetIDAPath(self.IDAPath)
+			self.DarunGrimEngine.SetIDAPath(self.IDA64Path,True)
+			self.LogLevel=int(dialog.log_level_line.text())
+
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
 								self,
@@ -944,8 +1059,14 @@ class MainWindow(QMainWindow):
 								triggered=self.toggleShowGraphs,
 								checkable=True
 							)
-
+		
 		self.showGraphsAct.setChecked(self.showGraphs)
+
+		self.configurationAct = QAction("Configuration...",
+								self,
+								statusTip="Configuration",
+								triggered=self.showConfiguration
+							)
 
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
@@ -966,6 +1087,7 @@ class MainWindow(QMainWindow):
 
 		self.optionsMenu = self.menuBar().addMenu("&Options")
 		self.optionsMenu.addAction(self.showGraphsAct)
+		self.optionsMenu.addAction(self.configurationAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -1098,29 +1220,48 @@ class MainWindow(QMainWindow):
 			else:
 				self.showGraphs=False
 
-		self.DarunGrimStorageDir = "Z:\\DarunGrimStore"
-		if settings.contains("General/DarunGrimStorageDir"):
-			self.DarunGrimStorageDir=settings.value("General/DarunGrimStorageDir")
+		self.FileStoreDir = "Z:\\DarunGrimStore"
+		if settings.contains("General/FileStoreDir"):
+			self.FileStoreDir=settings.value("General/FileStoreDir")
 		
 		self.FileStoreDatabase='index.db'
 		if settings.contains("General/FileStoreDatabase"):
 			self.FileStoreDatabase=settings.value("General/FileStoreDatabase")
 
-		self.DarunGrimDGFDir='C:\\mat\\DarunGrimDGFs'
-		if settings.contains("General/DarunGrimDGFDir"):
-			self.DarunGrimDGFDir=settings.value("General/DarunGrimDGFDir")
+		self.DataFilesDir='C:\\mat\\DarunGrimDGFs'
+		if settings.contains("General/DataFilesDir"):
+			self.DataFilesDir=settings.value("General/DGFSotreDir")
+
+		self.IDAPath=''
+		if settings.contains("General/IDAPath"):
+			self.IDAPath=settings.value("General/IDAPath")
+		else:
+			files=self.DarunGrimEngine.LocateIDAExecutables()
+			if len(files)>0:
+				self.IDAPath=files[0][0]
+		
+		self.DarunGrimEngine.SetIDAPath(self.IDAPath)
+
+		self.IDA64Path=''
+		if settings.contains("General/IDA64Path"):
+			self.IDAPath=settings.value("General/IDA64Path")
+		else:
+			files=self.DarunGrimEngine.LocateIDAExecutables(is_64=True)
+			if len(files)>0:
+				self.IDA64Path=files[0][0]
+
+		self.DarunGrimEngine.SetIDAPath(self.IDA64Path,is_64=True)
 
 		self.LogLevel=100
 		if settings.contains("General/LogLevel"):
 			self.LogLevel=int(settings.value("General/LogLevel"))
 
-
 	def saveSettings(self):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
 		settings.setValue("General/ShowGraphs", self.showGraphs)
-		settings.setValue("General/DarunGrimStorageDir", self.DarunGrimStorageDir)
+		settings.setValue("General/FileStoreDir", self.FileStoreDir)
 		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
-		settings.setValue("General/DarunGrimDGFDir", self.DarunGrimDGFDir)
+		settings.setValue("General/DGFSotreDir", self.DataFilesDir)
 		settings.setValue("General/LogLevel", self.LogLevel)
 
 		if self.NonMaxGeometry!=None:

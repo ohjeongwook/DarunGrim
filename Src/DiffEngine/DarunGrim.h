@@ -10,6 +10,7 @@ using namespace stdext;
 
 #define DATA_BUFSIZE 4096
 #define DEFAULT_IDA_PATH TEXT( "c:\\Program Files\\IDA\\idag.exe" )
+#define DEFAULT_IDA64_PATH TEXT( "c:\\Program Files\\IDA\\idag64.exe" )
 
 enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 
@@ -143,6 +144,7 @@ private:
 	IDAController *IDAControllers[2];
 
 	char *IDAPath;
+	char *IDA64Path;
 	DWORD IDACommandProcessorThreadId;
 	char IDALogFilename[MAX_PATH + 1];
 
@@ -172,14 +174,14 @@ public:
 	DWORD SetMembers(DiffMachine *pArgDiffMachine);
 	DWORD IDACommandProcessor();
 	BOOL CreateIDACommandProcessorThread();
-	void SetIDAPath(const char *ParamIDAPath);
+	void SetIDAPath(const char *ParamIDAPath, bool is_64);
 	void SetLogFilename(char *logfilename)
 	{
 		LogFilename = EscapeFilename(logfilename);
 	}
-	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename);
-	void GenerateTargetDGFFromIDA(char *output_filename, char *log_filename);
-	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename);
+	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename, bool is_64);
+	void GenerateTargetDGFFromIDA(char *output_filename, char *log_filename, bool is_64);
+	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename,bool is_64);
 	void ConnectToDarunGrim(const char *ida_filename);
 	void SetIDALogFilename(const char *ida_log_filename);
 	const char *GetIDALogFilename();

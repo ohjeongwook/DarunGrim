@@ -3407,6 +3407,20 @@ SWIGINTERNINLINE PyObject*
 
 
 SWIGINTERN int
+SWIG_AsVal_bool (PyObject *obj, bool *val)
+{
+  int r;
+  if (!PyBool_Check(obj))
+    return SWIG_ERROR;
+  r = PyObject_IsTrue(obj);
+  if (r == -1)
+    return SWIG_ERROR;
+  if (val) *val = r ? true : false;
+  return SWIG_OK;
+}
+
+
+SWIGINTERN int
 SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
 {
   unsigned long v;
@@ -3419,20 +3433,6 @@ SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
     }
   }  
   return res;
-}
-
-
-SWIGINTERN int
-SWIG_AsVal_bool (PyObject *obj, bool *val)
-{
-  int r;
-  if (!PyBool_Check(obj))
-    return SWIG_ERROR;
-  r = PyObject_IsTrue(obj);
-  if (r == -1)
-    return SWIG_ERROR;
-  if (val) *val = r ? true : false;
-  return SWIG_OK;
 }
 
 #ifdef __cplusplus
@@ -4711,15 +4711,19 @@ SWIGINTERN PyObject *_wrap_DarunGrim_SetIDAPath(PyObject *SWIGUNUSEDPARM(self), 
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
+  bool arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
+  bool val3 ;
+  int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_SetIDAPath",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_SetIDAPath",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_SetIDAPath" "', argument " "1"" of type '" "DarunGrim *""'"); 
@@ -4730,7 +4734,12 @@ SWIGINTERN PyObject *_wrap_DarunGrim_SetIDAPath(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DarunGrim_SetIDAPath" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  (arg1)->SetIDAPath((char const *)arg2);
+  ecode3 = SWIG_AsVal_bool(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DarunGrim_SetIDAPath" "', argument " "3"" of type '" "bool""'");
+  } 
+  arg3 = static_cast< bool >(val3);
+  (arg1)->SetIDAPath((char const *)arg2,arg3);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
@@ -5383,6 +5392,7 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateSourceDGFFromIDA(PyObject *SWIGUNUS
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
+  bool arg4 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
@@ -5391,11 +5401,14 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateSourceDGFFromIDA(PyObject *SWIGUNUS
   int res3 ;
   char *buf3 = 0 ;
   int alloc3 = 0 ;
+  bool val4 ;
+  int ecode4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_GenerateSourceDGFFromIDA",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_GenerateSourceDGFFromIDA",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "1"" of type '" "DarunGrim *""'"); 
@@ -5411,7 +5424,12 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateSourceDGFFromIDA(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "3"" of type '" "char *""'");
   }
   arg3 = reinterpret_cast< char * >(buf3);
-  (arg1)->GenerateSourceDGFFromIDA(arg2,arg3);
+  ecode4 = SWIG_AsVal_bool(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DarunGrim_GenerateSourceDGFFromIDA" "', argument " "4"" of type '" "bool""'");
+  } 
+  arg4 = static_cast< bool >(val4);
+  (arg1)->GenerateSourceDGFFromIDA(arg2,arg3,arg4);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -5428,6 +5446,7 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateTargetDGFFromIDA(PyObject *SWIGUNUS
   DarunGrim *arg1 = (DarunGrim *) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
+  bool arg4 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
@@ -5436,11 +5455,14 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateTargetDGFFromIDA(PyObject *SWIGUNUS
   int res3 ;
   char *buf3 = 0 ;
   int alloc3 = 0 ;
+  bool val4 ;
+  int ecode4 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:DarunGrim_GenerateTargetDGFFromIDA",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:DarunGrim_GenerateTargetDGFFromIDA",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "1"" of type '" "DarunGrim *""'"); 
@@ -5456,7 +5478,12 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateTargetDGFFromIDA(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "3"" of type '" "char *""'");
   }
   arg3 = reinterpret_cast< char * >(buf3);
-  (arg1)->GenerateTargetDGFFromIDA(arg2,arg3);
+  ecode4 = SWIG_AsVal_bool(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DarunGrim_GenerateTargetDGFFromIDA" "', argument " "4"" of type '" "bool""'");
+  } 
+  arg4 = static_cast< bool >(val4);
+  (arg1)->GenerateTargetDGFFromIDA(arg2,arg3,arg4);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -5476,6 +5503,7 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateDGFFromIDA(PyObject *SWIGUNUSEDPARM
   unsigned long arg4 ;
   char *arg5 = (char *) 0 ;
   char *arg6 = (char *) 0 ;
+  bool arg7 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
@@ -5491,14 +5519,17 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateDGFFromIDA(PyObject *SWIGUNUSEDPARM
   int res6 ;
   char *buf6 = 0 ;
   int alloc6 = 0 ;
+  bool val7 ;
+  int ecode7 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:DarunGrim_GenerateDGFFromIDA",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:DarunGrim_GenerateDGFFromIDA",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_GenerateDGFFromIDA" "', argument " "1"" of type '" "DarunGrim *""'"); 
@@ -5529,7 +5560,12 @@ SWIGINTERN PyObject *_wrap_DarunGrim_GenerateDGFFromIDA(PyObject *SWIGUNUSEDPARM
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "DarunGrim_GenerateDGFFromIDA" "', argument " "6"" of type '" "char *""'");
   }
   arg6 = reinterpret_cast< char * >(buf6);
-  (arg1)->GenerateDGFFromIDA((char const *)arg2,arg3,arg4,arg5,arg6);
+  ecode7 = SWIG_AsVal_bool(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "DarunGrim_GenerateDGFFromIDA" "', argument " "7"" of type '" "bool""'");
+  } 
+  arg7 = static_cast< bool >(val7);
+  (arg1)->GenerateDGFFromIDA((char const *)arg2,arg3,arg4,arg5,arg6,arg7);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc5 == SWIG_NEWOBJ) delete[] buf5;

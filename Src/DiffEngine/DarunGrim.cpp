@@ -27,6 +27,7 @@ DarunGrim::DarunGrim():
 	Logger.Log(10, "%s: entry\n", __FUNCTION__ );
 	pDiffMachine = new DiffMachine();
 	IDAPath = _strdup(DEFAULT_IDA_PATH);
+	IDA64Path = _strdup(DEFAULT_IDA64_PATH);
 	GenerateIDALogFilename();
 }
 
@@ -47,6 +48,9 @@ DarunGrim::~DarunGrim()
 	if (IDAPath)
 		free(IDAPath);
 
+	if (IDA64Path)
+		free(IDA64Path);
+
 	if (LogFilename)
 		free(LogFilename);
 }
@@ -62,11 +66,20 @@ void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const 
 	Logger.SetDebugLevel(newDebugLevel);
 }
 
-void DarunGrim::SetIDAPath(const char *ParamIDAPath)
+void DarunGrim::SetIDAPath(const char *ida_path, bool is_64)
 {
-	if (IDAPath)
-		free(IDAPath);
-	IDAPath = _strdup(ParamIDAPath);
+	if (!is_64)
+	{
+		if (IDAPath)
+			free(IDAPath);
+		IDAPath = _strdup(ida_path);
+	}
+	else
+	{
+		if (IDA64Path)
+			free(IDA64Path);
+		IDA64Path = _strdup(ida_path);
+	}
 }
 
 DWORD WINAPI ConnectToDarunGrimThread( LPVOID lpParameter )
@@ -747,17 +760,17 @@ char *DarunGrim::EscapeFilename(char *filename)
 	return escaped_filename;
 }
 
-void DarunGrim::GenerateSourceDGFFromIDA(char *output_filename, char *log_filename)
+void DarunGrim::GenerateSourceDGFFromIDA(char *output_filename, char *log_filename, bool is_64)
 {
-	GenerateDGFFromIDA(SourceFilename.c_str(), 0, 0, output_filename, log_filename);
+	GenerateDGFFromIDA(SourceFilename.c_str(), 0, 0, output_filename, log_filename, is_64);
 }
 
-void DarunGrim::GenerateTargetDGFFromIDA(char *output_filename, char *log_filename)
+void DarunGrim::GenerateTargetDGFFromIDA(char *output_filename, char *log_filename, bool is_64)
 {
-	GenerateDGFFromIDA(TargetFilename.c_str(), 0, 0, output_filename, log_filename);
+	GenerateDGFFromIDA(TargetFilename.c_str(), 0, 0, output_filename, log_filename, is_64);
 }
 
-void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename)
+void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename, bool is_64)
 {
 	output_filename = EscapeFilename(output_filename);
 	log_filename = EscapeFilename(log_filename);
@@ -773,13 +786,13 @@ void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long Start
 	{
 		if (LogFilename)
 		{
-			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", IDAPath, options, LogFilename, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", IDAPath, options, LogFilename, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -L\"%s\" -S\"%s\" \"%s\"\n", is_64?IDA64Path:IDAPath, options, LogFilename, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -L\"%s\" -S\"%s\" \"%s\"", is_64 ? IDA64Path : IDAPath, options, LogFilename, idc_filename, ida_filename);
 		}
 		else
 		{
-			Logger.Log(10, "Executing \"%s\" %s -S\"%s\" \"%s\"\n", IDAPath, options, idc_filename, ida_filename);
-			Execute(TRUE, "\"%s\" %s -S\"%s\" \"%s\"", IDAPath, options, idc_filename, ida_filename);
+			Logger.Log(10, "Executing \"%s\" %s -S\"%s\" \"%s\"\n", is_64 ? IDA64Path : IDAPath, options, idc_filename, ida_filename);
+			Execute(TRUE, "\"%s\" %s -S\"%s\" \"%s\"", is_64 ? IDA64Path : IDAPath, options, idc_filename, ida_filename);
 		}
 		free(idc_filename);
 	}

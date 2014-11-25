@@ -58,7 +58,7 @@ class DarunGrim
 {
 public:
 	void SetLogParameters( int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL );
-	void SetIDAPath( const char *path );
+	void SetIDAPath( const char *path, bool is_64 );
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool PerformDiff(char *src_storage_filename, unsigned long source_address, char *target_storage_filename, unsigned long target_address, char *output_storage_filename);
 	bool PerformDiff();
@@ -77,9 +77,9 @@ public:
 	bool SetTargetController(const char *identity);
 
 	void SetLogFilename(char *LogFilename);
-	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename);
-	void GenerateTargetDGFFromIDA(char *output_filename, char *log_filename);
-	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename);
+	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename, bool is_64);
+	void GenerateTargetDGFFromIDA(char *output_filename, char *log_filename, bool is_64);
+	void GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename, bool is_64);
 	void ConnectToDarunGrim(char *ida_filename);
 	const char *GetIDALogFilename();
 	void SetAutoMode(bool mode);
