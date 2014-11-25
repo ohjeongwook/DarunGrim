@@ -6,6 +6,7 @@ import subprocess
 import dircache
 import shutil
 from _winreg import *
+import tempfile
 
 LogToStdout = 0x1
 LogToDbgview = 0x2
@@ -219,10 +220,25 @@ class DarunGrim:
 				is_64=False
 
 		if is_64:
-			subprocess.Popen([self.IDA64Path,  filename])
+			ida_path=self.IDA64Path
 		else:
-			subprocess.Popen([self.IDAPath,  filename])
+			ida_path=self.IDAPath
 
+		fd=tempfile.TemporaryFile(delete=False)
+		#"	SetLogFile( \"%s\" );\n" + 
+		idc_data="static main()\n" + \
+				"{\n" + \
+				"	Wait();\n" + \
+				"	RunPlugin( \"DarunGrimPlugin\", 1 );\n" + \
+				"	ConnectToDarunGrim();\n" + \
+				"}"
+
+		fd.write(idc_data)
+		idc_filename=fd.name
+		fd.close()
+
+		subprocess.Popen([ida_path, "-S" + idc_filename, filename])
+		
 	def SyncIDA( self ):
 		self.DarunGrim.AcceptIDAClientsFromSocket()
 		
