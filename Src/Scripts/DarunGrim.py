@@ -288,10 +288,8 @@ class NewDiffingDialog(QDialog):
 		self.result_line.setText(filename)
 
 	def getFilename(self,type):
-		dialog=QFileDialog()
-		filename=''
-		if dialog.exec_():
-			filename=dialog.selectedFiles()[0]
+		(filename,filter)=QFileDialog.getOpenFileName(self,type)
+		if filename:
 			self.Filenames[type]=filename
 
 		return filename
@@ -401,9 +399,8 @@ class FileStoreBrowserDialog(QDialog):
 			self.patched_line.setText(self.PatchedFilename)
 
 	def getResultFilename(self):
-		dialog=QFileDialog()
-		if dialog.exec_():
-			filename=dialog.selectedFiles()[0]
+		(filename,filter)=QFileDialog.getOpenFileName(self,type)
+		if filename:
 			self.ResultFilename=str(filename.replace("/","\\"))
 			if self.ResultFilename[-4:0].lower()!='.dgf':
 				self.ResultFilename+='.dgf'
@@ -520,6 +517,30 @@ class SessionsDialog(QDialog):
 		if orientation==Qt.Horizontal and role==Qt.DisplayRole:
 			return ["Name", "Description", "Orig", "Patched"][col]
 		return None
+
+class ServerInfoDialog(QDialog):
+	def __init__(self,parent=None, port=0):
+		super(ServerInfoDialog,self).__init__(parent)
+		self.setWindowTitle("Server Information")
+
+		port_label=QLabel('Port:',self)
+
+		if port==0:
+			port_text='None'
+		else:
+			port_text='%d' % port
+
+		port_number_label=QLabel(port_text, self)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+		buttonBox.accepted.connect(self.accept)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(port_label,0,0)
+		main_layout.addWidget(port_number_label,0,1)
+		main_layout.addWidget(buttonBox,1,1)
+
+		self.setLayout(main_layout)
 
 class ConfigurationDialog(QDialog):
 	def __init__(self,parent=None, file_store_dir='', data_files_dir='', ida_path='', ida64_path='', log_level=0):
@@ -817,7 +838,7 @@ class MainWindow(QMainWindow):
 		self.restoreUI()
 
 	def RefreshGraphViews(self):
-		if self.showGraphs==True:
+		if self.ShowGraphs==True:
 			self.OrigFunctionGraph.show()
 			self.PatchedFunctionGraph.show()
 			self.GraphSplitter.show()
@@ -911,10 +932,10 @@ class MainWindow(QMainWindow):
 		self.OpenDatabase(result_filename)
 
 	def open(self):
-		dialog=QFileDialog()
-		if dialog.exec_():
+		(filename,filter)=QFileDialog.getOpenFileName(self,type)
+		if filename:
 			self.clearAreas()
-			self.OpenDatabase(dialog.selectedFiles()[0])
+			self.OpenDatabase(filename)
 
 	def OpenFolder(self,folder):
 		try:
@@ -969,11 +990,17 @@ class MainWindow(QMainWindow):
 			self.PatchedFunctionGraph.SaveImg(filename)
 
 	def toggleShowGraphs(self):
-		if self.showGraphs==True:
-			self.showGraphs=False
+		if self.ShowGraphs==True:
+			self.ShowGraphs=False
 		else:
-			self.showGraphs=True
+			self.ShowGraphs=True
 		self.RefreshGraphViews()
+
+	def toggleSyncrhonizeIDAUponOpening(self):
+		if self.SyncrhonizeIDAUponOpening==True:
+			self.SyncrhonizeIDAUponOpening=False
+		else:
+			self.SyncrhonizeIDAUponOpening=True
 
 	def showConfiguration(self):
 		dialog=ConfigurationDialog( file_store_dir=self.FileStoreDir, 
@@ -991,6 +1018,10 @@ class MainWindow(QMainWindow):
 			self.DarunGrimEngine.SetIDAPath(self.IDAPath)
 			self.DarunGrimEngine.SetIDAPath(self.IDA64Path,True)
 			self.LogLevel=int(dialog.log_level_line.text())
+
+	def serverInfo(self):
+		dialog=ServerInfoDialog(port=self.DarunGrimEngine.ListeningPort)
+		dialog.exec_()
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
@@ -1060,12 +1091,26 @@ class MainWindow(QMainWindow):
 								checkable=True
 							)
 		
-		self.showGraphsAct.setChecked(self.showGraphs)
+		self.showGraphsAct.setChecked(self.ShowGraphs)
+
+		self.syncrhonizeIDAUponOpeningAct = QAction("Synchronize IDA upon opening...",
+								self,
+								statusTip="Synchronize IDA upon opening",
+								triggered=self.toggleSyncrhonizeIDAUponOpening,
+								checkable=True
+							)
+		self.syncrhonizeIDAUponOpeningAct.setChecked(self.SyncrhonizeIDAUponOpening)
 
 		self.configurationAct = QAction("Configuration...",
 								self,
 								statusTip="Configuration",
 								triggered=self.showConfiguration
+							)
+
+		self.serverInfoAct = QAction("Server...",
+								self,
+								statusTip="Server Info",
+								triggered=self.serverInfo
 							)
 
 	def createMenus(self):
@@ -1087,7 +1132,9 @@ class MainWindow(QMainWindow):
 
 		self.optionsMenu = self.menuBar().addMenu("&Options")
 		self.optionsMenu.addAction(self.showGraphsAct)
+		self.optionsMenu.addAction(self.syncrhonizeIDAUponOpeningAct)
 		self.optionsMenu.addAction(self.configurationAct)
+		self.optionsMenu.addAction(self.serverInfoAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -1107,6 +1154,9 @@ class MainWindow(QMainWindow):
 
 		database = DarunGrimDatabase.Database(databasename)
 		self.setWindowTitle("DarunGrim 4 - %s" % (database.GetDescription()))
+
+		if self.SyncrhonizeIDAUponOpening:
+			self.synchronizeIDA()
 
 	def ColorController(self, type, disasms, match_info):
 		for (address,[end_address,disasm]) in disasms.items():
@@ -1140,7 +1190,7 @@ class MainWindow(QMainWindow):
 				self.ColorController(1, target_disasms, target_match_info )
 				self.DarunGrimEngine.JumpToAddresses(source_function_address, target_function_address)
 
-				if self.showGraphs:
+				if self.ShowGraphs:
 					# Draw graphs
 					self.OrigFunctionGraph.SetDatabaseName(self.DatabaseName)
 					self.OrigFunctionGraph.DrawFunctionGraph("Source", source_function_address, source_disasms, source_links, source_match_info)
@@ -1162,7 +1212,7 @@ class MainWindow(QMainWindow):
 			for index in item.indexes():
 				[orig_address,patched_address]=self.BlockTableModel.GetBlockAddresses(index.row())
 
-				if self.showGraphs:
+				if self.ShowGraphs:
 					if orig_address!=0:
 						self.OrigFunctionGraph.HilightAddress(orig_address)
 
@@ -1213,12 +1263,19 @@ class MainWindow(QMainWindow):
 
 	def readSettings(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
-		self.showGraphs=True
+		self.ShowGraphs=True
 		if settings.contains("General/ShowGraphs"):
 			if settings.value("General/ShowGraphs")=='true':
-				self.showGraphs=True
+				self.ShowGraphs=True
 			else:
-				self.showGraphs=False
+				self.ShowGraphs=False
+
+		self.SyncrhonizeIDAUponOpening=False
+		if settings.contains("General/SyncrhonizeIDAUponOpening"):
+			if settings.value("General/SyncrhonizeIDAUponOpening")=='true':
+				self.SyncrhonizeIDAUponOpening=True
+			else:
+				self.SyncrhonizeIDAUponOpening=False
 
 		self.FileStoreDir = "Z:\\DarunGrimStore"
 		if settings.contains("General/FileStoreDir"):
@@ -1258,7 +1315,8 @@ class MainWindow(QMainWindow):
 
 	def saveSettings(self):
 		settings = QSettings("DarunGrim LLC", "DarunGrim")
-		settings.setValue("General/ShowGraphs", self.showGraphs)
+		settings.setValue("General/ShowGraphs", self.ShowGraphs)
+		settings.setValue("General/SyncrhonizeIDAUponOpening", self.SyncrhonizeIDAUponOpening)		
 		settings.setValue("General/FileStoreDir", self.FileStoreDir)
 		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
 		settings.setValue("General/DGFSotreDir", self.DataFilesDir)

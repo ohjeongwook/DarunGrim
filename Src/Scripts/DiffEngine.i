@@ -71,7 +71,7 @@ public:
 	void ColorAddress( int index, unsigned long start_address, unsigned long end_address, unsigned long color );
 
 	void SetDatabase( DBWrapper *OutputDB );
-	bool StartIDAListenerThread();
+	unsigned short StartIDAListenerThread(unsigned short port);
 	bool StartIDAListener( unsigned short port );
 	bool SetSourceController(const char *identity);
 	bool SetTargetController(const char *identity);

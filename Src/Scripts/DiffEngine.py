@@ -153,7 +153,7 @@ class DarunGrim(_object):
     def JumpToAddresses(self, *args): return _DiffEngine.DarunGrim_JumpToAddresses(self, *args)
     def ColorAddress(self, *args): return _DiffEngine.DarunGrim_ColorAddress(self, *args)
     def SetDatabase(self, *args): return _DiffEngine.DarunGrim_SetDatabase(self, *args)
-    def StartIDAListenerThread(self): return _DiffEngine.DarunGrim_StartIDAListenerThread(self)
+    def StartIDAListenerThread(self, *args): return _DiffEngine.DarunGrim_StartIDAListenerThread(self, *args)
     def StartIDAListener(self, *args): return _DiffEngine.DarunGrim_StartIDAListener(self, *args)
     def SetSourceController(self, *args): return _DiffEngine.DarunGrim_SetSourceController(self, *args)
     def SetTargetController(self, *args): return _DiffEngine.DarunGrim_SetTargetController(self, *args)

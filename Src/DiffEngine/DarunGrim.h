@@ -161,7 +161,7 @@ private:
 public:
 
 	void SetDatabase(DBWrapper *OutputDB);
-	bool StartIDAListenerThread();
+	unsigned short StartIDAListenerThread(unsigned short port);
 	void ListIDAControllers();
 	IDAController *FindIDAController(const char *identity);
 	bool SetSourceController(const char *identity);

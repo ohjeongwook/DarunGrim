@@ -3435,6 +3435,13 @@ SWIG_AsVal_unsigned_SS_short (PyObject * obj, unsigned short *val)
   return res;
 }
 
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_unsigned_SS_short  (unsigned short value)
+{    
+  return SWIG_From_unsigned_SS_long  (value);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -5236,19 +5243,28 @@ fail:
 SWIGINTERN PyObject *_wrap_DarunGrim_StartIDAListenerThread(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
+  unsigned short arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
+  unsigned short val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
-  bool result;
+  PyObject * obj1 = 0 ;
+  unsigned short result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:DarunGrim_StartIDAListenerThread",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_StartIDAListenerThread",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_StartIDAListenerThread" "', argument " "1"" of type '" "DarunGrim *""'"); 
   }
   arg1 = reinterpret_cast< DarunGrim * >(argp1);
-  result = (bool)(arg1)->StartIDAListenerThread();
-  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  ecode2 = SWIG_AsVal_unsigned_SS_short(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_StartIDAListenerThread" "', argument " "2"" of type '" "unsigned short""'");
+  } 
+  arg2 = static_cast< unsigned short >(val2);
+  result = (unsigned short)(arg1)->StartIDAListenerThread(arg2);
+  resultobj = SWIG_From_unsigned_SS_short(static_cast< unsigned short >(result));
   return resultobj;
 fail:
   return NULL;

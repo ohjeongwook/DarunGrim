@@ -167,7 +167,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions);printf=msg</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -201,7 +201,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions);printf=msg</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -242,7 +242,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions);printf=msg</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -286,7 +286,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions);printf=msg</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>

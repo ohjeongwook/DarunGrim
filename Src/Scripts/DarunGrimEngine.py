@@ -22,9 +22,10 @@ class DarunGrim:
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 		self.SetIDAPath()
+		self.ListeningPort=0
 
 		if start_ida_listener:
-			self.DarunGrim.StartIDAListenerThread()
+			self.ListeningPort=self.DarunGrim.StartIDAListenerThread(self.ListeningPort)
 		self.DGFSotrage=''
 
 	def SetIDAPath(self,ida_path='',is_64=False):
@@ -230,10 +231,10 @@ class DarunGrim:
 				"{\n" + \
 				"	Wait();\n" + \
 				"	RunPlugin( \"DarunGrimPlugin\", 1 );\n" + \
-				"	ConnectToDarunGrim();\n" + \
+				"	ConnectToDarunGrim(%d);\n" + \
 				"}"
-
-		fd.write(idc_data)
+		
+		fd.write(idc_data % self.ListeningPort)
 		idc_filename=fd.name
 		fd.close()
 

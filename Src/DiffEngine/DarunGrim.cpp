@@ -322,6 +322,13 @@ void DarunGrim::SetDatabase(DBWrapper *OutputDB)
 	m_OutputDB = OutputDB;
 }
 
+typedef struct _IDA_LISTENER_PARAM_
+{
+	PSLIST_HEADER pListEntry;
+	unsigned short port;
+	SOCKET socket;
+} IDA_LISTENER_PARAM;
+
 typedef struct _IDA_CONTROLLER_
 {
 	SLIST_ENTRY ItemEntry;
@@ -330,10 +337,10 @@ typedef struct _IDA_CONTROLLER_
 
 DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
 {
-	PSLIST_HEADER pListHead = (PSLIST_HEADER)lpParameter;
-	SOCKET listen_s = CreateListener(NULL, DARUNGRIM_PORT);
-	Logger.Log(10, "%s: ListeningSocket=%d\n", __FUNCTION__, listen_s);
-	DWORD dwThreadId;
+	IDA_LISTENER_PARAM *param = (IDA_LISTENER_PARAM *) lpParameter;
+	PSLIST_HEADER pListHead = param->pListEntry;
+	SOCKET listen_s = param->socket;
+
 	while (1)
 	{
 		SOCKET s = accept(listen_s, NULL, NULL);
@@ -349,12 +356,12 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
 			PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)_aligned_malloc(sizeof(IDA_CONTROLLER), MEMORY_ALLOCATION_ALIGNMENT);
 			if (p_ida_controller_item == NULL)
 				return -1;
-			printf("New connection: %d", s);
+			Logger.Log(10, "New connection: %d", s);
 			p_ida_controller_item->pIDAController = new IDAController();
 			p_ida_controller_item->pIDAController->SetSocket(s);
 			p_ida_controller_item->pIDAController->RetrieveIdentity();
 
-			printf("Identity: %s\n", p_ida_controller_item->pIDAController->GetIdentity());
+			Logger.Log(10, "Identity: %s\n", p_ida_controller_item->pIDAController->GetIdentity());
 
 			InterlockedPushEntrySList(pListHead, &(p_ida_controller_item->ItemEntry));
 		}
@@ -362,20 +369,29 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
 	return 0;
 }
 
-bool DarunGrim::StartIDAListenerThread()
+unsigned short DarunGrim::StartIDAListenerThread(unsigned short port)
 {
-	printf("StartIDAListenerThread\n");
+	Logger.Log(10, "StartIDAListenerThread on port: %d\n", port);
 	DWORD dwThreadId;
 
 	pIDAClientListHead = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
 
 	if (pIDAClientListHead == NULL)
-		return FALSE;
+		return 0;
 
 	InitializeSListHead(pIDAClientListHead);
-	HANDLE thread = CreateThread(NULL, 0, IDAListenerThread, (PVOID)pIDAClientListHead, 0, &dwThreadId);
 
-	return TRUE;
+	SOCKET s = CreateListener(NULL, port);
+	Logger.Log(10, "%s: listening socket: %d (port: %d)\n", __FUNCTION__, s, port);
+
+	IDA_LISTENER_PARAM *param = new IDA_LISTENER_PARAM();
+	param->pListEntry = pIDAClientListHead;
+	param->port = port;
+	param->socket = s;
+
+	HANDLE thread = CreateThread(NULL, 0, IDAListenerThread, (PVOID)param, 0, &dwThreadId);
+
+	return port;
 }
 
 void DarunGrim::UpdateIDAControllers()
@@ -390,17 +406,17 @@ void DarunGrim::UpdateIDAControllers()
 		PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)pListEntry;
 		string identity = p_ida_controller_item->pIDAController->GetIdentity();
 
-		printf("Identity: %s\n", identity.c_str());
+		Logger.Log(10, "Identity: %s\n", identity.c_str());
 		IDAControllerList.push_back(p_ida_controller_item->pIDAController);
 		
 		if (identity == SourceIdentity)
 		{
-			printf("Setting source controller: %s\n", identity.c_str());
+			Logger.Log(10, "Setting source controller: %s\n", identity.c_str());
 			pSourceController = p_ida_controller_item->pIDAController;
 		}
 		else if (identity == TargetIdentity)
 		{
-			printf("Setting target controller: %s\n", identity.c_str());
+			Logger.Log(10, "Setting target controller: %s\n", identity.c_str());
 			pTargetController = p_ida_controller_item->pIDAController;
 		}
 	}
@@ -414,7 +430,7 @@ void DarunGrim::ListIDAControllers()
 		it != IDAControllerList.end();
 		it++)
 	{
-		printf("%s\n", (*it)->GetIdentity());
+		Logger.Log(10, "%s\n", (*it)->GetIdentity());
 	}
 }
 
@@ -426,7 +442,7 @@ IDAController *DarunGrim::FindIDAController(const char *identity)
 		it != IDAControllerList.end();
 		it++)
 	{
-		printf("%s\n", (*it)->GetIdentity());
+		Logger.Log(10, "%s\n", (*it)->GetIdentity());
 
 		if ((*it)->GetIdentity() == identity)
 			return (*it);
@@ -443,11 +459,11 @@ bool DarunGrim::SetController(int type, const char *identity)
 		it != IDAControllerList.end();
 		it++)
 	{
-		printf("IDAController: %s\n", (*it)->GetIdentity());
+		Logger.Log(10, "IDAController: %s\n", (*it)->GetIdentity());
 
 		if ((*it)->GetIdentity() == identity)
 		{
-			printf("Setting source controller: %s\n", (*it)->GetIdentity());
+			Logger.Log(10, "Setting source controller: %s\n", (*it)->GetIdentity());
 			if (type == SOURCE_CONTROLLER)
 				pSourceController = (*it);
 			else if (type==TARGET_CONTROLLER)

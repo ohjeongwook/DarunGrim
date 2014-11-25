@@ -10,10 +10,6 @@
 
 #include <graph.hpp>
 
-#ifdef USE_DATABASE
-#include "Database.h"
-#endif
-
 #include "IdaIncludes.h"
 
 #include <winsock.h>
@@ -33,9 +29,8 @@
 #endif
 
 using namespace std;
-//using namespace stdext;
 
-void idaapi run( int arg );
+void SaveDGF(bool ask_file_path);
 
 #include "IDAAnalysis.h"
 #include "fileinfo.h"
@@ -58,7 +53,6 @@ extern HANDLE gLogFile;
 static const char SetLogFileVar[]={VT_STR, 0 };
 static error_t idaapi SetLogFile( value_t *argv, value_t *res )
 {
-	msg( "%s is called with arg0=%s\r\n", argv[0].str );
 	if( argv[0].str && argv[0].str[0] )
 	{
 		gLogFile=OpenLogFile( argv[0].str );
@@ -73,7 +67,6 @@ ea_t EndEA=0;
 static const char SaveAnalysisDataArgs[]={VT_STR, VT_LONG, VT_LONG, 0};
 static error_t idaapi SaveAnalysisData( value_t *argv, value_t *res )
 {
-	msg( "%s: %s is called with arg0=%s\n", __FUNCTION__, argv[0].str );
 	if( argv[0].str && argv[0].str[0] )
 	{
 		OutputFilename=strdup( argv[0].str );
@@ -82,22 +75,23 @@ static error_t idaapi SaveAnalysisData( value_t *argv, value_t *res )
 		OutputFilename=NULL;
 	}
 
-	if( argv[1].str )
-		StartEA=strtoul( argv[1].str, NULL, 10 );
-	if( argv[2].str )
-		EndEA=strtoul( argv[2].str, NULL, 10 );;
+	StartEA = argv[1].num;
+	EndEA = argv[2].num;
 
-	run( 2 );
+	SaveDGF(false);
 	res->num=1;
 	return eOk;
 }
 
-BOOL ConnectToDarunGrimServer();
-static const char ConnectToDarunGrimArgs[]={0 };
+BOOL ConnectToDarunGrim(unsigned short port);
+static const char ConnectToDarunGrimArgs[] = { VT_LONG, 0 };
 static error_t idaapi ConnectToDarunGrim( value_t *argv, value_t *res )
 {
+	msg("%s\n", __FUNCTION__);
 	OutputFilename=NULL;
-	ConnectToDarunGrimServer();
+	unsigned short port = argv[0].num;
+
+	ConnectToDarunGrim(port);
 	res->num=1;
 	return eOk;
 }
@@ -696,15 +690,20 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 	return 0;
 }
 
-BOOL ConnectToDarunGrimServer()
+BOOL ConnectToDarunGrim(unsigned short port)
 {
-	SOCKET data_socket = ConnectToServer("127.0.0.1", DARUNGRIM_PORT);
+	msg("Connecting to DarunGrim GUI on port %d...\n", port);
+	SOCKET data_socket = ConnectToServer("127.0.0.1", port);
 	if( data_socket != INVALID_SOCKET )
 	{
-		msg( "Connected to DarunGrim Main Program" );
+		msg( "Connected to DarunGrim GUI on port %d\n", port);
 		SetSharedSocketDataReceiver( ProcessCommandFromDarunGrim );
 		PutSocketToWSAAsyncSelect( data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT );
 		return TRUE;
+	}
+	else
+	{
+		msg("Failed to connect to DarunGrim GUI on port %d\n", port);
 	}
 	return FALSE;
 }
@@ -760,116 +759,87 @@ bool FileWriterWrapper( PVOID Context, BYTE Type, PBYTE Data, DWORD Length )
 }
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-void idaapi run( int arg )
+void SaveDGF(bool ask_file_path)
 {
 	long start_tick = GetTickCount();
-	msg( "Start DarunGrim Plugin\n" );
-	if( arg==1 )
-	{
-		return;
-	}
 
 	FindInvalidFunctionStartAndConnectBrokenFunctionChunk();
-#ifdef USE_DATABASE
-	sqlite3 *db=InitializeDatabase( arg );
-	if( !db )
-	{
-		DumpAddressInfo( get_screen_ea() );
-		return;
-	}
-#endif
 	//FixExceptionHandlers();
 
-#ifdef INTERNAL_SERVER		
-	StartAnalysisServer( TRUE, DARUNGRIM_PORT );
-#elif defined( EXTERNAL_SERVER )
-	StartProcess( EXTERNAL_SERVER );
-#endif
-
-#ifdef USE_DATABASE
-	AddrMapHash *addr_map_base=NULL;
-	LocationInfo *p_first_location_info=NULL;
-	AnalyzeRegion( &addr_map_base, &p_first_location_info );
-#else //Standalone
-	char dllname[1024];
-	GetModuleFileName( ( HMODULE )&__ImageBase, dllname, sizeof( dllname ) );
-	LoadLibrary( dllname );
-
-	if (!ConnectToDarunGrimServer() && !OutputFilename)
+	if (!OutputFilename)
 	{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-		char orignal_file_path[1024]={0, };
-		char root_file_path[1024]={0, };
+		char orignal_file_path[1024] = { 0, };
+		char root_file_path[1024] = { 0, };
 #else
-		char *orignal_file_path=strdup( get_input_file_path() );
-		char *root_file_path=get_root_filename();
+		char *orignal_file_path = strdup(get_input_file_path());
+		char *root_file_path = get_root_filename();
 #endif
-		char *input_file_path=NULL;
+		char *input_file_path = NULL;
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-		get_input_file_path( orignal_file_path, sizeof( orignal_file_path )-1 );
-		get_root_filename( root_file_path, sizeof( root_file_path )-1 );
+		get_input_file_path(orignal_file_path, sizeof(orignal_file_path)-1);
+		get_root_filename(root_file_path, sizeof(root_file_path)-1);
 #endif
-		msg( "Ask Filepath\n" );
-		if( arg==0 )
+		if (ask_file_path)
 		{
-			input_file_path=askfile_c( 1, "*.dgf", "Select DB File to Output" );
-			if( !input_file_path )
+			input_file_path = askfile_c(1, "*.dgf", "Select DB File to Output");
+			if (!input_file_path)
 			{
 				return;
 			}
 		}
-		if( input_file_path && strlen( input_file_path )>0 )
+		if (input_file_path && strlen(input_file_path)>0)
 		{
-			int OutputFilename_size=strlen( input_file_path )+5;
-			OutputFilename=( char * )calloc( 1, OutputFilename_size );
-			if( OutputFilename )
+			int OutputFilename_size = strlen(input_file_path) + 5;
+			OutputFilename = (char *)calloc(1, OutputFilename_size);
+			if (OutputFilename)
 			{
-				qstrncpy( OutputFilename, input_file_path, OutputFilename_size );
+				qstrncpy(OutputFilename, input_file_path, OutputFilename_size);
 #define DB_POSTFIX ".dgf"
-				if( stricmp( &input_file_path[strlen( input_file_path )-4], ".dgf" ) )
+				if (stricmp(&input_file_path[strlen(input_file_path) - 4], ".dgf"))
 				{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-					qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #else
 #ifdef _USE_IDA_SDK_47_OR_LOWER
-					strncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					strncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #else
-					qstrncat( OutputFilename, DB_POSTFIX, OutputFilename_size );
+					qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #endif
 #endif
 				}
-				msg( "Output file=[%s]\n", OutputFilename );
+				msg("Output file=[%s]\n", OutputFilename);
 			}
 		}
 	}
 
-	if( OutputFilename )
+	if (OutputFilename)
 	{
 #if defined( USE_SQLITE_DB )
-		DBWrapper db( OutputFilename );
-		CreateTables( db );
+		DBWrapper db(OutputFilename);
+		CreateTables(db);
 		db.BeginTransaction();
 #else
 		//HandleValue: Open File ( OutputFilename );
 		//Saving to a temporary File
-		HANDLE hFile; 
-		hFile=CreateFile( OutputFilename, // file to create
+		HANDLE hFile;
+		hFile = CreateFile(OutputFilename, // file to create
 			GENERIC_WRITE, // open for writing
 			0, // do not share
 			NULL, // default security
 			CREATE_ALWAYS, // overwrite existing
 			FILE_ATTRIBUTE_NORMAL, // normal file
-			NULL ); // no attr. Template
+			NULL); // no attr. Template
 #endif
 
-		AnalyzeIDAData( ( bool ( * )( PVOID, BYTE, PBYTE, DWORD ) )
+		AnalyzeIDAData((bool(*)(PVOID, BYTE, PBYTE, DWORD))
 
 #if defined( USE_SQLITE_DB )
 			DatabaseWriterWrapper
 #else
 			FileWriterWrapper
 #endif
-			, ( PVOID )
+			, (PVOID)
 
 #if defined( USE_SQLITE_DB )
 			//Database pointer
@@ -878,24 +848,61 @@ void idaapi run( int arg )
 			hFile
 #endif
 			, StartEA, EndEA
-		 );
+			);
 
 #if defined( USE_SQLITE_DB )
 		db.EndTransaction();
 		db.CloseDatabase();
 #else
-		CloseHandle( hFile );
+		CloseHandle(hFile);
 #endif
 	}
-#endif
-
-#ifdef USE_DATABASE
-	SaveToDatabase( db, addr_map_base, p_first_location_info );
-	DeInitializeDatabase( db );
-#endif
 
 	long end_tick = GetTickCount();
-	msg( "DarunGrim Analysis Finished %.3f sec\n", ( float ) ( end_tick - start_tick )/ 1000 );
+	msg("DarunGrim Analysis Finished %.3f sec\n", (float)(end_tick - start_tick) / 1000);
+}
+
+void idaapi run( int arg )
+{
+	msg( "DarunGrim plugin started...\n" );
+	if( arg==1 )
+	{
+		return;
+	}
+
+	char dllname[1024];
+	GetModuleFileName((HMODULE)&__ImageBase, dllname, sizeof(dllname));
+	LoadLibrary(dllname);
+
+	// Display a dialog box
+	char *dialog =
+		"STARTITEM 0\n"
+		"DarunGrim4\n\n"
+		"<##Select operation##Save to DGF:r>\n"
+		"<Connect to DarunGrim GUI:R>>\n";
+
+	ushort radio = 0;
+
+	if (AskUsingForm_c(dialog, &radio) == 1)
+	{
+		if (radio == 0)
+		{
+			SaveDGF(true);
+		}
+		else
+		{
+			char *dialog =
+				"DarunGrim4\n\n"
+				"Check Options->Server menu\n"
+				"from DarunGrim4 GUI to get the port information\n"
+				"<Port:D:10:10::>\n";
+			sval_t port = DARUNGRIM_PORT;
+			if (AskUsingForm_c(dialog, &port) == 1)
+			{
+				ConnectToDarunGrim(port);
+			}
+		}
+	}
 }
 
 char comment[]="This is a DarunGrim Plugin.";

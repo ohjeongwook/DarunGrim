@@ -1,8 +1,11 @@
 #pragma warning(disable:4996)
 #include <stdio.h>
+#include <WinSock.h>
 #include "SocketOperation.h"
 
-SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned short listening_port)
+typedef int socklen_t;
+
+SOCKET CreateListener(DWORD (CALLBACK *worker_thread)(LPVOID lpParam),unsigned short &port)
 {
 	//unsigned short listening_port=(unsigned short)lpParam;
 
@@ -27,16 +30,33 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 	sockaddr_in service;
 	service.sin_family=AF_INET;
 	service.sin_addr.s_addr=inet_addr("127.0.0.1");
-	service.sin_port=htons(listening_port);
+	service.sin_port=htons(port);
 
 	if(bind(s, 
 		(SOCKADDR*)&service, 
 		sizeof(service))==SOCKET_ERROR)
 	{
-		printf("bind() failed.\r\n");
+		printf("bind() failed on port %d.\r\n", port);
 		closesocket(s);
 		WSACleanup();
 		return FALSE;
+	}
+
+	if (port == 0)
+	{
+		struct sockaddr_in sin;
+		socklen_t len = sizeof(sin);
+
+		if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+		{
+			printf("getsockname error\n");
+		}
+		else
+		{
+			port=ntohs(sin.sin_port);
+			printf("Bound to port %d\n", port);
+		}
+
 	}
 
 	if(listen(s,1)==SOCKET_ERROR)
@@ -47,9 +67,9 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 		return FALSE;
 	}
 	SOCKET client_socket;
-	printf("Waiting for client to connect on port %d...\r\n",listening_port);
+	printf("Waiting for client to connect on port %d...\r\n", port);
 
-	if(WorkerThread)
+	if(worker_thread)
 	{
 		// Accept the connection.
 		while(1)
@@ -66,7 +86,7 @@ SOCKET CreateListener(DWORD (CALLBACK *WorkerThread)(LPVOID lpParam),unsigned sh
 				CreateThread(
 					NULL,
 					0,
-					WorkerThread,
+					worker_thread,
 					(void*)client_socket,
 					0,
 					NULL);

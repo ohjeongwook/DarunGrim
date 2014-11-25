@@ -36,6 +36,7 @@ void main(int argc,char *argv[])
 	int SourceFileID;
 	int TargetFileID;
 	int DebugLevel = 0;
+	bool is_64 = false; //TODO:
 
 #ifdef DEBUG_MEMORY
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
@@ -128,7 +129,7 @@ void main(int argc,char *argv[])
 	DarunGrim *pDarunGrim = new DarunGrim();
 
 	if (IDAPath)
-		pDarunGrim->SetIDAPath(IDAPath);
+		pDarunGrim->SetIDAPath(IDAPath,is_64);
 
 	pDarunGrim->SetLogParameters(LogToStdout, DebugLevel, "");
 
