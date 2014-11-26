@@ -30,12 +30,9 @@ class DarunGrim:
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 
-		"""
-		self.DarunGrim.AddSrcDumpAddress(0x6FCA2C33)
-		self.DarunGrim.AddTargetDumpAddress(0x6FCA2CBB)
+		self.DarunGrim.AddSrcDumpAddress(0)
+		self.DarunGrim.AddTargetDumpAddress(0)
 		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE)
-		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE | LOG_MATCH_RATE)
-		"""
 
 		if src_filename:
 			self.SetSourceFilename(src_filename)
