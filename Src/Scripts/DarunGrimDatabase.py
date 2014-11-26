@@ -317,16 +317,17 @@ class Database:
 			return
 
 		self.FileList=[]
-
+		self.AttachedDatabases=[]
 		if self.UseAttach:
-			engine=create_engine('sqlite://',echo=False)
-			engine.execute("ATTACH DATABASE '%s' AS Diff;" % filename)
+			self.Engine=create_engine('sqlite://',echo=False)
+			self.AttachedDatabases.append('Diff')
+			self.Engine.execute("ATTACH DATABASE '%s' AS Diff;" % filename)
 
 			self.Session=sessionmaker()
-			self.Session.configure(bind=engine)	
+			self.Session.configure(bind=self.Engine)	
 			self.SessionInstance = self.Session()
 			
-			metadata=MetaData(engine)
+			metadata=MetaData(self.Engine)
 
 			type_map={}
 			for file_list in self.SessionInstance.query(FileList).all():
@@ -336,15 +337,16 @@ class Database:
 				type_map[file_list.type]=1
 				self.FileList.append(file_list)
 
+				self.AttachedDatabases.append(file_list.type)
 				query="ATTACH DATABASE '%s' AS %s;" % (file_list.filename,file_list.type)
-				engine.execute(query)
+				self.Engine.execute(query)
 
 		else:
 
-			engine = create_engine('sqlite:///' + filename, echo = echo)
-			self.metadata=MetaData(engine)
+			self.Engine = create_engine('sqlite:///' + filename, echo = echo)
+			self.metadata=MetaData(self.Engine)
 			self.Session=sessionmaker()
-			self.Session.configure(bind=engine)	
+			self.Session.configure(bind=self.Engine)	
 			self.SessionInstance = self.Session()
 
 			self.SessionInstancesMap={}
@@ -359,19 +361,30 @@ class Database:
 				self.Session.configure(bind=engine)	
 				self.SessionInstancesMap[file_list.type] = self.Session()
 				self.FileList.append(file_list)
+				engine.dispose()
 
 			if not self.SessionInstancesMap.has_key('Source'):
 				self.SessionInstancesMap['Source']=self.SessionInstance
 			if not self.SessionInstancesMap.has_key('Target'):
 				self.SessionInstancesMap['Target']=self.SessionInstance
 
-	def GetFileLocations(self):
+	def Close(self):
+		print 'Closing session'
+
+		for database in self.AttachedDatabases:
+			query="DETACH DATABASE '%s';" % (database)
+			self.Engine.execute(query)
+
+		self.SessionInstance.close()
+		self.Engine.dispose()
+
+	def GetDGFFileLocations(self):
 		src_file_location=''
 		target_file_location=''
 		for file_list in self.FileList:
 			if file_list.type=='Source':
 				src_file_location=file_list.filename
-			elif file_list.type=='Source':
+			elif file_list.type=='Target':
 				target_file_location=file_list.filename
 
 		return [src_file_location,target_file_location]
@@ -729,6 +742,7 @@ class Database:
 
 		if source_function_address!=0:
 			query=self.SessionInstance.query(SourceOneLocationInfo, MatchMap).filter_by(function_address=source_function_address)
+			query=query.filter(SourceOneLocationInfo.fingerprint!='')
 			query=query.outerjoin(MatchMap, MatchMap.source_address==SourceOneLocationInfo.start_address)
 
 			

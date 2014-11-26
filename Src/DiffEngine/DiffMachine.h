@@ -161,7 +161,21 @@ typedef struct
 	DWORD Source;
 	DWORD Target;
 	int MatchRate;
+	int IndexDiff;
 } MatchRateInfo;
+
+class DumpAddressChecker
+{
+private:
+	hash_set <DWORD> SrcDumpAddresses;
+	hash_set <DWORD> TargetDumpAddresses;
+
+public:
+	void AddSrcDumpAddress(DWORD address);
+	void AddTargetDumpAddress(DWORD address);
+	bool IsDumpPair(DWORD src, DWORD target);
+	void DumpMatchInfo(DWORD src, DWORD target, int match_rate, const char *format, ...);
+};
 
 class DiffMachine
 {
@@ -193,12 +207,18 @@ private:
 	void DoFunctionMatch(MATCHMAP *pTargetTemporaryMap);
 	bool DoFunctionLevelMatchOptimizing();
 
-	MatchRateInfo *GetMatchRate(DWORD source_address, DWORD target_address, int type, int &MatchRateInfoCount);
+	MatchRateInfo *GetMatchRateInfoArray(DWORD source_address, DWORD target_address, int type, int &MatchRateInfoCount);
+	DumpAddressChecker *pDumpAddressChecker;
 
 public:
 	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
 	~DiffMachine();
 	void ClearFunctionMatchInfoList();
+
+	void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
+	{
+		pDumpAddressChecker = p_dump_address_checker;
+	}
 
 	void SetSource(IDAController *NewSource)
 	{

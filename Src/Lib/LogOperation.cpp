@@ -380,9 +380,9 @@ void LogOperation::SetLogFilename( const char *filename )
 	OpenLogFile( LogFilename );
 }
 
-void LogOperation::Log( DWORD MessageDebugLevel, const CHAR *format, ... )
+void LogOperation::Log(DWORD debug_level, int type, const CHAR *format, ...)
 {
-	if( MessageDebugLevel < DebugLevel  )
+	if (debug_level <= DebugLevel && EnabledLogTypes.find(type) != EnabledLogTypes.end())
 	{
 		va_list args;
 		va_start(args,format);
@@ -404,9 +404,15 @@ void LogOperation::Log( const CHAR *format, ... )
 	_Log(log_message);
 }
 
-void LogOperation::Log( DWORD MessageDebugLevel, const WCHAR *format, ... )
+
+void LogOperation::EnableLogType(int log_level)
 {
-	if( MessageDebugLevel < DebugLevel  )
+	EnabledLogTypes.insert(log_level);
+}
+
+void LogOperation::Log( DWORD debug_level, int type, const WCHAR *format, ... )
+{
+	if (debug_level <= DebugLevel && EnabledLogTypes.find(type) != EnabledLogTypes.end())
 	{
 		va_list args;
 		va_start(args,format);

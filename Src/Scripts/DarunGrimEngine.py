@@ -15,12 +15,25 @@ LogToIDAMessageBox = 0x8
 
 class DarunGrim:
 	DebugLevel=0
-	def __init__ ( self, src_filename='', target_filename='', ida_path='', start_ida_listener=True ):
-		self.SetSourceFilename(src_filename)
-		self.SetTargetFilename(target_filename)
+	def __init__ ( self, src_filename='', target_filename='', ida_path='', start_ida_listener=False):
+		self.SrcStorage=''
+		self.TargetStorage=''
 
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
+
+		self.DarunGrim.AddSrcDumpAddress(0x63A8EC35)
+		self.DarunGrim.AddTargetDumpAddress(0x63A8EC1D)
+
+		self.DarunGrim.AddSrcDumpAddress(0x63A8BBB2)
+		self.DarunGrim.AddTargetDumpAddress(0x63A8B73B)
+
+		if src_filename:
+			self.SetSourceFilename(src_filename)
+
+		if target_filename:
+			self.SetTargetFilename(target_filename)
+
 		self.SetIDAPath()
 		self.ListeningPort=0
 
@@ -137,13 +150,13 @@ class DarunGrim:
 	def SetTargetController(self,identity):
 		self.DarunGrim.SetTargetController(str(identity))
 
-	def SetSourceFilename(self,src_filename):
+	def SetSourceFilename(self,src_filename, is_dgf=False):
 		self.SrcFilename = str(src_filename)
 		
 		if self.SrcFilename:
 			self.DarunGrim.SetSourceFilename( self.SrcFilename )
 
-	def SetTargetFilename(self,target_filename):
+	def SetTargetFilename(self,target_filename, is_dgf=False):
 		self.TargetFilename = str(target_filename)
 
 		if self.TargetFilename:
@@ -183,31 +196,41 @@ class DarunGrim:
 		else:
 			return True
 
+	def SetStorageNames(self, src_storage, target_storage):
+		self.SrcStorage=str(src_storage)
+		self.TargetStorage=str(target_storage)
+
 	def PerformDiff( self, output_storage, src_ida_log_filename = "src.log", target_ida_log_filename = "target.log" ):
-		src_storage=self.GetDGFName(self.SrcFilename)
-		target_storage=self.GetDGFName(self.TargetFilename)
-		output_storage=str(output_storage)
+		if not self.SrcStorage:
+			self.SrcStorage=self.GetDGFName(self.SrcFilename)
+			src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
 
-		src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
-		target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
+			if not os.path.isfile(self.SrcStorage):
+				if self.Is64(self.SrcFilename):
+					src_is_64=True
+				else:
+					src_is_64=False
 
-		if not os.path.isfile(src_storage):
-			if self.Is64(self.SrcFilename):
-				src_is_64=True
-			else:
-				src_is_64=False
+				self.DarunGrim.GenerateSourceDGFFromIDA(self.SrcStorage, src_ida_log_filename, src_is_64)
 
-			self.DarunGrim.GenerateSourceDGFFromIDA(src_storage, src_ida_log_filename, src_is_64)
+		if not self.TargetStorage:
+			self.TargetStorage=self.GetDGFName(self.TargetFilename)
 
-		if not os.path.isfile(target_storage):
-			if self.Is64(self.TargetFilename):
-				target_is_64=True
-			else:
-				target_is_64=False
+			output_storage=str(output_storage)
 
-			self.DarunGrim.GenerateTargetDGFFromIDA(target_storage, target_ida_log_filename, target_is_64)
+			target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
 
-		self.DarunGrim.PerformDiff(src_storage, 0, target_storage, 0, output_storage);
+
+			if not os.path.isfile(self.TargetStorage):
+				if self.Is64(self.TargetFilename):
+					target_is_64=True
+				else:
+					target_is_64=False
+
+				self.DarunGrim.GenerateTargetDGFFromIDA(self.TargetStorage, target_ida_log_filename, target_is_64)
+
+		print 'PerformDiff:', self.SrcStorage, self.TargetStorage, output_storage
+		self.DarunGrim.PerformDiff(str(self.SrcStorage), 0, str(self.TargetStorage), 0, str(output_storage))
 
 	def OpenIDA(self,filename):
 		if filename[-4:].lower()=='.idb':
@@ -226,7 +249,7 @@ class DarunGrim:
 			ida_path=self.IDAPath
 
 		fd=tempfile.TemporaryFile(delete=False)
-		#"	SetLogFile( \"%s\" );\n" + 
+
 		idc_data="static main()\n" + \
 				"{\n" + \
 				"	Wait();\n" + \

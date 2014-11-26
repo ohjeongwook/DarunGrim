@@ -29,9 +29,23 @@ private:
 	string TargetIDBFilename;
 	bool IsLoadedSourceFile;
 	bool IDAAutoMode;
+	DumpAddressChecker aDumpAddress;
+
 public:
 	DarunGrim();
 	~DarunGrim();
+
+
+	void AddSrcDumpAddress(DWORD address)
+	{
+		aDumpAddress.AddSrcDumpAddress(address);
+	}
+
+	void AddTargetDumpAddress(DWORD address)
+	{
+		aDumpAddress.AddTargetDumpAddress(address);
+	}
+
 
 	DiffMachine *GetDiffMachine()
 	{

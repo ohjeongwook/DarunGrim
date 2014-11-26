@@ -62,6 +62,8 @@ public:
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	bool PerformDiff(char *src_storage_filename, unsigned long source_address, char *target_storage_filename, unsigned long target_address, char *output_storage_filename);
 	bool PerformDiff();
+	void AddSrcDumpAddress(unsigned long address);
+	void AddTargetDumpAddress(unsigned long address);
 	
 	void SetSourceFilename( char *source_filename );
 	void SetTargetFilename( char *target_filename );	

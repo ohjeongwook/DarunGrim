@@ -20,7 +20,6 @@ using namespace stdext;
 extern LogOperation Logger;
 
 #define DEBUG_LEVEL 0
-extern int DebugLevel;
 
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
@@ -101,7 +100,7 @@ static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char 
 	if (FunctionAddressHash)
 	{
 #if DEBUG_LEVEL > 1
-		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
+		if (DebugLevel & 1) Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
 #endif
 		FunctionAddressHash->insert(strtoul10(argv[0]));
 	}
@@ -114,7 +113,7 @@ static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv,
 	if (p_address_list)
 	{
 #if DEBUG_LEVEL > 1
-		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
+		if (DebugLevel & 1) Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]));
 #endif
 		BLOCK block;
 		block.Start = strtoul10(argv[0]);
@@ -138,7 +137,7 @@ BOOL IDAController::LoadIDARawDataFromSocket(SOCKET socket)
 		GetCurrentProcessId(), 
 		GetCurrentThreadId());
 
-	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d InitDataSharer\n", __FUNCTION__);
+	Logger.Log( 10, LOG_IDA_CONTROLLER, "%s: ID = %d InitDataSharer\n", __FUNCTION__);
 
 #define SHARED_MEMORY_SIZE 100000
 	if(!InitDataSharer(&IDADataSharer, 
@@ -146,18 +145,18 @@ BOOL IDAController::LoadIDARawDataFromSocket(SOCKET socket)
 		SHARED_MEMORY_SIZE, 
 		TRUE))
 	{
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d InitDataSharer failed\n", __FUNCTION__);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d InitDataSharer failed\n", __FUNCTION__);
 		return FALSE;
 	}
 	char data[1024+sizeof(DWORD)];
 	*(DWORD *)data = SHARED_MEMORY_SIZE;
 	memcpy(data+sizeof(DWORD), shared_memory_name, strlen(shared_memory_name)+1);
-	if(DebugLevel&1) 
-		Logger.Log( 10, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
+	
+	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d SendTLVData SEND_ANALYSIS_DATA\n", __FUNCTION__);
 
 	if(SendTLVData(SEND_ANALYSIS_DATA, (PBYTE)data, sizeof(DWORD)+strlen(shared_memory_name)+1))
 	{
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d LoadIDARawData\n", __FUNCTION__);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d LoadIDARawData\n", __FUNCTION__);
 		LoadIDARawData((PBYTE (*)(PVOID Context, BYTE *Type, DWORD *Length))GetData, (PVOID)&IDADataSharer);
 		return TRUE;
 	}
@@ -245,13 +244,13 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	multimap <DWORD, PMapInfo>::iterator map_info_hash_map_pIter;
 	if (DoCrefFromCheck)
 	{
-		if (DebugLevel & 1) Logger.Log(10, "AddressesHash.size() = %u\n", AddressesHash.size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "AddressesHash.size() = %u\n", AddressesHash.size());
 		for (map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
 			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
 			map_info_hash_map_pIter++
 			)
 		{
-			if (DebugLevel & 1) Logger.Log(10, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
 			if (map_info_hash_map_pIter->second->Type == CREF_FROM)
 			{
 				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
@@ -261,7 +260,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 				}
 			}
 		}
-		if (DebugLevel & 1) Logger.Log(10, "%s\n", __FUNCTION__);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
 		multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_iter;
 		for (address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
 			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
@@ -269,12 +268,13 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 		{
 			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
 		}
-		if (DebugLevel & 1) Logger.Log(10, "AddressesHash.size() = %u\n", AddressesHash.size());
+		
+		Logger.Log(10, LOG_IDA_CONTROLLER, "AddressesHash.size() = %u\n", AddressesHash.size());
 		for (hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin(); AddressesHashIterator != AddressesHash.end(); AddressesHashIterator++)
 		{
 			if (AddressesHashIterator->second)
 			{
-				if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
+				Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
 				FunctionAddressHash.insert(AddressesHashIterator->first);
 			}
 		}
@@ -296,8 +296,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 			{
 				if (FunctionAddressHash.find(map_info_hash_map_pIter->second->Dst) == FunctionAddressHash.end())
 				{
-					if (DebugLevel & 1)
-						Logger.Log(10, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
+					Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
 					FunctionAddressHash.insert(map_info_hash_map_pIter->second->Dst);
 				}
 			}
@@ -312,10 +311,10 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 			FunctionAddressHashIter++)
 		{
 			FunctionAddresses->push_back(*FunctionAddressHashIter);
-			if (DebugLevel & 4)
-				Logger.Log(10, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
+			Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
 		}
-		if (DebugLevel & 1) Logger.Log(10, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+		
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
 	}
 	return FunctionAddresses;
 }
@@ -422,18 +421,18 @@ void IDAController::DumpBlockInfo(DWORD block_address)
 			&addresses_number);
 		if(addresses)
 		{
-			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %s: ", __FUNCTION__, m_FileID, type_descriptions[i]);
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d %s: ", __FUNCTION__, m_FileID, type_descriptions[i]);
 			for(int j = 0;j<addresses_number;j++)
 			{
-				if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %x ", __FUNCTION__, m_FileID, addresses[j]);
+				Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d %x ", __FUNCTION__, m_FileID, addresses[j]);
 			}
-			if(DebugLevel&1) Logger.Log( 10, "\n");
+			Logger.Log(10, LOG_IDA_CONTROLLER, "\n");
 		}
 	}
 	char *hex_str = GetFingerPrintStr(block_address);
 	if(hex_str)
 	{
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
 		free(hex_str);
 	}
 }
@@ -477,7 +476,7 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 	p_map_info->SrcBlockEnd = strtoul10(argv[2]);
 	p_map_info->Dst = strtoul10(argv[3]);
 #if DEBUG_LEVEL > 1
-	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, 
+	Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, 
 		argv[0], strtoul10(argv[0]), 
 		argv[1], strtoul10(argv[1]), 
 		argv[2], strtoul10(argv[2]), 
@@ -556,7 +555,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 
 BOOL IDAController::Load()
 {
-	Logger.Log(10, "%s: %s\n", __FUNCTION__, m_StorageDB->GetDatabaseName());
+	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: %s\n", __FUNCTION__, m_StorageDB->GetDatabaseName());
 
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
@@ -580,7 +579,7 @@ void IDAController::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD Funct
 
 void IDAController::AddAnalysisTargetFunction( DWORD FunctionAddress )
 {
-	Logger.Log(10, "Add Analysis Target Function: %x\n", FunctionAddress);
+	Logger.Log(10, LOG_IDA_CONTROLLER, "Add Analysis Target Function: %x\n", FunctionAddress);
 	TargetFunctionAddress = FunctionAddress;
 }
 
@@ -607,14 +606,14 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 	{	
 		PBYTE data = RetrieveCallback(Context, &type, &length);
 #if DEBUG_LEVEL > 0
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d type = %u Data(0x%x) is Read %u Bytes Long\n", __FUNCTION__, m_FileID, type, data, length);
+		Logger.Log( 10, "%s: ID = %d type = %u Data(0x%x) is Read %u Bytes Long\n", __FUNCTION__, m_FileID, type, data, length);
 #endif
 
 		if(type  ==  END_OF_DATA)
 		{
 #if DEBUG_LEVEL > -1
-			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d End of Analysis\n", __FUNCTION__);
-			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d address_hash_map:%u/address_fingerprint_hash_map:%u/fingerprint_hash_map:%u/name_hash_map:%u/map_info_hash_map:%u\n", 
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d End of Analysis\n", __FUNCTION__);
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d address_hash_map:%u/address_fingerprint_hash_map:%u/fingerprint_hash_map:%u/name_hash_map:%u/map_info_hash_map:%u\n",
 				__FUNCTION__, m_FileID, 
 				ClientAnalysisInfo->address_hash_map.size(), 
 				ClientAnalysisInfo->address_fingerprint_hash_map.size(), 
@@ -636,7 +635,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 		{
 			POneLocationInfo pOneLocationInfo = (POneLocationInfo)data;
 			current_addr = pOneLocationInfo->StartAddress;
-			if(DebugLevel&4) Logger.Log( 10, "%s: ID = %d ONE_LOCATION_INFO[StartAddress = %x Flag = %u function addr = %x BlockType = %u]\n", __FUNCTION__, m_FileID, 
+			Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d ONE_LOCATION_INFO[StartAddress = %x Flag = %u function addr = %x BlockType = %u]\n", __FUNCTION__, m_FileID,
 				pOneLocationInfo->StartAddress, //ea_t
 				pOneLocationInfo->Flag,  //Flag_t
 				pOneLocationInfo->FunctionAddress, 
@@ -657,7 +656,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 		{
 			PMapInfo p_map_info = (PMapInfo)data;
 #if DEBUG_LEVEL > 2
-			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d %s %x(%x)->%x\n", __FUNCTION__, m_FileID, 
+			Logger.Log( 10, "%s: ID = %d %s %x(%x)->%x\n", __FUNCTION__, m_FileID, 
 				MapInfoTypesStr[p_map_info->Type], 
 				p_map_info->SrcBlock, 
 				p_map_info->SrcBlockEnd, 
@@ -717,7 +716,7 @@ void IDAController::GenerateFingerprintHashMap()
 				matched_children_count++;
 			}
 		}
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d 0x%x children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%x children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
 		if(matched_children_count  ==  1 && matched_child_addr != 0L)
 		{
 			int matched_parents_count = 0;
@@ -732,7 +731,7 @@ void IDAController::GenerateFingerprintHashMap()
 				if(p_map_info->Type  ==  CREF_TO || p_map_info->Type  ==  CALLED)
 					matched_parents_count++;
 			}
-			if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d 0x%x -> 0x%x parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%x -> 0x%x parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
 			if(matched_parents_count  ==  1)
 			{
 				address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(matched_child_addr);
@@ -758,7 +757,7 @@ void IDAController::GenerateFingerprintHashMap()
 	{
 		DWORD address = (*AddressPairsIter).address;
 		DWORD child_address = (*AddressPairsIter).child_address;
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Joining 0x%x-0x%x\n", __FUNCTION__, m_FileID, address, child_address);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Joining 0x%x-0x%x\n", __FUNCTION__, m_FileID, address, child_address);
 
 		DWORD matched_child_addr = 0L;
 
@@ -893,20 +892,18 @@ void IDAController::DumpAnalysisInfo()
 {
 	if(ClientAnalysisInfo)
 	{
-		/*
-		if(DebugLevel&1) Logger.Log( 10, "OriginalFilePath = %s\n", ClientAnalysisInfo->file_info.OriginalFilePath);
-		if(DebugLevel&1) Logger.Log( 10, "ComputerName = %s\n", ClientAnalysisInfo->file_info.ComputerName);
-		if(DebugLevel&1) Logger.Log( 10, "UserName = %s\n", ClientAnalysisInfo->file_info.UserName);
-		if(DebugLevel&1) Logger.Log( 10, "CompanyName = %s\n", ClientAnalysisInfo->file_info.CompanyName);
-		if(DebugLevel&1) Logger.Log( 10, "FileVersion = %s\n", ClientAnalysisInfo->file_info.FileVersion);
-		if(DebugLevel&1) Logger.Log( 10, "FileDescription = %s\n", ClientAnalysisInfo->file_info.FileDescription);
-		if(DebugLevel&1) Logger.Log( 10, "InternalName = %s\n", ClientAnalysisInfo->file_info.InternalName);
-		if(DebugLevel&1) Logger.Log( 10, "ProductName = %s\n", ClientAnalysisInfo->file_info.ProductName);
-		if(DebugLevel&1) Logger.Log( 10, "ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
-		if(DebugLevel&1) Logger.Log( 10, "MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "OriginalFilePath = %s\n", ClientAnalysisInfo->file_info.OriginalFilePath);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "ComputerName = %s\n", ClientAnalysisInfo->file_info.ComputerName);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "UserName = %s\n", ClientAnalysisInfo->file_info.UserName);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "CompanyName = %s\n", ClientAnalysisInfo->file_info.CompanyName);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "FileVersion = %s\n", ClientAnalysisInfo->file_info.FileVersion);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "FileDescription = %s\n", ClientAnalysisInfo->file_info.FileDescription);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "InternalName = %s\n", ClientAnalysisInfo->file_info.InternalName);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "ProductName = %s\n", ClientAnalysisInfo->file_info.ProductName);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
 
-		*/
-		if(DebugLevel&1) Logger.Log( 10, "fingerprint_hash_map = %u\n", ClientAnalysisInfo->fingerprint_hash_map.size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "fingerprint_hash_map = %u\n", ClientAnalysisInfo->fingerprint_hash_map.size());
 	}
 }
 
@@ -969,7 +966,7 @@ char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long En
 		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
 	if(DisasmLines)
 	{
-		if(DebugLevel&1) Logger.Log( 10, "DisasmLines = %s\n", DisasmLines);
+		Logger.Log(10, LOG_IDA_CONTROLLER, "DisasmLines = %s\n", DisasmLines);
 		return DisasmLines;
 	}
 	return _strdup("");
@@ -1011,13 +1008,10 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 	p_one_location_info->BlockType = strtoul10(argv[4]);
 	p_one_location_info->FingerprintLen = strlen(argv[5]);
 
-	if (DebugLevel & 0x10000000)
+	Logger.Log(11, LOG_IDA_CONTROLLER | LOG_ONE_LOCATION_INFO, "%s: %x Block Type: %d\n", __FUNCTION__, p_one_location_info->StartAddress, p_one_location_info->BlockType);
+	if (p_one_location_info->BlockType == FUNCTION_BLOCK)
 	{		
-		Logger.Log( 10, "%s: %x Block Type: %d\n", __FUNCTION__, p_one_location_info->StartAddress, p_one_location_info->BlockType);
-	}
-	if (DebugLevel & 0x10000000 && p_one_location_info->BlockType == FUNCTION_BLOCK)
-	{		
-		Logger.Log( 10, "%s: Function Block: %x\n", __FUNCTION__, p_one_location_info->StartAddress);
+		Logger.Log(11, LOG_IDA_CONTROLLER | LOG_ONE_LOCATION_INFO, "%s: Function Block: %x\n", __FUNCTION__, p_one_location_info->StartAddress);
 	}
 	return 0;
 }
@@ -1132,7 +1126,7 @@ void IDAController::MergeBlocks()
 					NumberOfChildren++;
 				}else
 				{
-					if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Number Of Children for %x  = %u\n", 
+					Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Number Of Children for %x  = %u\n",
 											__FUNCTION__, m_FileID, 
 											last_iter->first, 
 											NumberOfChildren);
@@ -1157,7 +1151,7 @@ void IDAController::MergeBlocks()
 				{
 					if(child_iter->second->Type  ==  CREF_TO && child_iter->second->Dst != last_iter->first)
 					{
-						if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Found %x -> %x\n", 
+						Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Found %x -> %x\n",
 							__FUNCTION__, m_FileID, 
 							child_iter->second->Dst, child_iter->first);
 						NumberOfParents++;
@@ -1165,7 +1159,7 @@ void IDAController::MergeBlocks()
 				}
 				if(NumberOfParents  ==  0)
 				{
-					if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Found Mergable Nodes %x -> %x\n", 
+					Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Found Mergable Nodes %x -> %x\n",
 						__FUNCTION__, m_FileID, 
 						last_iter->first, last_iter->second->Dst);
 				}
@@ -1259,13 +1253,12 @@ int IsEqualByteWithLengthAmble(unsigned char *Bytes01, unsigned char *Bytes02)
 
 multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 {
-	if(DebugLevel&1) 
-		Logger.Log(10, "LoadFunctionMembersMap\n");
+	Logger.Log(10, LOG_IDA_CONTROLLER, "LoadFunctionMembersMap\n");
 
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
 	if(FunctionAddresses)
 	{
-		if(DebugLevel&1) Logger.Log( 10, "Retrieved Functions Addresses(%u entries)\n", FunctionAddresses->size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "Retrieved Functions Addresses(%u entries)\n", FunctionAddresses->size());
 
 		multimap <DWORD, DWORD> *FunctionMembers = new multimap <DWORD, DWORD>;
 		if(FunctionMembers)
@@ -1273,7 +1266,7 @@ multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 			list <DWORD>::iterator FunctionAddressIter;
 			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
 			{
-				if(DebugLevel&1) Logger.Log( 10, "Function %x: ", *FunctionAddressIter);
+				Logger.Log(10, LOG_IDA_CONTROLLER, "Function %x: ", *FunctionAddressIter);
 				list <BLOCK> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
 				list <BLOCK>::iterator FunctionMemberBlocksIter;
 
@@ -1282,10 +1275,10 @@ multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 					FunctionMemberBlocksIter++
 				)
 				{
-					if(DebugLevel&1) Logger.Log( 10, "%x ", (*FunctionMemberBlocksIter).Start );
+					Logger.Log(10, LOG_IDA_CONTROLLER, "%x ", (*FunctionMemberBlocksIter).Start);
 					FunctionMembers->insert(pair <DWORD, DWORD>(*FunctionAddressIter, (*FunctionMemberBlocksIter).Start));
 				}
-				if(DebugLevel&1) Logger.Log( 10, "\n");
+				Logger.Log(10, LOG_IDA_CONTROLLER, "\n");
 			}
 		}
 
@@ -1302,7 +1295,7 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 	if(AddressToFunctionMap)
 	{
 #if DEBUG_LEVEL > 1
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]), argv[1], strtoul10(argv[1]));
+		Logger.Log( 10, "%s: ID = %d strtoul10(%s) = 0x%x, strtoul10(%s) = 0x%x\n", __FUNCTION__, m_FileID, argv[0], strtoul10(argv[0]), argv[1], strtoul10(argv[1]));
 #endif
 		AddressToFunctionMap->insert(pair <DWORD, DWORD>(strtoul10(argv[0]), strtoul10(argv[1])));
 	}
@@ -1312,11 +1305,12 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 {
 	int Count = 0;
-	if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
+	
+	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
 	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
 	if(FunctionAddresses)
 	{
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
 		multimap <DWORD, DWORD> *AddressToFunctionMap = new multimap <DWORD, DWORD>;
 		if(AddressToFunctionMap)
 		{
@@ -1337,7 +1331,8 @@ multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 		}
 		FunctionAddresses->clear();
 		delete FunctionAddresses;
-		if(DebugLevel&1) Logger.Log( 10, "%s: ID = %d AddressToFunctionMap %u entries\n", __FUNCTION__, m_FileID, AddressToFunctionMap->size());
+		
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d AddressToFunctionMap %u entries\n", __FUNCTION__, m_FileID, AddressToFunctionMap->size());
 		return AddressToFunctionMap;
 		/*
 		hash_map <DWORD, DWORD>::iterator AddressToFunctionMapIter;
@@ -1347,9 +1342,9 @@ multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 			if(FunctionAddress != AddressToFunctionMapIter->first)
 			{
 				FunctionAddress = AddressToFunctionMapIter->first;
-				if(DebugLevel&1) Logger.Log( 10, "%x\n", FunctionAddress);
+				Logger.Log( 10, LOG_IDA_CONTROLLER, "%x\n", FunctionAddress);
 			}
-			if(DebugLevel&1) Logger.Log( 10, "\t%x\n", AddressToFunctionMapIter->second);
+			Logger.Log( 10, LOG_IDA_CONTROLLER, "\t%x\n", AddressToFunctionMapIter->second);
 		}*/
 
 	}
@@ -1359,7 +1354,7 @@ multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 BOOL IDAController::FixFunctionAddresses()
 {
 	BOOL IsFixed = FALSE;
-	if(DebugLevel&1) Logger.Log( 10, "%s", __FUNCTION__);
+	Logger.Log(10, LOG_IDA_CONTROLLER, "%s", __FUNCTION__);
 	multimap <DWORD, DWORD> *AddressToFunctionMap = LoadAddressToFunctionMap();
 	multimap <DWORD, DWORD>::iterator AddressToFunctionMapIter;
 
@@ -1371,10 +1366,9 @@ BOOL IDAController::FixFunctionAddresses()
 		//StartAddress: AddressToFunctionMapIter->first
 		//FunctionAddress: AddressToFunctionMapIter->second
 		//Update
-		if(DebugLevel&0x10000000) 
-			Logger.Log( 10, "Updating OneLocationInfoTable Address = %x Function = %x\r\n", 
-				AddressToFunctionMapIter->second, 
-				AddressToFunctionMapIter->first);
+		Logger.Log(20, LOG_IDA_CONTROLLER, "Updating OneLocationInfoTable Address = %x Function = %x\r\n",
+			AddressToFunctionMapIter->second, 
+			AddressToFunctionMapIter->first);
 
 		if( m_StorageDB )
 			m_StorageDB->ExecuteStatement(NULL, NULL, UPDATE_ONE_LOCATION_INFO_TABLE_FUNCTION_ADDRESS_STATEMENT, 
@@ -1386,8 +1380,7 @@ BOOL IDAController::FixFunctionAddresses()
 		IsFixed = TRUE;
 	}
 
-	if(DebugLevel&1)
-		Logger.Log( 10, "\r\n");
+	Logger.Log(10, LOG_IDA_CONTROLLER, "\r\n");
 
 	if( m_StorageDB )
 		m_StorageDB->EndTransaction();

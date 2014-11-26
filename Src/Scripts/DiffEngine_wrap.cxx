@@ -5014,6 +5014,66 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DarunGrim_AddSrcDumpAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  unsigned long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_AddSrcDumpAddress",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_AddSrcDumpAddress" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_AddSrcDumpAddress" "', argument " "2"" of type '" "unsigned long""'");
+  } 
+  arg2 = static_cast< unsigned long >(val2);
+  (arg1)->AddSrcDumpAddress(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DarunGrim_AddTargetDumpAddress(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  DarunGrim *arg1 = (DarunGrim *) 0 ;
+  unsigned long arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:DarunGrim_AddTargetDumpAddress",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_DarunGrim, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DarunGrim_AddTargetDumpAddress" "', argument " "1"" of type '" "DarunGrim *""'"); 
+  }
+  arg1 = reinterpret_cast< DarunGrim * >(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DarunGrim_AddTargetDumpAddress" "', argument " "2"" of type '" "unsigned long""'");
+  } 
+  arg2 = static_cast< unsigned long >(val2);
+  (arg1)->AddTargetDumpAddress(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_DarunGrim_SetSourceFilename(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   DarunGrim *arg1 = (DarunGrim *) 0 ;
@@ -5756,6 +5816,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DarunGrim_SetIDAPath", _wrap_DarunGrim_SetIDAPath, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_AcceptIDAClientsFromSocket", _wrap_DarunGrim_AcceptIDAClientsFromSocket, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_PerformDiff", _wrap_DarunGrim_PerformDiff, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_AddSrcDumpAddress", _wrap_DarunGrim_AddSrcDumpAddress, METH_VARARGS, NULL},
+	 { (char *)"DarunGrim_AddTargetDumpAddress", _wrap_DarunGrim_AddTargetDumpAddress, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetSourceFilename", _wrap_DarunGrim_SetSourceFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_SetTargetFilename", _wrap_DarunGrim_SetTargetFilename, METH_VARARGS, NULL},
 	 { (char *)"DarunGrim_Load", _wrap_DarunGrim_Load, METH_VARARGS, NULL},

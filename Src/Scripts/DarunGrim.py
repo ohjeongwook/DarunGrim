@@ -613,7 +613,7 @@ class ConfigurationDialog(QDialog):
 		if key==Qt.Key_Return or key==Qt.Key_Enter:
 			return
 		else:
-			super(NewDiffingDialog,self).keyPressEvent(e)
+			super(ConfigurationDialog,self).keyPressEvent(e)
 
 	def getFileStoreDir(self):
 		dir_name=QFileDialog.getExistingDirectory(self,'FileStore Dir')
@@ -640,8 +640,13 @@ class ConfigurationDialog(QDialog):
 		if filename:
 			self.ida64_path_line.setText(filename)
 
-def PerformDiff(src_filename,target_filename,result_filename,log_filename='',log_level=100,dbg_storage_dir=''):
-	darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
+def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False ):
+	if is_src_target_storage:
+		darungrim=DarunGrimEngine.DarunGrim()
+		darungrim.SetStorageNames(src_filename, target_filename)
+	else:
+		darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
+
 	darungrim.SetDGFSotrage(dbg_storage_dir)
 	if log_filename:
 		darungrim.SetLogFile(log_filename,log_level)
@@ -689,6 +694,7 @@ class LogThread(QThread):
 		self.endLoop=False
 
 	def run(self):
+		fd=None
 		while not self.endLoop:
 			try:
 				fd=open(self.filename,'rb')
@@ -696,12 +702,13 @@ class LogThread(QThread):
 			except:
 				pass
 
-		while not self.endLoop:
-			data=fd.read()
-			if data:
-				self.data_read.emit(data)
+		if fd!=None:
+			while not self.endLoop:
+				data=fd.read()
+				if data:
+					self.data_read.emit(data)
 
-		fd.close()
+			fd.close()
 
 	def end(self):
 		self.endLoop=True
@@ -715,7 +722,7 @@ class MainWindow(QMainWindow):
 		self.setWindowTitle("DarunGrim 4")
 		self.NonMaxGeometry=None
 
-		self.DarunGrimEngine=DarunGrimEngine.DarunGrim()
+		self.DarunGrimEngine=DarunGrimEngine.DarunGrim(start_ida_listener=True)
 		self.readSettings()
 
 		# Menu
@@ -870,7 +877,8 @@ class MainWindow(QMainWindow):
 			self.StartPerformDiff(dialog.OrigFilename,
 								dialog.PatchedFilename,
 								os.path.join(self.DataFilesDir, result_filename),
-								os.path.join(self.DataFilesDir, log_filename)
+								os.path.join(self.DataFilesDir, log_filename),
+								debug=False
 							)
 
 			file_store_database=FileStoreDatabase.Database(self.FileStoreDatabase)
@@ -891,10 +899,39 @@ class MainWindow(QMainWindow):
 			log_filename=result_filename+'.log'
 			self.StartPerformDiff(src_filename,target_filename,result_filename)
 
+
+	def reanalyze(self):
+		database = DarunGrimDatabase.Database(self.DatabaseName)
+		[src_filename,target_filename] = database.GetDGFFileLocations()
+		database.Close()
+		del database
+
+		result_filename=''
+		if self.DatabaseName[-4:].lower()=='.dgf':
+			prefix=self.DatabaseName[0:-4]
+		else:
+			prefix=self.DatabaseName
+
+		i=0
+		while True:
+			result_filename=prefix+'-%d.dgf' % i
+			if not os.path.isfile(result_filename):
+				break
+			i+=1
+
+		log_filename=result_filename + '.log'
+
+		self.StartPerformDiff(src_filename,
+								target_filename,
+								str(self.DatabaseName),
+								log_filename=log_filename,
+								is_src_target_storage=True,
+								debug=False)
+
 	def onTextBoxDataReady(self,data):
 		self.LogDialog.addText(data)
 
-	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',debug=False):
+	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',is_src_target_storage=False, debug=False):
 		self.clearAreas()
 
 		if os.path.isfile(log_filename):
@@ -908,9 +945,9 @@ class MainWindow(QMainWindow):
 		if debug:
 			print 'PerformDiff: ', src_filename,target_filename,result_filename
 			p=None
-			PerformDiff(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir)
+			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage)
 		else:
-			p=Process(target=PerformDiff,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir))
+			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage))
 			p.start()
 
 		if p!=None:
@@ -1042,6 +1079,7 @@ class MainWindow(QMainWindow):
 								statusTip="Create new diffing output",
 								triggered=self.new
 							)
+
 		self.openAct = QAction("Open...",
 								self,
 								shortcut=QKeySequence.Open,
@@ -1054,10 +1092,18 @@ class MainWindow(QMainWindow):
 								statusTip="Create new diffing output",
 								triggered=self.newFromFileStore
 							)
+
 		self.openFromFileStoreAct = QAction("Open Diffing (FileStore)...",
 								self,
 								statusTip="Open diffing output",
 								triggered=self.openFromFileStore
+							)
+
+		self.reanalyzeAct = QAction("Reanalyze...",
+								self,
+								shortcut=QKeySequence.Open,
+								statusTip="Reanalyze current files",
+								triggered=self.reanalyze
 							)
 
 		self.synchornizeIDAAct= QAction("Synchornize IDA",
@@ -1139,6 +1185,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu.addAction(self.openAct)
 		self.fileMenu.addAction(self.newFromFileStoreAct)
 		self.fileMenu.addAction(self.openFromFileStoreAct)
+		self.fileMenu.addAction(self.reanalyzeAct)
 
 		self.analysisMenu = self.menuBar().addMenu("&Analysis")
 
@@ -1173,7 +1220,7 @@ class MainWindow(QMainWindow):
 			if selection!=None:
 				selection.selectionChanged.connect(self.handleBBMatchTableChanged)
 
-		database = DarunGrimDatabase.Database(databasename)
+		database = DarunGrimDatabase.Database(self.DatabaseName)
 		self.setWindowTitle("DarunGrim 4 - %s" % (database.GetDescription()))
 
 		if self.SyncrhonizeIDAUponOpening:
@@ -1342,7 +1389,7 @@ class MainWindow(QMainWindow):
 
 		self.DarunGrimEngine.SetIDAPath(self.IDA64Path,is_64=True)
 
-		self.LogLevel=100
+		self.LogLevel=10
 		if settings.contains("General/LogLevel"):
 			self.LogLevel=int(settings.value("General/LogLevel"))
 

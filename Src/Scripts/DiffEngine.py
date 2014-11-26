@@ -147,6 +147,8 @@ class DarunGrim(_object):
     def SetIDAPath(self, *args): return _DiffEngine.DarunGrim_SetIDAPath(self, *args)
     def AcceptIDAClientsFromSocket(self, storage_filename=None): return _DiffEngine.DarunGrim_AcceptIDAClientsFromSocket(self, storage_filename)
     def PerformDiff(self, *args): return _DiffEngine.DarunGrim_PerformDiff(self, *args)
+    def AddSrcDumpAddress(self, *args): return _DiffEngine.DarunGrim_AddSrcDumpAddress(self, *args)
+    def AddTargetDumpAddress(self, *args): return _DiffEngine.DarunGrim_AddTargetDumpAddress(self, *args)
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
     def Load(self, *args): return _DiffEngine.DarunGrim_Load(self, *args)
