@@ -10,6 +10,8 @@ import FileStoreDatabase
 import DarunGrimEngine
 
 import pprint
+import multiprocessing.forking
+import multiprocessing
 from multiprocessing import Process
 import time
 import os
@@ -640,6 +642,23 @@ class ConfigurationDialog(QDialog):
 		if filename:
 			self.ida64_path_line.setText(filename)
 
+"""
+class _Popen(multiprocessing.forking.Popen):
+	def __init__(self,*args,**kw):
+		if hasattr(sys,'frozen'):
+			os.putenv('_MEIPASS2', sys._MEIPASS)
+
+		try:
+			super(_Popen, self).__init__(*args,**kw)
+		finally:
+			if hasattr(sys, 'frozen'):
+				os.unsetenv('_MEIPASS2')
+
+class Process(multiprocessing.Process):
+	_Popen=_Popen
+
+"""
+
 def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False ):
 	if is_src_target_storage:
 		darungrim=DarunGrimEngine.DarunGrim()
@@ -897,7 +916,7 @@ class MainWindow(QMainWindow):
 			target_filename = str(dialog.Filenames['Patched'])
 			result_filename = str(dialog.Filenames['Result'])
 			log_filename=result_filename+'.log'
-			self.StartPerformDiff(src_filename,target_filename,result_filename)
+			self.StartPerformDiff(src_filename,target_filename,result_filename,log_filename)
 
 
 	def reanalyze(self):
@@ -943,7 +962,6 @@ class MainWindow(QMainWindow):
 			pass
 
 		if debug:
-			print 'PerformDiff: ', src_filename,target_filename,result_filename
 			p=None
 			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage)
 		else:
@@ -1413,6 +1431,7 @@ class MainWindow(QMainWindow):
 		QMainWindow.closeEvent(self, event)
 
 if __name__=='__main__':
+	multiprocessing.freeze_support()
 	import sys
 
 	if len(sys.argv)>1:
