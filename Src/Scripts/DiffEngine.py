@@ -149,6 +149,7 @@ class DarunGrim(_object):
     def PerformDiff(self, *args): return _DiffEngine.DarunGrim_PerformDiff(self, *args)
     def AddSrcDumpAddress(self, *args): return _DiffEngine.DarunGrim_AddSrcDumpAddress(self, *args)
     def AddTargetDumpAddress(self, *args): return _DiffEngine.DarunGrim_AddTargetDumpAddress(self, *args)
+    def EnableLogType(self, *args): return _DiffEngine.DarunGrim_EnableLogType(self, *args)
     def SetSourceFilename(self, *args): return _DiffEngine.DarunGrim_SetSourceFilename(self, *args)
     def SetTargetFilename(self, *args): return _DiffEngine.DarunGrim_SetTargetFilename(self, *args)
     def Load(self, *args): return _DiffEngine.DarunGrim_Load(self, *args)

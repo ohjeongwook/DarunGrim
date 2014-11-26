@@ -236,7 +236,6 @@ public:
 	DWORD DumpFunctionMatchInfo( int index, DWORD address );
 	void DiffMachine::GetMatchStatistics( 
 		DWORD address, 
-		IDAController *ClientManager, 
 		int index, 
 		int &found_match_number, 
 		int &found_match_with_difference_number,
@@ -245,7 +244,9 @@ public:
 	);
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
 
-	MatchData *GetMatchData( int index, DWORD address, BOOL erase = FALSE );
+	void RemoveMatchData(DWORD source_address, DWORD target_address);
+	void CleanUpMatchDataList(vector<MatchData *> match_data_list);
+	vector<MatchData *> GetMatchData(int index, DWORD address, BOOL erase = FALSE);
 	void AppendToMatchMap(MATCHMAP *pBaseMap, MATCHMAP *pTemporaryMap);
 
 

@@ -45,7 +45,7 @@ public:
 	{
 		aDumpAddress.AddTargetDumpAddress(address);
 	}
-
+	void EnableLogType(int type);
 
 	DiffMachine *GetDiffMachine()
 	{

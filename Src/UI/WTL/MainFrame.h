@@ -494,13 +494,13 @@ public:
 	{
 		pDarunGrim->JumpToAddress(address, index);
 
-		MatchData *pMatchData = pDiffMachine->GetMatchData(index, address);
-
-		if (pMatchData)
+		vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(index, address);
+		for (vector<MatchData *>::iterator it = match_data_list.begin();
+			it != match_data_list.end();
+			it++
+			)
 		{
-			dprintf("Fingerprint: %x\n", pMatchData->Addresses[index == 1 ? 0 : 1]);
-			dprintf("Fingerprint Match Rate: %3.d%%\n", pMatchData->MatchRate);
-			DWORD Address = pMatchData->Addresses[index == 1 ? 0 : 1];
+			DWORD Address = (*it)->Addresses[index == 1 ? 0 : 1];
 
 			pDarunGrim->JumpToAddress(Address, index);
 			if (index == 0)
@@ -511,7 +511,10 @@ public:
 			{
 				m_lGraphVizView.ShowNode(Address, offset_x, offset_y);
 			}
+			break;
 		}
+
+		pDiffMachine->CleanUpMatchDataList(match_data_list);
 		return 0;
 	}	
 
@@ -526,19 +529,29 @@ public:
 			
 			char *font_color="black";
 			char *fill_color="white";
-			MatchData *pMatchData=pDiffMachine->GetMatchData(index,address);
-			if(!pMatchData)
+
+			vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(index, address);
+			if (match_data_list.size()==0)
 			{
 				font_color="white";
 				fill_color="crimson";
 			}else
 			{
-				if(pMatchData && pMatchData->MatchRate!=100)
+				for (vector<MatchData *>::iterator it = match_data_list.begin();
+						it != match_data_list.end();
+						it++
+				)
 				{
-					font_color="black";
-					fill_color="yellow";
+					if ((*it)->MatchRate != 100)
+					{
+						font_color = "black";
+						fill_color = "yellow";
+						break;
+					}
 				}
 			}
+
+			pDiffMachine->CleanUpMatchDataList(match_data_list);
 
 			p_flow_grapher->SetNodeShape(font_color, fill_color, "Verdana", "12");
 			p_flow_grapher->AddNode(address, name, disasm_line ? disasm_line : "");
@@ -575,19 +588,29 @@ public:
 
 							char *font_color="black";
 							char *fill_color="white";
-							MatchData *pMatchData=pDiffMachine->GetMatchData(index,current_address);
-							if(!pMatchData)
+
+							vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(index, current_address);
+							if (match_data_list.size() == 0)
 							{
-								font_color="white";
-								fill_color="red";
-							}else
-							{
-								if(pMatchData && pMatchData->MatchRate!=100)
-								{
-									font_color="black";
-									fill_color="yellow";
-								}
+								font_color = "white";
+								fill_color = "red";
 							}
+							else
+							{
+								for (vector<MatchData *>::iterator it = match_data_list.begin();
+									it != match_data_list.end();
+									it++
+									)
+								{
+									if ((*it)->MatchRate != 100)
+									{
+										font_color = "black";
+										fill_color = "yellow";
+										break;
+									}
+								}
+								pDiffMachine->CleanUpMatchDataList(match_data_list);
+							}							
 
 							p_flow_grapher->SetNodeShape(font_color, fill_color, "Verdana", "12");
 							p_flow_grapher->AddNode(current_address, name, disasm_line ? disasm_line : "");
@@ -805,39 +828,48 @@ public:
 				MatchAddressPair *p_match_address_pair = new MatchAddressPair();
 				p_match_address_pair->original = (*iter).Start;
 				p_match_address_pair->patched = 0;
-				MatchData *pMatchData = pDiffMachine->GetMatchData(0, (*iter).Start);
-				if (pMatchData)
+
+				vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(0, (*iter).Start);
+				if (match_data_list.size()>0)
 				{
-					matched_target_addresses.insert(pMatchData->Addresses[1]);
-					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[1]);
-					p_display_item->Items[1] = tmp;
-
-					_snprintf(tmp, sizeof(tmp), "%3.d%%", pMatchData->MatchRate);
-					p_display_item->Items[2] = tmp;
-
-					if (pMatchData->MatchRate != 100)
+					for (vector<MatchData *>::iterator it = match_data_list.begin();
+						it != match_data_list.end();
+						it++
+						)
 					{
-						//Modified
-						pSourceClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+						matched_target_addresses.insert((*it)->Addresses[1]);
+						_snprintf(tmp, sizeof(tmp), "%X", (*it)->Addresses[1]);
+						p_display_item->Items[1] = tmp;
+
+						_snprintf(tmp, sizeof(tmp), "%3.d%%", (*it)->MatchRate);
+						p_display_item->Items[2] = tmp;
+
+						if ((*it)->MatchRate != 100)
+						{
+							//Modified
+							pSourceClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+						}
+
+						//Type
+						p_display_item->Items[3] = pDiffMachine->GetMatchTypeStr((*it)->Type);
+
+						fingerprint = pTargetClientManager->GetFingerPrintStr((*it)->Addresses[1]);
+						if (fingerprint)
+						{
+							p_display_item->Items[5] = fingerprint;
+							free(fingerprint);
+						}
+
+						_snprintf(tmp, sizeof(tmp), "%X", (*it)->UnpatchedParentAddress);
+						p_display_item->Items[6] = tmp;
+
+						_snprintf(tmp, sizeof(tmp), "%X", (*it)->PatchedParentAddress);
+						p_display_item->Items[7] = tmp;
+
+						p_match_address_pair->patched = (*it)->Addresses[1];
 					}
 
-					//Type
-					p_display_item->Items[3] = pDiffMachine->GetMatchTypeStr(pMatchData->Type);
-
-					fingerprint = pTargetClientManager->GetFingerPrintStr(pMatchData->Addresses[1]);
-					if (fingerprint)
-					{
-						p_display_item->Items[5] = fingerprint;
-						free(fingerprint);
-					}
-
-					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->UnpatchedParentAddress);
-					p_display_item->Items[6] = tmp;
-
-					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->PatchedParentAddress);
-					p_display_item->Items[7] = tmp;
-
-					p_match_address_pair->patched = pMatchData->Addresses[1];
+					pDiffMachine->CleanUpMatchDataList(match_data_list);
 				}
 				else
 				{
@@ -859,12 +891,18 @@ public:
 
 			if (matched_target_addresses.find((*iter).Start) != matched_target_addresses.end())
 			{
-				MatchData *pMatchData = pDiffMachine->GetMatchData(1, (*iter).Start);
+				vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(1, (*iter).Start);
 
-				if (pMatchData && pMatchData->MatchRate<100)
+				for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
 				{
-					pTargetClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+					if ((*it)->MatchRate < 100)
+					{
+						pTargetClientManager->SendAddrTypeTLVData(MODIFIED_ADDR, (*iter).Start, (*iter).End + 1);
+						break;
+					}
 				}
+
+				pDiffMachine->CleanUpMatchDataList(match_data_list);
 			}
 			else if ((*iter).Start>0)
 			{
@@ -878,13 +916,21 @@ public:
 				MatchAddressPair *p_match_address_pair = new MatchAddressPair();
 				p_match_address_pair->original = 0;
 				p_match_address_pair->patched = (*iter).Start;
-				MatchData *pMatchData = pDiffMachine->GetMatchData(1, (*iter).Start);
-				if (pMatchData)
-				{
-					_snprintf(tmp, sizeof(tmp), "%X", pMatchData->Addresses[0]);
-					p_display_item->Items[0] = tmp;
+				
+				vector<MatchData *> match_data_list = pDiffMachine->GetMatchData(1, (*iter).Start);
 
-					p_match_address_pair->original = pMatchData->Addresses[0];
+				if (match_data_list.size()>0)
+				{
+					for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+					{
+						_snprintf(tmp, sizeof(tmp), "%X", (*it)->Addresses[0]);
+						p_display_item->Items[0] = tmp;
+
+						p_match_address_pair->original = (*it)->Addresses[0];
+						break;
+					}
+
+					pDiffMachine->CleanUpMatchDataList(match_data_list);
 				}
 				else
 				{

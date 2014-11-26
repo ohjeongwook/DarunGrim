@@ -13,6 +13,14 @@ LogToDbgview = 0x2
 LogToFile = 0x4
 LogToIDAMessageBox = 0x8
 
+LOG_DARUNGRIM=0x00000001
+LOG_DIFF_MACHINE=0x00000002
+LOG_IDA_CONTROLLER=0x00000004
+LOG_SQL=0x00000008
+LOG_ONE_LOCATION_INFO=0x0000000F
+LOG_MATCH_RATE=0x00000010
+
+
 class DarunGrim:
 	DebugLevel=0
 	def __init__ ( self, src_filename='', target_filename='', ida_path='', start_ida_listener=False):
@@ -22,11 +30,12 @@ class DarunGrim:
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 
-		self.DarunGrim.AddSrcDumpAddress(0x63A8EC35)
-		self.DarunGrim.AddTargetDumpAddress(0x63A8EC1D)
-
-		self.DarunGrim.AddSrcDumpAddress(0x63A8BBB2)
-		self.DarunGrim.AddTargetDumpAddress(0x63A8B73B)
+		"""
+		self.DarunGrim.AddSrcDumpAddress(0x6FCA2C33)
+		self.DarunGrim.AddTargetDumpAddress(0x6FCA2CBB)
+		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE)
+		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE | LOG_MATCH_RATE)
+		"""
 
 		if src_filename:
 			self.SetSourceFilename(src_filename)

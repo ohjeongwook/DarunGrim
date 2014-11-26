@@ -24,7 +24,6 @@ DarunGrim::DarunGrim():
 {
 	LogOperation::InitLog();
 	Logger.SetCategory( "DarunGrim" );
-	Logger.EnableLogType(LOG_DIFF_MACHINE);
 	Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__ );
 	pDiffMachine = new DiffMachine();
 	pDiffMachine->SetDumpAddressChecker(&aDumpAddress);
@@ -56,6 +55,11 @@ DarunGrim::~DarunGrim()
 
 	if (LogFilename)
 		free(LogFilename);
+}
+
+void DarunGrim::EnableLogType(int type)
+{
+	Logger.EnableLogType(type);
 }
 
 void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
