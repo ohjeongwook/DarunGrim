@@ -180,7 +180,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
+      <OutputFile>$(OutDir)DarunGrim3.exe</OutputFile>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
@@ -224,7 +224,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
+      <OutputFile>$(OutDir)DarunGrim3.exe</OutputFile>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
@@ -276,7 +276,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
+      <OutputFile>$(OutDir)DarunGrim3.exe</OutputFile>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
@@ -328,7 +328,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\lib\release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cdt.lib;graph.lib;gvc.lib;Version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DarunGrim.exe</OutputFile>
+      <OutputFile>$(OutDir)DarunGrim3.exe</OutputFile>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\wtl90_4090_RC1\Include</AdditionalIncludeDirectories>
