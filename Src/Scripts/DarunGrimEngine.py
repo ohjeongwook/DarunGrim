@@ -71,6 +71,25 @@ class DarunGrim:
 			if self.DebugLevel>0:
 				print 'No IDA found'
 
+	def CheckIDAPlugin(self):
+		darungrim_plugin_path=os.path.join(os.path.dirname(self.IDAPath),"plugins/DarunGrimPlugin.plw")
+		if os.path.isfile(darungrim_plugin_path):
+			return True
+		return False
+
+	def InstallIDAPlugin(self,filename):
+		if not self.IDAPath:
+			return (False, 'Invalid IDA path')
+
+		darungrim_plugin_path=os.path.join(os.path.dirname(self.IDAPath),"plugins\\DarunGrimPlugin.plw")
+		try:
+ 			shutil.copy(filename, darungrim_plugin_path)
+		except Exception as e:
+			s = str(e)
+			return (False, s)
+
+		return (True,darungrim_plugin_path)
+
 	def LocateIDAExecutables(self,is_64=False):
 		if is_64:
 			executables=['idaq64.exe','idag64.exe']
@@ -133,7 +152,7 @@ class DarunGrim:
 
 		return folders
 
-	def InstallIDAPlugin(self,plugin_filename):
+	def InstallIDAPlugins(self,plugin_filename):
 		for [ida_path, plugin_path] in self.CheckIDAPlugins():
 			if self.DebugLevel>0:
 				print "Installing DarunGrim Plugin %s -> %s" % (plugin_filename, plugin_path)

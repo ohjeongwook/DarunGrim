@@ -1090,6 +1090,18 @@ class MainWindow(QMainWindow):
 			self.setWindowFlags(self.windowFlags()|Qt.WindowStaysOnTopHint)
 			self.show()
 
+	def intallIDAPlugin(self):
+		(ret,message)=self.DarunGrimEngine.InstallIDAPlugin('DarunGrimPlugin.plw')
+		if not ret:
+			msg_box=QMessageBox()
+			msg_box.setText('Try to run the program with an Administrator privilege\n' + message)
+			msg_box.exec_()
+
+		else:
+			msg_box=QMessageBox()
+			msg_box.setText('Installation successful\n'+message)
+			msg_box.exec_()
+
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
 								self,
@@ -1197,6 +1209,12 @@ class MainWindow(QMainWindow):
 							)
 		self.staysOnTopAct.setChecked(self.StaysOnTop)
 
+		self.intallIDAPluginAct = QAction("Install IDA Plugin...",
+								self,
+								statusTip="Install IDA Plugin...",
+								triggered=self.intallIDAPlugin
+							)
+
 	def createMenus(self):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
@@ -1221,6 +1239,7 @@ class MainWindow(QMainWindow):
 		self.optionsMenu.addAction(self.staysOnTopAct)
 		self.optionsMenu.addAction(self.configurationAct)
 		self.optionsMenu.addAction(self.serverInfoAct)
+		self.optionsMenu.addAction(self.intallIDAPluginAct)
 
 	def OpenDatabase(self,databasename):
 		self.DatabaseName=databasename
@@ -1396,6 +1415,9 @@ class MainWindow(QMainWindow):
 				self.IDAPath=files[0][0]
 		
 		self.DarunGrimEngine.SetIDAPath(self.IDAPath)
+
+		if not self.DarunGrimEngine.CheckIDAPlugin():
+			print 'DarunGrim plugin is missing'
 
 		self.IDA64Path=''
 		if settings.contains("General/IDA64Path"):
