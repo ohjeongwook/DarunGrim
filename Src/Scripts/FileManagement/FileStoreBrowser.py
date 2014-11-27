@@ -7,6 +7,9 @@ import os
 import FileStoreDatabase
 import operator
 
+import FileStore
+import MSPatchFile
+
 class CompanyNamesTableModel(QAbstractTableModel):
 	Debug=0
 	def __init__(self,parent, database_name='', *args):
@@ -250,7 +253,7 @@ class ImportMSUpdatesDialog(QDialog):
 
 		self.Filename=''
 
-		file_button=QPushButton('Orig File:',self)
+		file_button=QPushButton('MS Update File:',self)
 		file_button.clicked.connect(self.getFilename)
 		self.FilenameEdit=QLineEdit("")
 		self.FilenameEdit.setAlignment(Qt.AlignLeft)
@@ -295,6 +298,51 @@ class ImportMSUpdatesDialog(QDialog):
 				self.TagEdit.setText(os.path.basename(self.Filename))
 
 		self.FilenameEdit.setText(self.Filename)
+
+class ImportFilesDialog(QDialog):
+	def __init__(self,parent=None):
+		super(ImportFilesDialog,self).__init__(parent)
+		self.setWindowTitle("Import Files")
+
+		folder_name_button=QPushButton('Folder:',self)
+		folder_name_button.clicked.connect(self.getFolderName)
+		self.FolderNameEdit=QLineEdit("")
+		self.FolderNameEdit.setAlignment(Qt.AlignLeft)
+		self.FolderNameEdit.setMinimumWidth(250)
+
+		tag_button=QLabel('Tag:',self)
+		self.TagEdit=QLineEdit("")
+		self.TagEdit.setAlignment(Qt.AlignLeft)
+		self.TagEdit.setMinimumWidth(250)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
+
+		main_layout=QGridLayout()
+		main_layout.addWidget(folder_name_button,0,0)
+		main_layout.addWidget(self.FolderNameEdit,0,1)
+		main_layout.addWidget(tag_button,1,0)
+		main_layout.addWidget(self.TagEdit,1,1)
+		main_layout.addWidget(buttonBox,2,1)
+		self.setLayout(main_layout)
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(ImportFilesDialog,self).keyPressEvent(e)
+
+	def getTags(self):
+		return self.TagEdit.text()
+
+	def getFolderName(self):
+		src_dirname=QFileDialog.getExistingDirectory(self,'Folder to import')
+		tags=''
+		if src_dirname:
+			self.FolderNameEdit.setText(src_dirname)
 
 class NameDialog(QDialog):
 	def __init__(self,parent=None):
@@ -418,8 +466,12 @@ class FilesWidgetsTemplate:
 		
 		button_box=QDialogButtonBox()
 
+		import_files_from_a_folder_button=button_box.addButton("Import Files From a Folder", QDialogButtonBox.ActionRole)
+		import_files_from_a_folder_button.clicked.connect(self.importFiles)
+
 		import_msu_button=button_box.addButton("Import MS Update", QDialogButtonBox.ActionRole)
 		import_msu_button.clicked.connect(self.importMSUpdate)
+
 		search_pane_splitter.addWidget(button_box)
 
 		search_tab_vert_splitter.addWidget(search_pane_splitter)
@@ -484,8 +536,6 @@ class FilesWidgetsTemplate:
 			if len(tags)==0 or (len(tags)==1 and tags[0]==''):
 				tags=[os.path.basename(filename)]				
 
-			import FileStore
-			import MSPatchFile
 			file_store = FileStore.FileProcessor( databasename = r'index.db' )
 
 			ms_patch_handler=MSPatchFile.MSPatchHandler()
@@ -494,6 +544,16 @@ class FilesWidgetsTemplate:
 				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
 				file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
 			self.UpdateTagTable()
+
+	def importFiles(self):
+		dialog=ImportFilesDialog()
+		if dialog.exec_():
+			src_dirname=dialog.FolderNameEdit.text()
+			tags=dialog.getTags().split(',')
+			
+			file_store = FileStore.FileProcessor( databasename = r'index.db' )
+			print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
+			file_store.CheckInFiles( src_dirname, storage_root = self.DarunGrimStore, tags=tags )
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
