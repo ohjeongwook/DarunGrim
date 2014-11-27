@@ -584,19 +584,15 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 		if( !graph_viewer_callback_installed )
 		{
 			TForm *tform = find_tform( "IDA View-A" );
-			msg( "tform=0x%x\n", tform );
 			if( tform )
 			{
 				graph_viewer_t *graph_viewer = get_graph_viewer( tform );
-				msg( "graph_viewer=0x%x\n", graph_viewer );
 
 				if( graph_viewer )
 				{
 					mutable_graph_t *mutable_graph = get_viewer_graph( graph_viewer );
-					msg( "mutable_graph=0x%x\n", graph_viewer );
 					if( mutable_graph )
 					{
-						msg( "data_socket=%d\n", data_socket );
 						mutable_graph->set_callback( graph_viewer_callback, ( void * )data_socket );
 						graph_viewer_callback_installed = TRUE;
 					}
