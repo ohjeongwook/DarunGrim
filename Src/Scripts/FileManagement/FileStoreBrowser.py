@@ -4,11 +4,15 @@ from PySide.QtSql import *
 
 import pprint
 import os
-import FileStoreDatabase
 import operator
+from multiprocessing import Process
+from multiprocessing import Queue
 
 import FileStore
+import FileStoreDatabase
 import MSPatchFile
+
+from Log import *
 
 class CompanyNamesTableModel(QAbstractTableModel):
 	Debug=0
@@ -379,8 +383,16 @@ class NameDialog(QDialog):
 	def getTags(self):
 		return self.NameLine.text()
 
+def MessageCallback(q, message):
+	q.put(message)
+
+def ImportFilesThread(databasename, src_dirname, store, tags, q=None):
+	file_store = FileStore.FileProcessor( databasename = databasename )
+	file_store.CheckInFiles( src_dirname, storage_root = store, tags=tags, message_callback = MessageCallback, message_callback_arg=q )
+
 class FilesWidgetsTemplate:
-	def __init__(self,parent,database_name):
+	def __init__(self,parent,database_name,qApp):
+		self.qApp=qApp
 		self.DatabaseName=database_name
 		self.DarunGrimStore = "Z:\\DarunGrimStore" #TOOD:
 		self.parent=parent
@@ -536,7 +548,7 @@ class FilesWidgetsTemplate:
 			if len(tags)==0 or (len(tags)==1 and tags[0]==''):
 				tags=[os.path.basename(filename)]				
 
-			file_store = FileStore.FileProcessor( databasename = r'index.db' )
+			file_store = FileStore.FileProcessor( databasename = self.DatabaseName )
 
 			ms_patch_handler=MSPatchFile.MSPatchHandler()
 
@@ -545,15 +557,39 @@ class FilesWidgetsTemplate:
 				file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
 			self.UpdateTagTable()
 
-	def importFiles(self):
+	def onTextBoxDataReady(self,data):
+		self.LogDialog.addText(data)
+
+	def importFiles(self,debug=False):
 		dialog=ImportFilesDialog()
 		if dialog.exec_():
 			src_dirname=dialog.FolderNameEdit.text()
 			tags=dialog.getTags().split(',')
-			
-			file_store = FileStore.FileProcessor( databasename = r'index.db' )
-			print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
-			file_store.CheckInFiles( src_dirname, storage_root = self.DarunGrimStore, tags=tags )
+
+		if debug:
+			p=None
+			ImportFilesThread(self.DatabaseName, src_dirname, self.DarunGrimStore, tags)
+		else:
+			q = Queue()
+			p=Process(target=ImportFilesThread,args=(self.DatabaseName, src_dirname, self.DarunGrimStore, tags, q))
+			p.start()
+
+		if p!=None:
+			self.LogDialog=LogTextBoxDialog()
+			self.LogDialog.resize(800,600)
+			self.LogDialog.show()
+			log_thread=QueReadThread(q)
+			log_thread.data_read.connect(self.onTextBoxDataReady)
+			log_thread.start()
+
+			while True:
+				time.sleep(0.01)
+				if not p.is_alive():
+					break
+
+				self.qApp.processEvents()
+
+			log_thread.end()
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
@@ -634,7 +670,7 @@ if __name__=='__main__':
 			self.createActions()
 			self.createMenus()
 
-			self.filesWidgetsTemplate=FilesWidgetsTemplate(self,database_name)
+			self.filesWidgetsTemplate=FilesWidgetsTemplate(self,database_name,qApp)
 
 			self.central_widget=QWidget()
 			vlayout=QVBoxLayout()

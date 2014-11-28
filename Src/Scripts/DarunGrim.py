@@ -1,6 +1,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtSql import *
+
 import DarunGrimDatabase
 import DiffEngine
 from Graphs import *
@@ -10,13 +11,13 @@ import FileStoreDatabase
 import DarunGrimEngine
 
 import pprint
-import multiprocessing.forking
-import multiprocessing
 from multiprocessing import Process
 import time
 import os
 import operator
 import subprocess
+
+from Log import *
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
@@ -306,7 +307,7 @@ class FileStoreBrowserDialog(QDialog):
 		self.FileStoreDir=darungrim_storage_dir
 		self.InitVars()
 
-		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name)
+		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name,qApp)
 		self.filesWidgetsTemplate.setDarunGrimStore(self.FileStoreDir)
 
 		orig_button=QPushButton('Orig File >> ',self)
@@ -642,23 +643,6 @@ class ConfigurationDialog(QDialog):
 		if filename:
 			self.ida64_path_line.setText(filename)
 
-"""
-class _Popen(multiprocessing.forking.Popen):
-	def __init__(self,*args,**kw):
-		if hasattr(sys,'frozen'):
-			os.putenv('_MEIPASS2', sys._MEIPASS)
-
-		try:
-			super(_Popen, self).__init__(*args,**kw)
-		finally:
-			if hasattr(sys, 'frozen'):
-				os.unsetenv('_MEIPASS2')
-
-class Process(multiprocessing.Process):
-	_Popen=_Popen
-
-"""
-
 def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False ):
 	if is_src_target_storage:
 		darungrim=DarunGrimEngine.DarunGrim()
@@ -670,67 +654,6 @@ def PerformDiffThread(src_filename, target_filename, result_filename, log_filena
 	if log_filename:
 		darungrim.SetLogFile(log_filename,log_level)
 	darungrim.PerformDiff(result_filename)
-
-class LogTextBoxDialog(QDialog):
-	def __init__(self,parent=None):
-		super(LogTextBoxDialog,self).__init__(parent)
-		self.setWindowTitle("Log")
-
-		self.text=QTextEdit()
-		self.text.setReadOnly(True)
-		vlayout=QVBoxLayout()
-		vlayout.addWidget(self.text)
-
-		buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
-		buttonBox.rejected.connect(self.reject)
-		vlayout.addWidget(buttonBox)
-
-		self.setLayout(vlayout)
-		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
-		self.textLen=0
-
-	def addText(self,text):
-		if self.textLen> 1024*1024:
-			self.text.clear()
-			self.textLen=0
-		self.text.append(text)
-		self.textLen+=len(text)
-
-	def keyPressEvent(self,e):
-		key=e.key()
-
-		if key==Qt.Key_Return or key==Qt.Key_Enter:
-			return
-		else:
-			super(LogTextBoxDialog,self).keyPressEvent(e)
-
-class LogThread(QThread):
-	data_read=Signal(object)
-
-	def __init__(self,filename):
-		QThread.__init__(self)
-		self.filename=filename
-		self.endLoop=False
-
-	def run(self):
-		fd=None
-		while not self.endLoop:
-			try:
-				fd=open(self.filename,'rb')
-				break
-			except:
-				pass
-
-		if fd!=None:
-			while not self.endLoop:
-				data=fd.read()
-				if data:
-					self.data_read.emit(data)
-
-			fd.close()
-
-	def end(self):
-		self.endLoop=True
 
 class MainWindow(QMainWindow):
 	UseDock=False
@@ -1044,6 +967,9 @@ class MainWindow(QMainWindow):
 		if filename:
 			self.PatchedFunctionGraph.SaveImg(filename)
 
+	def showLogs(self):
+		self.LogDialog.show()
+
 	def toggleShowGraphs(self):
 		if self.ShowGraphs==True:
 			self.ShowGraphs=False
@@ -1172,6 +1098,12 @@ class MainWindow(QMainWindow):
 								triggered=self.savePatchedGraph
 							)
 
+		self.showLogsAct = QAction("Show logs...",
+								self,
+								statusTip="Show logs",
+								triggered=self.showLogs
+							)
+
 		self.showGraphsAct = QAction("Show graphs...",
 								self,
 								statusTip="Show graphs",
@@ -1232,6 +1164,7 @@ class MainWindow(QMainWindow):
 		self.analysisMenu.addAction(self.captureWindowAct)
 		self.analysisMenu.addAction(self.saveOrigGraphAct)
 		self.analysisMenu.addAction(self.savePatchedGraphAct)
+		self.analysisMenu.addAction(self.showLogsAct)
 
 		self.optionsMenu = self.menuBar().addMenu("&Options")
 		self.optionsMenu.addAction(self.showGraphsAct)

@@ -71,7 +71,7 @@ class FileProcessor:
 			ret = '_'
 		return ret
 
-	def CheckInFiles( self, src_dirname, storage_root = None, download = None, copy_file = True, overwrite_mode = True, tags=[] ):
+	def CheckInFiles( self, src_dirname, storage_root = None, download = None, copy_file = True, overwrite_mode = True, tags=[], message_callback=None, message_callback_arg=None ):
 		if not os.path.isdir( src_dirname ):
 			return 
 
@@ -79,7 +79,7 @@ class FileProcessor:
 			src_filename = os.path.join( src_dirname, file )
 			if os.path.isdir( src_filename ):
 				try:
-					self.CheckInFiles( os.path.join( src_dirname, file ), storage_root, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags )
+					self.CheckInFiles( os.path.join( src_dirname, file ), storage_root, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags, message_callback=message_callback, message_callback_arg=message_callback_arg )
 				except:
 					import traceback
 					traceback.print_exc()
@@ -151,7 +151,12 @@ class FileProcessor:
 
 							if src_filename.lower() != target_full_filename.lower():
 								if self.DebugLevel > 1:
-									print "Different src and target:",src_filename, target_full_filename
+									message="Different src and target: %s -> %s" % (src_filename, target_full_filename)
+
+									if message_callback!=None:
+										message_callback(message_callback_arg, message)
+									else:
+										print message
 								try:
 									if copy_file:
 										shutil.copyfile( src_filename, target_full_filename )
@@ -166,7 +171,12 @@ class FileProcessor:
 											op="Copy"
 										else:
 											op="Move"
-										print '%s %s -> %s' % (op, src_filename, target_full_filename)
+										message = '%s %s -> %s' % (op, src_filename, target_full_filename)
+
+										if message_callback!=None:
+											message_callback(message_callback_arg, message)
+										else:
+											print message
 
 									print 'Error in %s %s -> %s' % (op, src_filename, target_full_filename)
 
