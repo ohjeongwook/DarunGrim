@@ -10,7 +10,6 @@ using namespace std;
 FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), FontSize("18"), Debug(0)
 {
 	DrawingObjectList = new vector<DrawingInfo *>;
-	aginit();
 	gvc = gvContext();
 
 	g = agopen("g", AGDIGRAPH);
@@ -621,8 +620,6 @@ void FlowGrapher::GenerateDrawingInfo()
 {
 	DrawingObjectList->clear();
 
-	gvLayoutJobs(gvc, g);
-	gvRenderJobs(gvc, g);
 	agsafeset(g, "charset", "Latin1", "");
 
 	try
