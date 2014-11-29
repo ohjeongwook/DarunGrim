@@ -303,7 +303,7 @@ class TargetMapInfo(Base):
 
 
 class Database:
-	DebugLevel = 2
+	DebugLevel = 0
 	UseAttach=True
 	UseMapInfoForFunctionBlockQuery=False
 
@@ -369,8 +369,6 @@ class Database:
 				self.SessionInstancesMap['Target']=self.SessionInstance
 
 	def Close(self):
-		print 'Closing session'
-
 		for database in self.AttachedDatabases:
 			query="DETACH DATABASE '%s';" % (database)
 			self.Engine.execute(query)
@@ -612,10 +610,6 @@ class Database:
 	
 			if target_data.has_key(right_address):
 				right_lines = target_data[ right_address ].split('\n')
-		
-			if self.DebugLevel > 2:
-				print 'Split Lines'
-				print left_lines, right_lines
 
 			disasm_blocks.append((left_address, left_lines, right_address, right_lines, match_rate))
 		return disasm_blocks
