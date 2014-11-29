@@ -9,24 +9,8 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Swig">
-      <UniqueIdentifier>{9755a41b-9c5a-4c55-bd67-074ff3bd6ec4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Python">
       <UniqueIdentifier>{cfc26d17-d822-465c-be91-0fe41c57e0de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lib">
-      <UniqueIdentifier>{b02fa449-19f9-474e-bd2f-c946a721d4a0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lib\Header Files">
-      <UniqueIdentifier>{46c9a4de-d566-47ca-863e-5a95597142b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lib\Source Files">
-      <UniqueIdentifier>{80a4066c-ac10-41ad-b611-cd466c6bb1b0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
