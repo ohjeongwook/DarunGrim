@@ -251,7 +251,7 @@ class DarunGrim:
 					src_is_64=False
 
 				print 'Generate DarunGrim data file %s -> %s' % (self.SrcFilename, self.SrcStorage)
-				self.DarunGrim.GenerateSourceDGFFromIDA(self.SrcStorage, src_ida_log_filename, src_is_64)
+				self.DarunGrim.GenerateSourceDGFFromIDA(str(self.SrcStorage), str(src_ida_log_filename), src_is_64)
 
 		if not self.TargetStorage:
 			self.TargetStorage=self.GetDGFName(self.TargetFilename)
@@ -268,7 +268,7 @@ class DarunGrim:
 					target_is_64=False
 
 				print 'Generate DarunGrim data file %s -> %s' % (self.TargetFilename, self.TargetStorage)
-				self.DarunGrim.GenerateTargetDGFFromIDA(self.TargetStorage, target_ida_log_filename, target_is_64)
+				self.DarunGrim.GenerateTargetDGFFromIDA(str(self.TargetStorage), str(target_ida_log_filename), target_is_64)
 
 		print 'Perform Diffing...'
 		self.DarunGrim.PerformDiff(str(self.SrcStorage), 0, str(self.TargetStorage), 0, str(output_storage))
