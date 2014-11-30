@@ -22,20 +22,29 @@ class LogTextBoxDialog(QDialog):
 		vlayout=QVBoxLayout()
 		vlayout.addWidget(self.text)
 
-		self.buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
-		self.buttonBox.rejected.connect(self.reject)
+		self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		self.buttonBox.accepted.connect(self.accept)
+		self.buttonBox.rejected.connect(self.Cancel)
 		vlayout.addWidget(self.buttonBox)
 
 		self.setLayout(vlayout)
 		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
 		self.textLen=0
+		self.CancelCallback=None
 
-	def MakeNonClose(self):
+	def DisableClose(self):
 		self.setWindowFlags(Qt.CustomizeWindowHint|Qt.WindowMinMaxButtonsHint)
-		self.buttonBox.setEnabled(False)
+		self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
-	def MakeClose(self):
-		self.buttonBox.setEnabled(True)
+	def EnableClose(self):
+		self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+
+	def SetCancelCallback(self,callback):
+		self.CancelCallback=callback
+
+	def Cancel(self):
+		if self.CancelCallback!=None:
+			self.CancelCallback()
 
 	def addText(self,text):
 		if self.textLen> 1024*1024:

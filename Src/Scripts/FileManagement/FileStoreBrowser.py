@@ -567,6 +567,10 @@ class FilesWidgetsTemplate:
 	def onTextBoxDataReady(self,data):
 		self.LogDialog.addText(data)
 
+	def ImportFilesCancelled(self):
+		self.ImportFilesProcess.terminate()
+		self.LogDialog.EnableClose()
+
 	def importFiles(self,debug=False):
 		dialog=ImportFilesDialog()
 		if dialog.exec_():
@@ -574,16 +578,17 @@ class FilesWidgetsTemplate:
 			tags=dialog.getTags().split(',')
 
 			if debug:
-				p=None
+				self.ImportFilesProcess=None
 				ImportFilesThread(self.DatabaseName, src_dirname, self.DarunGrimStore, tags)
 			else:
 				q = Queue()
-				p=Process(target=ImportFilesThread,args=(self.DatabaseName, src_dirname, self.DarunGrimStore, tags, q))
-				p.start()
+				self.ImportFilesProcess=Process(target=ImportFilesThread,args=(self.DatabaseName, src_dirname, self.DarunGrimStore, tags, q))
+				self.ImportFilesProcess.start()
 
-			if p!=None:
+			if self.ImportFilesProcess!=None:
 				self.LogDialog=LogTextBoxDialog()
-				self.LogDialog.MakeNonClose()
+				self.LogDialog.SetCancelCallback(self.ImportFilesCancelled)
+				self.LogDialog.DisableClose()
 				self.LogDialog.resize(800,600)
 				self.LogDialog.show()
 				log_thread=QueReadThread(q)
@@ -592,13 +597,13 @@ class FilesWidgetsTemplate:
 
 				while True:
 					time.sleep(0.01)
-					if not p.is_alive():
+					if not self.ImportFilesProcess.is_alive():
 						break
 
 					self.qApp.processEvents()
 					
 				self.LogDialog.addText("Import file finished!\n")
-				self.LogDialog.MakeClose()
+				self.LogDialog.EnableClose()
 				log_thread.end()
 			self.UpdateTagTable()
 			self.UpdateCompanyNames()
