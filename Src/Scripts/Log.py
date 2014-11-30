@@ -1,14 +1,6 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtSql import *
-import DarunGrimDatabase
-import DiffEngine
-from Graphs import *
-import FlowGrapher
-import FileStoreBrowser
-import FileStoreDatabase
-import DarunGrimEngine
-
 import pprint
 import multiprocessing.forking
 import multiprocessing
@@ -17,6 +9,7 @@ import time
 import os
 import operator
 import subprocess
+import sys
 
 class LogTextBoxDialog(QDialog):
 	def __init__(self,parent=None):
@@ -40,7 +33,9 @@ class LogTextBoxDialog(QDialog):
 		if self.textLen> 1024*1024:
 			self.text.clear()
 			self.textLen=0
-		self.text.append(text)
+		self.text.moveCursor(QTextCursor.End)
+		self.text.insertPlainText(text)
+		self.text.moveCursor(QTextCursor.End)
 		self.textLen+=len(text)
 
 	def keyPressEvent(self,e):
@@ -50,7 +45,6 @@ class LogTextBoxDialog(QDialog):
 			return
 		else:
 			super(LogTextBoxDialog,self).keyPressEvent(e)
-
 
 class LogThread(QThread):
 	data_read=Signal(object)
@@ -95,3 +89,49 @@ class QueReadThread(QThread):
 
 	def end(self):
 		pass
+
+class PrintHook:
+	def __init__(self,out=True,func=None,arg=None):
+		self.func=func
+		self.OrigOut=None
+		self.Out=out
+		self.Arg=arg
+
+	def Start(self):
+		if self.Out==True:
+			sys.stdout=self
+			self.OrigOut=sys.__stdout__
+		else:
+			sys.stderr=self
+			self.OrigOut=sys.__stderr__
+	
+	def Stop(self):
+		self.OrigOut.flush()
+		if self.Out:
+			sys.stdout=sys.__stdout__
+		else:
+			sys.stderr=sys.__stderr__
+
+	def write(self,text):
+		if self.Arg!=None:
+			self.func(text,self.Arg)
+		else:
+			self.func(text)
+
+	def flush(self):
+		pass
+
+	def __getattr__(self,name):
+		try:
+			return self.OrigOut.__getattr__(name)
+		except:
+			pass
+
+if __name__=='__main__':
+	phOut=PrintHook()
+	phOut.Start()
+
+	phErr=PrintHook(0)
+	phErr.Start()
+
+	print "Hello"
