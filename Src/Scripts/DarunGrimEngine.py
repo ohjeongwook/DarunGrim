@@ -254,7 +254,6 @@ class DarunGrim:
 
 				self.DarunGrim.GenerateTargetDGFFromIDA(self.TargetStorage, target_ida_log_filename, target_is_64)
 
-		print 'PerformDiff:', self.SrcStorage, self.TargetStorage, output_storage
 		self.DarunGrim.PerformDiff(str(self.SrcStorage), 0, str(self.TargetStorage), 0, str(output_storage))
 
 	def OpenIDA(self,filename):
