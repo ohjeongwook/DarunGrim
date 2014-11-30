@@ -237,6 +237,7 @@ class NewDiffingDialog(QDialog):
 	def __init__(self,parent=None):
 		super(NewDiffingDialog,self).__init__(parent)
 		self.setWindowTitle("New Diffing")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.Filenames={'Orig':'','Patched':'','Result':''}
 
@@ -306,6 +307,7 @@ class FileStoreBrowserDialog(QDialog):
 	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
 		super(FileStoreBrowserDialog,self).__init__(parent)
 		self.setWindowTitle("File Store Browser")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.FileStoreDir=darungrim_storage_dir
 
@@ -342,6 +344,7 @@ class NewDiffingFromFileStoreDialog(QDialog):
 	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
 		super(NewDiffingFromFileStoreDialog,self).__init__(parent)
 		self.setWindowTitle("File Store Browser")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.FileStoreDir=darungrim_storage_dir
 		self.InitVars()
@@ -511,6 +514,7 @@ class SessionsDialog(QDialog):
 	def __init__(self,parent=None,database_name=''):
 		super(SessionsDialog,self).__init__(parent)
 		self.setWindowTitle("Sessions")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.Filename=''
 		view=QTableView()
@@ -564,6 +568,7 @@ class ServerInfoDialog(QDialog):
 	def __init__(self,parent=None, port=0):
 		super(ServerInfoDialog,self).__init__(parent)
 		self.setWindowTitle("Server Information")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		port_label=QLabel('Port:',self)
 
@@ -588,6 +593,7 @@ class ConfigurationDialog(QDialog):
 	def __init__(self,parent=None, file_store_dir='', data_files_dir='', ida_path='', ida64_path='', log_level=0):
 		super(ConfigurationDialog,self).__init__(parent)
 		self.setWindowTitle("Configuration")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		file_store_dir_button=QPushButton('FileSotre Dir:',self)
 		file_store_dir_button.clicked.connect(self.getFileStoreDir)
@@ -711,6 +717,7 @@ class MainWindow(QMainWindow):
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		if RedirectStdOutErr:
 			self.PHOut=PrintHook(True,func=self.onTextBoxDataReady)
@@ -1020,7 +1027,7 @@ class MainWindow(QMainWindow):
 	def captureWindow(self):
 		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
 		if filename:
-			pixmap=QPixmap.grabWidget(self)
+			pixmap=QPixmap.grabWidget(super(QMainWindow,self))
 			pixmap.save(filename,"png")
 
 	def saveOrigGraph(self):

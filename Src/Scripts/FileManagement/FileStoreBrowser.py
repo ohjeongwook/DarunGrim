@@ -254,6 +254,7 @@ class ImportMSUpdatesDialog(QDialog):
 	def __init__(self,parent=None):
 		super(ImportMSUpdatesDialog,self).__init__(parent)
 		self.setWindowTitle("Import MS Update")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.Filename=''
 
@@ -307,6 +308,7 @@ class ImportFilesDialog(QDialog):
 	def __init__(self,parent=None):
 		super(ImportFilesDialog,self).__init__(parent)
 		self.setWindowTitle("Import Files")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		folder_name_button=QPushButton('Folder:',self)
 		folder_name_button.clicked.connect(self.getFolderName)
@@ -352,6 +354,7 @@ class NameDialog(QDialog):
 	def __init__(self,parent=None):
 		super(NameDialog,self).__init__(parent)
 		self.setWindowTitle("Name")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		tag_button=QLabel('Tag:',self)
 		self.NameLine=QLineEdit("")
@@ -666,6 +669,7 @@ if __name__=='__main__':
 			self.DatabaseName=database_name
 
 			self.setWindowTitle("FileStore Browser")
+			self.setWindowIcon(QIcon('DarunGrim.png'))
 
 			self.createActions()
 			self.createMenus()

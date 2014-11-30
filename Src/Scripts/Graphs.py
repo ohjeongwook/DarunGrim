@@ -334,6 +334,7 @@ if __name__=='__main__':
 
 			self.setCentralWidget(self.widget)
 			self.setWindowTitle("Graph")
+			self.setWindowIcon(QIcon('DarunGrim.png'))
 
 	app=QApplication(sys.argv)
 	frame=MainWindow()

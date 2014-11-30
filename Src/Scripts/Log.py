@@ -15,6 +15,7 @@ class LogTextBoxDialog(QDialog):
 	def __init__(self,parent=None):
 		super(LogTextBoxDialog,self).__init__(parent)
 		self.setWindowTitle("Log")
+		self.setWindowIcon(QIcon('DarunGrim.png'))
 
 		self.text=QTextEdit()
 		self.text.setReadOnly(True)
