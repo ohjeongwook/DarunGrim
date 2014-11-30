@@ -155,7 +155,12 @@ class FileProcessor:
 
 							if src_filename.lower() != target_full_filename.lower():
 								if self.DebugLevel > 1:
-									message="Different src and target: %s -> %s" % (src_filename, target_full_filename)
+									if copy_file:
+										op="Copy"
+									else:
+										op="Move"
+								
+									message="%s\n   %s\n   %s\n" % (op, src_filename, target_full_filename)
 
 									if message_callback!=None:
 										message_callback(message_callback_arg, message)
@@ -170,10 +175,7 @@ class FileProcessor:
 									import traceback
 
 									if self.DebugLevel > -1:
-										if copy_file:
-											op="Copy"
-										else:
-											op="Move"
+
 										message = '%s %s -> %s' % (op, src_filename, target_full_filename)
 
 										if message_callback!=None:
@@ -261,16 +263,19 @@ class FileProcessor:
 			lclists.append( win32ver.VerQueryValue( info ) )
 			lclists.append( [(1033,0x04E4)] )
 
-			for lclist in lclists:
-				if self.DebugLevel > 5:
-					print 'lclist', lclist
-				block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
-				for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
-					value = win32ver.VerQueryValue( info, block+s)
+			try:
+				for lclist in lclists:
 					if self.DebugLevel > 5:
-						print "\t", s,'=',value
-					if value and not VersionInfo.has_key( s ):
-						VersionInfo[s] = value
+						print 'lclist', lclist
+					block = u"\\StringFileInfo\\%04x%04x\\" % lclist[0]
+					for s in ( "CompanyName", "Company", "FileVersion", "File Version", "ProductVersion" ):
+						value = win32ver.VerQueryValue( info, block+s)
+						if self.DebugLevel > 5:
+							print "\t", s,'=',value
+						if value and not VersionInfo.has_key( s ):
+							VersionInfo[s] = value
+			except:
+				pass
 		return VersionInfo
 
 if __name__=='__main__':
