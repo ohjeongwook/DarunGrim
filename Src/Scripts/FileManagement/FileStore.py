@@ -82,7 +82,11 @@ class FileProcessor:
 					self.CheckInFiles( os.path.join( src_dirname, file ), storage_root, download, copy_file = copy_file, overwrite_mode = overwrite_mode, tags=tags, message_callback=message_callback, message_callback_arg=message_callback_arg )
 				except:
 					import traceback
-					traceback.print_exc()
+
+					if message_callback!=None:
+						message_callback(message_callback_arg, traceback.format_exc())
+					else:
+						traceback.print_exc()
 					continue
 
 			elif self.IsExecutable( src_filename ):
@@ -164,7 +168,6 @@ class FileProcessor:
 										shutil.move( src_filename, target_full_filename )
 								except:
 									import traceback
-									traceback.print_exc()
 
 									if self.DebugLevel > -1:
 										if copy_file:
@@ -178,7 +181,10 @@ class FileProcessor:
 										else:
 											print message
 
-									print 'Error in %s %s -> %s' % (op, src_filename, target_full_filename)
+									if message_callback!=None:
+										message_callback(message_callback_arg, traceback.format_exc())
+									else:
+										traceback.print_exc()
 
 						import pefile
 						pe = pefile.PE(src_filename)
@@ -240,7 +246,10 @@ class FileProcessor:
 
 					except:
 						import traceback
-						traceback.print_exc()
+						if message_callback!=None:
+							message_callback(message_callback_arg, traceback.format_exc())
+						else:
+							traceback.print_exc()
 
 		self.Database.Commit()
 

@@ -518,8 +518,8 @@ class FilesWidgetsTemplate:
 		search_files_tab_widget.setLayout(vlayout)
 
 		self.tab_widget=QTabWidget()
-		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
+		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 
 	def UpdateTagTable(self):
 		self.Tags=TagsTableModel(self.parent,self.DatabaseName)
@@ -566,30 +566,30 @@ class FilesWidgetsTemplate:
 			src_dirname=dialog.FolderNameEdit.text()
 			tags=dialog.getTags().split(',')
 
-		if debug:
-			p=None
-			ImportFilesThread(self.DatabaseName, src_dirname, self.DarunGrimStore, tags)
-		else:
-			q = Queue()
-			p=Process(target=ImportFilesThread,args=(self.DatabaseName, src_dirname, self.DarunGrimStore, tags, q))
-			p.start()
+			if debug:
+				p=None
+				ImportFilesThread(self.DatabaseName, src_dirname, self.DarunGrimStore, tags)
+			else:
+				q = Queue()
+				p=Process(target=ImportFilesThread,args=(self.DatabaseName, src_dirname, self.DarunGrimStore, tags, q))
+				p.start()
 
-		if p!=None:
-			self.LogDialog=LogTextBoxDialog()
-			self.LogDialog.resize(800,600)
-			self.LogDialog.show()
-			log_thread=QueReadThread(q)
-			log_thread.data_read.connect(self.onTextBoxDataReady)
-			log_thread.start()
+			if p!=None:
+				self.LogDialog=LogTextBoxDialog()
+				self.LogDialog.resize(800,600)
+				self.LogDialog.show()
+				log_thread=QueReadThread(q)
+				log_thread.data_read.connect(self.onTextBoxDataReady)
+				log_thread.start()
 
-			while True:
-				time.sleep(0.01)
-				if not p.is_alive():
-					break
+				while True:
+					time.sleep(0.01)
+					if not p.is_alive():
+						break
 
-				self.qApp.processEvents()
+					self.qApp.processEvents()
 
-			log_thread.end()
+				log_thread.end()
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
@@ -645,7 +645,7 @@ class FilesWidgetsTemplate:
 
 	def getCurrentSelection(self):
 		tab_selection=self.tab_widget.currentIndex()
-		if tab_selection==0:
+		if tab_selection==1:
 			selection=self.VersionsTable.selectionModel()
 			if selection!=None:
 				for index in selection.selection().indexes():
