@@ -412,11 +412,7 @@ class FilesWidgetsTemplate:
 		vert_splitter.addWidget(view)
 		self.CompanyNamesTable=view
 
-		self.CompanyNames=CompanyNamesTableModel(parent,self.DatabaseName)
-		self.CompanyNamesTable.setModel(self.CompanyNames)
-		selection=self.CompanyNamesTable.selectionModel()
-		if selection!=None:
-			selection.selectionChanged.connect(self.handleCompanyNamesTableChanged)
+		self.UpdateCompanyNames()
 
 		# File
 		view=QTableView()
@@ -524,6 +520,13 @@ class FilesWidgetsTemplate:
 		self.tab_widget.addTab(search_files_tab_widget,"Search Files...")
 		self.tab_widget.addTab(browe_files_tab_widget,"Browse Files...")
 
+	def UpdateCompanyNames(self):
+		self.CompanyNames=CompanyNamesTableModel(self.parent,self.DatabaseName)
+		self.CompanyNamesTable.setModel(self.CompanyNames)
+		selection=self.CompanyNamesTable.selectionModel()
+		if selection!=None:
+			selection.selectionChanged.connect(self.handleCompanyNamesTableChanged)
+
 	def UpdateTagTable(self):
 		self.Tags=TagsTableModel(self.parent,self.DatabaseName)
 		self.TagsTableView.setModel(self.Tags)
@@ -559,6 +562,7 @@ class FilesWidgetsTemplate:
 				print 'Store: %s -> %s (tags:%s)' % (src_dirname, self.DarunGrimStore, ','.join(tags))
 				file_store.CheckInFiles( src_dirname, self.DarunGrimStore, tags=tags )
 			self.UpdateTagTable()
+			self.UpdateCompanyNames()
 
 	def onTextBoxDataReady(self,data):
 		self.LogDialog.addText(data)
@@ -579,6 +583,7 @@ class FilesWidgetsTemplate:
 
 			if p!=None:
 				self.LogDialog=LogTextBoxDialog()
+				self.LogDialog.MakeNonClose()
 				self.LogDialog.resize(800,600)
 				self.LogDialog.show()
 				log_thread=QueReadThread(q)
@@ -591,8 +596,12 @@ class FilesWidgetsTemplate:
 						break
 
 					self.qApp.processEvents()
-
+					
+				self.LogDialog.addText("Import file finished!\n")
+				self.LogDialog.MakeClose()
 				log_thread.end()
+			self.UpdateTagTable()
+			self.UpdateCompanyNames()
 
 	def handleCompanyNamesTableChanged(self,selected,dselected):
 		for item in selected:
