@@ -826,7 +826,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 		hash_map <ea_t,ea_t>::iterator AdditionallyAnalyzedBlocksIter=AdditionallyAnalyzedBlocks.find(StartEA);
 		if(AdditionallyAnalyzedBlocksIter!=AdditionallyAnalyzedBlocks.end())
 		{
-			WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Skip %X block to %X\n",__FUNCTION__,StartEA,AdditionallyAnalyzedBlocksIter->second);
+			//WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Skip %X block to %X\n",__FUNCTION__,StartEA,AdditionallyAnalyzedBlocksIter->second);
 			if(StartEA==AdditionallyAnalyzedBlocksIter->second)
 				break;
 			StartEA=AdditionallyAnalyzedBlocksIter->second;
@@ -842,7 +842,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 	ea_t CurrentBlockStart=current_addr;
 
 	int InstructionCount=0;
-	WriteToLogFile(gLogFile,"%s: %X~%X\n",__FUNCTION__,current_addr,endEA);
+	//WriteToLogFile(gLogFile,"%s: %X~%X\n",__FUNCTION__,current_addr,endEA);
 	bool FoundBranching=FALSE; //first we branch
 	for(;current_addr<=endEA;)
 	{
