@@ -2001,7 +2001,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 
 		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_map_iter->first, 0))
 		{
-			Logger.Log(10, LOG_DIFF_MACHINE, "%s: %X Block Type: %d\n", __FUNCTION__,
+			Logger.Log(11, LOG_DIFF_MACHINE, "%s: %X Block Type: %d\n", __FUNCTION__,
 				match_map_iter->first,
 				p_one_location_info ? p_one_location_info->BlockType : -1);
 		}
