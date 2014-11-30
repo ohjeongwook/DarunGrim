@@ -12,12 +12,15 @@ import DarunGrimEngine
 
 import pprint
 from multiprocessing import Process
+from multiprocessing import Queue
 import time
 import os
 import operator
 import subprocess
 
 from Log import *
+
+RedirectStdOutErr=True
 
 class FunctionMatchTable(QAbstractTableModel):
 	Debug=0
@@ -305,6 +308,42 @@ class FileStoreBrowserDialog(QDialog):
 		self.setWindowTitle("File Store Browser")
 
 		self.FileStoreDir=darungrim_storage_dir
+
+		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name,qApp)
+		self.filesWidgetsTemplate.setDarunGrimStore(self.FileStoreDir)
+
+		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+		buttonBox.accepted.connect(self.accept)
+		buttonBox.rejected.connect(self.reject)
+
+		bottom_layout=QGridLayout()
+		bottom_layout.addWidget(buttonBox,0,3)
+
+		main_layout=QVBoxLayout()
+		main_layout.addWidget(self.filesWidgetsTemplate.tab_widget)
+		main_layout.addLayout(bottom_layout)
+		self.setLayout(main_layout)
+
+		self.resize(950,500)
+		self.setWindowFlags(self.windowFlags()|Qt.WindowSystemMenuHint|Qt.WindowMinMaxButtonsHint)
+		self.show()
+
+	def keyPressEvent(self,e):
+		key=e.key()
+
+		if key==Qt.Key_Return or key==Qt.Key_Enter:
+			return
+		else:
+			super(FileStoreBrowserDialog,self).keyPressEvent(e)
+
+class NewDiffingFromFileStoreDialog(QDialog):
+	ShowResultButton=False
+
+	def __init__(self,parent=None,database_name='',darungrim_storage_dir=''):
+		super(NewDiffingFromFileStoreDialog,self).__init__(parent)
+		self.setWindowTitle("File Store Browser")
+
+		self.FileStoreDir=darungrim_storage_dir
 		self.InitVars()
 
 		self.filesWidgetsTemplate=FileStoreBrowser.FilesWidgetsTemplate(self,database_name,qApp)
@@ -371,7 +410,7 @@ class FileStoreBrowserDialog(QDialog):
 		if key==Qt.Key_Return or key==Qt.Key_Enter:
 			return
 		else:
-			super(FileStoreBrowserDialog,self).keyPressEvent(e)
+			super(NewDiffingFromFileStoreDialog,self).keyPressEvent(e)
 
 	def InitVars(self):
 		self.OrigFileID=0
@@ -643,7 +682,17 @@ class ConfigurationDialog(QDialog):
 		if filename:
 			self.ida64_path_line.setText(filename)
 
-def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False ):
+def SendLogMessage(message,q):
+	q.put(message)
+
+def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False,q=None):
+	if q!=None and RedirectStdOutErr:
+		ph_out=PrintHook(True,func=SendLogMessage,arg=q)
+		ph_out.Start()
+
+		ph_err=PrintHook(False,func=SendLogMessage,arg=q)
+		ph_err.Start()
+
 	if is_src_target_storage:
 		darungrim=DarunGrimEngine.DarunGrim()
 		darungrim.SetStorageNames(src_filename, target_filename)
@@ -662,8 +711,15 @@ class MainWindow(QMainWindow):
 	def __init__(self,database_name):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
-		self.NonMaxGeometry=None
 
+		if RedirectStdOutErr:
+			self.PHOut=PrintHook(True,func=self.onTextBoxDataReady)
+			self.PHOut.Start()
+
+			self.PHErr=PrintHook(False,func=self.onTextBoxDataReady)
+			self.PHErr.Start()
+
+		self.NonMaxGeometry=None
 		self.DarunGrimEngine=DarunGrimEngine.DarunGrim(start_ida_listener=True)
 		self.readSettings()
 
@@ -810,8 +866,12 @@ class MainWindow(QMainWindow):
 		self.BlockTableModel=BlockTable(self)
 		self.BlockTableView.setModel(self.BlockTableModel)
 
-	def newFromFileStore(self):
+	def manageFileStore(self):
 		dialog=FileStoreBrowserDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.FileStoreDir)
+		dialog.exec_()
+
+	def newFromFileStore(self):
+		dialog=NewDiffingFromFileStoreDialog(database_name=self.FileStoreDatabase, darungrim_storage_dir=self.FileStoreDir)
 		if dialog.exec_():
 			result_filename='%s-%s.dgf' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
 			log_filename='%s-%s.log' % (dialog.OrigFileSHA1, dialog.PatchedFileSHA1)
@@ -840,7 +900,6 @@ class MainWindow(QMainWindow):
 			result_filename = str(dialog.Filenames['Result'])
 			log_filename=result_filename+'.log'
 			self.StartPerformDiff(src_filename,target_filename,result_filename,log_filename)
-
 
 	def reanalyze(self):
 		database = DarunGrimDatabase.Database(self.DatabaseName)
@@ -871,6 +930,8 @@ class MainWindow(QMainWindow):
 								debug=False)
 
 	def onTextBoxDataReady(self,data):
+		if not self.LogDialog.isVisible():
+			self.LogDialog.show()
 		self.LogDialog.addText(data)
 
 	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',is_src_target_storage=False, debug=False):
@@ -884,15 +945,19 @@ class MainWindow(QMainWindow):
 		except:
 			pass
 
+		q=None
 		if debug:
 			p=None
-			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage)
+			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,q=q)
 		else:
-			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage))
+			q=Queue()
+			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,q))
 			p.start()
 
 		if p!=None:
-			self.LogDialog.show()
+			qlog_thread=QueReadThread(q)
+			qlog_thread.data_read.connect(self.onTextBoxDataReady)
+			qlog_thread.start()
 
 			log_thread=LogThread(log_filename)
 			log_thread.data_read.connect(self.onTextBoxDataReady)
@@ -906,6 +971,7 @@ class MainWindow(QMainWindow):
 				qApp.processEvents()
 
 			log_thread.end()
+			qlog_thread.end()
 
 		self.OpenDatabase(result_filename)
 
@@ -1043,6 +1109,12 @@ class MainWindow(QMainWindow):
 								triggered=self.open
 							)
 
+		self.manageFileStoreAct = QAction("Manage FileStore...",
+								self,
+								statusTip="Manage FileStore",
+								triggered=self.manageFileStore
+							)
+
 		self.newFromFileStoreAct = QAction("New Diffing (FileStore)...",
 								self,
 								statusTip="Create new diffing output",
@@ -1057,7 +1129,6 @@ class MainWindow(QMainWindow):
 
 		self.reanalyzeAct = QAction("Reanalyze...",
 								self,
-								shortcut=QKeySequence.Open,
 								statusTip="Reanalyze current files",
 								triggered=self.reanalyze
 							)
@@ -1151,6 +1222,7 @@ class MainWindow(QMainWindow):
 		self.fileMenu = self.menuBar().addMenu("&File")
 		self.fileMenu.addAction(self.newAct)
 		self.fileMenu.addAction(self.openAct)
+		self.fileMenu.addAction(self.manageFileStoreAct)
 		self.fileMenu.addAction(self.newFromFileStoreAct)
 		self.fileMenu.addAction(self.openFromFileStoreAct)
 		self.fileMenu.addAction(self.reanalyzeAct)
