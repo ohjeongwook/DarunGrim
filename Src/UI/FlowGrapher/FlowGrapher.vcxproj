@@ -53,6 +53,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FLOWGRAPHER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;c:\python27\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/Ddprintf=printf %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -75,6 +76,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FLOWGRAPHER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%PROGRAMFILES(x86)%\Graphviz 2.28\include\graphviz;c:\python27\include</AdditionalIncludeDirectories>
       <AdditionalOptions>/Ddprintf=printf %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
