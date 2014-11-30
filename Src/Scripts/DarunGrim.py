@@ -1539,6 +1539,7 @@ class MainWindow(QMainWindow):
 if __name__=='__main__':
 	multiprocessing.freeze_support()
 	import sys
+	import time
 
 	if len(sys.argv)>1:
 		database_name=sys.argv[1]
@@ -1546,6 +1547,12 @@ if __name__=='__main__':
 		database_name=''
 
 	app=QApplication(sys.argv)
-	mainWindow=MainWindow(database_name)
-	mainWindow.show()
+	pixmap=QPixmap('DarunGrimSplash.png')
+	splash=QSplashScreen(pixmap)
+	splash.show()
+	app.processEvents()
+	time.sleep(0.5)
+	window=MainWindow(database_name)
+	window.show()
+	splash.finish(window)
 	sys.exit(app.exec_())
