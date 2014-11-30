@@ -245,16 +245,19 @@ class NewDiffingDialog(QDialog):
 		orig_button.clicked.connect(self.getOrigFilename)
 		self.orig_line=QLineEdit("")
 		self.orig_line.setAlignment(Qt.AlignLeft)
+		self.orig_line.setMinimumWidth(250)
 
 		patched_button=QPushButton('Patched File:',self)
 		patched_button.clicked.connect(self.getPatchedFilename)
 		self.patched_line=QLineEdit("")
 		self.patched_line.setAlignment(Qt.AlignLeft)	
+		self.patched_line.setMinimumWidth(250)
 
 		result_button=QPushButton('Result:',self)
 		result_button.clicked.connect(self.getResultFilename)
 		self.result_line=QLineEdit("")
 		self.result_line.setAlignment(Qt.AlignLeft)
+		self.result_line.setMinimumWidth(250)
 
 		buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 		buttonBox.accepted.connect(self.accept)
@@ -691,7 +694,7 @@ class ConfigurationDialog(QDialog):
 def SendLogMessage(message,q):
 	q.put(message)
 
-def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False,q=None):
+def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False, src_ida_log_filename = 'src.log', target_ida_log_filename = 'target.log', q=None):
 	if q!=None and RedirectStdOutErr:
 		ph_out=PrintHook(True,func=SendLogMessage,arg=q)
 		ph_out.Start()
@@ -708,7 +711,7 @@ def PerformDiffThread(src_filename, target_filename, result_filename, log_filena
 	darungrim.SetDGFSotrage(dbg_storage_dir)
 	if log_filename:
 		darungrim.SetLogFile(log_filename,log_level)
-	darungrim.PerformDiff(result_filename)
+	darungrim.PerformDiff(result_filename,src_ida_log_filename = src_ida_log_filename, target_ida_log_filename = target_ida_log_filename)
 
 class MainWindow(QMainWindow):
 	UseDock=False
@@ -718,6 +721,10 @@ class MainWindow(QMainWindow):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
 		self.setWindowIcon(QIcon('DarunGrim.png'))
+		self.DatabaseName=database_name
+
+		self.LogDialog=LogTextBoxDialog()
+		self.LogDialog.resize(800,600)
 
 		if RedirectStdOutErr:
 			self.PHOut=PrintHook(True,func=self.onTextBoxDataReady)
@@ -840,9 +847,6 @@ class MainWindow(QMainWindow):
 			main_widget.setLayout(vlayout)
 			self.setCentralWidget(main_widget)
 			self.show()
-
-		self.LogDialog=LogTextBoxDialog()
-		self.LogDialog.resize(800,600)
 		
 		self.clearAreas()
 		if database_name:
@@ -942,6 +946,7 @@ class MainWindow(QMainWindow):
 		self.LogDialog.addText(data)
 
 	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',is_src_target_storage=False, debug=False):
+		print "Start Diffing Process: %s vs %s -> %s" % (src_filename,target_filename,result_filename)
 		self.clearAreas()
 
 		if os.path.isfile(log_filename):
@@ -952,13 +957,17 @@ class MainWindow(QMainWindow):
 		except:
 			pass
 
+		src_ida_log_filename=result_filename+'.src.log'
+		target_ida_log_filename=result_filename+'.target.log'
+
 		q=None
+		debug=False
 		if debug:
 			p=None
-			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,q=q)
+			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,src_ida_log_filename = src_ida_log_filename, target_ida_log_filename = target_ida_log_filename, q=q)
 		else:
 			q=Queue()
-			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,q))
+			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,src_ida_log_filename,target_ida_log_filename,q))
 			p.start()
 
 		if p!=None:
@@ -966,9 +975,12 @@ class MainWindow(QMainWindow):
 			qlog_thread.data_read.connect(self.onTextBoxDataReady)
 			qlog_thread.start()
 
-			log_thread=LogThread(log_filename)
-			log_thread.data_read.connect(self.onTextBoxDataReady)
-			log_thread.start()
+			log_threads=[]
+			for filename in [log_filename,src_ida_log_filename,target_ida_log_filename]:
+				log_thread=LogThread(filename)
+				log_thread.data_read.connect(self.onTextBoxDataReady)
+				log_thread.start()
+				log_threads.append(log_thread)
 
 			while True:
 				time.sleep(0.01)
@@ -977,7 +989,8 @@ class MainWindow(QMainWindow):
 
 				qApp.processEvents()
 
-			log_thread.end()
+			for log_thread in log_threads:
+				log_thread.end()
 			qlog_thread.end()
 
 		self.OpenDatabase(result_filename)
@@ -1016,13 +1029,14 @@ class MainWindow(QMainWindow):
 		self.DarunGrimEngine.OpenIDA(ida_filename)
 
 	def synchronizeIDA(self):
-		database = DarunGrimDatabase.Database(self.DatabaseName)
-		[src_filename,target_filename]=database.GetFilesLocation()
+		if self.DatabaseName:
+			database = DarunGrimDatabase.Database(self.DatabaseName)
+			[src_filename,target_filename]=database.GetFilesLocation()
 		
-		self.DarunGrimEngine.SetSourceController(src_filename)
-		self.DarunGrimEngine.SetTargetController(target_filename)
-		self.OpenIDA(src_filename)
-		self.OpenIDA(target_filename)
+			self.DarunGrimEngine.SetSourceController(src_filename)
+			self.DarunGrimEngine.SetTargetController(target_filename)
+			self.OpenIDA(src_filename)
+			self.OpenIDA(target_filename)
 
 	def captureWindow(self):
 		(filename,filter)=QFileDialog.getSaveFileName(self,'Save file', filter="*.png")
@@ -1095,11 +1109,13 @@ class MainWindow(QMainWindow):
 			msg_box=QMessageBox()
 			msg_box.setText('Try to run the program with an Administrator privilege\n' + message)
 			msg_box.exec_()
+			return False
 
 		else:
 			msg_box=QMessageBox()
 			msg_box.setText('Installation successful\n'+message)
 			msg_box.exec_()
+			return True
 
 	def createActions(self):
 		self.newAct = QAction("New Diffing...",
@@ -1366,11 +1382,12 @@ class MainWindow(QMainWindow):
 
 	def restoreUI(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
-			
+		
 		if settings.contains("geometry/non_max"):
 			self.NonMaxGeometry=settings.value("geometry/non_max")
 			self.restoreGeometry(self.NonMaxGeometry)
-		else:	
+		else:
+			self.resize(800,600)
 			self.NonMaxGeometry=self.saveGeometry()
 		
 		if settings.contains("isMaximized"):
@@ -1378,8 +1395,18 @@ class MainWindow(QMainWindow):
 				self.setWindowState(self.windowState()|Qt.WindowMaximized)
 		self.restoreState(settings.value("windowState"))
 
+
+		self.FirstConfigured=False
+		if not settings.contains("General/FirstConfigured"):
+			self.showConfiguration()
+			if self.intallIDAPlugin():
+				self.FirstConfigured=True
+		else:
+			self.FirstConfigured=True
+
 	def readSettings(self):
 		settings=QSettings("DarunGrim LLC", "DarunGrim")
+
 		self.ShowGraphs=True
 		if settings.contains("General/ShowGraphs"):
 			if settings.value("General/ShowGraphs")=='true':
@@ -1406,17 +1433,31 @@ class MainWindow(QMainWindow):
 		else:
 			self.setWindowFlags(self.windowFlags()& ~Qt.WindowStaysOnTopHint)
 
-		self.FileStoreDir = "Z:\\DarunGrimStore"
+		self.FileStoreDir = "C:\\DarunGrimStore"
 		if settings.contains("General/FileStoreDir"):
 			self.FileStoreDir=settings.value("General/FileStoreDir")
 		
+		if not os.path.isdir(self.FileStoreDir):
+			try:
+				os.makedirs(self.FileStoreDir)
+			except:
+				import traceback
+				traceback.print_exc()
+
 		self.FileStoreDatabase='index.db'
 		if settings.contains("General/FileStoreDatabase"):
 			self.FileStoreDatabase=settings.value("General/FileStoreDatabase")
 
-		self.DataFilesDir='C:\\mat\\DarunGrimDGFs'
+		self.DataFilesDir='C:\\DarunGrimData'
 		if settings.contains("General/DataFilesDir"):
 			self.DataFilesDir=settings.value("General/DGFSotreDir")
+
+		if not os.path.isdir(self.DataFilesDir):
+			try:
+				os.makedirs(self.DataFilesDir)
+			except:
+				import traceback
+				traceback.print_exc()
 
 		self.IDAPath=''
 		if settings.contains("General/IDAPath"):
@@ -1429,7 +1470,8 @@ class MainWindow(QMainWindow):
 		self.DarunGrimEngine.SetIDAPath(self.IDAPath)
 
 		if not self.DarunGrimEngine.CheckIDAPlugin():
-			print 'DarunGrim plugin is missing'
+			#print 'DarunGrim plugin is missing'
+			pass
 
 		self.IDA64Path=''
 		if settings.contains("General/IDA64Path"):
@@ -1454,7 +1496,10 @@ class MainWindow(QMainWindow):
 		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
 		settings.setValue("General/DGFSotreDir", self.DataFilesDir)
 		settings.setValue("General/LogLevel", self.LogLevel)
-
+		
+		if self.FirstConfigured==True:
+			settings.setValue("General/FirstConfigured", self.FirstConfigured)
+		
 		if self.NonMaxGeometry!=None:
 			settings.setValue("geometry/non_max", self.NonMaxGeometry)
 		settings.setValue("isMaximized", self.isMaximized())
