@@ -7,6 +7,9 @@ import dircache
 import shutil
 from _winreg import *
 import tempfile
+import win32api
+import win32security
+import win32con
 
 LogToStdout = 0x1
 LogToDbgview = 0x2
@@ -26,7 +29,7 @@ class DarunGrim:
 	def __init__ ( self, src_filename='', target_filename='', ida_path='', start_ida_listener=False):
 		self.SrcStorage=''
 		self.TargetStorage=''
-
+		self.IDAPath=''
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 
@@ -82,13 +85,24 @@ class DarunGrim:
 			return (False, 'Invalid IDA path')
 
 		darungrim_plugin_path=os.path.join(os.path.dirname(self.IDAPath),"plugins\\DarunGrimPlugin.plw")
+
+		ph = win32api.GetCurrentProcess()
+		th = win32security.OpenProcessToken(ph,win32con.MAXIMUM_ALLOWED)
+
+		virtual_store_enabled=win32security.GetTokenInformation(th, win32security.TokenVirtualizationEnabled)
+		if virtual_store_enabled:
+			return (False,'Program files are under Virtual Store.')
+
 		try:
  			shutil.copy(filename, darungrim_plugin_path)
 		except Exception as e:
 			s = str(e)
 			return (False, s)
 
-		return (True,darungrim_plugin_path)
+		if not os.path.isfile(darungrim_plugin_path):
+			return (False,'Not copied')
+
+		return (True,"File location: %s" % darungrim_plugin_path)
 
 	def LocateIDAExecutables(self,is_64=False):
 		if is_64:
@@ -228,14 +242,15 @@ class DarunGrim:
 	def PerformDiff( self, output_storage, src_ida_log_filename = "src.log", target_ida_log_filename = "target.log" ):
 		if not self.SrcStorage:
 			self.SrcStorage=self.GetDGFName(self.SrcFilename)
-			src_ida_log_filename=os.path.join( os.getcwd(), src_ida_log_filename)
+			src_ida_log_filename=os.path.join( os.getcwd(), str(src_ida_log_filename))
 
-			if not os.path.isfile(self.SrcStorage):
+			if not os.path.isfile(self.SrcStorage) or os.path.getsize(self.SrcStorage)==0:
 				if self.Is64(self.SrcFilename):
 					src_is_64=True
 				else:
 					src_is_64=False
 
+				print 'Generate DarunGrim data file %s -> %s' % (self.SrcFilename, self.SrcStorage)
 				self.DarunGrim.GenerateSourceDGFFromIDA(self.SrcStorage, src_ida_log_filename, src_is_64)
 
 		if not self.TargetStorage:
@@ -243,17 +258,19 @@ class DarunGrim:
 
 			output_storage=str(output_storage)
 
-			target_ida_log_filename=os.path.join( os.getcwd(), target_ida_log_filename)
+			target_ida_log_filename=os.path.join( os.getcwd(), str(target_ida_log_filename))
 
 
-			if not os.path.isfile(self.TargetStorage):
+			if not os.path.isfile(self.TargetStorage) or os.path.getsize(self.TargetStorage)==0:
 				if self.Is64(self.TargetFilename):
 					target_is_64=True
 				else:
 					target_is_64=False
 
+				print 'Generate DarunGrim data file %s -> %s' % (self.TargetFilename, self.TargetStorage)
 				self.DarunGrim.GenerateTargetDGFFromIDA(self.TargetStorage, target_ida_log_filename, target_is_64)
 
+		print 'Perform Diffing...'
 		self.DarunGrim.PerformDiff(str(self.SrcStorage), 0, str(self.TargetStorage), 0, str(output_storage))
 
 	def OpenIDA(self,filename):
