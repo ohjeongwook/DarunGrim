@@ -721,6 +721,8 @@ class MainWindow(QMainWindow):
 		super(MainWindow,self).__init__()
 		self.setWindowTitle("DarunGrim 4")
 		self.setWindowIcon(QIcon('DarunGrim.png'))
+
+		self.PerformDiffProcess=None
 		self.DatabaseName=database_name
 
 		self.LogDialog=LogTextBoxDialog()
@@ -945,6 +947,16 @@ class MainWindow(QMainWindow):
 			self.LogDialog.show()
 		self.LogDialog.addText(data)
 
+	def onDiffLogReady(self,data):
+		if not self.LogDialog.isVisible():
+			self.LogDialog.show()
+		self.LogDialog.addText(data)
+
+	def PerformDiffCancelled(self):
+		if self.PerformDiffProcess!=None:
+			self.PerformDiffProcess.terminate()
+			self.PerformDiffProcessCancelled=True
+
 	def StartPerformDiff(self,src_filename,target_filename,result_filename,log_filename='',is_src_target_storage=False, debug=False):
 		print "Start Diffing Process: %s vs %s -> %s" % (src_filename,target_filename,result_filename)
 		self.clearAreas()
@@ -963,28 +975,32 @@ class MainWindow(QMainWindow):
 		q=None
 		debug=False
 		if debug:
-			p=None
+			self.PerformDiffProcess=None
 			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,src_ida_log_filename = src_ida_log_filename, target_ida_log_filename = target_ida_log_filename, q=q)
 		else:
 			q=Queue()
-			p=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,src_ida_log_filename,target_ida_log_filename,q))
-			p.start()
+			self.PerformDiffProcess=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,src_ida_log_filename,target_ida_log_filename,q))
+			self.PerformDiffProcess.start()
 
-		if p!=None:
+		self.PerformDiffProcessCancelled=False
+		if self.PerformDiffProcess!=None:
 			qlog_thread=QueReadThread(q)
-			qlog_thread.data_read.connect(self.onTextBoxDataReady)
+			self.LogDialog.SetCancelCallback(self.PerformDiffCancelled)
+			self.LogDialog.DisableClose()
+			self.LogDialog.show()
+			qlog_thread.data_read.connect(self.onDiffLogReady)
 			qlog_thread.start()
 
 			log_threads=[]
 			for filename in [log_filename,src_ida_log_filename,target_ida_log_filename]:
 				log_thread=LogThread(filename)
-				log_thread.data_read.connect(self.onTextBoxDataReady)
+				log_thread.data_read.connect(self.onDiffLogReady)
 				log_thread.start()
 				log_threads.append(log_thread)
 
 			while True:
 				time.sleep(0.01)
-				if not p.is_alive():
+				if not self.PerformDiffProcess.is_alive():
 					break
 
 				qApp.processEvents()
@@ -993,7 +1009,17 @@ class MainWindow(QMainWindow):
 				log_thread.end()
 			qlog_thread.end()
 
-		self.OpenDatabase(result_filename)
+			self.LogDialog.EnableClose()
+
+			if not self.PerformDiffProcessCancelled:
+				self.LogDialog.addText("Diffing process finished.")
+			else:
+				self.LogDialog.addText("Diffing process cancelled.")
+			self.LogDialog.SetCancelCallback(None)
+			self.PerformDiffProcess=None
+
+		if not self.PerformDiffProcessCancelled:
+			self.OpenDatabase(result_filename)
 
 	def open(self):
 		(filename,filter)=QFileDialog.getOpenFileName(self,"Open...")
@@ -1433,7 +1459,7 @@ class MainWindow(QMainWindow):
 		else:
 			self.setWindowFlags(self.windowFlags()& ~Qt.WindowStaysOnTopHint)
 
-		self.FileStoreDir = "C:\\DarunGrimStore"
+		self.FileStoreDir = os.path.join(os.getcwd(), "DarunGrimStore")
 		if settings.contains("General/FileStoreDir"):
 			self.FileStoreDir=settings.value("General/FileStoreDir")
 		
@@ -1448,9 +1474,9 @@ class MainWindow(QMainWindow):
 		if settings.contains("General/FileStoreDatabase"):
 			self.FileStoreDatabase=settings.value("General/FileStoreDatabase")
 
-		self.DataFilesDir='C:\\DarunGrimData'
+		self.DataFilesDir=os.path.join(os.getcwd(), "DarunGrimData")
 		if settings.contains("General/DataFilesDir"):
-			self.DataFilesDir=settings.value("General/DGFSotreDir")
+			self.DataFilesDir=settings.value("General/DataFilesDir")
 
 		if not os.path.isdir(self.DataFilesDir):
 			try:
@@ -1494,7 +1520,7 @@ class MainWindow(QMainWindow):
 		settings.setValue("General/StaysOnTop", self.StaysOnTop)
 		settings.setValue("General/FileStoreDir", self.FileStoreDir)
 		settings.setValue("General/FileStoreDatabase", self.FileStoreDatabase)
-		settings.setValue("General/DGFSotreDir", self.DataFilesDir)
+		settings.setValue("General/DataFilesDir", self.DataFilesDir)
 		settings.setValue("General/LogLevel", self.LogLevel)
 		
 		if self.FirstConfigured==True:
@@ -1506,6 +1532,7 @@ class MainWindow(QMainWindow):
 		settings.setValue("windowState", self.saveState())
 
 	def closeEvent(self, event):
+		self.PerformDiffCancelled()
 		self.saveSettings()
 		QMainWindow.closeEvent(self, event)
 
