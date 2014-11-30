@@ -10,4 +10,8 @@ xcopy ..\..\Release\* dist\DarunGrim\DarunGrim3
 
 mkdir dist\DarunGrim\x64
 xcopy ..\..\x64\Release-x64\* dist\DarunGrim\x64
+
+copy c:\windows\syswow64\msvcr120.dll dist\DarunGrim
+
+copy DarunGrim.png dist\DarunGrim
 pause
