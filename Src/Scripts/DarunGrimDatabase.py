@@ -338,7 +338,7 @@ class Database:
 				self.FileList.append(file_list)
 
 				self.AttachedDatabases.append(file_list.type)
-				query="ATTACH DATABASE '%s' AS %s;" % (file_list.filename,file_list.type)
+				query="ATTACH DATABASE '%s' AS %s;" % (self.GetFilename(filename, file_list.filename),file_list.type)
 				self.Engine.execute(query)
 
 		else:
@@ -351,7 +351,7 @@ class Database:
 
 			self.SessionInstancesMap={}
 			for file_list in self.SessionInstance.query(FileList).all():
-				filename=self.GetFilename(file_list.filename)
+				filename=self.GetFilename(filename, file_list.filename)
 		
 				engine = create_engine('sqlite:///' + filename, echo = echo)
 				metadata=Base.metadata
@@ -396,18 +396,20 @@ class Database:
 
 		return description
 
-	def GetFilename(self,filename):
-		dirname=os.path.dirname(filename)
-		if not os.path.isfile(filename):
-			filename=os.path.join(dirname,os.path.basename(file_list.filename))
+	def GetFilename(self,main_filename,orig_filename):
+		dirname=os.path.dirname(main_filename)
+		if not os.path.isfile(orig_filename):
+			filename=os.path.join(dirname,os.path.basename(orig_filename))
+		else:
+			return orig_filename
 
 		if not os.path.isfile(filename):
-			if file_list.filename[-4:].lower()!='.idb':
-				idb_filename = file_list.filename[0:len(file_list.filename)] + '.idb'
+			if orig_filename[-4:].lower()!='.idb':
+				idb_filename = orig_filename[0:len(orig_filename)] + '.idb'
 				filename = idb_filename
 
 		if not os.path.isfile(filename):
-			if file_list.filename[-4:].lower()!='.idb':
+			if orig_filename[-4:].lower()!='.idb':
 				filename=os.path.join(dirname,os.path.basename(idb_filename))
 
 		return filename
