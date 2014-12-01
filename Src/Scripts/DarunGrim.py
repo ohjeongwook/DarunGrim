@@ -290,11 +290,8 @@ class NewDiffingDialog(QDialog):
 		self.patched_line.setText(filename)
 
 	def getResultFilename(self):
-		filename=self.getFilename("Result")
-
-		if filename[-4:0].lower()!='.dgf':
-			filename+='.dgf'
-			self.Filenames['Result']=filename
+		(filename,filter)=QFileDialog.getSaveFileName(self,"Result", filter="*.dgf")
+		self.Filenames['Result']=filename
 		self.result_line.setText(filename)
 
 	def getFilename(self,type):
@@ -912,7 +909,17 @@ class MainWindow(QMainWindow):
 			target_filename = str(dialog.Filenames['Patched'])
 			result_filename = str(dialog.Filenames['Result'])
 			log_filename=result_filename+'.log'
-			self.StartPerformDiff(src_filename,target_filename,result_filename,log_filename)
+
+			if src_filename.lower()[-4:]=='.dgf' and target_filename.lower()[-4:]=='.dgf':
+				is_src_target_storage=True
+
+			self.StartPerformDiff(
+				src_filename,
+				target_filename,
+				result_filename,
+				log_filename,
+				is_src_target_storage=is_src_target_storage,
+			)
 
 	def reanalyze(self):
 		database = DarunGrimDatabase.Database(self.DatabaseName)
