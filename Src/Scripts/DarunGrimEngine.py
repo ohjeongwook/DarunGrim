@@ -26,7 +26,7 @@ LOG_MATCH_RATE=0x00000010
 
 class DarunGrim:
 	DebugLevel=0
-	def __init__ ( self, src_filename='', target_filename='', ida_path='', start_ida_listener=False):
+	def __init__ ( self, src_filename='', target_filename='', start_ida_listener=False):
 		self.SrcStorage=''
 		self.TargetStorage=''
 		self.IDAPath=''
