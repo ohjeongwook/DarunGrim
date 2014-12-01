@@ -293,11 +293,9 @@ class ImportMSUpdatesDialog(QDialog):
 		return self.TagEdit.text()
 
 	def getFilename(self):
-		dialog=QFileDialog()
-		dialog.setNameFilter("MSU & EXE Files (*.msu *.exe)")
-		filename=''
-		if dialog.exec_():
-			self.Filename=dialog.selectedFiles()[0]
+		(filename,filter)=QFileDialog.getOpenFileName(self,'MS Update Files', filter="MSU & EXE Files (*.msu *.exe)")
+		if filename:
+			self.Filename=filename
 
 			if not self.TagEdit.text():
 				self.TagEdit.setText(os.path.basename(self.Filename))
