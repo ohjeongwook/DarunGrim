@@ -22,9 +22,14 @@ class LogTextBoxDialog(QDialog):
 		vlayout=QVBoxLayout()
 		vlayout.addWidget(self.text)
 
-		self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-		self.buttonBox.accepted.connect(self.accept)
-		self.buttonBox.rejected.connect(self.Cancel)
+		self.buttonBox = QDialogButtonBox()
+		self.close_button=QPushButton('Close',self)
+		self.close_button.clicked.connect(self.closeButtonClicked)
+		cancel_button=QPushButton('Cancel',self)
+		cancel_button.clicked.connect(self.cancelButtonClicked)
+
+		self.buttonBox.addButton(self.close_button,QDialogButtonBox.ActionRole)
+		self.buttonBox.addButton(cancel_button,QDialogButtonBox.ActionRole)
 		vlayout.addWidget(self.buttonBox)
 
 		self.setLayout(vlayout)
@@ -32,17 +37,20 @@ class LogTextBoxDialog(QDialog):
 		self.textLen=0
 		self.CancelCallback=None
 
+	def closeButtonClicked(self):
+		self.close()
+
 	def DisableClose(self):
 		self.setWindowFlags(Qt.CustomizeWindowHint|Qt.WindowMinMaxButtonsHint)
-		self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+		self.close_button.setEnabled(False)
 
 	def EnableClose(self):
-		self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+		self.close_button.setEnabled(True)
 
 	def SetCancelCallback(self,callback):
 		self.CancelCallback=callback
 
-	def Cancel(self):
+	def cancelButtonClicked(self):
 		if self.CancelCallback!=None:
 			self.CancelCallback()
 
