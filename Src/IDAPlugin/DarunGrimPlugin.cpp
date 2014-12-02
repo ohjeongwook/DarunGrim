@@ -759,9 +759,10 @@ void SaveDGF(bool ask_file_path)
 {
 	long start_tick = GetTickCount();
 
+#ifndef _USE_IDA_SDK_49_OR_UPPER
 	FindInvalidFunctionStartAndConnectBrokenFunctionChunk();
+#endif
 	//FixExceptionHandlers();
-
 	if (!OutputFilename)
 	{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
@@ -784,6 +785,7 @@ void SaveDGF(bool ask_file_path)
 				return;
 			}
 		}
+
 		if (input_file_path && strlen(input_file_path)>0)
 		{
 			int OutputFilename_size = strlen(input_file_path) + 5;

@@ -638,7 +638,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 
 	get_short_name(one_location_info.StartAddress, one_location_info.StartAddress, name, sizeof(name));
 
-	if(isCode(Flag))
+	//if(isCode(Flag))
 	{
 		func_t *p_func=get_func(one_location_info.StartAddress);
 		if(p_func)
@@ -675,10 +675,10 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 			!( //detect hot patching
 				one_location_info.StartAddress==one_location_info.FunctionAddress && 
 				CmdArrayIter==pCmdArray->begin() &&
-				ph.id==PLFM_386 && (*CmdArrayIter).itype==NN_mov && (*CmdArrayIter).Operands[0].reg==(*CmdArrayIter).Operands[1].reg
+				(ph.id == PLFM_386 || ph.id == PLFM_IA64) && (*CmdArrayIter).itype == NN_mov && (*CmdArrayIter).Operands[0].reg == (*CmdArrayIter).Operands[1].reg
 			) &&
 			!(
-				(ph.id==PLFM_386 &&
+				((ph.id == PLFM_386 || ph.id == PLFM_IA64) &&
 					(
 						(*CmdArrayIter).itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
 						(*CmdArrayIter).itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
@@ -874,7 +874,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 				//if branching
 				//if cmd type is "call"
 				if(
-					(ph.id==PLFM_386 && (cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni)) ||
+					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_call || cmd.itype == NN_callfi || cmd.itype == NN_callni)) ||
 					(ph.id==PLFM_ARM && (cmd.itype==ARM_bl || cmd.itype==ARM_blx1 || cmd.itype==ARM_blx2)) ||
 					(ph.id==PLFM_MIPS && (cmd.itype==MIPS_jal || cmd.itype==MIPS_jalx))
 				)
@@ -946,7 +946,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 			if(!FoundBranching)
 			{
 				if(
-					(ph.id==PLFM_386 && (cmd.itype==NN_retn || cmd.itype==NN_retf)) ||
+					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_retn || cmd.itype == NN_retf)) ||
 					(ph.id==PLFM_ARM && ((cmd.itype==ARM_pop && (cmd.Operands[0].specval&0xff00)==0x8000) || cmd.itype==ARM_ret || cmd.itype==ARM_bx))
 				)
 				{
@@ -1351,7 +1351,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					ua_mnem(cref,op_buffer,sizeof(op_buffer));
 					
 					if(
-						!(ph.id==PLFM_386 && (cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni)) ||
+						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_call || cmd.itype == NN_callfi || cmd.itype == NN_callni)) ||
 						!(ph.id==PLFM_ARM && (cmd.itype==ARM_bl || cmd.itype==ARM_blx1 || cmd.itype==ARM_blx2)) ||
 						!(ph.id==PLFM_MIPS && (cmd.itype==MIPS_jal || cmd.itype==MIPS_jalx))
 					)
