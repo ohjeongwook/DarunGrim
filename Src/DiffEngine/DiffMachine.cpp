@@ -238,15 +238,15 @@ DiffMachine::DiffMachine( IDAController *the_source, IDAController *the_target )
 	SetTarget(the_target);
 }
 
-void DiffMachine::ClearFunctionMatchInfoList()
+void DiffMachine::ClearFunctionMatchList()
 {
 	vector <FunctionMatchInfo>::iterator iter;
-	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
+	for( iter=FunctionMatchList.begin();iter!=FunctionMatchList.end();iter++ )
 	{
 		free( (*iter).TheSourceFunctionName );
 		free( (*iter).TheTargetFunctionName );
 	}
-	FunctionMatchInfoList.clear();
+	FunctionMatchList.clear();
 }
 
 DiffMachine::~DiffMachine()
@@ -256,7 +256,7 @@ DiffMachine::~DiffMachine()
 		DiffResults->Clear();
 	}
 
-	ClearFunctionMatchInfoList();
+	ClearFunctionMatchList();
 	
 	if( SourceController )
 		delete SourceController;
@@ -523,7 +523,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 		Logger.Log(10, LOG_DIFF_MACHINE, "%s: DoFunctionLevelMatchOptimizing\n", __FUNCTION__);
 
 	vector <FunctionMatchInfo>::iterator iter;
-	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
+	for( iter=FunctionMatchList.begin();iter!=FunctionMatchList.end();iter++ )
 	{
 		Logger.Log(11, LOG_DIFF_MACHINE,
 			"Source FileID: 0x%.8x\n"
@@ -1782,7 +1782,7 @@ void DiffMachine::GetMatchStatistics(
 
 int DiffMachine::GetFunctionMatchInfoCount()
 {
-	DWORD size_to_return=FunctionMatchInfoList.size();
+	DWORD size_to_return=FunctionMatchList.size();
 	
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: size_to_return=%u\n", __FUNCTION__, size_to_return );
 	
@@ -1791,7 +1791,7 @@ int DiffMachine::GetFunctionMatchInfoCount()
 
 FunctionMatchInfo DiffMachine::GetFunctionMatchInfo( int i )
 {
-	return FunctionMatchInfoList.at( i );
+	return FunctionMatchList.at( i );
 }
 
 BOOL DiffMachine::IsInUnidentifiedBlockHash( int index, DWORD address )
@@ -1980,7 +1980,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	if( !DiffResults ||! SourceController ||!TargetController)
 		return;
 
-	ClearFunctionMatchInfoList();
+	ClearFunctionMatchList();
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
 		match_map_iter++ )
@@ -2051,7 +2051,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 					match_info.MatchRate = 99;
 				}
 					
-				FunctionMatchInfoList.push_back( match_info );
+				FunctionMatchList.push_back( match_info );
 			}
 			last_unpatched_addr=match_info.TheSourceAddress;
 			last_patched_addr=match_info.TheTargetAddress;
@@ -2065,7 +2065,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 		}
 	}
 
-	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: FunctionMatchInfoList.size()=%u\n", __FUNCTION__, FunctionMatchInfoList.size() );
+	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: FunctionMatchList.size()=%u\n", __FUNCTION__, FunctionMatchList.size() );
 	//////////// Unidentifed Locations
 
 	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
@@ -2106,7 +2106,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 					match_info.MatchCountWithModificationForTheTarget=0;
 					match_info.NoneMatchCountForTheTarget=0;
 
-					FunctionMatchInfoList.push_back( match_info );
+					FunctionMatchList.push_back( match_info );
 				}
 				TheSourceUnidentifedBlockHash.insert( p_one_location_info->StartAddress );
 #ifndef USE_LEGACY_MAP
@@ -2149,7 +2149,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 					match_info.MatchCountWithModificationForTheTarget=0;
 					match_info.NoneMatchCountForTheTarget=0;
 
-					FunctionMatchInfoList.push_back( match_info );
+					FunctionMatchList.push_back( match_info );
 				}
 
 				TheTargetUnidentifedBlockHash.insert( p_one_location_info->StartAddress );
@@ -2419,10 +2419,10 @@ BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelecte
 			match_map_iter->second.PatchedParentAddress );
 	}
 
-	Logger.Log( 10, LOG_DIFF_MACHINE,  "FunctionMatchInfoList.size()=%u\n", FunctionMatchInfoList.size() );
+	Logger.Log( 10, LOG_DIFF_MACHINE,  "FunctionMatchList.size()=%u\n", FunctionMatchList.size() );
 
 	vector <FunctionMatchInfo>::iterator iter;
-	for( iter=FunctionMatchInfoList.begin();iter!=FunctionMatchInfoList.end();iter++ )
+	for( iter=FunctionMatchList.begin();iter!=FunctionMatchList.end();iter++ )
 	{
 		Logger.Log(10, LOG_DIFF_MACHINE|LOG_SQL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT"\r\n",
 			SourceController->GetFileID(),
@@ -2487,9 +2487,9 @@ int ReadMatchMapCallback( void *arg, int argc, char **argv, char **names )
 	return 0;
 }
 
-int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **names )
+int ReadFunctionMatchListCallback( void *arg, int argc, char **argv, char **names )
 {
-	vector <FunctionMatchInfo> *pFunctionMatchInfoList=( vector <FunctionMatchInfo> * )arg;
+	vector <FunctionMatchInfo> *pFunctionMatchList=( vector <FunctionMatchInfo> * )arg;
 	FunctionMatchInfo function_match_info;
 	function_match_info.TheSourceAddress=strtoul10( argv[0] );
 	function_match_info.EndAddress=strtoul10( argv[1] );
@@ -2505,7 +2505,7 @@ int ReadFunctionMatchInfoListCallback( void *arg, int argc, char **argv, char **
 	function_match_info.MatchCountForTheTarget=atoi( argv[11] );
 	function_match_info.NoneMatchCountForTheTarget=atoi( argv[12] );
 	function_match_info.MatchCountWithModificationForTheTarget=atoi( argv[13] );
-	pFunctionMatchInfoList->push_back( function_match_info );
+	pFunctionMatchList->push_back( function_match_info );
 	return 0;
 }
 
@@ -2741,7 +2741,8 @@ BOOL DiffMachine::_Load()
 		}
 	}
 
-	m_DiffDB->ExecuteStatement( ReadFunctionMatchInfoListCallback, &FunctionMatchInfoList, query, SourceID, TargetID);
+	ClearFunctionMatchList();
+	m_DiffDB->ExecuteStatement( ReadFunctionMatchListCallback, &FunctionMatchList, query, SourceID, TargetID);
 
 	if (LoadDiffResults)
 	{
@@ -2791,7 +2792,7 @@ BREAKPOINTS DiffMachine::ShowUnidentifiedAndModifiedBlocks()
 	BREAKPOINTS breakpoints;
 	vector <FunctionMatchInfo>::iterator iter;
 
-	for (iter = FunctionMatchInfoList.begin(); iter != FunctionMatchInfoList.end(); iter++)
+	for (iter = FunctionMatchList.begin(); iter != FunctionMatchList.end(); iter++)
 	{
 		if (
 			(

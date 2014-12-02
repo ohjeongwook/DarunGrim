@@ -195,8 +195,8 @@ private:
 	hash_set <DWORD> TheSourceUnidentifedBlockHash;
 	hash_set <DWORD> TheTargetUnidentifedBlockHash;
 
-	vector <FunctionMatchInfo> FunctionMatchInfoList;
-	vector <FunctionMatchInfo> ReverseFunctionMatchInfoList;
+	vector <FunctionMatchInfo> FunctionMatchList;
+	vector <FunctionMatchInfo> ReverseFunctionMatchList;
 
 	//Algorithms
 	void DoFingerPrintMatch(MATCHMAP *pTemporaryMap);
@@ -213,7 +213,7 @@ private:
 public:
 	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
 	~DiffMachine();
-	void ClearFunctionMatchInfoList();
+	void ClearFunctionMatchList();
 
 	void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
 	{
