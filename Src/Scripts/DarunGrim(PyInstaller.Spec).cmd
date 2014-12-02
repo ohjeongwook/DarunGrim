@@ -11,6 +11,7 @@ copy ..\..\Release\DarunGrimC.exe dist\DarunGrim
 
 mkdir dist\DarunGrim\DarunGrim3
 xcopy ..\..\Release\* dist\DarunGrim\DarunGrim3
+copy /Y ..\..\bin\GraphViz\* dist\DarunGrim\DarunGrim3
 
 mkdir dist\DarunGrim\x64
 xcopy ..\..\x64\Release-x64\* dist\DarunGrim\x64
