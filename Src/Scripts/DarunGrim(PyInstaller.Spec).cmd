@@ -3,6 +3,7 @@ pyinstaller DarunGrim.spec
 copy /Y ..\..\bin\GraphViz\* dist\DarunGrim
 
 copy ..\..\Release\DarunGrimPlugin.plw dist\DarunGrim
+copy ..\..\ReleaseP64\DarunGrimPlugin.p64 dist\DarunGrim
 copy ..\..\Release\DarunGrimC.exe dist\DarunGrim
 
 mkdir dist\DarunGrim\DarunGrim3

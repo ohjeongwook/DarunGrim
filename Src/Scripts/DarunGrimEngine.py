@@ -84,7 +84,7 @@ class DarunGrim:
 		if not self.IDAPath:
 			return (False, 'Invalid IDA path')
 
-		darungrim_plugin_path=os.path.join(os.path.dirname(self.IDAPath),"plugins\\DarunGrimPlugin.plw")
+		darungrim_plugin_path=os.path.join(os.path.dirname(self.IDAPath),"plugins\\" + os.path.basename(filename))
 
 		ph = win32api.GetCurrentProcess()
 		th = win32security.OpenProcessToken(ph,win32con.MAXIMUM_ALLOWED)

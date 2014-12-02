@@ -1140,16 +1140,19 @@ class MainWindow(QMainWindow):
 			self.show()
 
 	def intallIDAPlugin(self):
-		(ret,message)=self.DarunGrimEngine.InstallIDAPlugin('DarunGrimPlugin.plw')
-		if not ret:
+		(ret1,message1)=self.DarunGrimEngine.InstallIDAPlugin('DarunGrimPlugin.plw')
+		(ret2,message2)=self.DarunGrimEngine.InstallIDAPlugin('DarunGrimPlugin.p64')
+		if not ret1 or not ret2:
 			msg_box=QMessageBox()
-			msg_box.setText('Try to run the program with an Administrator privilege\n' + message)
+			if message1!=message2:
+				message1 += '\n' + message2
+			msg_box.setText('Try to run the program with an Administrator privilege\n' + message1)
 			msg_box.exec_()
 			return False
 
 		else:
 			msg_box=QMessageBox()
-			msg_box.setText('Installation successful\n'+message)
+			msg_box.setText('Installation successful\n'+message1 + '\n' + message2)
 			msg_box.exec_()
 			return True
 
