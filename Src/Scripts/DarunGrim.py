@@ -165,6 +165,7 @@ class BlockTable(QAbstractTableModel):
 
 			self.SourceMatchInfo={}
 			self.TargetMatchInfo={}
+			
 			[match_hash, source_non_matches,target_non_matches]=database.GetBlockMatches( source_function_address, target_function_address )
 			for ( source_address, ( target_address, match_rate ) ) in match_hash.items():
 				if self.ShowFullMatches or match_rate<100:
@@ -691,7 +692,7 @@ class ConfigurationDialog(QDialog):
 def SendLogMessage(message,q):
 	q.put(message)
 
-def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False, src_ida_log_filename = 'src.log', target_ida_log_filename = 'target.log', q=None):
+def PerformDiffThread(src_filename, target_filename, result_filename, log_filename='', log_level=100, dbg_storage_dir='', is_src_target_storage=False, src_ida_log_filename = 'src.log', target_ida_log_filename = 'target.log', ida_path='', ida64_path='', q=None):
 	if q!=None and RedirectStdOutErr:
 		ph_out=PrintHook(True,func=SendLogMessage,arg=q)
 		ph_out.Start()
@@ -705,6 +706,8 @@ def PerformDiffThread(src_filename, target_filename, result_filename, log_filena
 	else:
 		darungrim=DarunGrimEngine.DarunGrim(src_filename, target_filename)
 
+	darungrim.SetIDAPath(ida_path)
+	darungrim.SetIDAPath(ida64_path,True)
 	darungrim.SetDGFSotrage(dbg_storage_dir)
 	if log_filename:
 		darungrim.SetLogFile(log_filename,log_level)
@@ -983,10 +986,10 @@ class MainWindow(QMainWindow):
 		debug=False
 		if debug:
 			self.PerformDiffProcess=None
-			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,src_ida_log_filename = src_ida_log_filename, target_ida_log_filename = target_ida_log_filename, q=q)
+			PerformDiffThread(src_filename,target_filename,result_filename,log_level=self.LogLevel,dbg_storage_dir=self.DataFilesDir,is_src_target_storage=is_src_target_storage,src_ida_log_filename = src_ida_log_filename, target_ida_log_filename = target_ida_log_filename, ida_path=self.IDAPath, ida64_path=self.IDA64Path, q=q)
 		else:
 			q=Queue()
-			self.PerformDiffProcess=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,src_ida_log_filename,target_ida_log_filename,q))
+			self.PerformDiffProcess=Process(target=PerformDiffThread,args=(src_filename,target_filename,result_filename,log_filename,self.LogLevel,self.DataFilesDir,is_src_target_storage,src_ida_log_filename,target_ida_log_filename,self.IDAPath,self.IDA64Path,q))
 			self.PerformDiffProcess.start()
 
 		self.PerformDiffProcessCancelled=False
