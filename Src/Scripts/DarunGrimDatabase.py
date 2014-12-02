@@ -337,12 +337,25 @@ class Database:
 				type_map[file_list.type]=1
 				self.FileList.append(file_list)
 
+				dgf_filename=self.GetFilename(filename, file_list.filename)
+
+				try:
+					import sqlite3
+					conn = sqlite3.connect(dgf_filename)
+					c=conn.cursor()
+					c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='OneLocationInfo'")
+					data=c.fetchone()
+					if data!=None:
+						c.execute('''ALTER TABLE OneLocationInfo RENAME TO BasicBlock;''')
+					conn.close()
+				except:
+					pass
+
 				self.AttachedDatabases.append(file_list.type)
-				query="ATTACH DATABASE '%s' AS %s;" % (self.GetFilename(filename, file_list.filename),file_list.type)
+				query="ATTACH DATABASE '%s' AS %s;" % (dgf_filename,file_list.type)
 				self.Engine.execute(query)
 
 		else:
-
 			self.Engine = create_engine('sqlite:///' + filename, echo = echo)
 			self.metadata=MetaData(self.Engine)
 			self.Session=sessionmaker()
