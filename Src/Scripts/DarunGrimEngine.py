@@ -36,6 +36,7 @@ class DarunGrim:
 		self.DarunGrim.AddSrcDumpAddress(0)
 		self.DarunGrim.AddTargetDumpAddress(0)
 		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE)
+		self.DarunGrim.EnableLogType(LOG_DARUNGRIM)
 
 		if src_filename:
 			self.SetSourceFilename(src_filename)
@@ -43,7 +44,6 @@ class DarunGrim:
 		if target_filename:
 			self.SetTargetFilename(target_filename)
 
-		self.SetIDAPath()
 		self.ListeningPort=0
 
 		if start_ida_listener:
