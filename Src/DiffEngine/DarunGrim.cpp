@@ -40,10 +40,14 @@ DarunGrim::~DarunGrim()
 	{
 		pStorageDB->CloseDatabase();
 		delete pStorageDB;
+		pStorageDB = NULL;
 	}
 
-	if( pDiffMachine )
+	if (pDiffMachine)
+	{
 		delete pDiffMachine;
+		pDiffMachine = NULL;
+	}
 
 	StopIDAListener();
 
