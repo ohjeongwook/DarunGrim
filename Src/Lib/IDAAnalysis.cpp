@@ -622,13 +622,13 @@ void UpdateInstructionMap
 	}
 }
 
-void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray=FALSE);
+void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray=FALSE);
 
-void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
+void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
 {
 	string disasm_buffer;
 	
-	OneLocationInfo one_location_info;
+	BasicBlock one_location_info;
 	one_location_info.FunctionAddress=0;
 	one_location_info.BlockType=UNKNOWN_BLOCK;
 	one_location_info.StartAddress=SrcBlock;
@@ -636,17 +636,17 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 
 	TCHAR name[225]={0,};
 
-	get_short_name(one_location_info.StartAddress, one_location_info.StartAddress, name, sizeof(name));
+	get_short_name(SrcBlock, SrcBlock, name, sizeof(name));
 
-	//if(isCode(Flag))
+	if(isCode(Flag))
 	{
-		func_t *p_func=get_func(one_location_info.StartAddress);
+		func_t *p_func = get_func(SrcBlock);
 		if(p_func)
 		{
 			one_location_info.FunctionAddress=p_func->startEA;
 		}
 		
-		ea_t cref=get_first_cref_to(one_location_info.StartAddress);
+		ea_t cref = get_first_cref_to(SrcBlock);
 
 		if(cref==BADADDR || one_location_info.StartAddress==one_location_info.FunctionAddress)
 		{
@@ -774,7 +774,7 @@ void DumpOneLocationInfo(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWO
 	}
 
 	int one_location_info_length=sizeof(one_location_info)+one_location_info.NameLen+one_location_info.DisasmLinesLen+one_location_info.FingerprintLen+one_location_info.CmdArrayLen;
-	POneLocationInfo p_one_location_info=(POneLocationInfo)malloc(one_location_info_length);
+	PBasicBlock p_one_location_info=(PBasicBlock)malloc(one_location_info_length);
 
 	if(p_one_location_info)
 	{
@@ -1242,12 +1242,12 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 
 				if(NewCmdArray)
 				{
-					DumpOneLocationInfo(Callback,Context,CurrentAddress,NewCmdArray,Flag,GatherCmdArray);
+					DumpBasicBlock(Callback,Context,CurrentAddress,NewCmdArray,Flag,GatherCmdArray);
 					delete NewCmdArray;
 				}
 			}else
 			{
-				DumpOneLocationInfo(Callback,Context,CurrentAddress,&CmdArray,Flag,GatherCmdArray);
+				DumpBasicBlock(Callback,Context,CurrentAddress,&CmdArray,Flag,GatherCmdArray);
 			}
 
 			CmdArray.clear();

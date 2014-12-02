@@ -526,8 +526,8 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 
 		for( DWORD i=0;i<length/( sizeof( DWORD )*2 );i++ )
 		{
-			ea_range.start=( ( DWORD * )data )[i*2];
-			ea_range.end=( ( DWORD * )data )[i*2+1];
+			ea_range.start = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[i * 2];
+			ea_range.end = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[i * 2 + 1];
 			unidentified_block_choose_list.push_back( ea_range );
 
 			for( 
@@ -554,9 +554,9 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 		}
 
 		for( 
-			ea_t ea=p_match_info->TheSourceAddress;
-			ea < p_match_info->EndAddress;
-			ea=nextthat( ea, p_match_info->EndAddress, f_isCode, NULL )
+			ea_t ea = (get_imagebase() & 0xFFFFFFFF00000000) + p_match_info->TheSourceAddress;
+			ea < (get_imagebase() & 0xFFFFFFFF00000000) + p_match_info->EndAddress;
+			ea = nextthat(ea, (get_imagebase() & 0xFFFFFFFF00000000) + p_match_info->EndAddress, f_isCode, NULL)
 		 )
 		{
 			set_item_color(ea, color);
@@ -564,12 +564,20 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 	}
 	else if( type==JUMP_TO_ADDR && length>=4 )
 	{
-		jumpto( *( DWORD * )data );
+		if (sizeof(ea_t)>sizeof(DWORD))
+		{
+			ea_t orig_addr = (get_imagebase() & 0xFFFFFFFF00000000) + *(DWORD *)data;
+			jumpto(orig_addr);
+		}
+		else
+		{
+			jumpto(*(DWORD *)data);
+		}
 	}
 	else if( type==COLOR_ADDRESS && length>=sizeof(unsigned long)*3 )
 	{
-		unsigned long start_address = (( DWORD * )data)[0];
-		unsigned long end_address = (( DWORD * )data)[1];
+		ea_t start_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[0];
+		ea_t end_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[1];
 		unsigned long color = (( DWORD * )data)[2];
 
 		for( 
@@ -578,7 +586,7 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 			ea=nextthat( ea, end_address, f_isCode, NULL )
 		 )
 		{
-			set_item_color( ea, color );
+			set_item_color(ea, color);
 		}
 
 		if( !graph_viewer_callback_installed )
