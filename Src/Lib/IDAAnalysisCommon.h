@@ -29,10 +29,10 @@ typedef struct _MapInfo_ {
 #define CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT "CREATE INDEX "MAP_INFO_TABLE"Index ON "MAP_INFO_TABLE" (SrcBlock)"
 #define INSERT_MAP_INFO_TABLE_STATEMENT "INSERT INTO  " MAP_INFO_TABLE" (FileID,Type,SrcBlock,SrcBlockEnd,Dst) values ('%u','%u','%u','%u','%u');"
 
-//OneLocationInfo
+//BasicBlock
 //Pushing Basic Information on Address
 
-typedef struct _OneLocationInfo_ {
+typedef struct _BasicBlock_ {
 	DWORD StartAddress; //ea_t
 	DWORD EndAddress;
 	BYTE Flag; //Flag_t
@@ -44,9 +44,9 @@ typedef struct _OneLocationInfo_ {
 	int FingerprintLen;
 	int CmdArrayLen;
 	char Data[0];
-} OneLocationInfo,*POneLocationInfo;
+} BasicBlock, *PBasicBlock;
 
-#define ONE_LOCATION_INFO_TABLE "OneLocationInfo"
+#define ONE_LOCATION_INFO_TABLE "BasicBlock"
 #define CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT "CREATE TABLE " ONE_LOCATION_INFO_TABLE" (\n\
 			id INTEGER PRIMARY KEY AUTOINCREMENT,\n\
 			FileID INTEGER,\n\

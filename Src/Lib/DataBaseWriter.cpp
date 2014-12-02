@@ -22,36 +22,36 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 	switch(Type)
 	{
 		case ONE_LOCATION_INFO:
-			if(sizeof(OneLocationInfo)<=Length)
+			if (sizeof(BasicBlock) <= Length)
 			{
-				POneLocationInfo pOneLocationInfo=(POneLocationInfo)Data;
+				PBasicBlock pBasicBlock=(PBasicBlock)Data;
 				char *FingerprintHexStringBuffer=NULL;
-				if(pOneLocationInfo->FingerprintLen>0)
+				if(pBasicBlock->FingerprintLen>0)
 				{
-					FingerprintHexStringBuffer=(char *)malloc(pOneLocationInfo->FingerprintLen*2+10);
+					FingerprintHexStringBuffer=(char *)malloc(pBasicBlock->FingerprintLen*2+10);
 					if(FingerprintHexStringBuffer)
 					{
-						memset(FingerprintHexStringBuffer,0,pOneLocationInfo->FingerprintLen*2+10);
+						memset(FingerprintHexStringBuffer,0,pBasicBlock->FingerprintLen*2+10);
 						char tmp_buffer[10];
-						for(DWORD i=0;i<pOneLocationInfo->FingerprintLen;i++)
+						for(DWORD i=0;i<pBasicBlock->FingerprintLen;i++)
 						{
-							_snprintf(tmp_buffer,sizeof(tmp_buffer)-1,"%.2x",pOneLocationInfo->Data[pOneLocationInfo->NameLen+pOneLocationInfo->DisasmLinesLen+i]&0xff);
+							_snprintf(tmp_buffer,sizeof(tmp_buffer)-1,"%.2x",pBasicBlock->Data[pBasicBlock->NameLen+pBasicBlock->DisasmLinesLen+i]&0xff);
 							tmp_buffer[sizeof(tmp_buffer)-1]=NULL;
 							strncat(FingerprintHexStringBuffer,tmp_buffer,sizeof(tmp_buffer));
 						}
 					}
 				}
 
-				CurrentAddress=pOneLocationInfo->StartAddress;
+				CurrentAddress=pBasicBlock->StartAddress;
 				Status=db->ExecuteStatement(NULL,NULL,INSERT_ONE_LOCATION_INFO_TABLE_STATEMENT,
 					FileID,
-					pOneLocationInfo->StartAddress,
-					pOneLocationInfo->EndAddress,
-					pOneLocationInfo->Flag,
-					pOneLocationInfo->FunctionAddress,
-					pOneLocationInfo->BlockType,
-					pOneLocationInfo->Data,
-					pOneLocationInfo->Data+pOneLocationInfo->NameLen,
+					pBasicBlock->StartAddress,
+					pBasicBlock->EndAddress,
+					pBasicBlock->Flag,
+					pBasicBlock->FunctionAddress,
+					pBasicBlock->BlockType,
+					pBasicBlock->Data,
+					pBasicBlock->Data+pBasicBlock->NameLen,
 					FingerprintHexStringBuffer?FingerprintHexStringBuffer:""
 					);
 

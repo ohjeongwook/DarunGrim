@@ -84,7 +84,7 @@ public:
 //,hash_compare<string,equ_str> 
 typedef struct _AnalysisInfo_ {
 	FileInfo file_info;
-	multimap <DWORD, POneLocationInfo> address_hash_map;
+	multimap <DWORD, PBasicBlock> address_hash_map;
 	multimap <DWORD,string> address_disassembly_hash_map;
 	multimap <unsigned char *,DWORD,hash_compare_fingerprint> fingerprint_hash_map;
 	multimap <DWORD,unsigned char *> address_fingerprint_hash_map;
@@ -113,7 +113,7 @@ typedef struct _AnalysisInfoList_ {
 	struct _AnalysisInfoList_ *next;
 } AnalysisInfoList;
 
-typedef pair <DWORD, POneLocationInfo> AddrPOneLocationInfo_Pair;
+typedef pair <DWORD, PBasicBlock> AddrPBasicBlock_Pair;
 typedef pair <DWORD, string> AddrDisassembly_Pair;
 typedef pair <unsigned char *,DWORD> FingerPrintAddress_Pair;
 typedef pair <string, DWORD*> TwoLevelFingerPrintAddress_Pair;

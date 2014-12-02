@@ -23,8 +23,8 @@ class FileList(Base):
 	def __repr__(self):
 		return "<FileList('%d', '%s', '%s', '%d')>" % (self.id,self.type,self.filename,self.file_id)
 
-class OneLocationInfo(Base):
-	__tablename__='OneLocationInfo'
+class BasicBlock(Base):
+	__tablename__='BasicBlock'
 
 	id = Column(Integer, primary_key=True)
 	file_id = Column(String, name = "FileID")
@@ -41,7 +41,7 @@ class OneLocationInfo(Base):
 		pass
 
 	def __repr__(self):
-		return "<OneLocationInfo('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
+		return "<BasicBlock('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
 								self.start_address, 
 								self.end_address, 
 								self.flag, 
@@ -195,8 +195,8 @@ class FunctionMatchInfo(Base):
 	def __repr__(self):
 		return "<FunctionMatchInfo('%d')>" % (self.id)
 
-class SourceOneLocationInfo(Base):
-	__tablename__='OneLocationInfo'
+class SourceBasicBlock(Base):
+	__tablename__='BasicBlock'
 	__table_args__={'schema': 'Source'}
 
 	id = Column(Integer, primary_key=True)
@@ -214,7 +214,7 @@ class SourceOneLocationInfo(Base):
 		pass
 
 	def __repr__(self):
-		return "<OneLocationInfo('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
+		return "<BasicBlock('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
 								self.start_address, 
 								self.end_address, 
 								self.flag, 
@@ -225,8 +225,8 @@ class SourceOneLocationInfo(Base):
 								self.fingerprint)
 
 
-class TargetOneLocationInfo(Base):
-	__tablename__='OneLocationInfo'
+class TargetBasicBlock(Base):
+	__tablename__='BasicBlock'
 	__table_args__={'schema': 'Target'}
 
 	id = Column(Integer, primary_key=True)
@@ -244,7 +244,7 @@ class TargetOneLocationInfo(Base):
 		pass
 
 	def __repr__(self):
-		return "<OneLocationInfo('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
+		return "<BasicBlock('%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%s')>" % (self.file_id, 
 								self.start_address, 
 								self.end_address, 
 								self.flag, 
@@ -414,11 +414,11 @@ class Database:
 
 		return filename
 
-	def GetOneLocationInfo(self):
-		return self.SessionInstance.query(OneLocationInfo).all()
+	def GetBasicBlock(self):
+		return self.SessionInstance.query(BasicBlock).all()
 
-	def GetOneLocationInfoCount(self):
-		return self.SessionInstance.query(OneLocationInfo).count()
+	def GetBasicBlockCount(self):
+		return self.SessionInstance.query(BasicBlock).count()
 
 	def GetFunctionMatchInfo(self):
 		return self.SessionInstance.query(FunctionMatchInfo).all()
@@ -427,13 +427,13 @@ class Database:
 		return self.SessionInstance.query(FunctionMatchInfo).count()
 
 	def GetBlockName(self, file_id, address):
-		for one_location_info in self.SessionInstance.query(OneLocationInfo).filter_by(file_id=file_id, start_address=address).all():
+		for one_location_info in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, start_address=address).all():
 			return one_location_info.name
 		return ""
 
 	def GetFunctionDisasmLinesMapOrig(self, file_id, function_address):
 		disasms={}
-		for one_location_info in self.SessionInstance.query(OneLocationInfo).filter_by(file_id=file_id, function_address=function_address).all():
+		for one_location_info in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, function_address=function_address).all():
 			disasms[one_location_info.start_address] = one_location_info.disasm_lines
 		return disasms
 
@@ -445,14 +445,14 @@ class Database:
 		if self.UseAttach:
 			if type=='Source':
 				map_info=SourceMapInfo
-				one_location_info=SourceOneLocationInfo	
+				one_location_info=SourceBasicBlock	
 			else:
 				map_info=TargetMapInfo
-				one_location_info=TargetOneLocationInfo
+				one_location_info=TargetBasicBlock
 			session=self.SessionInstance
 		else:
 			map_info=MapInfo
-			one_location_info=OneLocationInfo	
+			one_location_info=BasicBlock	
 			session=self.SessionInstancesMap[type]
 		
 		for bb_address in bb_addresses:
@@ -480,14 +480,14 @@ class Database:
 		if self.UseAttach:
 			if type=='Source':
 				map_info=SourceMapInfo
-				one_location_info=SourceOneLocationInfo	
+				one_location_info=SourceBasicBlock	
 			else:
 				map_info=TargetMapInfo
-				one_location_info=TargetOneLocationInfo
+				one_location_info=TargetBasicBlock
 			session=self.SessionInstance
 		else:
 			map_info=MapInfo
-			one_location_info=OneLocationInfo	
+			one_location_info=BasicBlock	
 			session=self.SessionInstancesMap[type]
 
 		if self.UseMapInfoForFunctionBlockQuery:
@@ -520,7 +520,7 @@ class Database:
 
 	def GetMatchMapForFunction(self, file_id, function_address):
 		match_hash = {}
-		for match_map in self.SessionInstance.query(MatchMap).filter(MatchMap.source_address.in_(self.SessionInstance.query(OneLocationInfo.start_address).filter_by(file_id = file_id, function_address=function_address))).all():
+		for match_map in self.SessionInstance.query(MatchMap).filter(MatchMap.source_address.in_(self.SessionInstance.query(BasicBlock.start_address).filter_by(file_id = file_id, function_address=function_address))).all():
 			match_hash[ match_map.source_address ] = (match_map.target_address, match_map.match_rate)
 		return match_hash
 
@@ -693,36 +693,36 @@ class Database:
 		return (source_address_match_rate_infos, target_address_match_rate_infos)
 
 	def GetBBMatchInfo(self, source_function_address=0, target_function_address=0):
-		SourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='SourceFunctionOneLocationInfo')
-		TargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TargetFunctionOneLocationInfo')
+		SourceFunctionBasicBlock=aliased(SourceBasicBlock,name='SourceFunctionBasicBlock')
+		TargetFunctionBasicBlock=aliased(TargetBasicBlock,name='TargetFunctionBasicBlock')
 
-		query=self.SessionInstance.query(MatchMap,SourceOneLocationInfo,SourceFunctionOneLocationInfo,TargetOneLocationInfo,TargetFunctionOneLocationInfo).filter(MatchMap.match_rate < 100)
-		query=query.outerjoin(SourceOneLocationInfo, MatchMap.source_address==SourceOneLocationInfo.start_address)
-		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TargetOneLocationInfo, MatchMap.target_address==TargetOneLocationInfo.start_address)
-		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
+		query=self.SessionInstance.query(MatchMap,SourceBasicBlock,SourceFunctionBasicBlock,TargetBasicBlock,TargetFunctionBasicBlock).filter(MatchMap.match_rate < 100)
+		query=query.outerjoin(SourceBasicBlock, MatchMap.source_address==SourceBasicBlock.start_address)
+		query=query.outerjoin(SourceFunctionBasicBlock, SourceBasicBlock.function_address==SourceFunctionBasicBlock.start_address)
+		query=query.outerjoin(TargetBasicBlock, MatchMap.target_address==TargetBasicBlock.start_address)
+		query=query.outerjoin(TargetFunctionBasicBlock, TargetBasicBlock.function_address==TargetFunctionBasicBlock.start_address)
 		matches=query.all()
 
 		TmpMatchMap=aliased(MatchMap,name='TmpMatchMap')
-		TmpTargetFunctionOneLocationInfo=aliased(TargetOneLocationInfo,name='TmpTargetOneLocationInfo')
-		TmpSourceFunctionOneLocationInfo=aliased(SourceOneLocationInfo,name='TmpSourceFunctionOneLocationInfo')
+		TmpTargetFunctionBasicBlock=aliased(TargetBasicBlock,name='TmpTargetBasicBlock')
+		TmpSourceFunctionBasicBlock=aliased(SourceBasicBlock,name='TmpSourceFunctionBasicBlock')
 
 		source_non_matched=[]
-		stmt=exists().where(SourceOneLocationInfo.start_address==MatchMap.source_address)
-		query=self.SessionInstance.query(SourceOneLocationInfo,SourceFunctionOneLocationInfo,TmpTargetFunctionOneLocationInfo).filter(SourceOneLocationInfo.fingerprint!='').filter(~stmt)
-		query=query.outerjoin(SourceFunctionOneLocationInfo, SourceOneLocationInfo.function_address==SourceFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TmpMatchMap, SourceOneLocationInfo.function_address==TmpMatchMap.source_address)
-		query=query.outerjoin(TmpTargetFunctionOneLocationInfo, TmpMatchMap.target_address==TmpTargetFunctionOneLocationInfo.start_address)
+		stmt=exists().where(SourceBasicBlock.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(SourceBasicBlock,SourceFunctionBasicBlock,TmpTargetFunctionBasicBlock).filter(SourceBasicBlock.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(SourceFunctionBasicBlock, SourceBasicBlock.function_address==SourceFunctionBasicBlock.start_address)
+		query=query.outerjoin(TmpMatchMap, SourceBasicBlock.function_address==TmpMatchMap.source_address)
+		query=query.outerjoin(TmpTargetFunctionBasicBlock, TmpMatchMap.target_address==TmpTargetFunctionBasicBlock.start_address)
 
 		for ret in query.all():
 			source_non_matched.append(ret)
 		
 		target_non_matched=[]
-		stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.source_address)
-		query=self.SessionInstance.query(TargetOneLocationInfo,TargetFunctionOneLocationInfo,TmpSourceFunctionOneLocationInfo).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
-		query=query.outerjoin(TargetFunctionOneLocationInfo, TargetOneLocationInfo.function_address==TargetFunctionOneLocationInfo.start_address)
-		query=query.outerjoin(TmpMatchMap, TargetOneLocationInfo.function_address==TmpMatchMap.target_address)
-		query=query.outerjoin(TmpSourceFunctionOneLocationInfo, TmpMatchMap.source_address==TmpSourceFunctionOneLocationInfo.start_address)
+		stmt=exists().where(TargetBasicBlock.start_address==MatchMap.source_address)
+		query=self.SessionInstance.query(TargetBasicBlock,TargetFunctionBasicBlock,TmpSourceFunctionBasicBlock).filter(TargetBasicBlock.fingerprint!='').filter(~stmt)
+		query=query.outerjoin(TargetFunctionBasicBlock, TargetBasicBlock.function_address==TargetFunctionBasicBlock.start_address)
+		query=query.outerjoin(TmpMatchMap, TargetBasicBlock.function_address==TmpMatchMap.target_address)
+		query=query.outerjoin(TmpSourceFunctionBasicBlock, TmpMatchMap.source_address==TmpSourceFunctionBasicBlock.start_address)
 
 		try:
 			for ret in query.all():
@@ -737,9 +737,9 @@ class Database:
 		source_non_matches=[]
 
 		if source_function_address!=0:
-			query=self.SessionInstance.query(SourceOneLocationInfo, MatchMap).filter_by(function_address=source_function_address)
-			query=query.filter(SourceOneLocationInfo.fingerprint!='')
-			query=query.outerjoin(MatchMap, MatchMap.source_address==SourceOneLocationInfo.start_address)
+			query=self.SessionInstance.query(SourceBasicBlock, MatchMap).filter_by(function_address=source_function_address)
+			query=query.filter(SourceBasicBlock.fingerprint!='')
+			query=query.outerjoin(MatchMap, MatchMap.source_address==SourceBasicBlock.start_address)
 
 			
 			for [block_info,match_map] in query.all():
@@ -751,8 +751,8 @@ class Database:
 		target_non_matches=[]
 		if target_function_address!=0:
 		
-			stmt=exists().where(TargetOneLocationInfo.start_address==MatchMap.target_address)
-			query=self.SessionInstance.query(TargetOneLocationInfo).filter_by(function_address=target_function_address).filter(TargetOneLocationInfo.fingerprint!='').filter(~stmt)
+			stmt=exists().where(TargetBasicBlock.start_address==MatchMap.target_address)
+			query=self.SessionInstance.query(TargetBasicBlock).filter_by(function_address=target_function_address).filter(TargetBasicBlock.fingerprint!='').filter(~stmt)
 
 			for block_info in query.all():
 				target_non_matches.append(block_info.start_address)

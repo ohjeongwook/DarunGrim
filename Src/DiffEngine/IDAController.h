@@ -64,7 +64,7 @@ public:
 	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 
 	void AddAnalysisTargetFunction(DWORD FunctionAddress);
-	BOOL LoadOneLocationInfo();
+	BOOL LoadBasicBlock();
 
 	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();
@@ -83,7 +83,7 @@ public:
 	void RetrieveIdentity();
 	string GetIdentity();
 
-	POneLocationInfo GetOneLocationInfo(DWORD address);
+	PBasicBlock GetBasicBlock(DWORD address);
 	void FreeDisasmLines();
 	void JumpToAddress(unsigned long address);
 	void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);

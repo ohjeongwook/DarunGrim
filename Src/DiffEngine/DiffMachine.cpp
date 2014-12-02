@@ -353,13 +353,13 @@ void DiffMachine::AnalyzeFunctionSanity()
 		match_map_iter++ )
 	{
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+		multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 		address_hash_map_pIter = SourceController->GetClientAnalysisInfo()->address_hash_map.find( match_map_iter->first );
 		if( address_hash_map_pIter != SourceController->GetClientAnalysisInfo()->address_hash_map.end() )
 		{
-			POneLocationInfo p_one_location_info=address_hash_map_pIter->second;
+			PBasicBlock p_one_location_info=address_hash_map_pIter->second;
 #else
-		POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo(match_map_iter->first);
+		PBasicBlock p_one_location_info = SourceController->GetBasicBlock(match_map_iter->first);
 		if( p_one_location_info )
 		{
 #endif
@@ -399,14 +399,14 @@ void DiffMachine::AnalyzeFunctionSanity()
 		reverse_match_map_iterator++ )
 	{
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+		multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 		address_hash_map_pIter = TargetController->GetClientAnalysisInfo()->address_hash_map.find( reverse_match_map_iterator->first );
 
 		if( address_hash_map_pIter != TargetController->GetClientAnalysisInfo()->address_hash_map.end() )
 		{
-			POneLocationInfo p_one_location_info=address_hash_map_pIter->second;
+			PBasicBlock p_one_location_info=address_hash_map_pIter->second;
 #else
-		POneLocationInfo p_one_location_info=SourceController->GetOneLocationInfo( reverse_match_map_iterator->first );
+		PBasicBlock p_one_location_info=SourceController->GetBasicBlock( reverse_match_map_iterator->first );
 		if( p_one_location_info )
 		{			
 #endif
@@ -747,7 +747,7 @@ void DumpAddressChecker::DumpMatchInfo(DWORD src, DWORD target, int match_rate, 
 
 bool DiffMachine::Analyze()
 {
-	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 	multimap <string,  DWORD>::iterator fingerprint_hash_map_pIter;
 	multimap <string,  DWORD>::iterator name_hash_map_pIter;
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
@@ -756,8 +756,8 @@ bool DiffMachine::Analyze()
 	if (!SourceController || !TargetController)
 		return FALSE;
 
-	SourceController->LoadOneLocationInfo();
-	TargetController->LoadOneLocationInfo();
+	SourceController->LoadBasicBlock();
+	TargetController->LoadBasicBlock();
 
 	DiffResults=new AnalysisResult;
 	DiffResults->SetDumpAddressChecker(pDumpAddressChecker);
@@ -1747,11 +1747,11 @@ void DiffMachine::GetMatchStatistics(
 					int source_fingerprint_len = 0;
 					int target_fingerprint_len = 0;
 
-					POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo((*it)->Addresses[0]);
+					PBasicBlock p_one_location_info = SourceController->GetBasicBlock((*it)->Addresses[0]);
 					if (p_one_location_info)
 						source_fingerprint_len = p_one_location_info->FingerprintLen;
 					
-					p_one_location_info = TargetController->GetOneLocationInfo((*it)->Addresses[1]);
+					p_one_location_info = TargetController->GetBasicBlock((*it)->Addresses[1]);
 					if (p_one_location_info)
 						target_fingerprint_len = p_one_location_info->FingerprintLen;
 
@@ -1766,7 +1766,7 @@ void DiffMachine::GetMatchStatistics(
 			CleanUpMatchDataList(match_data_list);
 		}else
 		{
-			POneLocationInfo p_one_location_info = ClientManager->GetOneLocationInfo((*address_list_iter).Start);
+			PBasicBlock p_one_location_info = ClientManager->GetBasicBlock((*address_list_iter).Start);
 			if (p_one_location_info && p_one_location_info->FingerprintLen>0)
 			{
 				if (debug)
@@ -1991,13 +1991,13 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			continue;
 		}
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+		multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 		address_hash_map_pIter = SourceController->GetClientAnalysisInfo()->address_hash_map.find( match_map_iter->first );
 		if( address_hash_map_pIter != SourceController->GetClientAnalysisInfo()->address_hash_map.end() )
 		{
-			POneLocationInfo p_one_location_info=address_hash_map_pIter->second;
+			PBasicBlock p_one_location_info=address_hash_map_pIter->second;
 #else
-		POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo( match_map_iter->first );
+		PBasicBlock p_one_location_info = SourceController->GetBasicBlock( match_map_iter->first );
 
 		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_map_iter->first, 0))
 		{
@@ -2068,7 +2068,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: FunctionMatchInfoList.size()=%u\n", __FUNCTION__, FunctionMatchInfoList.size() );
 	//////////// Unidentifed Locations
 
-	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 	int unpatched_unidentified_number=0;
 	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_hash_map_Iter;
 	for( source_fingerprint_hash_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_hash_map.begin();
@@ -2082,9 +2082,9 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			address_hash_map_pIter = SourceController->GetClientAnalysisInfo()->address_hash_map.find( source_fingerprint_hash_map_Iter->first );
 			if( address_hash_map_pIter != SourceController->GetClientAnalysisInfo()->address_hash_map.end() )
 			{
-				POneLocationInfo p_one_location_info=( POneLocationInfo )p_one_location_info;
+				PBasicBlock p_one_location_info=( PBasicBlock )p_one_location_info;
 #else
-			POneLocationInfo p_one_location_info = SourceController->GetOneLocationInfo( source_fingerprint_hash_map_Iter->first );
+			PBasicBlock p_one_location_info = SourceController->GetBasicBlock( source_fingerprint_hash_map_Iter->first );
 			if( p_one_location_info )
 			{
 #endif
@@ -2128,7 +2128,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	{
 		if( DiffResults->ReverseAddressMap.find( target_fingerprint_hash_map_Iter->first )==DiffResults->ReverseAddressMap.end() )
 		{
-			POneLocationInfo p_one_location_info = TargetController->GetOneLocationInfo( target_fingerprint_hash_map_Iter->first );
+			PBasicBlock p_one_location_info = TargetController->GetBasicBlock( target_fingerprint_hash_map_Iter->first );
 			if( p_one_location_info )
 			{
 				if( p_one_location_info->BlockType==FUNCTION_BLOCK )

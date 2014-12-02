@@ -73,7 +73,7 @@ IDAController::~IDAController()
 	}
 }
 
-int ReadOneLocationInfoDataCallback(void *arg, int argc, char **argv, char **names)
+int ReadBasicBlockDataCallback(void *arg, int argc, char **argv, char **names)
 {
 	AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo *)arg;
 	if (argv[1] && argv[1][0] != NULL)
@@ -282,7 +282,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	else
 	{
 		if (m_StorageDB)
-			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM OneLocationInfo WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
+			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
 	}
 
 	if (DoCallCheck && ClientAnalysisInfo)
@@ -327,7 +327,7 @@ void IDAController::RemoveFromFingerprintHash(DWORD address)
 	char *FingerprintStr = NULL;
 
 	if (m_StorageDB)
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	if (FingerprintStr)
 	{
 		Fingerprint = HexToBytesWithLengthAmble(FingerprintStr);
@@ -366,7 +366,7 @@ char *IDAController::GetFingerPrintStr(DWORD address)
 	{
 		char *FingerprintPtr = NULL;
 		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintPtr, "SELECT Fingerprint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+			m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintPtr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 		return FingerprintPtr;
 	}
 	return NULL;
@@ -386,7 +386,7 @@ char *IDAController::GetName(DWORD address)
 #else
 	char *Name = NULL;
 	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &Name, "SELECT Name FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &Name, "SELECT Name FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	return Name;
 #endif
 }
@@ -404,7 +404,7 @@ DWORD IDAController::GetBlockAddress(DWORD address)
 #else
 	DWORD BlockAddress = address;
 	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM OneLocationInfo WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", m_FileID, address, address);
+		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM BasicBlock WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", m_FileID, address, address);
 	return BlockAddress;
 #endif
 }
@@ -492,7 +492,7 @@ char *IDAController::GetOriginalFilePath()
 	return m_OriginalFilePath;
 }
 
-BOOL IDAController::LoadOneLocationInfo()
+BOOL IDAController::LoadBasicBlock()
 {
 	if (ClientAnalysisInfo->fingerprint_hash_map.size() == 0)
 	{
@@ -503,9 +503,9 @@ BOOL IDAController::LoadOneLocationInfo()
 		}
 
 		if (m_StorageDB)
-			m_StorageDB->ExecuteStatement(ReadOneLocationInfoDataCallback,
+			m_StorageDB->ExecuteStatement(ReadBasicBlockDataCallback,
 			(void *)ClientAnalysisInfo,
-			"SELECT StartAddress, Fingerprint, Name, BlockType FROM OneLocationInfo WHERE FileID = %u %s",
+			"SELECT StartAddress, Fingerprint, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
 			m_FileID,
 			FunctionAddressConditionBuffer);
 
@@ -539,7 +539,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
 				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 				"WHERE FileID = %u "
-				"AND ( SrcBlock IN ( SELECT StartAddress FROM OneLocationInfo WHERE FunctionAddress='%d') )",
+				"AND ( SrcBlock IN ( SELECT StartAddress FROM BasicBlock WHERE FunctionAddress='%d') )",
 				m_FileID, Address);
 		}
 		else
@@ -559,7 +559,7 @@ BOOL IDAController::Load()
 
 	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
-	LoadOneLocationInfo();
+	LoadBasicBlock();
 	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress, true);
 
 	return TRUE;
@@ -569,10 +569,10 @@ void IDAController::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD Funct
 {
 	if( m_StorageDB )
 	{
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
 		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'", FileID, FunctionAddress );
 
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
 		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'", FileID, FunctionAddress );
 	}
 }
@@ -593,7 +593,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 	BYTE type;
 	DWORD length;
 
-	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 	multimap <string,  DWORD>::iterator fingerprint_hash_map_pIter;
 	multimap <string,  DWORD>::iterator name_hash_map_pIter;
 	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
@@ -631,25 +631,25 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 
 		if( m_StorageDB )
 			m_FileID = DatabaseWriterWrapper(m_StorageDB, type, data, length);
-		if(type  ==  ONE_LOCATION_INFO && sizeof(OneLocationInfo)<= length)
+		if(type  ==  ONE_LOCATION_INFO && sizeof(BasicBlock)<= length)
 		{
-			POneLocationInfo pOneLocationInfo = (POneLocationInfo)data;
-			current_addr = pOneLocationInfo->StartAddress;
+			PBasicBlock pBasicBlock = (PBasicBlock)data;
+			current_addr = pBasicBlock->StartAddress;
 			Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d ONE_LOCATION_INFO[StartAddress = %x Flag = %u function addr = %x BlockType = %u]\n", __FUNCTION__, m_FileID,
-				pOneLocationInfo->StartAddress, //ea_t
-				pOneLocationInfo->Flag,  //Flag_t
-				pOneLocationInfo->FunctionAddress, 
-				pOneLocationInfo->BlockType);
+				pBasicBlock->StartAddress, //ea_t
+				pBasicBlock->Flag,  //Flag_t
+				pBasicBlock->FunctionAddress, 
+				pBasicBlock->BlockType);
 #ifdef USE_LEGACY_MAP
-			ClientAnalysisInfo->address_hash_map.insert(AddrPOneLocationInfo_Pair(pOneLocationInfo->StartAddress, pOneLocationInfo) );			
+			ClientAnalysisInfo->address_hash_map.insert(AddrPBasicBlock_Pair(pBasicBlock->StartAddress, pBasicBlock) );			
 #endif
-			ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(pOneLocationInfo->Data, pOneLocationInfo->StartAddress));
-			if(pOneLocationInfo->FingerprintLen>0)
+			ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(pBasicBlock->Data, pBasicBlock->StartAddress));
+			if(pBasicBlock->FingerprintLen>0)
 			{
-				unsigned char *FingerprintBuffer = (unsigned char *)malloc(pOneLocationInfo->FingerprintLen+sizeof(short));
-				*(unsigned short *)FingerprintBuffer = pOneLocationInfo->FingerprintLen;
-				memcpy(FingerprintBuffer+sizeof(short), pOneLocationInfo->Data+pOneLocationInfo->NameLen+pOneLocationInfo->DisasmLinesLen, *(unsigned short *)FingerprintBuffer);
-				ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(pOneLocationInfo->StartAddress, FingerprintBuffer));
+				unsigned char *FingerprintBuffer = (unsigned char *)malloc(pBasicBlock->FingerprintLen+sizeof(short));
+				*(unsigned short *)FingerprintBuffer = pBasicBlock->FingerprintLen;
+				memcpy(FingerprintBuffer+sizeof(short), pBasicBlock->Data+pBasicBlock->NameLen+pBasicBlock->DisasmLinesLen, *(unsigned short *)FingerprintBuffer);
+				ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(pBasicBlock->StartAddress, FingerprintBuffer));
 			}
 			free(data);
 		}else if(type  ==  MAP_INFO && length  ==  sizeof(MapInfo))
@@ -691,9 +691,9 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 
 void IDAController::GenerateFingerprintHashMap()
 {
-	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 	list <AddressPair> AddressPairs;
-	multimap <DWORD, POneLocationInfo>::iterator iter;
+	multimap <DWORD, PBasicBlock>::iterator iter;
 	for(iter = ClientAnalysisInfo->address_hash_map.begin();
 		iter != ClientAnalysisInfo->address_hash_map.end();
 		iter++)
@@ -737,8 +737,8 @@ void IDAController::GenerateFingerprintHashMap()
 				address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(matched_child_addr);
 				if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
 				{
-					POneLocationInfo pOneLocationInfo = (POneLocationInfo)address_hash_map_pIter->second;
-					if(pOneLocationInfo->FunctionAddress != matched_child_addr)
+					PBasicBlock pBasicBlock = (PBasicBlock)address_hash_map_pIter->second;
+					if(pBasicBlock->FunctionAddress != matched_child_addr)
 					{
 						AddressPair address_pair;
 						address_pair.address = address;
@@ -937,14 +937,14 @@ char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long En
 	if(Socket  ==  INVALID_SOCKET)
 		return strdup("");
 
-	multimap <DWORD,  POneLocationInfo>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
 	if(EndAddress  ==  0)
 	{
 		address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(StartAddress);
 		if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
 		{
-			POneLocationInfo pOneLocationInfo = (POneLocationInfo)address_hash_map_pIter->second;
-			EndAddress = pOneLocationInfo->EndAddress;
+			PBasicBlock pBasicBlock = (PBasicBlock)address_hash_map_pIter->second;
+			EndAddress = pBasicBlock->EndAddress;
 		}
 	}
 	code_block.EndAddress = EndAddress;
@@ -963,7 +963,7 @@ char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long En
 	char *DisasmLines = NULL;
 
 	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
+		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
 	if(DisasmLines)
 	{
 		Logger.Log(10, LOG_IDA_CONTROLLER, "DisasmLines = %s\n", DisasmLines);
@@ -998,9 +998,9 @@ string IDAController::GetIdentity()
 	return Identity;
 }
 
-int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
+int ReadBasicBlockCallback(void *arg, int argc, char **argv, char **names)
 {
-	POneLocationInfo p_one_location_info = (POneLocationInfo)arg;
+	PBasicBlock p_one_location_info = (PBasicBlock)arg;
 	p_one_location_info->StartAddress = strtoul10(argv[0]);
 	p_one_location_info->EndAddress = strtoul10(argv[1]);
 	p_one_location_info->Flag = strtoul10(argv[2]);
@@ -1016,11 +1016,11 @@ int ReadOneLocationInfoCallback(void *arg, int argc, char **argv, char **names)
 	return 0;
 }
 
-POneLocationInfo IDAController::GetOneLocationInfo(DWORD address)
+PBasicBlock IDAController::GetBasicBlock(DWORD address)
 {
-	POneLocationInfo p_one_location_info = (POneLocationInfo)malloc(sizeof(OneLocationInfo));
+	PBasicBlock p_one_location_info = (PBasicBlock)malloc(sizeof(BasicBlock));
 	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(ReadOneLocationInfoCallback, p_one_location_info, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM OneLocationInfo WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+		m_StorageDB->ExecuteStatement(ReadBasicBlockCallback, p_one_location_info, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	return p_one_location_info;
 }
 
@@ -1058,8 +1058,8 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 		
 		BLOCK block;
 		block.Start = FunctionAddress;
-		POneLocationInfo pOneLocationInfo = GetOneLocationInfo(FunctionAddress);
-		block.End = pOneLocationInfo->EndAddress;
+		PBasicBlock pBasicBlock = GetBasicBlock(FunctionAddress);
+		block.End = pBasicBlock->EndAddress;
 		block_list.push_back(block);
 
 		checked_addresses.insert(FunctionAddress);
@@ -1081,8 +1081,8 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 						{
 							address_list.push_back(p_addresses[i]);
 							block.Start = p_addresses[i];
-							POneLocationInfo pOneLocationInfo = GetOneLocationInfo(p_addresses[i]);
-							block.End = pOneLocationInfo->EndAddress;
+							PBasicBlock pBasicBlock = GetBasicBlock(p_addresses[i]);
+							block.End = pBasicBlock->EndAddress;
 							block_list.push_back(block);
 
 							checked_addresses.insert(p_addresses[i]);
@@ -1096,7 +1096,7 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 	else
 	{
 		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
-			"SELECT StartAddress, EndAddress FROM OneLocationInfo WHERE FileID = '%d' AND FunctionAddress='%d'"
+			"SELECT StartAddress, EndAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d'"
 			"ORDER BY ID ASC",
 			m_FileID, FunctionAddress);
 	}
@@ -1366,7 +1366,7 @@ BOOL IDAController::FixFunctionAddresses()
 		//StartAddress: AddressToFunctionMapIter->first
 		//FunctionAddress: AddressToFunctionMapIter->second
 		//Update
-		Logger.Log(20, LOG_IDA_CONTROLLER, "Updating OneLocationInfoTable Address = %x Function = %x\r\n",
+		Logger.Log(20, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %x Function = %x\r\n",
 			AddressToFunctionMapIter->second, 
 			AddressToFunctionMapIter->first);
 
