@@ -139,7 +139,6 @@ private:
 	string m_TargetFileName;
 	CLogViwerDlg m_LogViewerDlg;
 
-	vector<DrawingInfo *> *DrawingObjectList;
 	CCommandBarCtrl m_CmdBar;
 	float m_Zoom;
 	bool m_RetrieveClientManagersDatabase;
@@ -219,6 +218,14 @@ public:
 		OpenDatabase(m_DiffFilename.c_str());
 	}
 
+	CMainFrame()
+	{
+		pDiffMachine = NULL;
+		m_RetrieveClientManagersDatabase = FALSE;
+		pDiffListDisplayItemArray = NULL;
+		pMatchedBlocksDisplayItemArray = NULL;
+	}
+
 	~CMainFrame()
 	{
 		m_LogViewerDlg.CloseDialog(0);
@@ -237,10 +244,6 @@ public:
 		m_State=STATE_NONE;
 
 		m_Zoom=1.0f;
-		pDiffMachine=NULL;
-		m_RetrieveClientManagersDatabase=FALSE;
-		pDiffListDisplayItemArray = NULL;
-		pMatchedBlocksDisplayItemArray = NULL;
 		
 		pDarunGrim = new DarunGrim();
 
@@ -623,11 +626,11 @@ public:
 				free(p_addresses);
 			}
 		}
-		p_flow_grapher->GenerateDrawingInfo();
-		DrawingObjectList = p_flow_grapher->GetDrawingInfo();
-		delete p_flow_grapher;
 
-		pGraphVizWindow->SetDrawingObjectList(DrawingObjectList);
+		p_flow_grapher->GenerateDrawingInfo();
+		vector<DrawingInfo *> *drawing_object_list = p_flow_grapher->GetDrawingInfo();
+		delete p_flow_grapher;
+		pGraphVizWindow->SetDrawingObjectList(drawing_object_list);
 	}
 
 	typedef struct

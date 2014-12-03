@@ -20,7 +20,8 @@ DarunGrim::DarunGrim():
 	IsLoadedSourceFile( false ),
 	ListeningSocket(INVALID_SOCKET),
 	IDACommandProcessorThreadId(-1),
-	IDAAutoMode(TRUE)
+	IDAAutoMode(TRUE),
+	pIDAClientListHead(NULL)
 {
 	LogOperation::InitLog();
 	Logger.SetCategory( "DarunGrim" );
@@ -407,6 +408,9 @@ unsigned short DarunGrim::StartIDAListenerThread(unsigned short port)
 
 void DarunGrim::UpdateIDAControllers()
 {
+	if (!pIDAClientListHead)
+		return;
+
 	while (1)
 	{
 		PSLIST_ENTRY pListEntry = InterlockedPopEntrySList(pIDAClientListHead);

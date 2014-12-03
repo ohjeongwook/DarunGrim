@@ -2741,7 +2741,6 @@ BOOL DiffMachine::_Load()
 		}
 	}
 
-	ClearFunctionMatchList();
 	m_DiffDB->ExecuteStatement( ReadFunctionMatchListCallback, &FunctionMatchList, query, SourceID, TargetID);
 
 	if (LoadDiffResults)

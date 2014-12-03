@@ -10,8 +10,8 @@ using namespace std;
 FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), FontSize("18"), Debug(0)
 {
 	DrawingObjectList = new vector<DrawingInfo *>;
-	gvc = gvContext();
 
+	gvc = gvContext();
 	g = agopen("g", AGDIGRAPH);
 
 	NodeToUserDataMap = new stdext::hash_map<Agnode_t *, DWORD>;
@@ -97,25 +97,20 @@ void FlowGrapher::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 void FlowGrapher::AddLink(DWORD src, DWORD dst)
 {
 	Agedge_t *e;
-	stdext::hash_map<DWORD, Agnode_t *>::iterator AddressToNodeMapIterator;
+	stdext::hash_map<DWORD, Agnode_t *>::iterator it;
 	Agnode_t *src_node = NULL;
 	Agnode_t *dst_node = NULL;
-	AddressToNodeMapIterator = AddressToNodeMap.find(src);
-	if (AddressToNodeMapIterator != AddressToNodeMap.end())
+
+	it = AddressToNodeMap.find(src);
+	if (it != AddressToNodeMap.end())
 	{
-		src_node = AddressToNodeMapIterator->second;
+		src_node = it->second;
 	}
 
-	AddressToNodeMapIterator = AddressToNodeMap.find(dst);
-	if (AddressToNodeMapIterator != AddressToNodeMap.end())
+	it = AddressToNodeMap.find(dst);
+	if (it != AddressToNodeMap.end())
 	{
-		dst_node = AddressToNodeMapIterator->second;
-	}
-
-	if (Debug > 0)
-	{
-		dprintf("src=%x src_node=%x\n", src, src_node);
-		dprintf("dst=%x dst_node=%x\n", dst, dst_node);
+		dst_node = it->second;
 	}
 
 	if (src_node && dst_node)
@@ -619,6 +614,9 @@ int FlowGrapher::RenderToFile(char *format, char *filename)
 void FlowGrapher::GenerateDrawingInfo()
 {
 	DrawingObjectList->clear();
+
+	gvLayoutJobs(gvc, g);
+	gvRenderJobs(gvc, g);
 
 	agsafeset(g, "charset", "Latin1", "");
 

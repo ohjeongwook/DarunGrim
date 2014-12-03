@@ -289,7 +289,7 @@ private:
 				WindowWidth,WindowHeight,SWP_NOMOVE|SWP_NOZORDER);
 	}
 
-	void SetDrawingObjectList(vector<DrawingInfo *> *NewDrawingObjectList)
+	void SetDrawingObjectList(vector<DrawingInfo *> *drawing_object_list)
 	{
 		//Clean up NewDrawingObjectList
 		if(DrawingObjectList)
@@ -309,7 +309,7 @@ private:
 			delete DrawingObjectList;
 		}
 
-		DrawingObjectList=NewDrawingObjectList;
+		DrawingObjectList = drawing_object_list;
 		
 		if(!DrawingObjectList)
 			return;
