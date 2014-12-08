@@ -48,7 +48,7 @@ class PatchDownloader:
 					print  'Found Start download'
 					filename = download_link[download_link.rfind("/")+1:]
 					filename = os.path.join( self.DownloadFolder, filename )
-					if self.DebugLevel > -3:
+					if self.DebugLevel > 0:
 						print '\t\t',download_link,'->',filename
 
 					try:
@@ -100,25 +100,26 @@ class PatchDownloader:
 		return True
 
 	def ParseTable(self,start_tag):
-		# Go through each tr and td inside them
 		table_info=[]
 		tr_members = []
 		if start_tag:
 			for tr in start_tag.findAll( "tr" ):
 				td_members = []
-				for td in tr.findAll( "td" ):
-					td_member = {}
-					td_member['text'] = ''
-					url_str = ''
-					if td.string:
-						td_member['text'] = td.string
-					for tag in td.findAll(True):
-						if tag.name == 'a':
-							td_member['url']  = tag.attrs['href']
-						if tag.string:
-							td_member['text'] += tag.string
+				for tx in ['th','td']:
+					for td in tr.findAll(tx):
+						td_member = {}
+						td_member['text'] = ''
+						url_str = ''
+						if td.string:
+							td_member['text'] = td.string
+
+						for tag in td.findAll(True):
+							if tag.name == 'a':
+								td_member['url']  = tag.attrs['href']
+							if tag.string:
+								td_member['text'] += tag.string
 					
-					td_members.append( td_member )
+						td_members.append( td_member )
 
 				if len(td_members)>0:
 					tr_members.append( td_members )
@@ -131,25 +132,20 @@ class PatchDownloader:
 				column += 1
 
 			table_info.append( td_member_hash )
-			"""
-				url = None
-				if td_member.has_key( 'url' ):
-					url = td_member['url']
 
-				family_id = self.GetFamilyID( url )
-				if download_patch_files:	
-					if family_id:
-						td_member['files'] = self.DownloadFileByFamilyID( family_id )
-				elif family_id:
-					td_member['files'] = ( family_id )
-			"""
-
-		if self.DebugLevel > 3:
-			print ''
-			print '='*80
-			pprint.pprint(table_info)
-
+		if self.DebugLevel > 0:
+			self.DumpTableInfo(table_info)
 		return table_info
+
+	def DumpTableInfo(self,table_info):
+		print ''
+		print '='*80
+		for info in table_info:
+			print '-'*80
+			for (k,v) in info.items():
+				print '* ' + k
+				for (k2,v2) in v.items():
+					print '\t%s: %s' % (k2,v2)
 
 	def ParseBulletinHtml(self, filename, url='', label='', download_patch_files=False):
 		fd=open(filename,'r')
@@ -219,6 +215,8 @@ class PatchDownloader:
 						for child in current_tag.children:
 							if child.name=='table':
 								affected_software_table_infos.append(self.ParseTable(child))
+							elif child.name=='p' and child.text.strip()=='Non-Affected Software':
+								break
 					current_tag=current_tag.nextSibling
 
 			if found_affected_software_tag:
@@ -234,6 +232,8 @@ class PatchDownloader:
 						if current_tag.name=='table':
 							affected_software_table_infos.append(self.ParseTable(current_tag))
 						elif current_tag.name=='div':
+							break
+						elif current_tag.name=='p' and current_tag.text.strip()=='Non-Affected Software':
 							break
 						current_tag=current_tag.nextSibling
 
@@ -282,22 +282,32 @@ class PatchDownloader:
 
 					if not found_table:
 						current_tag=p_tag.nextSibling
+						table_infos=[]
 						while current_tag:
 							try:
 								if current_tag.name=='ul':
 									for child in current_tag.children:
 										if child.name=='li':
 											os=self.RemoveSpecialChar(child.text)
-											print ' '+os
+											if self.DebugLevel>3:
+												print ' '+os
 											for child2 in child.children:
 												if child2.name == 'a':
-													print ' '*2+child2.attrs['href']
+													url=child2.attrs['href']
+													if self.DebugLevel>3:
+														print ' '*2+url
+													table_infos.append({'Operating System': {'text': os,'url':url}})
 												elif child2.name == 'ul':
 													for child3 in child2.children:
-														print ' '*3+child3.text
+														os=child3.text
+														if self.DebugLevel>3:
+															print ' '*3+os
 														for child4 in child3.children:
 															if child4.name=='a':
-																print ' '*4+child4.attrs['href']
+																url=child4.attrs['href']
+																if self.DebugLevel>3:
+																	print ' '*4+url
+																table_infos.append({'Operating System': {'text': os,'url':url}})
 								elif current_tag.name=='p':
 									break
 							except:
@@ -306,12 +316,12 @@ class PatchDownloader:
 
 							current_tag = current_tag.nextSibling
 
+						if self.DebugLevel>0:
+							self.DumpTableInfo(table_infos)
+
 				if found_affected_software_tag:
 					break
 
-		for affected_software_table_info in affected_software_table_infos:
-			print '-'*80
-			pprint.pprint(affected_software_table_info)
 		return ( patch_info, affected_software_table_infos )
 
 	def RemoveSpecialChar(self,text):
@@ -323,6 +333,7 @@ class PatchDownloader:
 				ret+='-'
 
 		return ret
+
 	def DownloadMSPatchAndIndex( self, year, bulletin_number, bulletin_stroage, download_patch_files = False ):
 		name = 'MS%.2d-%.3d' % ( year-2000, bulletin_number )
 
@@ -432,7 +443,7 @@ class PatchDownloader:
 
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
-	year=2005
+	year=2006
 	bulletin_number=2
 	filename='test1.html'
 	if patch_downloader.DownloadMSPatch( year, bulletin_number, filename, False ):
