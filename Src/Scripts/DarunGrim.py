@@ -89,7 +89,7 @@ class BBMatchTable(QAbstractTableModel):
 			database = DarunGrimDatabase.Database(database_name)
 
 			[matches,source_non_matched,target_non_matched]=database.GetBBMatchInfo()
-			for (match_map,source_one_location_info,source_function_oli,target_one_location_info,target_function_oli) in matches:
+			for (match_map,source_basic_block,source_function_oli,target_basic_block,target_function_oli) in matches:
 				source_function_name=''
 
 				if source_function_oli!=None:
@@ -98,39 +98,39 @@ class BBMatchTable(QAbstractTableModel):
 				if target_function_oli!=None:
 					target_function_name=target_function_oli.name
 
-				self.match_list.append([source_one_location_info.disasm_lines,
-									target_one_location_info.disasm_lines,
+				self.match_list.append([source_basic_block.disasm_lines,
+									target_basic_block.disasm_lines,
 									source_function_name,
 									target_function_name,
 									match_map.match_rate])
 
-			for (one_location_info, function_one_location_info, match_function_one_location_info) in source_non_matched:
+			for (basic_block, function_basic_block, match_function_basic_block) in source_non_matched:
 				function_name=''
-				if function_one_location_info!=None:
-					function_name=function_one_location_info.name
+				if function_basic_block!=None:
+					function_name=function_basic_block.name
 
 				match_function_name=''
-				if match_function_one_location_info!=None:
-					match_function_name=match_function_one_location_info.name
+				if match_function_basic_block!=None:
+					match_function_name=match_function_basic_block.name
 
-				self.match_list.append([one_location_info.disasm_lines,
+				self.match_list.append([basic_block.disasm_lines,
 									"",
 									function_name,
 									match_function_name,
 									0])
 
 
-			for (one_location_info, function_one_location_info, match_function_one_location_info) in target_non_matched:
+			for (basic_block, function_basic_block, match_function_basic_block) in target_non_matched:
 				function_name=''
-				if function_one_location_info!=None:
-					function_name=function_one_location_info.name
+				if function_basic_block!=None:
+					function_name=function_basic_block.name
 
 				match_function_name=''
-				if match_function_one_location_info!=None:
-					match_function_name=match_function_one_location_info.name
+				if match_function_basic_block!=None:
+					match_function_name=match_function_basic_block.name
 
 				self.match_list.append(["",
-									one_location_info.disasm_lines,
+									basic_block.disasm_lines,
 									match_function_name,
 									function_name,
 									0])

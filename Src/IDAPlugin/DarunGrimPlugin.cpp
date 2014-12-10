@@ -152,7 +152,7 @@ void MakeCode( ea_t start_addr, ea_t end_addr )
 {
 	while( 1 ){
 		bool converted=TRUE;
-		msg( "MakeCode: %x - %x \n", start_addr, end_addr );
+		msg( "MakeCode: %X - %X \n", start_addr, end_addr );
 		do_unknown_range( start_addr, end_addr-start_addr, false );
 		for( ea_t addr=start_addr;addr<=end_addr;addr+=get_item_size( addr ) ) 
 		{
@@ -196,11 +196,11 @@ void FixExceptionHandlers()
 						ea_t push_exception_handler=get_first_dref_to( sub_exception_handler );
 						while( push_exception_handler!=BADADDR )
 						{
-							msg( "push exception_handler: %x\n", push_exception_handler );
+							msg( "push exception_handler: %X\n", push_exception_handler );
 							ea_t push_handlers_structure=get_first_cref_to( push_exception_handler );
 							while( push_handlers_structure!=BADADDR )
 							{
-								msg( "push hanlders structure: %x\n", push_handlers_structure );
+								msg( "push hanlders structure: %X\n", push_handlers_structure );
 								ea_t handlers_structure_start=get_first_dref_from( push_handlers_structure );
 								while( handlers_structure_start!=BADADDR )
 								{
@@ -212,7 +212,7 @@ void FixExceptionHandlers()
 									ea_t handlers_structure=handlers_structure_start;
 									while( 1 )
 									{
-										msg( "handlers_structure: %x\n", handlers_structure );
+										msg( "handlers_structure: %X\n", handlers_structure );
 										char handlers_structure_name[100];
 										get_true_name( handlers_structure, 
 											handlers_structure, 
@@ -231,15 +231,15 @@ void FixExceptionHandlers()
 											int pos=( handlers_structure-handlers_structure_start )/4;
 											if( pos%3==1 || pos%3==2 )
 											{
-												msg( "Checking handlers_structure: %x\n", handlers_structure );
+												msg( "Checking handlers_structure: %X\n", handlers_structure );
 
 												ea_t exception_handler_routine=get_first_dref_from( handlers_structure );
 												while( exception_handler_routine!=BADADDR )
 												{
-													msg( "Checking exception_handler_routine: %x\n", exception_handler_routine );
+													msg( "Checking exception_handler_routine: %X\n", exception_handler_routine );
 													if( !isCode( getFlags( exception_handler_routine ) ) )
 													{
-														msg( "Reanalyzing exception_handler_routine: %x\n", exception_handler_routine );
+														msg( "Reanalyzing exception_handler_routine: %X\n", exception_handler_routine );
 														ea_t end_pos=exception_handler_routine;
 														while( 1 )
 														{
@@ -250,7 +250,7 @@ void FixExceptionHandlers()
 														}
 														if( !isCode( exception_handler_routine ) )
 														{
-															msg( "routine 01: %x~%x\n", exception_handler_routine, end_pos );
+															msg( "routine 01: %X~%X\n", exception_handler_routine, end_pos );
 															MakeCode( exception_handler_routine, end_pos );
 														}
 													}
@@ -258,7 +258,7 @@ void FixExceptionHandlers()
 												}
 											}
 										}
-										msg( "checked handlers_structure: %x\n", handlers_structure );
+										msg( "checked handlers_structure: %X\n", handlers_structure );
 										handlers_structure+=get_item_size( handlers_structure );
 									}
 									handlers_structure_start=get_next_dref_from( push_handlers_structure, handlers_structure_start );
@@ -330,14 +330,14 @@ static void idaapi line_callback( void *obj, ulong n, char * const *arrptr )
 	{
 		if( i==n-1 )
 		{
-			qsnprintf( arrptr[0], MAXSTR, "%x", ( *range_list_itr )->TheSourceAddress );
+			qsnprintf( arrptr[0], MAXSTR, "%X", ( *range_list_itr )->TheSourceAddress );
 			qsnprintf( arrptr[1], MAXSTR, "%s", ( *range_list_itr )->TheSourceFunctionName );
 
 			qsnprintf( arrptr[2], MAXSTR, "%5d", ( *range_list_itr )->MatchCountForTheSource );
 			qsnprintf( arrptr[3], MAXSTR, "%5d", ( *range_list_itr )->NoneMatchCountForTheSource );
 
 
-			qsnprintf( arrptr[4], MAXSTR, "%x", ( *range_list_itr )->TheTargetAddress );
+			qsnprintf( arrptr[4], MAXSTR, "%X", ( *range_list_itr )->TheTargetAddress );
 			qsnprintf( arrptr[5], MAXSTR, "%s", ( *range_list_itr )->TheTargetFunctionName );
 
 			qsnprintf( arrptr[6], MAXSTR, "%5d", ( *range_list_itr )->MatchCountForTheTarget );
@@ -360,7 +360,7 @@ static void idaapi enter_callback( void *obj, ulong n )
 	{
 		if( i==n-1 )
 		{
-			msg( "Jump to %x\n", ( *range_list_itr )->TheSourceAddress );
+			msg( "Jump to %X\n", ( *range_list_itr )->TheSourceAddress );
 			jumpto( ( *range_list_itr )->TheSourceAddress );
 			SendTLVData( 
 				( ( PChooseListObj )obj )->socket, 
@@ -386,12 +386,12 @@ static int idaapi graph_callback( void *obj, int code, va_list va )
 		 {
 			graph_viewer_t *v	 = va_arg( va, graph_viewer_t * );
 			selection_item_t *s = va_arg( va, selection_item_t * );
-			//msg( "%x: %sclicked on ", v, code == grcode_clicked ? "" : "dbl" );
+			//msg( "%X: %sclicked on ", v, code == grcode_clicked ? "" : "dbl" );
 			if( s && s->is_node )
 			{
 				DWORD addr=get_screen_ea();
-				//msg( "node %d( %x )\n", s->node, addr );
-				msg( "Showing Block %x\n", addr );
+				//msg( "node %d( %X )\n", s->node, addr );
+				msg( "Showing Block %X\n", addr );
 				SendTLVData( 
 					( ( PChooseListObj )obj )->socket, 
 					SHOW_MATCH_ADDR, 
@@ -434,7 +434,7 @@ static void idaapi enter_callback_for_unidentified_block_choose_list( void *obj,
 	{
 		if( i==n-1 )
 		{
-			msg( "Jump to %x\n", ( *range_list_itr ).start );
+			msg( "Jump to %X\n", ( *range_list_itr ).start );
 			jumpto( ( *range_list_itr ).start );
 			break;
 		}
@@ -462,8 +462,8 @@ static void idaapi line_callback_for_unidentified_block_choose_list( void *obj, 
 	{
 		if( i==n-1 )
 		{
-			qsnprintf( arrptr[0], MAXSTR, "%x", ( *range_list_itr ).start );
-			qsnprintf( arrptr[1], MAXSTR, "%x", ( *range_list_itr ).end );
+			qsnprintf( arrptr[0], MAXSTR, "%X", ( *range_list_itr ).start );
+			qsnprintf( arrptr[1], MAXSTR, "%X", ( *range_list_itr ).end );
 			break;
 		}
 	}
@@ -477,7 +477,7 @@ int idaapi graph_viewer_callback( void *user_data, int notification_code, va_lis
 		ea_t addr=get_screen_ea();
 
 		SOCKET socket = (SOCKET) user_data;
-		msg( "Showing Block %x(socket=%d)\n", addr, socket );
+		msg( "Showing Block %X(socket=%d)\n", addr, socket );
 		SendTLVData( 
 			socket,
 			SHOW_MATCH_ADDR, 
@@ -767,9 +767,8 @@ void SaveDGF(bool ask_file_path)
 {
 	long start_tick = GetTickCount();
 
-#ifndef _USE_IDA_SDK_49_OR_UPPER
 	FindInvalidFunctionStartAndConnectBrokenFunctionChunk();
-#endif
+
 	//FixExceptionHandlers();
 	if (!OutputFilename)
 	{
@@ -885,7 +884,8 @@ void idaapi run( int arg )
 		"STARTITEM 0\n"
 		"DarunGrim4\n\n"
 		"<##Select operation##Save to DGF:r>\n"
-		"<Connect to DarunGrim GUI:R>>\n";
+		"<Connect to DarunGrim GUI:R>\n"
+		"<Find multiple function membership:R>>\n";
 
 	ushort radio = 0;
 
@@ -895,7 +895,7 @@ void idaapi run( int arg )
 		{
 			SaveDGF(true);
 		}
-		else
+		else if (radio == 1)
 		{
 			char *dialog =
 				"DarunGrim4\n\n"
@@ -907,6 +907,10 @@ void idaapi run( int arg )
 			{
 				ConnectToDarunGrim(port);
 			}
+		}
+		else if (radio == 2)
+		{
+			FindInvalidFunctionStartAndConnectBrokenFunctionChunk();
 		}
 	}
 }

@@ -55,7 +55,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 	int connected_links_count=0;
 	func_t *func=get_func(address);
 	char function_name[1024]={0,};
-	get_func_name(address,function_name,sizeof(function_name));
+	get_short_name(address, address, function_name, sizeof(function_name));
 
 	bool is_function=false;
 	bool AddFunctionAsMemberOfFunction=false;
@@ -77,6 +77,8 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_next_cref_to(address,cref);
 	}
 
+	msg("ConnectBrokenFunctionChunk: %s %s\n", function_name, is_function? "is function": "is not function" );
+
 	if(!is_function)
 	{
 		if(func)
@@ -89,7 +91,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 			{
 				char cref_function_name[1024];
 				get_func_name(cref,cref_function_name,sizeof(cref_function_name));
-				msg("Adding Location %s(%x) To Function Member Of %s(%x:%x)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
+				msg("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
 				append_func_tail(cref_func,address,GetBlockEnd(address));
 				connected_links_count++;
 			}
@@ -109,7 +111,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 				{
 					char cref_function_name[1024];
 					get_func_name(cref,cref_function_name,sizeof(cref_function_name));
-					msg("Adding Function %s(%x) To Function Member Of %s(%x:%x)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
+					msg("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
 					append_func_tail(cref_func,address,GetBlockEnd(address));
 					connected_links_count++;
 				}
@@ -129,10 +131,12 @@ void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
 		for(size_t i=0;i<get_func_qty();i++)
 		{
 			func_t *f=getn_func(i);
-			char function_name[100]={0,};
-			get_func_name(f->startEA,function_name,sizeof(function_name));
 			if(!IsValidFunctionStart(f->startEA))
 			{
+				char function_name[100] = { 0, };
+				get_short_name(f->startEA, f->startEA, function_name, sizeof(function_name));
+
+				msg("Found invalid function: %s\n", function_name);
 				connected_links_count+=ConnectBrokenFunctionChunk(f->startEA);
 			}		
 		}

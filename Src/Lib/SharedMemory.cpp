@@ -370,7 +370,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *shared_memory_name,int shar
 
 		if(shared_buffer)
 		{
-			dprintf(TEXT("%s: shared_buffer=%x\n"),
+			dprintf(TEXT("%s: shared_buffer=%X\n"),
 				__FUNCTION__,
 				shared_buffer);
 		
@@ -381,7 +381,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *shared_memory_name,int shar
 				p_data_sharer->MemoryHeaderPtr->BufferSize=shared_memory_size;
 				p_data_sharer->MemoryHeaderPtr->ReadPoint=p_data_sharer->MemoryHeaderPtr->WritePoint=0;
 			}
-			dprintf(TEXT("%s: p_data_sharer->MemoryHeaderPtr->Data=%x\n"),
+			dprintf(TEXT("%s: p_data_sharer->MemoryHeaderPtr->Data=%X\n"),
 				__FUNCTION__,
 				p_data_sharer->MemoryHeaderPtr->Data);
 #ifndef USE_SINGLE_THREAD_FOR_SHARED_MEMORY

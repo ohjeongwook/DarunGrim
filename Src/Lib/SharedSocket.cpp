@@ -118,7 +118,7 @@ LRESULT CALLBACK SharedSocketDataReceiverWndProc(HWND wnd,UINT message,WPARAM wp
 							) == SOCKET_ERROR)
 							{
 								/*
-								print_function("failed to async select client %d, %x data_socket=%d, message_window=%x\n", 
+								print_function("failed to async select client %d, %X data_socket=%d, message_window=%X\n", 
 									data_socket,
 									WSAGetLastError(),
 									data_socket,

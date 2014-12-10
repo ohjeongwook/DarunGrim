@@ -139,23 +139,23 @@ void DumpOperand(HANDLE hFile,op_t operand)
 			operand.reg);
 	}else if(operand.type==o_displ)
 	{
-		WriteToLogFile(hFile,"%s %s+%x",
+		WriteToLogFile(hFile,"%s %s+%X",
 			OpTypeStr[operand.type],
 			ph.regNames[operand.reg],
 			operand.phrase);
 	}else if(operand.type==o_imm)
 	{
-		WriteToLogFile(hFile,"%s %x",
+		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.value);
 	}else if(operand.type==o_near)
 	{
-		WriteToLogFile(hFile,"%s %x",
+		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.addr);
 	}else if(operand.type==o_mem)
 	{
-		WriteToLogFile(hFile,"%s %x",
+		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.addr);
 	}else if(operand.type==o_phrase)
@@ -166,7 +166,7 @@ void DumpOperand(HANDLE hFile,op_t operand)
 			ph.regNames[operand.specflag1]);
 	}else
 	{
-		WriteToLogFile(hFile,"%s dtyp=0x%x addr=0x%x value=0x%x specval=0x%x reg=%s phrase=0x%x",
+		WriteToLogFile(hFile,"%s dtyp=0x%X addr=0x%X value=0x%X specval=0x%X reg=%s phrase=0x%X",
 			OpTypeStr[operand.type],
 			operand.dtyp,
 			operand.addr,
@@ -490,7 +490,7 @@ void UpdateInstructionMap
 	GetFeatureBits(instruction.itype,Features,sizeof(Features));
 
 	if(Debug>0)
-		WriteToLogFile(gLogFile,"%s(%x) %s\r\n",ph.instruc[instruction.itype].name,instruction.itype,GetFeatureStr(ph.instruc[instruction.itype].feature).c_str());
+		WriteToLogFile(gLogFile,"%s(%X) %s\r\n",ph.instruc[instruction.itype].name,instruction.itype,GetFeatureStr(ph.instruc[instruction.itype].feature).c_str());
 
 	//Flags Tracing
 	list <int> Flags=GetRelatedFlags(instruction.itype,true);
@@ -628,11 +628,11 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 {
 	string disasm_buffer;
 	
-	BasicBlock one_location_info;
-	one_location_info.FunctionAddress=0;
-	one_location_info.BlockType=UNKNOWN_BLOCK;
-	one_location_info.StartAddress=SrcBlock;
-	one_location_info.Flag=Flag;
+	BasicBlock basic_block;
+	basic_block.FunctionAddress=0;
+	basic_block.BlockType=UNKNOWN_BLOCK;
+	basic_block.StartAddress=SrcBlock;
+	basic_block.Flag=Flag;
 
 	TCHAR name[225]={0,};
 
@@ -643,24 +643,24 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		func_t *p_func = get_func(SrcBlock);
 		if(p_func)
 		{
-			one_location_info.FunctionAddress=p_func->startEA;
+			basic_block.FunctionAddress=p_func->startEA;
 		}
 		
 		ea_t cref = get_first_cref_to(SrcBlock);
 
-		if(cref==BADADDR || one_location_info.StartAddress==one_location_info.FunctionAddress)
+		if(cref==BADADDR || basic_block.StartAddress==basic_block.FunctionAddress)
 		{
-			one_location_info.BlockType=FUNCTION_BLOCK;
+			basic_block.BlockType=FUNCTION_BLOCK;
 			if(name[0]==NULL)
 			{
-				_snprintf(name,sizeof(name)-1,"func_%X",one_location_info.StartAddress);
+				_snprintf(name,sizeof(name)-1,"func_%X",basic_block.StartAddress);
 			}
 		}
 	}
 
 	vector <unsigned char> FingerPrint;
 
-	one_location_info.EndAddress=0;
+	basic_block.EndAddress=0;
 
 	list <insn_t>::iterator CmdArrayIter;
 
@@ -668,12 +668,12 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		CmdArrayIter!=pCmdArray->end();
 		CmdArrayIter++)
 	{
-		if(one_location_info.EndAddress<(*CmdArrayIter).ea && (*CmdArrayIter).ea!=0xffffffff)
-			one_location_info.EndAddress=(*CmdArrayIter).ea;
+		if(basic_block.EndAddress<(*CmdArrayIter).ea && (*CmdArrayIter).ea!=0xffffffff)
+			basic_block.EndAddress=(*CmdArrayIter).ea;
 		
 		if(isCode(Flag) &&
 			!( //detect hot patching
-				one_location_info.StartAddress==one_location_info.FunctionAddress && 
+				basic_block.StartAddress==basic_block.FunctionAddress && 
 				CmdArrayIter==pCmdArray->begin() &&
 				(ph.id == PLFM_386 || ph.id == PLFM_IA64) && (*CmdArrayIter).itype == NN_mov && (*CmdArrayIter).Operands[0].reg == (*CmdArrayIter).Operands[1].reg
 			) &&
@@ -754,49 +754,49 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 			generate_disasm_line((*CmdArrayIter).ea,buf,sizeof(buf)-1);
 			tag_remove(buf,buf,sizeof(buf)-1);
 			if(Debug>3)
-				WriteToLogFile(gLogFile,"%X(%X): [%s]\n",(*CmdArrayIter).ea,one_location_info.StartAddress,buf);
+				WriteToLogFile(gLogFile,"%X(%X): [%s]\n",(*CmdArrayIter).ea,basic_block.StartAddress,buf);
 
 			strcat_s(buf, MAXSTR, "\n");
 			disasm_buffer+=buf;
 		}
 	}
 
-	one_location_info.NameLen=strlen(name)+1;
-	one_location_info.DisasmLinesLen=disasm_buffer.length()+1;
-	one_location_info.FingerprintLen=FingerPrint.size();
+	basic_block.NameLen=strlen(name)+1;
+	basic_block.DisasmLinesLen=disasm_buffer.length()+1;
+	basic_block.FingerprintLen=FingerPrint.size();
 
 	if(GatherCmdArray)
 	{
-		one_location_info.CmdArrayLen=pCmdArray->size()*sizeof(insn_t);
+		basic_block.CmdArrayLen=pCmdArray->size()*sizeof(insn_t);
 	}else
 	{
-		one_location_info.CmdArrayLen=0;
+		basic_block.CmdArrayLen=0;
 	}
 
-	int one_location_info_length=sizeof(one_location_info)+one_location_info.NameLen+one_location_info.DisasmLinesLen+one_location_info.FingerprintLen+one_location_info.CmdArrayLen;
-	PBasicBlock p_one_location_info=(PBasicBlock)malloc(one_location_info_length);
+	int basic_block_length=sizeof(basic_block)+basic_block.NameLen+basic_block.DisasmLinesLen+basic_block.FingerprintLen+basic_block.CmdArrayLen;
+	PBasicBlock p_basic_block=(PBasicBlock)malloc(basic_block_length);
 
-	if(p_one_location_info)
+	if(p_basic_block)
 	{
-		memcpy(p_one_location_info,&one_location_info,sizeof(one_location_info));
-		memcpy(p_one_location_info->Data,name,one_location_info.NameLen);
+		memcpy(p_basic_block,&basic_block,sizeof(basic_block));
+		memcpy(p_basic_block->Data,name,basic_block.NameLen);
 
 		if(disasm_buffer.length()>0)
 		{
-			memcpy((char *)p_one_location_info->Data+one_location_info.NameLen,
+			memcpy((char *)p_basic_block->Data+basic_block.NameLen,
 				disasm_buffer.c_str(),
-				one_location_info.DisasmLinesLen);
+				basic_block.DisasmLinesLen);
 		}else
 		{
-			*((char *)p_one_location_info->Data+one_location_info.NameLen)=NULL;
+			*((char *)p_basic_block->Data+basic_block.NameLen)=NULL;
 		}
 
 		for(size_t fi=0;fi<FingerPrint.size();fi++)
 		{
-			((unsigned char *)p_one_location_info->Data)[one_location_info.NameLen+one_location_info.DisasmLinesLen+fi]=FingerPrint.at(fi);
+			((unsigned char *)p_basic_block->Data)[basic_block.NameLen+basic_block.DisasmLinesLen+fi]=FingerPrint.at(fi);
 		}
 
-		insn_t *CmdsPtr=(insn_t *)(p_one_location_info->Data+one_location_info.NameLen+one_location_info.DisasmLinesLen+one_location_info.FingerprintLen);
+		insn_t *CmdsPtr=(insn_t *)(p_basic_block->Data+basic_block.NameLen+basic_block.DisasmLinesLen+basic_block.FingerprintLen);
 
 		if(GatherCmdArray)
 		{
@@ -808,12 +808,12 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		}
 
 		if(!Callback(Context,
-			ONE_LOCATION_INFO,
-			(PBYTE)p_one_location_info,
-			one_location_info_length))
+			BASIC_BLOCK,
+			(PBYTE)p_basic_block,
+			basic_block_length))
 		{
 		}
-		free(p_one_location_info);
+		free(p_basic_block);
 	}
 	//Reset FingerPrint Data
 	FingerPrint.clear();			
@@ -1273,7 +1273,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	list <AddressRegion> AddressRegions;
 	for(AddressQueueIter=AddressQueue.begin();AddressQueueIter!=AddressQueue.end();AddressQueueIter++)
 	{
-		msg("Analyzing Address %x\n",*AddressQueueIter);
+		msg("Analyzing Address %X\n",*AddressQueueIter);
 		ea_t block_StartAddress=*AddressQueueIter;
 		for(current_addr=block_StartAddress;;current_addr+=current_item_size)
 		{
@@ -1330,10 +1330,10 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					cmd.itype==NN_jnz                 // Jump if Not Zero (ZF=0)
 				)
 				{
-					msg("Got Jump at %x\n",current_addr);
+					msg("Got Jump at %X\n",current_addr);
 					if(AddressHash.find(cref)==AddressHash.end())
 					{
-						msg("Adding %x to queue\n",cref);
+						msg("Adding %X to queue\n",cref);
 						AddressHash.insert(cref);
 						AddressQueue.push_back(cref);
 					}
@@ -1357,7 +1357,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					)
 					{
 						//End of block
-						msg("Got End of Block at %x\n",current_addr);
+						msg("Got End of Block at %X\n",current_addr);
 						bEndOfBlock=TRUE;
 					}
 				}
@@ -1379,7 +1379,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	list <AddressRegion>::iterator AddressRegionsIter;
 	for(AddressRegionsIter=AddressRegions.begin();AddressRegionsIter!=AddressRegions.end();AddressRegionsIter++)
 	{
-		msg("Collected Addresses %x - %x\n",(*AddressRegionsIter).startEA,(*AddressRegionsIter).endEA);
+		msg("Collected Addresses %X - %X\n",(*AddressRegionsIter).startEA,(*AddressRegionsIter).endEA);
 	}
 	*/
 	return AddressRegions;

@@ -235,8 +235,8 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_addre
 {
 	Logger.Log(10, LOG_DARUNGRIM, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
 
-	Logger.Log(10, LOG_DARUNGRIM, "	source_address: %x\n", source_address);
-	Logger.Log(10, LOG_DARUNGRIM, "	target_address: %x\n", target_address);
+	Logger.Log(10, LOG_DARUNGRIM, "	source_address: %X\n", source_address);
+	Logger.Log(10, LOG_DARUNGRIM, "	target_address: %X\n", target_address);
 
 	pDiffMachine->SetSource((char *)src_storage_filename, 1, source_address);
 	pDiffMachine->SetTarget((char *)target_storage_filename, 1, target_address);
@@ -270,10 +270,10 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 
 	pStorageDB = new DBWrapper(storage_filename);
 
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_START_ADDRESS_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_END_ADDRESS_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_START_ADDRESS_INDEX_STATEMENT);
+	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_END_ADDRESS_INDEX_STATEMENT);
 	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
 	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
 	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
@@ -655,11 +655,11 @@ DWORD DarunGrim::IDACommandProcessor()
 						PBYTE data = RecvTLVData(SocketArray[i], &type, &length);
 						if (data)
 						{
-							Logger.Log(10, LOG_DARUNGRIM, "%s: Type: %d Length: %d data:%x\n", __FUNCTION__, type, length, data);
+							Logger.Log(10, LOG_DARUNGRIM, "%s: Type: %d Length: %d data:%X\n", __FUNCTION__, type, length, data);
 							if (type == SHOW_MATCH_ADDR && length >= 4)
 							{
 								DWORD address = *(DWORD *)data;
-								Logger.Log(10, LOG_DARUNGRIM, "%s: Showing address=%x\n", __FUNCTION__, address);
+								Logger.Log(10, LOG_DARUNGRIM, "%s: Showing address=%X\n", __FUNCTION__, address);
 								//Get Matching Address
 
 								DWORD MatchingAddress = 0;

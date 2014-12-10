@@ -20,7 +20,7 @@ LOG_DARUNGRIM=0x00000001
 LOG_DIFF_MACHINE=0x00000002
 LOG_IDA_CONTROLLER=0x00000004
 LOG_SQL=0x00000008
-LOG_ONE_LOCATION_INFO=0x0000000F
+LOG_BASIC_BLOCK=0x0000000F
 LOG_MATCH_RATE=0x00000010
 
 
@@ -33,8 +33,10 @@ class DarunGrim:
 		self.DarunGrim = DiffEngine.DarunGrim()
 		self.DarunGrim.SetLogParameters(LogToStdout, 10, "")
 
-		self.DarunGrim.AddSrcDumpAddress(0)
-		self.DarunGrim.AddTargetDumpAddress(0)
+		self.DarunGrim.AddSrcDumpAddress(0x6E4F443E)
+		self.DarunGrim.AddTargetDumpAddress(0x6E4F443E)
+		self.DarunGrim.AddTargetDumpAddress(0x6e507129)
+		
 		self.DarunGrim.EnableLogType(LOG_DIFF_MACHINE)
 		self.DarunGrim.EnableLogType(LOG_DARUNGRIM)
 

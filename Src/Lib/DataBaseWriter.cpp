@@ -4,10 +4,10 @@
 
 void CreateTables(DBWrapper &db)
 {
-	db.ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_STATEMENT);
-	db.ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
-	db.ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_START_ADDRESS_INDEX_STATEMENT);
-	db.ExecuteStatement(NULL, NULL, CREATE_ONE_LOCATION_INFO_TABLE_END_ADDRESS_INDEX_STATEMENT);
+	db.ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
+	db.ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
+	db.ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_START_ADDRESS_INDEX_STATEMENT);
+	db.ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_END_ADDRESS_INDEX_STATEMENT);
 	db.ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
 	db.ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
 	db.ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
@@ -21,7 +21,7 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 
 	switch(Type)
 	{
-		case ONE_LOCATION_INFO:
+		case BASIC_BLOCK:
 			if (sizeof(BasicBlock) <= Length)
 			{
 				PBasicBlock pBasicBlock=(PBasicBlock)Data;
@@ -43,7 +43,7 @@ int DatabaseWriterWrapper(DBWrapper *db,BYTE Type,PBYTE Data,DWORD Length)
 				}
 
 				CurrentAddress=pBasicBlock->StartAddress;
-				Status=db->ExecuteStatement(NULL,NULL,INSERT_ONE_LOCATION_INFO_TABLE_STATEMENT,
+				Status=db->ExecuteStatement(NULL,NULL,INSERT_BASIC_BLOCK_TABLE_STATEMENT,
 					FileID,
 					pBasicBlock->StartAddress,
 					pBasicBlock->EndAddress,

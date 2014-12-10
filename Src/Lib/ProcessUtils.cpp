@@ -25,7 +25,7 @@ bool StartProcess(LPTSTR szCmdline)
 	)
 	{
 		ServerHandle=ProcessInformation.hProcess;
-		//msg("%s: ServerHandle=%x\n",__FUNCTION__,ServerHandle);
+		//msg("%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
 		return TRUE;
 	}
 	if(1) //if server process is already up
@@ -35,7 +35,7 @@ bool StartProcess(LPTSTR szCmdline)
 			PROCESS_ALL_ACCESS,
 			FALSE,
 			10656);
-		//msg("%s: ServerHandle=%x\n",__FUNCTION__,ServerHandle);
+		//msg("%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
 	}
 	return FALSE;
 }
@@ -96,7 +96,7 @@ char *WriteToTemporaryFile(const char *format,...)
 
 	temporary_filename[ sizeof(temporary_filename) - sizeof( char ) ] = NULL;
 	if( _snprintf( temporary_filename, sizeof(temporary_filename) - sizeof( char ),
-			"%s\\DarunGrim-%x-%x.idc", temporary_path, GetCurrentProcessId(), GetCurrentThreadId() ) > 0 )
+			"%s\\DarunGrim-%X-%X.idc", temporary_path, GetCurrentProcessId(), GetCurrentThreadId() ) > 0 )
 	{
 		// Create the new file to write the upper-case version to.
 		temporary_file_handle=CreateFile((LPTSTR)temporary_filename,// file name 

@@ -440,14 +440,14 @@ class Database:
 		return self.SessionInstance.query(FunctionMatchInfo).count()
 
 	def GetBlockName(self, file_id, address):
-		for one_location_info in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, start_address=address).all():
-			return one_location_info.name
+		for basic_block in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, start_address=address).all():
+			return basic_block.name
 		return ""
 
 	def GetFunctionDisasmLinesMapOrig(self, file_id, function_address):
 		disasms={}
-		for one_location_info in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, function_address=function_address).all():
-			disasms[one_location_info.start_address] = one_location_info.disasm_lines
+		for basic_block in self.SessionInstance.query(BasicBlock).filter_by(file_id=file_id, function_address=function_address).all():
+			disasms[basic_block.start_address] = basic_block.disasm_lines
 		return disasms
 
 	def GetFunctionDisasmLines(self, type, function_address):
@@ -458,14 +458,14 @@ class Database:
 		if self.UseAttach:
 			if type=='Source':
 				map_info=SourceMapInfo
-				one_location_info=SourceBasicBlock	
+				basic_block=SourceBasicBlock	
 			else:
 				map_info=TargetMapInfo
-				one_location_info=TargetBasicBlock
+				basic_block=TargetBasicBlock
 			session=self.SessionInstance
 		else:
 			map_info=MapInfo
-			one_location_info=BasicBlock	
+			basic_block=BasicBlock	
 			session=self.SessionInstancesMap[type]
 		
 		for bb_address in bb_addresses:
@@ -479,7 +479,7 @@ class Database:
 
 		for bb_address in bb_addresses:
 			try:
-				for ret in session.query(one_location_info).filter_by(start_address=bb_address).all():
+				for ret in session.query(basic_block).filter_by(start_address=bb_address).all():
 					disasms[ret.start_address] = [ret.end_address, ret.disasm_lines]
 			except:
 				pass
@@ -493,14 +493,14 @@ class Database:
 		if self.UseAttach:
 			if type=='Source':
 				map_info=SourceMapInfo
-				one_location_info=SourceBasicBlock	
+				basic_block=SourceBasicBlock	
 			else:
 				map_info=TargetMapInfo
-				one_location_info=TargetBasicBlock
+				basic_block=TargetBasicBlock
 			session=self.SessionInstance
 		else:
 			map_info=MapInfo
-			one_location_info=BasicBlock	
+			basic_block=BasicBlock	
 			session=self.SessionInstancesMap[type]
 
 		if self.UseMapInfoForFunctionBlockQuery:
@@ -511,12 +511,12 @@ class Database:
 
 			block_range_addresses = []
 			for bb_address in bb_addresses:
-				for ret in session.query(one_location_info).filter_by(file_id=file_id, start_address=bb_address).all():
+				for ret in session.query(basic_block).filter_by(file_id=file_id, start_address=bb_address).all():
 					block_range_addresses.append((ret.start_address, ret.end_address))
 
 		else:
 			block_range_addresses = []
-			for ret in session.query(one_location_info).filter_by(file_id=file_id, function_address=function_address).all():
+			for ret in session.query(basic_block).filter_by(file_id=file_id, function_address=function_address).all():
 				block_range_addresses.append((ret.start_address, ret.end_address))			
 		return block_range_addresses
 
