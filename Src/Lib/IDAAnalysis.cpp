@@ -645,7 +645,10 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		{
 			basic_block.FunctionAddress=p_func->startEA;
 		}
-		
+
+		//WriteToLogFile(gLogFile, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
+		//msg("Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
+
 		ea_t cref = get_first_cref_to(SrcBlock);
 
 		if(cref==BADADDR || basic_block.StartAddress==basic_block.FunctionAddress)
@@ -1207,23 +1210,22 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 	if(!pAddressRegions)
 		return;
 
-	list <AddressRegion>::iterator AddressRegionsIter;
-	hash_map <ea_t,ea_t> AdditionallyAnalyzedBlocks;
+	hash_map <ea_t,ea_t> additionally_analyzed_blocks;
 
-	for(AddressRegionsIter=pAddressRegions->begin();AddressRegionsIter!=pAddressRegions->end();AddressRegionsIter++)
+	for (list <AddressRegion>::iterator it = pAddressRegions->begin(); it != pAddressRegions->end(); it++)
 	{
-		ea_t startEA=(*AddressRegionsIter).startEA;
-		ea_t endEA=(*AddressRegionsIter).endEA;
+		ea_t startEA = (*it).startEA;
+		ea_t endEA = (*it).endEA;
 		
 		WriteToLogFile(gLogFile,"Analyzing %X~%X\n",startEA,endEA);
 
-		ea_t CurrentAddress;
-		for(CurrentAddress=startEA;CurrentAddress<endEA;)
+		ea_t current_address;
+		for (current_address = startEA; current_address<endEA;)
 		{
 			list <insn_t> CmdArray;
 			flags_t Flag;
 			
-			ea_t NextAddress=AnalyzeBlock(Callback,Context,CurrentAddress,endEA,&CmdArray,&Flag,AdditionallyAnalyzedBlocks);
+			ea_t next_address = AnalyzeBlock(Callback, Context, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
 			if(0)
 			{
 				hash_map <op_t,OperandPosition,OpTHashCompareStr> OperandsHash;
@@ -1242,20 +1244,20 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 
 				if(NewCmdArray)
 				{
-					DumpBasicBlock(Callback,Context,CurrentAddress,NewCmdArray,Flag,GatherCmdArray);
+					DumpBasicBlock(Callback, Context, current_address, NewCmdArray, Flag, GatherCmdArray);
 					delete NewCmdArray;
 				}
 			}else
 			{
-				DumpBasicBlock(Callback,Context,CurrentAddress,&CmdArray,Flag,GatherCmdArray);
+				DumpBasicBlock(Callback, Context, current_address, &CmdArray, Flag, GatherCmdArray);
 			}
 
 			CmdArray.clear();
 
-			if(CurrentAddress==NextAddress)
+			if (current_address == next_address)
 				break;
 
-			CurrentAddress=NextAddress;
+			current_address = next_address;
 		}
 	}
 }

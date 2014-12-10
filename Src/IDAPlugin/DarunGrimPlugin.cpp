@@ -770,51 +770,48 @@ void SaveDGF(bool ask_file_path)
 	FindInvalidFunctionStartAndConnectBrokenFunctionChunk();
 
 	//FixExceptionHandlers();
-	if (!OutputFilename)
-	{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-		char orignal_file_path[1024] = { 0, };
-		char root_file_path[1024] = { 0, };
+	char orignal_file_path[1024] = { 0, };
+	char root_file_path[1024] = { 0, };
 #else
-		char *orignal_file_path = strdup(get_input_file_path());
-		char *root_file_path = get_root_filename();
+	char *orignal_file_path = strdup(get_input_file_path());
+	char *root_file_path = get_root_filename();
 #endif
-		char *input_file_path = NULL;
+	char *input_file_path = NULL;
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-		get_input_file_path(orignal_file_path, sizeof(orignal_file_path)-1);
-		get_root_filename(root_file_path, sizeof(root_file_path)-1);
+	get_input_file_path(orignal_file_path, sizeof(orignal_file_path)-1);
+	get_root_filename(root_file_path, sizeof(root_file_path)-1);
 #endif
-		if (ask_file_path)
+	if (ask_file_path)
+	{
+		input_file_path = askfile_c(1, "*.dgf", "Select DB File to Output");
+		if (!input_file_path)
 		{
-			input_file_path = askfile_c(1, "*.dgf", "Select DB File to Output");
-			if (!input_file_path)
-			{
-				return;
-			}
+			return;
 		}
+	}
 
-		if (input_file_path && strlen(input_file_path)>0)
+	if (input_file_path && strlen(input_file_path)>0)
+	{
+		int OutputFilename_size = strlen(input_file_path) + 5;
+		OutputFilename = (char *)calloc(1, OutputFilename_size);
+		if (OutputFilename)
 		{
-			int OutputFilename_size = strlen(input_file_path) + 5;
-			OutputFilename = (char *)calloc(1, OutputFilename_size);
-			if (OutputFilename)
-			{
-				qstrncpy(OutputFilename, input_file_path, OutputFilename_size);
+			qstrncpy(OutputFilename, input_file_path, OutputFilename_size);
 #define DB_POSTFIX ".dgf"
-				if (stricmp(&input_file_path[strlen(input_file_path) - 4], ".dgf"))
-				{
+			if (stricmp(&input_file_path[strlen(input_file_path) - 4], ".dgf"))
+			{
 #ifdef _USE_IDA_SDK_49_OR_UPPER
-					qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
+				qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #else
 #ifdef _USE_IDA_SDK_47_OR_LOWER
-					strncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
+				strncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #else
-					qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
+				qstrncat(OutputFilename, DB_POSTFIX, OutputFilename_size);
 #endif
 #endif
-				}
-				msg("Output file=[%s]\n", OutputFilename);
 			}
+			msg("Output file=[%s]\n", OutputFilename);
 		}
 	}
 
