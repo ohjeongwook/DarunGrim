@@ -1264,13 +1264,11 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 {
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
 	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
-	multimap <DWORD, DWORD> *AddressToFunctionMapForTheSource;
-	multimap <DWORD, DWORD> *AddressToFunctionMapForTheTarget;
 
-	FunctionMembersMapForTheSource = SourceController->LoadFunctionMembersMap();
-	FunctionMembersMapForTheTarget = TargetController->LoadFunctionMembersMap();
-	AddressToFunctionMapForTheSource = SourceController->LoadAddressToFunctionMap();
-	AddressToFunctionMapForTheTarget = TargetController->LoadAddressToFunctionMap();
+	SourceController->LoadBlockToFunction();
+	TargetController->LoadBlockToFunction();
+	FunctionMembersMapForTheSource = SourceController->GetFunctionToBlock();
+	FunctionMembersMapForTheTarget = TargetController->GetFunctionToBlock();
 
 	multimap <DWORD, DWORD>::iterator FunctionMembersIter;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1342,18 +1340,16 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 						if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 							Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X Block: %X:%X\r\n", source_function_addr, match_map_it->second.Addresses[0], target_addr);
 
-						multimap <DWORD, DWORD>::iterator it = AddressToFunctionMapForTheTarget->find(target_addr);
-						if (it != AddressToFunctionMapForTheTarget->end())
+						DWORD target_function_address;
+						if (TargetController->GetFunctionAddress(target_addr, target_function_address))
 						{
-							DWORD target_function_addr = it->second;
+							if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
+								Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_address, block_address, target_addr);
 
-							if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, target_function_addr)))
-								Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_addr, block_address, target_addr);
-
-							hash_map <DWORD, DWORD>::iterator function_match_count_it = function_match_count.find(target_function_addr);
+							hash_map <DWORD, DWORD>::iterator function_match_count_it = function_match_count.find(target_function_address);
 							if (function_match_count_it == function_match_count.end())
 							{
-								function_match_count.insert(pair<DWORD, DWORD>(target_function_addr, 1));
+								function_match_count.insert(pair<DWORD, DWORD>(target_function_address, 1));
 							}else
 							{
 								function_match_count_it->second++;
@@ -1402,52 +1398,38 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 							match_data
 							 ) );
 					}
+
+					//Remove match entries for specific target_function
 					for (block_addr_it = block_addresses.begin(); block_addr_it != block_addresses.end(); block_addr_it++)
 					{
-						DWORD Address=*block_addr_it;
-						for (multimap <DWORD, MatchData>::iterator MatchMapIter = DiffResults->MatchMap.find(Address); 
-							MatchMapIter != DiffResults->MatchMap.end() && MatchMapIter->first == Address;
+						DWORD source_address=*block_addr_it;
+						for (multimap <DWORD, MatchData>::iterator it = DiffResults->MatchMap.find(source_address);
+							it != DiffResults->MatchMap.end() && it->first == source_address;
 						)
 						{
-							multimap <DWORD, DWORD>::iterator AddressToFunctionMapForTheSourceIter=AddressToFunctionMapForTheSource->find( Address );
-							multimap <DWORD, DWORD>::iterator AddressToFunctionMapForTheTargetIter;
-							DWORD MatchedAddress=MatchMapIter->second.Addresses[1];
-							BOOL Remove=FALSE;
-							if( AddressToFunctionMapForTheSourceIter!=AddressToFunctionMapForTheSource->end() )
+							DWORD source_function_address;
+							DWORD target_address = it->second.Addresses[1];
+							BOOL function_matched=FALSE;
+							if (SourceController->GetFunctionAddress(source_address, source_function_address))
 							{
-								for( AddressToFunctionMapForTheTargetIter=AddressToFunctionMapForTheTarget->find( MatchedAddress );
-									AddressToFunctionMapForTheTargetIter!=AddressToFunctionMapForTheTarget->end();
-									AddressToFunctionMapForTheTargetIter++ )
-								{
-									if( AddressToFunctionMapForTheTargetIter->first!=MatchedAddress )
-										break;
-									if( AddressToFunctionMapForTheTargetIter->second==chosen_target_function_addr )
-									{
-										Remove=FALSE;
-										break;
-									}else
-									{
-										Remove=TRUE;
-									}
-								}
+								function_matched = TargetController->FindBlockFunctionMatch(target_address, chosen_target_function_addr);
 							}
 
-							if( Remove )
+							if (!function_matched)
 							{
-									//Remove Address from DiffResults->MatchMap
 								if (pDumpAddressChecker && 
 									(
-										pDumpAddressChecker->IsDumpPair(Address, MatchedAddress) || 
-										pDumpAddressChecker->IsDumpPair(AddressToFunctionMapForTheSourceIter->second, AddressToFunctionMapForTheTargetIter->second)
+										pDumpAddressChecker->IsDumpPair(source_function_address, target_address) ||
+										pDumpAddressChecker->IsDumpPair(source_function_address, chosen_target_function_addr)
 									)
 								)
-									Logger.Log( 10, LOG_DIFF_MACHINE,  "Removing address %X( %X )-%X( %X )\n", Address, AddressToFunctionMapForTheSourceIter->second, MatchedAddress, AddressToFunctionMapForTheTargetIter->second );
-								MatchMapIter=DiffResults->Erase(MatchMapIter);
+								Logger.Log(10, LOG_DIFF_MACHINE, "Removing address %X( %X )-%X( %X )\n", source_address, source_function_address, target_address, chosen_target_function_addr);
+								it = DiffResults->Erase(it);
 
 							}else
 							{
-								//Logger.Log( 10, LOG_DIFF_MACHINE,  "Keeping address %X( %X )-%X( %X )\n", Address, AddressToFunctionMapForTheSourceIter->second, MatchedAddress, AddressToFunctionMapForTheTargetIter->second );
-								MatchMapIter++;
+								//Logger.Log( 10, LOG_DIFF_MACHINE,  "Keeping address %X( %X )-%X( %X )\n", Address, AddressToFunctionMapForTheSourceIter->second, target_address, AddressToFunctionMapForTheTargetIter->second );
+								it++;
 							}
 						}
 					}
@@ -1470,23 +1452,8 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 		block_addresses.push_back(FunctionMembersIter->second);
 	}
 
-	FunctionMembersMapForTheSource->clear();
-	delete FunctionMembersMapForTheSource;
-	FunctionMembersMapForTheSource = NULL;
-
-	FunctionMembersMapForTheTarget->clear();
-	delete FunctionMembersMapForTheTarget;
-	FunctionMembersMapForTheTarget = NULL;
-
-	AddressToFunctionMapForTheSource->clear();
-	delete AddressToFunctionMapForTheSource;
-	AddressToFunctionMapForTheSource = NULL;
-
-	AddressToFunctionMapForTheTarget->clear();
-	delete AddressToFunctionMapForTheTarget;
-	AddressToFunctionMapForTheTarget = NULL;
-
-
+	SourceController->ClearBlockToFunction();
+	TargetController->ClearBlockToFunction();
 }
 
 typedef struct _AddressesInfo_

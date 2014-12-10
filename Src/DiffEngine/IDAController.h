@@ -81,7 +81,45 @@ public:
 
 	multimap <DWORD, DWORD> CrefToMap;
 	void BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_map);
+
+	multimap <DWORD, DWORD> BlockToFunction;
+	multimap <DWORD, DWORD> FunctionToBlock;
 public:
+	bool GetFunctionAddress(DWORD address, DWORD &function_address)
+	{
+		multimap <DWORD, DWORD>::iterator it = BlockToFunction.find(address);
+
+		if (it != BlockToFunction.end())
+		{
+			function_address = it->second;
+			return true;
+		}
+		function_address = 0;
+		return false;
+	}
+
+	bool FindBlockFunctionMatch(DWORD block, DWORD function)
+	{
+		for (multimap <DWORD, DWORD>::iterator it = BlockToFunction.find(block);
+			it != BlockToFunction.end() && it->first==block;
+			it++)
+		{
+			if (it->second == function)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	multimap <DWORD, DWORD> *LoadBlockToFunction();
+	multimap <DWORD, DWORD> *GetFunctionToBlock();
+	void ClearBlockToFunction()
+	{
+		BlockToFunction.clear();
+		FunctionToBlock.clear();
+	}
+
 	string GetInputName();
 	void RetrieveIdentity();
 	string GetIdentity();
@@ -95,8 +133,6 @@ public:
 	int GetFileID();
 	char *GetOriginalFilePath();
 
-	multimap <DWORD, DWORD> *LoadFunctionMembersMap();
-	multimap <DWORD, DWORD> *LoadAddressToFunctionMap();
 	BOOL FixFunctionAddresses();
 	list <DWORD> *GetFunctionAddresses();
 
