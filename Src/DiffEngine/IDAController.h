@@ -78,6 +78,9 @@ public:
 	char *GetDisasmLines(unsigned long start_addr, unsigned long end_addr);
 
 	string Identity;
+
+	multimap <DWORD, DWORD> CrefToMap;
+	void BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_map);
 public:
 	string GetInputName();
 	void RetrieveIdentity();
@@ -91,6 +94,7 @@ public:
 	void GenerateFingerprintHashMap();
 	int GetFileID();
 	char *GetOriginalFilePath();
+
 	multimap <DWORD, DWORD> *LoadFunctionMembersMap();
 	multimap <DWORD, DWORD> *LoadAddressToFunctionMap();
 	BOOL FixFunctionAddresses();

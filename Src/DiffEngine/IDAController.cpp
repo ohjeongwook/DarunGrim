@@ -223,38 +223,38 @@ DWORD *IDAController::GetMappedAddresses(DWORD address, int type, int *p_length)
 	return addresses;
 }
 
+
 list <DWORD> *IDAController::GetFunctionAddresses()
 {
 	if (TargetFunctionAddress != 0)
 	{
-		list <DWORD> *FunctionAddresses = new list<DWORD>;
-		if (FunctionAddresses)
+		list <DWORD> *function_addresses = new list<DWORD>;
+		if (function_addresses)
 		{
-			FunctionAddresses->push_back(TargetFunctionAddress);
+			function_addresses->push_back(TargetFunctionAddress);
 		}
 
-		return FunctionAddresses;
+		return function_addresses;
 	}
 
 	int DoCrefFromCheck = FALSE;
 	int DoCallCheck = TRUE;
-	hash_set <DWORD> FunctionAddressHash;
-	hash_map <DWORD, short> AddressesHash;
+	hash_set <DWORD> function_address_hash;
+	hash_map <DWORD, short> addresses;
 
-	multimap <DWORD, PMapInfo>::iterator map_info_hash_map_pIter;
 	if (DoCrefFromCheck)
 	{
-		Logger.Log(10, LOG_IDA_CONTROLLER, "AddressesHash.size() = %u\n", AddressesHash.size());
-		for (map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_pIter++
+		Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
+		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_hash_map.begin();
+			it != ClientAnalysisInfo->map_info_hash_map.end();
+			it++
 			)
 		{
-			Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", map_info_hash_map_pIter->first, map_info_hash_map_pIter->second->Dst, MapInfoTypesStr[map_info_hash_map_pIter->second->Type]);
-			if (map_info_hash_map_pIter->second->Type == CREF_FROM)
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", it->first, it->second->Dst, MapInfoTypesStr[it->second->Type]);
+			if (it->second->Type == CREF_FROM)
 			{
-				hash_map <DWORD, short>::iterator iter = AddressesHash.find(map_info_hash_map_pIter->second->Dst);
-				if (iter != AddressesHash.end())
+				hash_map <DWORD, short>::iterator iter = addresses.find(it->second->Dst);
+				if (iter != addresses.end())
 				{
 					iter->second = FALSE;
 				}
@@ -266,57 +266,57 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
 			address_fingerprint_hash_map_iter++)
 		{
-			AddressesHash.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
+			addresses.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
 		}
 		
-		Logger.Log(10, LOG_IDA_CONTROLLER, "AddressesHash.size() = %u\n", AddressesHash.size());
-		for (hash_map <DWORD, short>::iterator AddressesHashIterator = AddressesHash.begin(); AddressesHashIterator != AddressesHash.end(); AddressesHashIterator++)
+		Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
+		for (hash_map <DWORD, short>::iterator it = addresses.begin(); it != addresses.end(); it++)
 		{
-			if (AddressesHashIterator->second)
+			if (it->second)
 			{
-				Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, AddressesHashIterator->first);
-				FunctionAddressHash.insert(AddressesHashIterator->first);
+				Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, it->first);
+				function_address_hash.insert(it->first);
 			}
 		}
 	}
 	else
 	{
 		if (m_StorageDB)
-			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &FunctionAddressHash, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
+			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &function_address_hash, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
 	}
 
 	if (DoCallCheck && ClientAnalysisInfo)
 	{
-		for (map_info_hash_map_pIter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_pIter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_pIter++
+		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_hash_map.begin();
+			it != ClientAnalysisInfo->map_info_hash_map.end();
+			it++
 			)
 		{
-			if (map_info_hash_map_pIter->second->Type == CALL)
+			if (it->second->Type == CALL)
 			{
-				if (FunctionAddressHash.find(map_info_hash_map_pIter->second->Dst) == FunctionAddressHash.end())
+				if (function_address_hash.find(it->second->Dst) == function_address_hash.end())
 				{
-					Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, map_info_hash_map_pIter->second->Dst);
-					FunctionAddressHash.insert(map_info_hash_map_pIter->second->Dst);
+					Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, it->second->Dst);
+					function_address_hash.insert(it->second->Dst);
 				}
 			}
 		}
 	}
 
-	list <DWORD> *FunctionAddresses = new list<DWORD>;
-	if (FunctionAddresses)
+	list <DWORD> *function_addresses = new list<DWORD>;
+	if (function_addresses)
 	{
-		for (hash_set <DWORD>::iterator FunctionAddressHashIter = FunctionAddressHash.begin();
-			FunctionAddressHashIter != FunctionAddressHash.end();
-			FunctionAddressHashIter++)
+		for (hash_set <DWORD>::iterator it = function_address_hash.begin();
+			it != function_address_hash.end();
+			it++)
 		{
-			FunctionAddresses->push_back(*FunctionAddressHashIter);
-			Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *FunctionAddressHashIter);
+			function_addresses->push_back(*it);
+			Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *it);
 		}
 		
-		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, function_addresses->size());
 	}
-	return FunctionAddresses;
+	return function_addresses;
 }
 
 #undef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
@@ -549,6 +549,23 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 				"WHERE FileID = %u "
 				"AND SrcBlock  = '%d'",
 				m_FileID, Address);
+		}
+	}
+
+	BuildCrefToMap(p_map_info_hash_map);
+}
+
+
+void IDAController::BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_map)
+{
+	for (multimap <DWORD, PMapInfo>::iterator it = p_map_info_hash_map->begin();
+		it != p_map_info_hash_map->end();
+		it++
+	)
+	{
+		if (it->second->Type == CREF_FROM)
+		{
+			CrefToMap.insert(pair<DWORD, DWORD>(it->second->Dst, it->first));
 		}
 	}
 }
@@ -1045,7 +1062,7 @@ void IDAController::ColorAddress(unsigned long start_address, unsigned long end_
 }
 
 
-list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddress)
+list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_address)
 {
 	list <BLOCK> block_list;
 
@@ -1054,15 +1071,15 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 		list <DWORD> address_list;
 		list <DWORD>::iterator address_list_iter;
 		hash_set <DWORD> checked_addresses;
-		address_list.push_back(FunctionAddress);
+		address_list.push_back(function_address);
 		
 		BLOCK block;
-		block.Start = FunctionAddress;
-		PBasicBlock pBasicBlock = GetBasicBlock(FunctionAddress);
+		block.Start = function_address;
+		PBasicBlock pBasicBlock = GetBasicBlock(function_address);
 		block.End = pBasicBlock->EndAddress;
 		block_list.push_back(block);
 
-		checked_addresses.insert(FunctionAddress);
+		checked_addresses.insert(function_address);
 
 		for (address_list_iter = address_list.begin();
 			address_list_iter != address_list.end();
@@ -1098,7 +1115,7 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long FunctionAddres
 		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
 			"SELECT StartAddress, EndAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d'"
 			"ORDER BY ID ASC",
-			m_FileID, FunctionAddress);
+			m_FileID, function_address);
 	}
 
 	return block_list;
@@ -1263,22 +1280,19 @@ multimap <DWORD, DWORD> *IDAController::LoadFunctionMembersMap()
 		multimap <DWORD, DWORD> *FunctionMembers = new multimap <DWORD, DWORD>;
 		if(FunctionMembers)
 		{
-			list <DWORD>::iterator FunctionAddressIter;
-			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
+			for (list <DWORD>::iterator function_address_it = FunctionAddresses->begin(); function_address_it != FunctionAddresses->end(); function_address_it++)
 			{
-				Logger.Log(10, LOG_IDA_CONTROLLER, "Function %X: ", *FunctionAddressIter);
-				list <BLOCK> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
-				list <BLOCK>::iterator FunctionMemberBlocksIter;
+				Logger.Log(20, LOG_IDA_CONTROLLER, "Function %X\n", *function_address_it);
+				list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(*function_address_it);
 
-				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
-					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
-					FunctionMemberBlocksIter++
+				for (list <BLOCK>::iterator it = function_member_blocks.begin();
+					it != function_member_blocks.end();
+					 it++
 				)
 				{
-					Logger.Log(10, LOG_IDA_CONTROLLER, "%X ", (*FunctionMemberBlocksIter).Start);
-					FunctionMembers->insert(pair <DWORD, DWORD>(*FunctionAddressIter, (*FunctionMemberBlocksIter).Start));
+					 Logger.Log(20, LOG_IDA_CONTROLLER, "	Block: %X\n", (*it).Start);
+					 FunctionMembers->insert(pair <DWORD, DWORD>(*function_address_it, (*it).Start));
 				}
-				Logger.Log(10, LOG_IDA_CONTROLLER, "\n");
 			}
 		}
 
@@ -1307,88 +1321,141 @@ multimap <DWORD, DWORD> *IDAController::LoadAddressToFunctionMap()
 	int Count = 0;
 	
 	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
-	list <DWORD> *FunctionAddresses = GetFunctionAddresses();
-	if(FunctionAddresses)
+	list <DWORD> *function_addresses = GetFunctionAddresses();
+	if (function_addresses)
 	{
-		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, FunctionAddresses->size());
-		multimap <DWORD, DWORD> *AddressToFunctionMap = new multimap <DWORD, DWORD>;
-		if(AddressToFunctionMap)
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, function_addresses->size());
+		multimap <DWORD, DWORD> *address_to_function_map = new multimap <DWORD, DWORD>;
+		if (address_to_function_map)
 		{
-			list <DWORD>::iterator FunctionAddressIter;
-			for(FunctionAddressIter = FunctionAddresses->begin();FunctionAddressIter != FunctionAddresses->end();FunctionAddressIter++)
+			hash_map<DWORD, DWORD> addresses;
+			hash_map<DWORD, DWORD> membership_hash;
+			for (list <DWORD>::iterator it = function_addresses->begin(); it != function_addresses->end(); it++)
 			{
-				list <BLOCK> FunctionMemberBlocks = GetFunctionMemberBlocks(*FunctionAddressIter);
-				list <BLOCK>::iterator FunctionMemberBlocksIter;
+				list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(*it);
 
-				for(FunctionMemberBlocksIter = FunctionMemberBlocks.begin();
-					FunctionMemberBlocksIter != FunctionMemberBlocks.end();
-					FunctionMemberBlocksIter++
+				for (list <BLOCK>::iterator it2 = function_member_blocks.begin();
+					it2 != function_member_blocks.end();
+					 it2++
 				)
 				{
-					AddressToFunctionMap->insert(pair <DWORD, DWORD>((*FunctionMemberBlocksIter).Start, *FunctionAddressIter));
+					DWORD addr = (*it2).Start;
+					address_to_function_map->insert(pair <DWORD, DWORD>(addr, *it));
+
+					if (addresses.find(addr) == addresses.end())
+					{
+						addresses.insert(pair<DWORD, DWORD>(addr, 1));
+					}
+					else
+					{
+						addresses[addr] += 1;
+					}
+
+					if (membership_hash.find(addr) == membership_hash.end())
+					{
+						membership_hash.insert(pair<DWORD, DWORD>(addr, *it));
+					}
+					else
+					{
+						membership_hash[addr] += *it;
+					}
+				}
+			}
+
+			for (hash_map<DWORD, DWORD>::iterator it = addresses.begin();
+				it != addresses.end();
+				it++)
+			{
+				if (it->second > 1)
+				{
+					bool function_start = true;
+					for (multimap<DWORD, DWORD>::iterator it2 = CrefToMap.find(it->first);
+						it2 != CrefToMap.end() && it2->first==it->first;
+						it2++
+					)
+					{
+						hash_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(it->first);
+						DWORD parent=it2->second;
+						Logger.Log(10, LOG_IDA_CONTROLLER, "Found parent for %X = %X\n", it->first, parent);
+						hash_map<DWORD, DWORD>::iterator parent_membership_it = membership_hash.find(parent);
+						if (current_membership_it!=membership_hash.end() && parent_membership_it != membership_hash.end())
+						{
+							if (current_membership_it->second==parent_membership_it->second)
+							{
+								function_start = false;
+								break;
+							}
+						}
+					}
+
+					Logger.Log(10, LOG_IDA_CONTROLLER, "Multiple function membership: %X (%d) %s\n", it->first, it->second, function_start ? "Possible Head" : "Member");
+
+					if (function_start)
+					{
+						list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(it->first);
+
+						for (list <BLOCK>::iterator it2 = function_member_blocks.begin();
+							it2 != function_member_blocks.end();
+							it2++
+							)
+						{
+							DWORD addr = (*it2).Start;
+							for (multimap <DWORD, DWORD>::iterator it3 = address_to_function_map->find(addr);
+								it3 != address_to_function_map->end() && it3->first==addr;
+								it3++
+								)
+							{
+								it3 = address_to_function_map->erase(it3);
+							}
+							address_to_function_map->insert(pair <DWORD, DWORD>(addr, it->first));
+						}
+					}
 				}
 			}
 		}
-		FunctionAddresses->clear();
-		delete FunctionAddresses;
+		function_addresses->clear();
+		delete function_addresses;
 		
-		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d AddressToFunctionMap %u entries\n", __FUNCTION__, m_FileID, AddressToFunctionMap->size());
-		return AddressToFunctionMap;
-		/*
-		hash_map <DWORD, DWORD>::iterator AddressToFunctionMapIter;
-		DWORD FunctionAddress = 0;
-		for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter != AddressToFunctionMap->end();AddressToFunctionMapIter++)
-		{
-			if(FunctionAddress != AddressToFunctionMapIter->first)
-			{
-				FunctionAddress = AddressToFunctionMapIter->first;
-				Logger.Log( 10, LOG_IDA_CONTROLLER, "%X\n", FunctionAddress);
-			}
-			Logger.Log( 10, LOG_IDA_CONTROLLER, "\t%X\n", AddressToFunctionMapIter->second);
-		}*/
-
+		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d address_to_function_map %u entries\n", __FUNCTION__, m_FileID, address_to_function_map->size());
+		return address_to_function_map;
 	}
 	return NULL;
 }
 
 BOOL IDAController::FixFunctionAddresses()
 {
-	BOOL IsFixed = FALSE;
+	BOOL is_fixed = FALSE;
 	Logger.Log(10, LOG_IDA_CONTROLLER, "%s", __FUNCTION__);
-	multimap <DWORD, DWORD> *AddressToFunctionMap = LoadAddressToFunctionMap();
-	multimap <DWORD, DWORD>::iterator AddressToFunctionMapIter;
+	multimap <DWORD, DWORD> *address_to_function_map = LoadAddressToFunctionMap();
 
 	if( m_StorageDB )
 		m_StorageDB->BeginTransaction();
 
-	for(AddressToFunctionMapIter = AddressToFunctionMap->begin();AddressToFunctionMapIter != AddressToFunctionMap->end();AddressToFunctionMapIter++)
+	for (multimap <DWORD, DWORD>::iterator it = address_to_function_map->begin(); it != address_to_function_map->end(); it++)
 	{
-		//StartAddress: AddressToFunctionMapIter->first
-		//FunctionAddress: AddressToFunctionMapIter->second
-		//Update
-		Logger.Log(20, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\r\n",
-			AddressToFunctionMapIter->second, 
-			AddressToFunctionMapIter->first);
+		//StartAddress: it->first
+		//FunctionAddress: it->second
+		Logger.Log(1, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n",
+			it->second,
+			it->first);
 
 		if( m_StorageDB )
 			m_StorageDB->ExecuteStatement(NULL, NULL, UPDATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_STATEMENT, 
-						AddressToFunctionMapIter->second, 
-						AddressToFunctionMapIter->second  ==  AddressToFunctionMapIter->first ? FUNCTION_BLOCK:UNKNOWN_BLOCK, 
-						m_FileID, 
-						AddressToFunctionMapIter->first);
+																				it->second,
+																				it->second == it->first ? FUNCTION_BLOCK : UNKNOWN_BLOCK,
+																				m_FileID, 
+																				it->first);
 
-		IsFixed = TRUE;
+		is_fixed = TRUE;
 	}
-
-	Logger.Log(10, LOG_IDA_CONTROLLER, "\r\n");
 
 	if( m_StorageDB )
 		m_StorageDB->EndTransaction();
 
-	AddressToFunctionMap->clear();
-	delete AddressToFunctionMap;
+	address_to_function_map->clear();
+	delete address_to_function_map;
 
-	return IsFixed;
+	return is_fixed;
 }
 
 bool IDAController::SendMatchedAddrTLVData(FunctionMatchInfo &Data)
