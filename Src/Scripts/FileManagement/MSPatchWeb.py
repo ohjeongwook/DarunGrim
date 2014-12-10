@@ -157,16 +157,18 @@ class PatchDownloader:
 		soup = BeautifulSoup(data)
 
 		title = ''
+		subtitle=''
 		for h1_tag in soup.find( "h1" ):
-			title = h1_tag.string
+			title = h1_tag.string.strip()
 
 		for h2_tag in soup.find( "h2" ):
-			title += h2_tag.string
+			subtitle = h2_tag.string.strip()
 
 		patch_info = {}
 		patch_info['label'] = label
 		patch_info['url'] = url
 		patch_info['title'] = title
+		patch_info['subtitle'] = subtitle
 
 		#Retrieve CVEs
 		CVEs=[]
@@ -200,7 +202,7 @@ class PatchDownloader:
 				break
 
 		patch_info['CVE'] = CVEs
-		patch_info['HtmlData'] = data
+		#patch_info['HtmlData'] = data
 
 		affected_software_table_infos=[]
 
@@ -322,6 +324,7 @@ class PatchDownloader:
 				if found_affected_software_tag:
 					break
 
+		print 'Title',patch_info
 		return ( patch_info, affected_software_table_infos )
 
 	def RemoveSpecialChar(self,text):
@@ -443,7 +446,7 @@ class PatchDownloader:
 
 if __name__ == '__main__':
 	patch_downloader = PatchDownloader( "Patches" )
-	year=2006
+	year=2008
 	bulletin_number=2
 	filename='test1.html'
 	if patch_downloader.DownloadMSPatch( year, bulletin_number, filename, False ):
