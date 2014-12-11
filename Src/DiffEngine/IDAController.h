@@ -84,6 +84,7 @@ public:
 
 	multimap <DWORD, DWORD> BlockToFunction;
 	multimap <DWORD, DWORD> FunctionToBlock;
+	hash_set <DWORD> FunctionHeads;
 public:
 	bool GetFunctionAddress(DWORD address, DWORD &function_address)
 	{
@@ -112,7 +113,7 @@ public:
 		return false;
 	}
 
-	multimap <DWORD, DWORD> *LoadBlockToFunction();
+	void LoadBlockToFunction();
 	multimap <DWORD, DWORD> *GetFunctionToBlock();
 	void ClearBlockToFunction()
 	{

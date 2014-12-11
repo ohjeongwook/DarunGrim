@@ -1061,7 +1061,6 @@ void IDAController::ColorAddress(unsigned long start_address, unsigned long end_
 	SendTLVData(COLOR_ADDRESS, (PBYTE)data, sizeof(data));
 }
 
-
 list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_address)
 {
 	list <BLOCK> block_list;
@@ -1092,17 +1091,21 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_addre
 			{
 				for (int i = 0; i < addresses_number; i++)
 				{
-					if (p_addresses[i])
+					DWORD address = p_addresses[i];
+					if (address)
 					{
-						if (checked_addresses.find(p_addresses[i]) == checked_addresses.end())
+						if (FunctionHeads.find(address) != FunctionHeads.end())
+							continue;
+
+						if (checked_addresses.find(address) == checked_addresses.end())
 						{
-							address_list.push_back(p_addresses[i]);
-							block.Start = p_addresses[i];
-							PBasicBlock pBasicBlock = GetBasicBlock(p_addresses[i]);
+							address_list.push_back(address);
+							block.Start = address;
+							PBasicBlock pBasicBlock = GetBasicBlock(address);
 							block.End = pBasicBlock->EndAddress;
 							block_list.push_back(block);
 
-							checked_addresses.insert(p_addresses[i]);
+							checked_addresses.insert(address);
 						}
 					}
 				}
@@ -1287,7 +1290,7 @@ static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **a
 	return 0;
 }
 
-multimap <DWORD, DWORD> *IDAController::LoadBlockToFunction()
+void IDAController::LoadBlockToFunction()
 {
 	int Count = 0;
 	
@@ -1361,7 +1364,10 @@ multimap <DWORD, DWORD> *IDAController::LoadBlockToFunction()
 
 				if (function_start)
 				{
-					list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(it->first);
+					DWORD function_start_addr = it->first;
+					FunctionHeads.insert(function_start_addr);
+					list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(function_start_addr);
+					hash_map<DWORD, DWORD>::iterator function_start_membership_it = membership_hash.find(function_start_addr);
 
 					for (list <BLOCK>::iterator it2 = function_member_blocks.begin();
 						it2 != function_member_blocks.end();
@@ -1369,18 +1375,25 @@ multimap <DWORD, DWORD> *IDAController::LoadBlockToFunction()
 						)
 					{
 						DWORD addr = (*it2).Start;
+
+						hash_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(addr);
+
+						if (function_start_membership_it->second != current_membership_it->second)
+							continue;
+
 						for (multimap <DWORD, DWORD>::iterator a2f_it = BlockToFunction.find(addr);
 							a2f_it != BlockToFunction.end() && a2f_it->first == addr;
 							a2f_it++
 							)
 						{
+							Logger.Log(10, LOG_IDA_CONTROLLER, "\tRemoving Block: %X Function: %X\n", a2f_it->first, a2f_it->second);
 							a2f_it = BlockToFunction.erase(a2f_it);
 						}
-						BlockToFunction.insert(pair <DWORD, DWORD>(addr, it->first));
+						BlockToFunction.insert(pair <DWORD, DWORD>(addr, function_start_addr));
+						Logger.Log(10, LOG_IDA_CONTROLLER, "\tAdding Block: %X Function: %X\n", addr, function_start_addr);
 					}
 				}
 			}
-			
 		}
 		function_addresses->clear();
 		delete function_addresses;
@@ -1413,7 +1426,7 @@ BOOL IDAController::FixFunctionAddresses()
 	{
 		//StartAddress: it->first
 		//FunctionAddress: it->second
-		Logger.Log(1, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n",
+		Logger.Log(10, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n",
 			it->second,
 			it->first);
 
