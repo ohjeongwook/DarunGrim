@@ -912,6 +912,7 @@ class MainWindow(QMainWindow):
 			target_filename = str(dialog.Filenames['Patched'])
 			result_filename = str(dialog.Filenames['Result'])
 			log_filename=result_filename+'.log'
+			is_src_target_storage = False
 
 			if src_filename.lower()[-4:]=='.dgf' and target_filename.lower()[-4:]=='.dgf':
 				is_src_target_storage=True
