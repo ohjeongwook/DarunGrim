@@ -1,23 +1,40 @@
 #pragma once
 #include <stdio.h>
 #include "sqlite3.h"
-#include "Storage.h"
+#include "DisassemblyStoreProcessor.h"
 #include <string>
 using namespace std;
 
-Storage::Storage( const char *DatabaseName)
+DisassemblyStoreProcessor::DisassemblyStoreProcessor( const char *DatabaseName)
 {
 	db=NULL;
 	if( DatabaseName )
 		CreateDatabase( DatabaseName );
 }
 
-Storage::~Storage()
+DisassemblyStoreProcessor::~DisassemblyStoreProcessor()
 {
 	CloseDatabase();
 }
 
-void Storage::CreateTables()
+void DisassemblyStoreProcessor::SetFileInfo(FileInfo *p_file_info)
+{
+
+}
+
+void DisassemblyStoreProcessor::EndAnalysis()
+{
+}
+
+void DisassemblyStoreProcessor::AddBasicBlock(PBasicBlock p_basic_block)
+{
+}
+
+void DisassemblyStoreProcessor::AddMapInfo(PMapInfo p_map_info)
+{
+}
+
+void DisassemblyStoreProcessor::CreateTables()
 {
     ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
     ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
@@ -28,7 +45,7 @@ void Storage::CreateTables()
     ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
 }
 
-int Storage::DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Length)
+int DisassemblyStoreProcessor::DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Length)
 {
     static int FileID = 0;
     bool Status = FALSE;
@@ -114,13 +131,13 @@ int Storage::DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Length)
     return FileID;
 }
 
-bool Storage::Open( char *DatabaseName )
+bool DisassemblyStoreProcessor::Open( char *DatabaseName )
 {
 	m_DatabaseName = DatabaseName;
 	return CreateDatabase( DatabaseName );
 }
 
-bool Storage::CreateDatabase(const char *DatabaseName)
+bool DisassemblyStoreProcessor::CreateDatabase(const char *DatabaseName)
 {
     //Database Setup
     m_DatabaseName = DatabaseName;
@@ -135,12 +152,12 @@ bool Storage::CreateDatabase(const char *DatabaseName)
     return TRUE;
 }
 
-const char *Storage::GetDatabaseName()
+const char *DisassemblyStoreProcessor::GetDatabaseName()
 {
 	return m_DatabaseName.c_str();
 }
 
-void Storage::CloseDatabase()
+void DisassemblyStoreProcessor::CloseDatabase()
 {
 	//Close Database
 	if(db)
@@ -150,22 +167,22 @@ void Storage::CloseDatabase()
 	}
 }
 
-int Storage::BeginTransaction()
+int DisassemblyStoreProcessor::BeginTransaction()
 {
 	return ExecuteStatement(NULL,NULL,"BEGIN TRANSACTION");
 }
 
-int Storage::EndTransaction()
+int DisassemblyStoreProcessor::EndTransaction()
 {
 	return ExecuteStatement(NULL,NULL,"COMMIT");
 }
 
-int Storage::GetLastInsertRowID()
+int DisassemblyStoreProcessor::GetLastInsertRowID()
 {
 	return (int)sqlite3_last_insert_rowid(db);
 }
 
-int Storage::ExecuteStatement( sqlite3_callback callback, void *context, char *format, ... )
+int DisassemblyStoreProcessor::ExecuteStatement( sqlite3_callback callback, void *context, char *format, ... )
 {
 	int debug=0;
 
@@ -236,7 +253,7 @@ int Storage::ExecuteStatement( sqlite3_callback callback, void *context, char *f
 	return SQLITE_ERROR;
 }
 
-int Storage::display_callback(void *NotUsed, int argc, char **argv, char **azColName)
+int DisassemblyStoreProcessor::display_callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	int i;
 	for(i=0; i<argc; i++){
@@ -245,7 +262,7 @@ int Storage::display_callback(void *NotUsed, int argc, char **argv, char **azCol
 	return 0;
 }
 
-int Storage::ReadRecordIntegerCallback(void *arg,int argc,char **argv,char **names)
+int DisassemblyStoreProcessor::ReadRecordIntegerCallback(void *arg,int argc,char **argv,char **names)
 {
 #if DEBUG_LEVEL > 2
 	printf("%s: arg=%x %d\n",__FUNCTION__,arg,argc);
@@ -258,7 +275,7 @@ int Storage::ReadRecordIntegerCallback(void *arg,int argc,char **argv,char **nam
 	return 0;
 }
 
-int Storage::ReadRecordStringCallback(void *arg,int argc,char **argv,char **names)
+int DisassemblyStoreProcessor::ReadRecordStringCallback(void *arg,int argc,char **argv,char **names)
 {
 #if DEBUG_LEVEL > 2
 	printf("%s: arg=%x %d\n",__FUNCTION__,arg,argc);

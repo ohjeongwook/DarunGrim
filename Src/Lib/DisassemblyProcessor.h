@@ -6,7 +6,7 @@ using namespace std;
 class DisassemblyProcessor
 {
 public:
-    virtual void SetFileInfo(FileInfo fileInfo)
+    virtual void SetFileInfo(FileInfo *p_file_info)
     {
         // FILE_INFO
         cout << "SetFileInfo" << endl;
@@ -18,7 +18,7 @@ public:
         cout << "EndAnalysis" << endl;
     }
 
-    virtual void AddBasicBlock(PBasicBlock *p_basic_block)
+    virtual void AddBasicBlock(PBasicBlock p_basic_block)
     {
         // BASIC_BLOCK
         cout << "AddBasicBlock" << endl;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "sqlite3.h"
 #include "IDAAnalysisCommon.h"
+#include "DisassemblyProcessor.h"
 #include <string>
 using namespace std;
 
@@ -9,15 +10,22 @@ typedef unsigned char BYTE;
 typedef unsigned char *PBYTE;
 typedef unsigned long DWORD;
 
-class Storage
+class DisassemblyStoreProcessor: DisassemblyProcessor
 {
 private:
 	sqlite3 *db;
 	string m_DatabaseName;
 
 public:
-    Storage(const char *DatabaseName = NULL);
-    ~Storage();
+    DisassemblyStoreProcessor(const char *DatabaseName = NULL);
+    ~DisassemblyStoreProcessor();
+
+public:
+    void SetFileInfo(FileInfo *p_file_info);
+    void EndAnalysis();
+    void AddBasicBlock(PBasicBlock p_basic_block);
+    void AddMapInfo(PMapInfo p_map_info);
+
     int DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Length);
 
     void CreateTables();
