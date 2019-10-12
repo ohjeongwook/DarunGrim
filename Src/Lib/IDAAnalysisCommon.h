@@ -3,6 +3,8 @@
 #pragma pack(push)
 #pragma pack(1)
 
+#include "windows.h"
+
 enum { BASIC_BLOCK,MAP_INFO,FILE_INFO,END_OF_DATA, DISASM_LINES, INPUT_NAME};
 //DISASM_LINES,FINGERPRINT_INFO,NAME_INFO
 enum {UNKNOWN_BLOCK,FUNCTION_BLOCK};
