@@ -3,3 +3,9 @@
 ################################################################################
 
 /.vs/DarunGrim/v15
+/Src/DiffEngine/x64/Debug
+/Src/IDAPlugin/x64/Debug
+/Src/Scripts/x64/Debug
+/Src/UI/FlowGrapher/Debug
+/Src/UI/WTL/x64/Debug
+/Src/DiffEngine/DiffEngine.vcxproj.user
