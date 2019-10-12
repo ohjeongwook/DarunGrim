@@ -20,7 +20,7 @@ private:
 	IDAController *pSourceController;
 	IDAController *pTargetController;
 
-	DBWrapper *pStorageDB;
+    DisassemblyStoreProcessor *pStorageDB;
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase(char *storage_filename);
 	string SourceFilename;
@@ -152,7 +152,7 @@ public:
 	void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-	DBWrapper *m_OutputDB;
+    DisassemblyStoreProcessor *m_OutputDB;
 	unsigned short ListeningPort;
 	SOCKET ListeningSocket;
 	IDAController *IDAControllers[2];
@@ -174,7 +174,7 @@ private:
 	string TargetIdentity;
 public:
 
-	void SetDatabase(DBWrapper *OutputDB);
+	void SetDatabase(DisassemblyStoreProcessor *OutputDB);
 	unsigned short StartIDAListenerThread(unsigned short port);
 	void ListIDAControllers();
 	IDAController *FindIDAController(const char *identity);

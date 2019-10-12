@@ -5,6 +5,7 @@
 #include <lines.hpp>
 #include <kernwin.hpp>
 
+#include "DisassemblyProcessor.h"
 #include "IDAAnalysis.h"
 #include "IDAAnalysisCommon.h"
 
@@ -622,9 +623,9 @@ void UpdateInstructionMap
 	}
 }
 
-void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray=FALSE);
+void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag, int GatherCmdArray=FALSE);
 
-void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
+void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
 {
 	string disasm_buffer;
 	
@@ -810,19 +811,14 @@ void DumpBasicBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 			}
 		}
 
-		if(!Callback(Context,
-			BASIC_BLOCK,
-			(PBYTE)p_basic_block,
-			basic_block_length))
-		{
-		}
+        disassemblyProcessor.AddBasicBlock(p_basic_block);
 		free(p_basic_block);
 	}
 	//Reset FingerPrint Data
 	FingerPrint.clear();			
 }
 
-ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *pFlag,hash_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
+ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *pFlag,hash_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
 {
 	while(1)
 	{
@@ -887,11 +883,8 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 					//PUSH THIS: call_addrs cref
 					map_info.Type=CALL;
 					map_info.Dst=cref;
-					if(!Callback(Context,
-						MAP_INFO,
-						(PBYTE)&map_info,
-						sizeof(map_info)))
-						break;
+
+                    disassemblyProcessor.AddMapInfo(&map_info);
 				}else{
 					//this is a jump
 					FoundBranching=TRUE; //j* or ret* instruction found
@@ -1005,11 +998,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 			//PUSH THIS: dref
 			map_info.Type=DREF_TO;
 			map_info.Dst=dref;
-			if(!Callback(Context,
-				MAP_INFO,
-				(PBYTE)&map_info,
-				sizeof(map_info)))
-				break;
+            disassemblyProcessor.AddMapInfo(&map_info);
 			dref=get_next_dref_to(current_addr,dref);
 		}
 
@@ -1021,11 +1010,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 
 			map_info.Type=DREF_FROM;
 			map_info.Dst=dref;
-			if(!Callback(Context,
-				MAP_INFO,
-				(PBYTE)&map_info,
-				sizeof(map_info)))
-				break;
+            disassemblyProcessor.AddMapInfo(&map_info);
 			dref=get_next_dref_from(current_addr,dref);
 		}
 
@@ -1153,13 +1138,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 				{
 					map_info.Type=CREF_FROM;
 					map_info.Dst=*cref_list_iter;
-					if(!Callback(Context,
-						MAP_INFO,
-						(PBYTE)&map_info,
-						sizeof(map_info)))
-					{
-						break;
-					}
+                    disassemblyProcessor.AddMapInfo(&map_info);
 				}
 			}else
 			{
@@ -1170,13 +1149,7 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 				{
 					map_info.Type=CREF_FROM;
 					map_info.Dst=*cref_list_iter;
-					if(!Callback(Context,
-						MAP_INFO,
-						(PBYTE)&map_info,
-						sizeof(map_info)))
-					{
-						break;
-					}
+                    disassemblyProcessor.AddMapInfo(&map_info);
 				}
 			}
 
@@ -1203,9 +1176,9 @@ ea_t AnalyzeBlock(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD leng
 	return current_addr;
 }
 
-void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,list <AddressRegion> *pAddressRegions,int GatherCmdArray=FALSE);
+void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions,int GatherCmdArray=FALSE);
 
-void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,list <AddressRegion> *pAddressRegions,int GatherCmdArray)
+void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions,int GatherCmdArray)
 {
 	if(!pAddressRegions)
 		return;
@@ -1225,7 +1198,7 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 			list <insn_t> CmdArray;
 			flags_t Flag;
 			
-			ea_t next_address = AnalyzeBlock(Callback, Context, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
+			ea_t next_address = AnalyzeBlock(disassemblyProcessor, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
 			if(0)
 			{
 				hash_map <op_t,OperandPosition,OpTHashCompareStr> OperandsHash;
@@ -1244,12 +1217,12 @@ void AnalyzeIDADataByRegion(bool (*Callback)(PVOID context,BYTE type,PBYTE data,
 
 				if(NewCmdArray)
 				{
-					DumpBasicBlock(Callback, Context, current_address, NewCmdArray, Flag, GatherCmdArray);
+					DumpBasicBlock(disassemblyProcessor, current_address, NewCmdArray, Flag, GatherCmdArray);
 					delete NewCmdArray;
 				}
 			}else
 			{
-				DumpBasicBlock(Callback, Context, current_address, &CmdArray, Flag, GatherCmdArray);
+				DumpBasicBlock(disassemblyProcessor, current_address, &CmdArray, Flag, GatherCmdArray);
 			}
 
 			CmdArray.clear();
@@ -1387,7 +1360,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	return AddressRegions;
 }
 
-void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t StartEA,ea_t EndEA,int GatherCmdArray)
+void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t EndEA,int GatherCmdArray)
 {
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));
@@ -1404,14 +1377,10 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 	char OriginalFilePath[1024]={0,};
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
 #else
-	strncpy_s(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath), get_input_file_path(), sizeof(file_info.OriginalFilePath))
+    strncpy_s(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath), get_input_file_path(), sizeof(file_info.OriginalFilePath))
 #endif
 
-	if(!Callback(Context,
-		FILE_INFO,
-		(PBYTE)&file_info,
-		sizeof(FileInfo)))
-		return;
+    disassemblyProcessor.SetFileInfo(&file_info);
 
 	ea_t saddr, eaddr;
 
@@ -1455,12 +1424,8 @@ void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD le
 		}
 	}
 	
-	AnalyzeIDADataByRegion(Callback,Context,&AddressRegions,GatherCmdArray);
+	AnalyzeIDADataByRegion(disassemblyProcessor, &AddressRegions, GatherCmdArray);
 	
-	if(!Callback(Context,
-		END_OF_DATA,
-		(PBYTE)"A",
-		1))
-		return;
+    disassemblyProcessor.EndAnalysis();
 	msg("Sent All Analysis Informations\n");
 }

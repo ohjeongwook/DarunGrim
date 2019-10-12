@@ -16,16 +16,16 @@
 	}
 %}
 
-class DBWrapper
+class DisassemblyStoreProcessor
 {
 public:
-	DBWrapper( char *DatabaseName = NULL );
+	DisassemblyStoreProcessor( char *DatabaseName = NULL );
 };
 
 class IDAController
 {
 public:
-	IDAController(DBWrapper *StorageDB=NULL);
+	IDAController(DisassemblyStoreProcessor *StorageDB=NULL);
 	AnalysisInfo *GetClientAnalysisInfo();
 	FileInfo *GetClientFileInfo();
 	void DumpAnalysisInfo();
@@ -50,8 +50,8 @@ public:
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
-	BOOL Load( DBWrapper* InputDB);
-	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Load( DisassemblyStoreProcessor* InputDB);
+	BOOL Save( DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
 
 class DarunGrim
@@ -74,7 +74,7 @@ public:
 	void JumpToAddresses( unsigned long source_address, unsigned long target_address );
 	void ColorAddress( int index, unsigned long start_address, unsigned long end_address, unsigned long color );
 
-	void SetDatabase( DBWrapper *OutputDB );
+	void SetDatabase( DisassemblyStoreProcessor *OutputDB );
 	unsigned short StartIDAListenerThread(unsigned short port);
 	bool StartIDAListener( unsigned short port );
 	bool SetSourceController(const char *identity);

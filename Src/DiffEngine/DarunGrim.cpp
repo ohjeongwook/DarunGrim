@@ -181,7 +181,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 		if( pStorageDB )
 			delete pStorageDB;
 
-		pStorageDB = new DBWrapper( (char *) storage_filename );
+		pStorageDB = new DisassemblyStoreProcessor( (char *) storage_filename );
 	}
 
 	if( pStorageDB )
@@ -227,7 +227,7 @@ int ReadFileInfo(void *arg, int argc, char **argv, char **names)
 
 void DarunGrim::ListDiffDatabase(const char *storage_filename)
 {
-	DBWrapper *pStorageDB = new DBWrapper((char *)storage_filename);
+    DisassemblyStoreProcessor *pStorageDB = new DisassemblyStoreProcessor((char *)storage_filename);
 	pStorageDB->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 }
 
@@ -253,7 +253,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_addre
 		delete pStorageDB;
 
 	Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-	pStorageDB = new DBWrapper((char *)output_storage_filename);
+	pStorageDB = new DisassemblyStoreProcessor((char *)output_storage_filename);
 	SetDatabase(pStorageDB);
 
 	pDiffMachine->Save(*pStorageDB);
@@ -268,7 +268,7 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 	if( pStorageDB )
 		delete pStorageDB;
 
-	pStorageDB = new DBWrapper(storage_filename);
+	pStorageDB = new DisassemblyStoreProcessor(storage_filename);
 
 	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
 	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
@@ -282,7 +282,7 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 
 bool DarunGrim::Load( const char *storage_filename )
 {
-	pStorageDB = new DBWrapper( (char *) storage_filename );
+	pStorageDB = new DisassemblyStoreProcessor( (char *) storage_filename );
 	if( pStorageDB )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
@@ -329,7 +329,7 @@ bool DarunGrim::ShowOnIDA()
 	return TRUE;
 }
 
-void DarunGrim::SetDatabase(DBWrapper *OutputDB)
+void DarunGrim::SetDatabase(DisassemblyStoreProcessor *OutputDB)
 {
 	m_OutputDB = OutputDB;
 }

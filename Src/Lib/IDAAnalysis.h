@@ -185,4 +185,4 @@ void DumpLocationInfo(AddrMapHash *addr_map_base,ea_t address);
 bool MakeMemberOfFunction(AddrMapHash *addr_map_base,ea_t function_start_address,LocationInfo *p_location_info);
 void CheckLocationInfos(AddrMapHash *addr_map_base,LocationInfo *p_first_location_info);
 bool AnalyzeRegion(AddrMapHash **p_addr_map_base,LocationInfo **p_p_first_location_info);
-void AnalyzeIDAData(bool (*Callback)(PVOID context,BYTE type,PBYTE data,DWORD length),PVOID Context,ea_t StartEA,ea_t EndEA,int GatherCmdArray=FALSE);
+void AnalyzeIDAData(Storage storage,PVOID Context,ea_t StartEA,ea_t EndEA,int GatherCmdArray=FALSE);

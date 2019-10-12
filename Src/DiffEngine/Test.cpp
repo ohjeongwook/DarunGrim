@@ -18,8 +18,8 @@ void main( int argc, char *argv[] )
 	char *OutputFilename=argv[optind];
 
 	DiffMachine *pDiffMachine;	
-	DBWrapper OutputDB( OutputFilename );
-	CreateTables( OutputDB );
+    DisassemblyStoreProcessor OutputDB( OutputFilename );
+    OutputDB.CreateTables();
 	pDiffMachine=new DiffMachine();
 
 	printf("Setting Analysis Target\n");

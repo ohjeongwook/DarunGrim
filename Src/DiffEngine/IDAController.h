@@ -10,7 +10,7 @@
 #include "DataStructure.h"
 #include "SharedMemory.h"
 #include "SharedSocket.h"
-#include "DBWrapper.h"
+#include "DisassemblyStoreProcessor.h"
 
 using namespace std;
 using namespace stdext;
@@ -27,7 +27,7 @@ private:
 #ifndef USE_LEGACY_MAP
 	int m_FileID;
 #endif
-	DBWrapper *m_StorageDB;
+    DisassemblyStoreProcessor *m_StorageDB;
 	char *m_OriginalFilePath;
 	DWORD TargetFunctionAddress;
 
@@ -51,7 +51,7 @@ public:
 	{
 		return &ClientAnalysisInfo->file_info;
 	}
-	IDAController(DBWrapper *StorageDB=NULL);
+	IDAController(DisassemblyStoreProcessor *StorageDB=NULL);
 	~IDAController();
 	BOOL LoadIDARawDataFromFile(const char *Filename);
 	void SetSocket(SOCKET socket);
@@ -61,7 +61,7 @@ public:
 	void SetFileID(int FileID = 1);
 	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address, bool IsFunction = false);
 	BOOL Load();
-	void DeleteMatchInfo(DBWrapper *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
+	void DeleteMatchInfo(DisassemblyStoreProcessor *InputDB, int FileID=1, DWORD FunctionAddress = 0 );
 
 	void AddAnalysisTargetFunction(DWORD FunctionAddress);
 	BOOL LoadBasicBlock();

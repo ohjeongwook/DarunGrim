@@ -190,7 +190,7 @@ private:
 	void RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address );
 	void GenerateFunctionMatchInfo();
 
-	BOOL DeleteMatchInfo( DBWrapper& OutputDB );
+	BOOL DeleteMatchInfo(DisassemblyStoreProcessor& OutputDB );
 
 	hash_set <DWORD> TheSourceUnidentifedBlockHash;
 	hash_set <DWORD> TheTargetUnidentifedBlockHash;
@@ -268,7 +268,7 @@ public:
 	BOOL IsInUnidentifiedBlockHash( int index, DWORD address );
 
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	
 private:
 	BOOL bRetrieveDataForAnalysis;
@@ -304,9 +304,9 @@ private:
 	int TargetID;
 	DWORD TargetFunctionAddress;
 
-	DBWrapper *m_DiffDB;
-	DBWrapper *m_SourceDB;
-	DBWrapper *m_TargetDB;
+    DisassemblyStoreProcessor *m_DiffDB;
+    DisassemblyStoreProcessor *m_SourceDB;
+    DisassemblyStoreProcessor *m_TargetDB;
 
 	IDAController *SourceController;
 	IDAController *TargetController;
@@ -330,14 +330,14 @@ public:
 		TargetFunctionAddress = function_address;
 	}
 
-	void SetSource(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	void SetSource(DisassemblyStoreProcessor *db, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_SourceDB = db;
 		SourceID = id;
 		SourceFunctionAddress = function_address;
 	}
 
-	void SetTarget(DBWrapper *db, DWORD id = 1, DWORD function_address = 0)
+	void SetTarget(DisassemblyStoreProcessor *db, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_TargetDB = db;
 		TargetID = id;
@@ -352,7 +352,7 @@ public:
 
 	BOOL Create(const char *DiffDBFilename);
 	BOOL Load(const char *DiffDBFilename);
-	BOOL Load(DBWrapper *DiffDB);
+	BOOL Load(DisassemblyStoreProcessor *DiffDB);
 
 	bool ShowFullMatched;
 	bool ShowNonMatched;

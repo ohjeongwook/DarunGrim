@@ -2332,7 +2332,7 @@ BOOL DiffMachine::Save(char *DataFile, BYTE Type, DWORD Offset, DWORD dwMoveMeth
 	return FALSE;
 }
 
-BOOL DiffMachine::Save( DBWrapper& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses, hash_set <DWORD> *pTheTargetSelectedAddresses )
+BOOL DiffMachine::Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses, hash_set <DWORD> *pTheTargetSelectedAddresses )
 {
 	if( !SourceController || !TargetController)
 		return FALSE;
@@ -2572,7 +2572,7 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 {
 	Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-	m_DiffDB = new DBWrapper(DiffDBFilename);
+	m_DiffDB = new DisassemblyStoreProcessor(DiffDBFilename);
 	FileList DiffFileList;
 	m_DiffDB->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
@@ -2610,12 +2610,12 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 	if (SourceDBName.size()>0 && TargetDBName.size()>0)
 	{
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", SourceDBName.c_str());
-		m_SourceDB = new DBWrapper();
+		m_SourceDB = new DisassemblyStoreProcessor();
 		m_SourceDB->CreateDatabase(SourceDBName.c_str());
 		SetSource(SourceDBName.c_str(), 1, SourceFunctionAddress);
 
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
-		m_TargetDB = new DBWrapper();
+		m_TargetDB = new DisassemblyStoreProcessor();
 		m_TargetDB->CreateDatabase(TargetDBName.c_str());
 		SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
 	}
@@ -2631,7 +2631,7 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 	return _Load();
 }
 
-BOOL DiffMachine::Load(DBWrapper* DiffDB)
+BOOL DiffMachine::Load(DisassemblyStoreProcessor* DiffDB)
 {
 	m_DiffDB = DiffDB;
 	m_SourceDB = DiffDB;
@@ -2727,7 +2727,7 @@ BOOL DiffMachine::_Load()
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo( DBWrapper& OutputDB )
+BOOL DiffMachine::DeleteMatchInfo(DisassemblyStoreProcessor& OutputDB )
 {
 	if( SourceFunctionAddress > 0 && TargetFunctionAddress > 0 )
 	{

@@ -18,7 +18,6 @@ using namespace stdext;
 #include "atlctrlw.h"
 
 #include "DataBaseWriter.h"
-#include "DBWrapper.h"
 
 #include "ProcessUtils.h"
 

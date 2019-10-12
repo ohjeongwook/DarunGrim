@@ -8,8 +8,7 @@
 
 //DB Related
 #include "sqlite3.h"
-#include "DBWrapper.h"
-#include "DataBaseWriter.h"
+#include "Storage.h"
 
 #include <hash_set>
 using namespace std;
@@ -24,7 +23,7 @@ extern LogOperation Logger;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-IDAController::IDAController(DBWrapper *storage_db):
+IDAController::IDAController(DisassemblyStoreProcessor *storage_db):
 	ClientAnalysisInfo(NULL),
 	TargetFunctionAddress(0),
 	m_OriginalFilePath(NULL),
@@ -582,7 +581,7 @@ BOOL IDAController::Load()
 	return TRUE;
 }
 
-void IDAController::DeleteMatchInfo( DBWrapper *InputDB, int FileID, DWORD FunctionAddress )
+void IDAController::DeleteMatchInfo(DisassemblyStoreProcessor *InputDB, int FileID, DWORD FunctionAddress )
 {
 	if( m_StorageDB )
 	{
@@ -647,7 +646,8 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 			continue;
 
 		if( m_StorageDB )
-			m_FileID = DatabaseWriterWrapper(m_StorageDB, type, data, length);
+			m_FileID = m_StorageDB->DatabaseWriterWrapper(type, data, length);
+
 		if(type  ==  BASIC_BLOCK && sizeof(BasicBlock)<= length)
 		{
 			PBasicBlock pBasicBlock = (PBasicBlock)data;

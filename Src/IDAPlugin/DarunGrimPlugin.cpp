@@ -24,7 +24,7 @@
 
 #if defined( USE_SQLITE_DB )
 #include "sqlite3.h"
-#include "DBWrapper.h"
+#include "DisassemblyStoreProcessor.h"
 #include "DataBaseWriter.h"
 #endif
 
@@ -817,47 +817,12 @@ void SaveDGF(bool ask_file_path)
 
 	if (OutputFilename)
 	{
-#if defined( USE_SQLITE_DB )
-		DBWrapper db(OutputFilename);
-		CreateTables(db);
+        DisassemblyStoreProcessor storage(OutputFilename);
+        db.CreateTables();
 		db.BeginTransaction();
-#else
-		//HandleValue: Open File ( OutputFilename );
-		//Saving to a temporary File
-		HANDLE hFile;
-		hFile = CreateFile(OutputFilename, // file to create
-			GENERIC_WRITE, // open for writing
-			0, // do not share
-			NULL, // default security
-			CREATE_ALWAYS, // overwrite existing
-			FILE_ATTRIBUTE_NORMAL, // normal file
-			NULL); // no attr. Template
-#endif
-
-		AnalyzeIDAData((bool(*)(PVOID, BYTE, PBYTE, DWORD))
-
-#if defined( USE_SQLITE_DB )
-			DatabaseWriterWrapper
-#else
-			FileWriterWrapper
-#endif
-			, (PVOID)
-
-#if defined( USE_SQLITE_DB )
-			//Database pointer
-			&db
-#else
-			hFile
-#endif
-			, StartEA, EndEA
-			);
-
-#if defined( USE_SQLITE_DB )
+		AnalyzeIDAData(storage, StartEA, EndEA);
 		db.EndTransaction();
 		db.CloseDatabase();
-#else
-		CloseHandle(hFile);
-#endif
 	}
 
 	long end_tick = GetTickCount();
