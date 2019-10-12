@@ -190,7 +190,7 @@ private:
 	void RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address );
 	void GenerateFunctionMatchInfo();
 
-	BOOL DeleteMatchInfo(DisassemblyStoreProcessor& OutputDB );
+	BOOL DeleteMatchInfo(DisassemblyStorage& disassemblyStorage );
 
 	hash_set <DWORD> TheSourceUnidentifedBlockHash;
 	hash_set <DWORD> TheTargetUnidentifedBlockHash;
@@ -268,7 +268,7 @@ public:
 	BOOL IsInUnidentifiedBlockHash( int index, DWORD address );
 
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save(DisassemblyStorage& disassemblyStorage, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	
 private:
 	BOOL bRetrieveDataForAnalysis;
@@ -304,9 +304,9 @@ private:
 	int TargetID;
 	DWORD TargetFunctionAddress;
 
-    DisassemblyStoreProcessor *m_DiffDB;
-    DisassemblyStoreProcessor *m_SourceDB;
-    DisassemblyStoreProcessor *m_TargetDB;
+    DisassemblyStorage *m_diffDisassemblyStorage;
+    DisassemblyStorage *m_sourceDisassemblyStorage;
+    DisassemblyStorage *m_targetDisassemblyStorage;
 
 	IDAController *SourceController;
 	IDAController *TargetController;
@@ -330,16 +330,16 @@ public:
 		TargetFunctionAddress = function_address;
 	}
 
-	void SetSource(DisassemblyStoreProcessor *db, DWORD id = 1, DWORD function_address = 0)
+	void SetSource(DisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
 	{
-		m_SourceDB = db;
+		m_sourceDisassemblyStorage = disassemblyStorage;
 		SourceID = id;
 		SourceFunctionAddress = function_address;
 	}
 
-	void SetTarget(DisassemblyStoreProcessor *db, DWORD id = 1, DWORD function_address = 0)
+	void SetTarget(DisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
 	{
-		m_TargetDB = db;
+		m_targetDisassemblyStorage = disassemblyStorage;
 		TargetID = id;
 		TargetFunctionAddress = function_address;
 	}
@@ -352,7 +352,7 @@ public:
 
 	BOOL Create(const char *DiffDBFilename);
 	BOOL Load(const char *DiffDBFilename);
-	BOOL Load(DisassemblyStoreProcessor *DiffDB);
+	BOOL Load(DisassemblyStorage *disassemblyStorage);
 
 	bool ShowFullMatched;
 	bool ShowNonMatched;

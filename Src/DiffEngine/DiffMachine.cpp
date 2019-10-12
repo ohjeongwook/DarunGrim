@@ -232,7 +232,7 @@ DiffMachine::DiffMachine( IDAController *the_source, IDAController *the_target )
 	ShowNonMatched(false),
 	pDumpAddressChecker(NULL)
 {
-	m_DiffDB=NULL;
+	m_diffDisassemblyStorage=NULL;
 	DiffResults=NULL;
 	SetSource(the_source);
 	SetTarget(the_target);
@@ -693,7 +693,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 					}
 					else
 					{
-						m_DiffDB->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
+						m_diffDisassemblyStorage->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
 							SourceController->GetFileID(), 
 							TargetController->GetFileID(), 
 							*source_member_iter,
@@ -2220,18 +2220,18 @@ vector<MatchData *> DiffMachine::GetMatchData(int index, DWORD address, BOOL era
 {
 	vector<MatchData *> match_data_list;
 
-	if( !DiffResults && m_DiffDB )
+	if( !DiffResults && m_diffDisassemblyStorage )
 	{
 		MatchData match_data;
 		memset( &match_data, 0, sizeof( match_data ) );
 
 		if( erase )
 		{
-			m_DiffDB->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
+			m_diffDisassemblyStorage->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
 		}
 		else
 		{
-			m_DiffDB->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
+			m_diffDisassemblyStorage->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
 			if( match_data.Addresses[0]!=0 )
 			for (vector<MatchData *>::iterator it = match_data_list.begin(); it!=match_data_list.end(); it++)
 			{
@@ -2332,27 +2332,27 @@ BOOL DiffMachine::Save(char *DataFile, BYTE Type, DWORD Offset, DWORD dwMoveMeth
 	return FALSE;
 }
 
-BOOL DiffMachine::Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses, hash_set <DWORD> *pTheTargetSelectedAddresses )
+BOOL DiffMachine::Save(DisassemblyStorage& disassemblyStorage, hash_set <DWORD> *pTheSourceSelectedAddresses, hash_set <DWORD> *pTheTargetSelectedAddresses )
 {
 	if( !SourceController || !TargetController)
 		return FALSE;
 
-	DeleteMatchInfo( OutputDB );
+	DeleteMatchInfo( disassemblyStorage );
 
 	Logger.Log(11, LOG_DIFF_MACHINE | LOG_SQL, "Executing %s\n", CREATE_MATCH_MAP_TABLE_STATEMENT);
-	OutputDB.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT );
-	OutputDB.ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
-	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT);
-	OutputDB.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT);
+	disassemblyStorage.ExecuteStatement( NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT );
+	disassemblyStorage.ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
+	disassemblyStorage.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT);
+	disassemblyStorage.ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT);
 
 	Logger.Log(11, LOG_DIFF_MACHINE | LOG_SQL, "Executing %s\n", CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT);
-	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
-	OutputDB.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT );
+	disassemblyStorage.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT );
+	disassemblyStorage.ExecuteStatement( NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT );
 
-	OutputDB.BeginTransaction();
+	disassemblyStorage.BeginTransaction();
 
-	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
-	OutputDB.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
+	disassemblyStorage.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
+	disassemblyStorage.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
 
 	multimap <DWORD,  MatchData>::iterator match_map_iter;
 
@@ -2375,7 +2375,7 @@ BOOL DiffMachine::Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pT
 		Logger.Log(20, LOG_DIFF_MACHINE, "%s %X-%X: %d%%\n", __FUNCTION__, 
 			match_map_iter->second.Addresses[0], match_map_iter->second.Addresses[1], match_map_iter->second.MatchRate);
 
-		OutputDB.ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
+		disassemblyStorage.ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
 			SourceController->GetFileID(), 
 			TargetController->GetFileID(), 
 			match_map_iter->first, 
@@ -2413,7 +2413,7 @@ BOOL DiffMachine::Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pT
 			iter->MatchCountWithModificationForTheTarget
 			);
 
-		OutputDB.ExecuteStatement(NULL, NULL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT,
+		disassemblyStorage.ExecuteStatement(NULL, NULL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT,
 				SourceController->GetFileID(),
 				TargetController->GetFileID(),
 				iter->TheSourceAddress,
@@ -2434,7 +2434,7 @@ BOOL DiffMachine::Save(DisassemblyStoreProcessor& OutputDB, hash_set <DWORD> *pT
 			
 	}
 
-	OutputDB.EndTransaction();
+	disassemblyStorage.EndTransaction();
 	return TRUE;
 }
 
@@ -2572,9 +2572,9 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 {
 	Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-	m_DiffDB = new DisassemblyStoreProcessor(DiffDBFilename);
+	m_diffDisassemblyStorage = new DisassemblyStorage(DiffDBFilename);
 	FileList DiffFileList;
-	m_DiffDB->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
+	m_diffDisassemblyStorage->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
 	if (DiffFileList.SourceFilename.size() > 0 && DiffFileList.TargetFilename.size() > 0)
 	{
@@ -2610,13 +2610,13 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 	if (SourceDBName.size()>0 && TargetDBName.size()>0)
 	{
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", SourceDBName.c_str());
-		m_SourceDB = new DisassemblyStoreProcessor();
-		m_SourceDB->CreateDatabase(SourceDBName.c_str());
+		m_sourceDisassemblyStorage = new DisassemblyStorage();
+		m_sourceDisassemblyStorage->CreateDatabase(SourceDBName.c_str());
 		SetSource(SourceDBName.c_str(), 1, SourceFunctionAddress);
 
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
-		m_TargetDB = new DisassemblyStoreProcessor();
-		m_TargetDB->CreateDatabase(TargetDBName.c_str());
+		m_targetDisassemblyStorage = new DisassemblyStorage();
+		m_targetDisassemblyStorage->CreateDatabase(TargetDBName.c_str());
 		SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
 	}
 
@@ -2631,11 +2631,11 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 	return _Load();
 }
 
-BOOL DiffMachine::Load(DisassemblyStoreProcessor* DiffDB)
+BOOL DiffMachine::Load(DisassemblyStorage* DiffDB)
 {
-	m_DiffDB = DiffDB;
-	m_SourceDB = DiffDB;
-	m_TargetDB = DiffDB;
+	m_diffDisassemblyStorage = DiffDB;
+	m_sourceDisassemblyStorage = DiffDB;
+	m_targetDisassemblyStorage = DiffDB;
 
 	return _Load();
 }
@@ -2650,7 +2650,7 @@ BOOL DiffMachine::_Load()
 		SourceController = NULL;
 	}
 
-	SourceController = new IDAController(m_SourceDB);
+	SourceController = new IDAController(m_sourceDisassemblyStorage);
 
 	Logger.Log(10, LOG_DIFF_MACHINE, "SourceFunctionAddress: %X\n", SourceFunctionAddress);
 	SourceController->AddAnalysisTargetFunction(SourceFunctionAddress);
@@ -2668,7 +2668,7 @@ BOOL DiffMachine::_Load()
 		TargetController = NULL;
 	}
 
-	TargetController = new IDAController(m_TargetDB);
+	TargetController = new IDAController(m_targetDisassemblyStorage);
 	TargetController->AddAnalysisTargetFunction(TargetFunctionAddress);
 	TargetController->SetFileID(TargetID);
 
@@ -2711,13 +2711,13 @@ BOOL DiffMachine::_Load()
 		}
 	}
 
-	m_DiffDB->ExecuteStatement( ReadFunctionMatchListCallback, &FunctionMatchList, query, SourceID, TargetID);
+	m_diffDisassemblyStorage->ExecuteStatement( ReadFunctionMatchListCallback, &FunctionMatchList, query, SourceID, TargetID);
 
 	if (LoadDiffResults)
 	{
 		DiffResults = new AnalysisResult;
 
-		m_DiffDB->ExecuteStatement(
+		m_diffDisassemblyStorage->ExecuteStatement(
 			ReadMatchMapCallback,
 			DiffResults,
 			"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
@@ -2727,7 +2727,7 @@ BOOL DiffMachine::_Load()
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo(DisassemblyStoreProcessor& OutputDB )
+BOOL DiffMachine::DeleteMatchInfo(DisassemblyStorage& OutputDB )
 {
 	if( SourceFunctionAddress > 0 && TargetFunctionAddress > 0 )
 	{

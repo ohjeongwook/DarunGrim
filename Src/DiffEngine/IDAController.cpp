@@ -23,7 +23,7 @@ extern LogOperation Logger;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-IDAController::IDAController(DisassemblyStoreProcessor *storage_db):
+IDAController::IDAController(DisassemblyStorage *disassemblyStorage):
 	ClientAnalysisInfo(NULL),
 	TargetFunctionAddress(0),
 	m_OriginalFilePath(NULL),
@@ -32,7 +32,7 @@ IDAController::IDAController(DisassemblyStoreProcessor *storage_db):
 	m_FileID(0)
 {
 	ClientAnalysisInfo = new AnalysisInfo;
-	m_StorageDB = storage_db;
+	m_disassemblyStorage = disassemblyStorage;
 }
 
 IDAController::~IDAController()
@@ -280,8 +280,8 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	}
 	else
 	{
-		if (m_StorageDB)
-			m_StorageDB->ExecuteStatement(ReadFunctionAddressesCallback, &function_address_hash, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
+		if (m_disassemblyStorage)
+			m_disassemblyStorage->ExecuteStatement(ReadFunctionAddressesCallback, &function_address_hash, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", m_FileID, FUNCTION_BLOCK);
 	}
 
 	if (DoCallCheck && ClientAnalysisInfo)
@@ -325,8 +325,8 @@ void IDAController::RemoveFromFingerprintHash(DWORD address)
 
 	char *FingerprintStr = NULL;
 
-	if (m_StorageDB)
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+	if (m_disassemblyStorage)
+		m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &FingerprintStr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	if (FingerprintStr)
 	{
 		Fingerprint = HexToBytesWithLengthAmble(FingerprintStr);
@@ -364,8 +364,8 @@ char *IDAController::GetFingerPrintStr(DWORD address)
 	}else
 	{
 		char *FingerprintPtr = NULL;
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &FingerprintPtr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+		if( m_disassemblyStorage )
+			m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &FingerprintPtr, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 		return FingerprintPtr;
 	}
 	return NULL;
@@ -384,8 +384,8 @@ char *IDAController::GetName(DWORD address)
 	return NULL;
 #else
 	char *Name = NULL;
-	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &Name, "SELECT Name FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &Name, "SELECT Name FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	return Name;
 #endif
 }
@@ -402,8 +402,8 @@ DWORD IDAController::GetBlockAddress(DWORD address)
 	return address;
 #else
 	DWORD BlockAddress = address;
-	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM BasicBlock WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", m_FileID, address, address);
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordIntegerCallback, &BlockAddress, "SELECT StartAddress FROM BasicBlock WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", m_FileID, address, address);
 	return BlockAddress;
 #endif
 }
@@ -501,8 +501,8 @@ BOOL IDAController::LoadBasicBlock()
 			_snprintf(FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
 		}
 
-		if (m_StorageDB)
-			m_StorageDB->ExecuteStatement(ReadBasicBlockDataCallback,
+		if (m_disassemblyStorage)
+			m_disassemblyStorage->ExecuteStatement(ReadBasicBlockDataCallback,
 			(void *)ClientAnalysisInfo,
 			"SELECT StartAddress, Fingerprint, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
 			m_FileID,
@@ -527,7 +527,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 {
 	if (Address == 0)
 	{
-		m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+		m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
 			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u", 
 			m_FileID);
 	}
@@ -535,7 +535,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 	{
 		if (IsFunction)
 		{
-			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
 				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 				"WHERE FileID = %u "
 				"AND ( SrcBlock IN ( SELECT StartAddress FROM BasicBlock WHERE FunctionAddress='%d') )",
@@ -543,7 +543,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 		}
 		else
 		{
-			m_StorageDB->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
 				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 				"WHERE FileID = %u "
 				"AND SrcBlock  = '%d'",
@@ -571,9 +571,9 @@ void IDAController::BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_m
 
 BOOL IDAController::Load()
 {
-	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: %s\n", __FUNCTION__, m_StorageDB->GetDatabaseName());
+	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: %s\n", __FUNCTION__, m_disassemblyStorage->GetDatabaseName());
 
-	m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
+	m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
 	LoadBasicBlock();
 	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress, true);
@@ -581,15 +581,15 @@ BOOL IDAController::Load()
 	return TRUE;
 }
 
-void IDAController::DeleteMatchInfo(DisassemblyStoreProcessor *InputDB, int FileID, DWORD FunctionAddress )
+void IDAController::DeleteMatchInfo(DisassemblyStorage *InputDB, int FileID, DWORD FunctionAddress )
 {
-	if( m_StorageDB )
+	if( m_disassemblyStorage )
 	{
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'", FileID, FunctionAddress );
+		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'", FileID, FunctionAddress );
 
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
-		m_StorageDB->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'", FileID, FunctionAddress );
+		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
+		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'", FileID, FunctionAddress );
 	}
 }
 
@@ -616,8 +616,8 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 
 	DWORD current_addr = 0L;
 
-	if( m_StorageDB )
-		m_StorageDB->BeginTransaction();
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->BeginTransaction();
 	while(1)
 	{	
 		PBYTE data = RetrieveCallback(Context, &type, &length);
@@ -645,8 +645,8 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 		if(!data)
 			continue;
 
-		if( m_StorageDB )
-			m_FileID = m_StorageDB->DatabaseWriterWrapper(type, data, length);
+		if( m_disassemblyStorage )
+			m_FileID = m_disassemblyStorage->DatabaseWriterWrapper(type, data, length);
 
 		if(type  ==  BASIC_BLOCK && sizeof(BasicBlock)<= length)
 		{
@@ -700,8 +700,8 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 		}
 	}
 
-	if( m_StorageDB )
-		m_StorageDB->EndTransaction();
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->EndTransaction();
 	FixFunctionAddresses();
 	GenerateFingerprintHashMap();
 }
@@ -979,8 +979,8 @@ char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long En
 #else
 	char *DisasmLines = NULL;
 
-	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(m_StorageDB->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &DisasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
 	if(DisasmLines)
 	{
 		Logger.Log(10, LOG_IDA_CONTROLLER, "DisasmLines = %s\n", DisasmLines);
@@ -1036,8 +1036,8 @@ int ReadBasicBlockCallback(void *arg, int argc, char **argv, char **names)
 PBasicBlock IDAController::GetBasicBlock(DWORD address)
 {
 	PBasicBlock p_basic_block = (PBasicBlock)malloc(sizeof(BasicBlock));
-	if( m_StorageDB )
-		m_StorageDB->ExecuteStatement(ReadBasicBlockCallback, p_basic_block, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->ExecuteStatement(ReadBasicBlockCallback, p_basic_block, "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, address);
 	return p_basic_block;
 }
 
@@ -1115,7 +1115,7 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_addre
 	}
 	else
 	{
-		m_StorageDB->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
+		m_disassemblyStorage->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
 			"SELECT StartAddress, EndAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d'"
 			"ORDER BY ID ASC",
 			m_FileID, function_address);
@@ -1416,8 +1416,8 @@ BOOL IDAController::FixFunctionAddresses()
 	Logger.Log(10, LOG_IDA_CONTROLLER, "%s", __FUNCTION__);
 	LoadBlockToFunction();
 
-	if( m_StorageDB )
-		m_StorageDB->BeginTransaction();
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->BeginTransaction();
 
 	for (multimap <DWORD, DWORD>::iterator it = BlockToFunction.begin(); 
 		it != BlockToFunction.end();
@@ -1430,8 +1430,8 @@ BOOL IDAController::FixFunctionAddresses()
 			it->second,
 			it->first);
 
-		if( m_StorageDB )
-			m_StorageDB->ExecuteStatement(NULL, NULL, UPDATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_STATEMENT, 
+		if( m_disassemblyStorage )
+			m_disassemblyStorage->ExecuteStatement(NULL, NULL, UPDATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_STATEMENT, 
 																				it->second,
 																				it->second == it->first ? FUNCTION_BLOCK : UNKNOWN_BLOCK,
 																				m_FileID, 
@@ -1440,8 +1440,8 @@ BOOL IDAController::FixFunctionAddresses()
 		is_fixed = TRUE;
 	}
 
-	if( m_StorageDB )
-		m_StorageDB->EndTransaction();
+	if( m_disassemblyStorage )
+		m_disassemblyStorage->EndTransaction();
 
 	ClearBlockToFunction();
 

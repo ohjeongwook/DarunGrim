@@ -24,7 +24,7 @@
 
 #if defined( USE_SQLITE_DB )
 #include "sqlite3.h"
-#include "DisassemblyStoreProcessor.h"
+#include "DisassemblyStorage.h"
 #include "DataBaseWriter.h"
 #endif
 
@@ -817,7 +817,7 @@ void SaveDGF(bool ask_file_path)
 
 	if (OutputFilename)
 	{
-        DisassemblyStoreProcessor storage(OutputFilename);
+        DisassemblyStorage storage(OutputFilename);
         db.CreateTables();
 		db.BeginTransaction();
 		AnalyzeIDAData(storage, StartEA, EndEA);

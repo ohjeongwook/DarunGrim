@@ -18,8 +18,8 @@ void main( int argc, char *argv[] )
 	char *OutputFilename=argv[optind];
 
 	DiffMachine *pDiffMachine;	
-    DisassemblyStoreProcessor OutputDB( OutputFilename );
-    OutputDB.CreateTables();
+    DisassemblyStorage disassemblyStorage( OutputFilename );
+    disassemblyStorage.CreateTables();
 	pDiffMachine=new DiffMachine();
 
 	printf("Setting Analysis Target\n");
@@ -27,16 +27,16 @@ void main( int argc, char *argv[] )
 
 	printf("Retrieving Data\n");
 	pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-	pDiffMachine->SetSource(&OutputDB, TheSourceFileID);
-	pDiffMachine->SetSource(&OutputDB, TheTargetFileID);
-	pDiffMachine->Load(&OutputDB);
+	pDiffMachine->SetSource(&disassemblyStorage, TheSourceFileID);
+	pDiffMachine->SetSource(&disassemblyStorage, TheTargetFileID);
+	pDiffMachine->Load(&disassemblyStorage);
 
 	printf("Start Analysis\n");
 	pDiffMachine->Analyze();
 	//pDiffMachine->TestAnalysis();
 
 	printf("Save the Results\n");
-	pDiffMachine->Save( OutputDB );
+	pDiffMachine->Save( disassemblyStorage );
 	
-	OutputDB.CloseDatabase();
+	disassemblyStorage.CloseDatabase();
 }

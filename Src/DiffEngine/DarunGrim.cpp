@@ -12,7 +12,7 @@
 LogOperation Logger;
 
 DarunGrim::DarunGrim(): 
-	pStorageDB(NULL),
+	m_disassemblyStorage(NULL),
 	pSourceController(NULL),
 	pTargetController(NULL),
 	pDiffMachine(NULL),
@@ -37,11 +37,11 @@ DarunGrim::DarunGrim():
 DarunGrim::~DarunGrim()
 {
 	Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__ );
-	if( pStorageDB )
+	if( m_disassemblyStorage )
 	{
-		pStorageDB->CloseDatabase();
-		delete pStorageDB;
-		pStorageDB = NULL;
+		m_disassemblyStorage->CloseDatabase();
+		delete m_disassemblyStorage;
+		m_disassemblyStorage = NULL;
 	}
 
 	if (pDiffMachine)
@@ -178,29 +178,29 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 
 	if( storage_filename )
 	{
-		if( pStorageDB )
-			delete pStorageDB;
+		if( m_disassemblyStorage )
+			delete m_disassemblyStorage;
 
-		pStorageDB = new DisassemblyStoreProcessor( (char *) storage_filename );
+		m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
 	}
 
-	if( pStorageDB )
+	if( m_disassemblyStorage )
 	{
-		SetDatabase( pStorageDB );
+		SetDatabase( m_disassemblyStorage );
 	}
 	StartIDAListener(DARUNGRIM_PORT);
 
-	pSourceController=new IDAController( pStorageDB );
-	pTargetController=new IDAController( pStorageDB );
+	pSourceController=new IDAController( m_disassemblyStorage );
+	pTargetController=new IDAController( m_disassemblyStorage );
 
 	//Create a thread that will call ConnectToDarunGrim one by one
 	DWORD dwThreadId;
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	AcceptIDAClient( pSourceController, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	AcceptIDAClient( pSourceController, pDiffMachine? FALSE:m_disassemblyStorage?TRUE:FALSE );
 	SetLoadedSourceFile( TRUE );
 
 	CreateThread( NULL, 0, ConnectToDarunGrimThread, ( PVOID )this, 0, &dwThreadId );
-	AcceptIDAClient( pTargetController, pDiffMachine? FALSE:pStorageDB?TRUE:FALSE );
+	AcceptIDAClient( pTargetController, pDiffMachine? FALSE:m_disassemblyStorage?TRUE:FALSE );
 
 	if( !pDiffMachine )
 	{
@@ -227,8 +227,8 @@ int ReadFileInfo(void *arg, int argc, char **argv, char **names)
 
 void DarunGrim::ListDiffDatabase(const char *storage_filename)
 {
-    DisassemblyStoreProcessor *pStorageDB = new DisassemblyStoreProcessor((char *)storage_filename);
-	pStorageDB->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
+    DisassemblyStorage *disassemblyStorage = new DisassemblyStorage((char *)storage_filename);
+    disassemblyStorage->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 }
 
 bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
@@ -249,14 +249,14 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_addre
 	Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
 	pDiffMachine->Analyze();
 
-	if (pStorageDB)
-		delete pStorageDB;
+	if (m_disassemblyStorage)
+		delete m_disassemblyStorage;
 
 	Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-	pStorageDB = new DisassemblyStoreProcessor((char *)output_storage_filename);
-	SetDatabase(pStorageDB);
+	m_disassemblyStorage = new DisassemblyStorage((char *)output_storage_filename);
+	SetDatabase(m_disassemblyStorage);
 
-	pDiffMachine->Save(*pStorageDB);
+	pDiffMachine->Save(*m_disassemblyStorage);
 
 	return TRUE;
 }
@@ -265,25 +265,25 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 {
 	Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__ );
 
-	if( pStorageDB )
-		delete pStorageDB;
+	if( m_disassemblyStorage )
+		delete m_disassemblyStorage;
 
-	pStorageDB = new DisassemblyStoreProcessor(storage_filename);
+	m_disassemblyStorage = new DisassemblyStorage(storage_filename);
 
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_START_ADDRESS_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_END_ADDRESS_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
-	pStorageDB->ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_START_ADDRESS_INDEX_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_END_ADDRESS_INDEX_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
+	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
 	return TRUE;
 }
 
 bool DarunGrim::Load( const char *storage_filename )
 {
-	pStorageDB = new DisassemblyStoreProcessor( (char *) storage_filename );
-	if( pStorageDB )
+	m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
+	if( m_disassemblyStorage )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
 		pDiffMachine->Load(storage_filename);
@@ -299,12 +299,12 @@ bool DarunGrim::PerformDiff()
 	int source_file_id=1;
 	int target_file_id=2;
 
-	if( pStorageDB )
+	if( m_disassemblyStorage )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-		pDiffMachine->SetSource(pStorageDB, source_file_id);
-		pDiffMachine->SetSource(pStorageDB, target_file_id);
-		pDiffMachine->Load(pStorageDB);
+		pDiffMachine->SetSource(m_disassemblyStorage, source_file_id);
+		pDiffMachine->SetSource(m_disassemblyStorage, target_file_id);
+		pDiffMachine->Load(m_disassemblyStorage);
 		pSourceController = pDiffMachine->GetSourceController();
 		pTargetController = pDiffMachine->GetTargetController();
 	}
@@ -317,7 +317,7 @@ bool DarunGrim::PerformDiff()
 	if( pDiffMachine )
 	{
 		pDiffMachine->Analyze();
-		pDiffMachine->Save( *pStorageDB );
+		pDiffMachine->Save( *m_disassemblyStorage );
 	}
 	return TRUE;
 }
@@ -329,9 +329,9 @@ bool DarunGrim::ShowOnIDA()
 	return TRUE;
 }
 
-void DarunGrim::SetDatabase(DisassemblyStoreProcessor *OutputDB)
+void DarunGrim::SetDatabase(DisassemblyStorage *OutputDB)
 {
-	m_OutputDB = OutputDB;
+	m_disassemblyStorage = OutputDB;
 }
 
 typedef struct _IDA_LISTENER_PARAM_
@@ -556,7 +556,7 @@ bool DarunGrim::StopIDAListener()
 
 IDAController *DarunGrim::GetIDAControllerFromFile(char *DataFile)
 {
-	IDAController *p_ida_controller = new IDAController(m_OutputDB);
+	IDAController *p_ida_controller = new IDAController(m_disassemblyStorage);
 	p_ida_controller->Retrieve(DataFile);
 	return p_ida_controller;
 }

@@ -391,7 +391,7 @@
     <ClCompile Include="..\Lib\SharedSocket.cpp" />
     <ClCompile Include="..\Lib\SocketOperation.cpp" />
     <ClCompile Include="..\Lib\sqlite3.c" />
-    <ClCompile Include="..\Lib\Storage.cpp" />
+    <ClCompile Include="..\Lib\DisassemblyStorage.cpp" />
     <ClCompile Include="..\Lib\Varray.cpp" />
     <ClCompile Include="..\Lib\XGetopt.cpp" />
     <ClCompile Include="IDAController.cpp" />
@@ -418,11 +418,12 @@
     <ClInclude Include="..\Lib\SharedSocket.h" />
     <ClInclude Include="..\Lib\SocketOperation.h" />
     <ClInclude Include="..\Lib\sqlite3.h" />
-    <ClInclude Include="..\Lib\Storage.h" />
+    <ClInclude Include="..\Lib\DisassemblyStorage.h" />
     <ClInclude Include="..\Lib\TLV.h" />
     <ClInclude Include="..\Lib\Varray.h" />
     <ClInclude Include="..\Lib\XGetopt.h" />
     <ClInclude Include="DiffEngine.h" />
+    <ClInclude Include="DisassemblyProcessor.h" />
     <ClInclude Include="IDAController.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
