@@ -100,14 +100,12 @@ void GetFeatureBits(int itype, char *FeatureMap, int Size, insn_t insn)
 		FeatureMap[4]|=CF_USE;
 	if(features&CF_USE6)
 		FeatureMap[5]|=CF_USE;
-	
-    
 
-	if(ph.id==PLFM_ARM && 
+	if(ph.id == PLFM_ARM && 
 		(
-            insn.itype==ARM_stm && //STMFD SP!,...
-            insn.ops[0].type==o_reg &&
-            insn.ops[0].reg==0xd //SP
+            insn.itype == ARM_stm && //STMFD SP!,...
+            insn.ops[0].type == o_reg &&
+            insn.ops[0].reg == 0xd //SP
 		)
 	)
 	{
@@ -135,7 +133,7 @@ char *OpTypeStr[]={
 void DumpOperand(HANDLE hFile,op_t operand)
 {
     /* TODO: Conert ph.regNames to ph.get_reg_name
-	if(operand.type==o_reg)
+	if(operand.type == o_reg)
 	{
         qstring name;
         ph.get_reg_name(&name, operand.reg, operand.dtype, 0);
@@ -144,28 +142,28 @@ void DumpOperand(HANDLE hFile,op_t operand)
 			OpTypeStr[operand.type],
             name.c_str(),         
 			operand.reg);
-	}else if(operand.type==o_displ)
+	}else if(operand.type == o_displ)
 	{
 		WriteToLogFile(hFile,"%s %s+%X",
 			OpTypeStr[operand.type],
 			ph.regNames[operand.reg],
 			operand.phrase);
-	}else if(operand.type==o_imm)
+	}else if(operand.type == o_imm)
 	{
 		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.value);
-	}else if(operand.type==o_near)
+	}else if(operand.type == o_near)
 	{
 		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.addr);
-	}else if(operand.type==o_mem)
+	}else if(operand.type == o_mem)
 	{
 		WriteToLogFile(hFile,"%s %X",
 			OpTypeStr[operand.type],
 			operand.addr);
-	}else if(operand.type==o_phrase)
+	}else if(operand.type == o_phrase)
 	{
 		WriteToLogFile(hFile,"%s %s+%s",
 			OpTypeStr[operand.type],
@@ -202,26 +200,32 @@ int GetInstructionWeight(insn_t instruction)
 		if(instruction.ops[i].type>0)
 		{
 			Weight+=instruction.ops[i].type*100;
-			if(instruction.ops[i].type==o_reg)
+			if(instruction.ops[i].type == o_reg)
 			{
 				Weight+=instruction.ops[i].reg;
-			}else if(instruction.ops[i].type==o_displ)
+			}
+            else if(instruction.ops[i].type == o_displ)
 			{
 				Weight+=instruction.ops[i].reg;
 				Weight+=instruction.ops[i].phrase;
-			}else if(instruction.ops[i].type==o_imm)
+			}
+            else if(instruction.ops[i].type == o_imm)
 			{
 				//Weight+=instruction.ops[i].value;
-			}else if(instruction.ops[i].type==o_near)
+			}
+            else if(instruction.ops[i].type == o_near)
 			{
 				//Weight+=instruction.ops[i].addr;
-			}else if(instruction.ops[i].type==o_mem)
+			}
+            else if(instruction.ops[i].type == o_mem)
 			{
 				//Weight+=instruction.ops[i].addr;
-			}else if(instruction.ops[i].type==o_phrase)
+			}
+            else if(instruction.ops[i].type == o_phrase)
 			{
 				Weight+=instruction.ops[i].phrase+instruction.ops[i].specflag1;
-			}else
+			}
+            else
 			{
 				/*
 					instruction.ops[i].dtyp,
@@ -292,7 +296,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 	unordered_map <ea_t,insn_t>::iterator InstructionHashIter;
 	for(InstructionHashIter=InstructionHash.begin();InstructionHashIter!=InstructionHash.end();InstructionHashIter++)
 	{
-		if(ChildAddresses.find(InstructionHashIter->first)==ChildAddresses.end())
+		if(ChildAddresses.find(InstructionHashIter->first) == ChildAddresses.end())
 		{
 			AddInstructionByOrder(InstructionHash,RootAddresses,InstructionHashIter->first);
 		}
@@ -320,7 +324,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 				list <ea_t> ChildrenAddresses;
 				list <ea_t>::iterator ChildrenAddressesIter;
 
-				for(InstructionMapIter=InstructionMap.find(TargetOperandPosition);InstructionMapIter!=InstructionMap.end() && InstructionMapIter->first.Address==*TargetAddressesIter && InstructionMapIter->first.Index==Index;InstructionMapIter++)
+				for(InstructionMapIter=InstructionMap.find(TargetOperandPosition);InstructionMapIter!=InstructionMap.end() && InstructionMapIter->first.Address == *TargetAddressesIter && InstructionMapIter->first.Index == Index;InstructionMapIter++)
 				{
 					AddInstructionByOrder(InstructionHash,ChildrenAddresses,InstructionMapIter->second.Address);
 				}
@@ -349,7 +353,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 		TmpAddressesIter++;
 		for(;TmpAddressesIter!=OrderedAddresses.rend();TmpAddressesIter++)
 		{
-			if(*TmpAddressesIter==*OrderedAddressesIter)
+			if(*TmpAddressesIter == *OrderedAddressesIter)
 				*TmpAddressesIter=0;
 		}
 	}
@@ -360,7 +364,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 		InstructionHashIter=InstructionHash.find(*AddressesIter);
 		if(InstructionHashIter!=InstructionHash.end())
 		{
-			WriteToLogFile(gLogFile,"Instruction at %X==%X: ",*AddressesIter,InstructionHashIter->second.ea);
+			WriteToLogFile(gLogFile,"Instruction at %X == %X: ",*AddressesIter,InstructionHashIter->second.ea);
 			for(int i=0;i<UA_MAXOP;i++)
 			{
 				if(InstructionHashIter->second.ops[i].type>0)
@@ -445,37 +449,37 @@ list <int> GetRelatedFlags(int itype,bool IsModifying)
 	list <int> Flags;
 	if(IsModifying)
 	{
-		if(ph.id==PLFM_ARM &&
-			(itype==ARM_add ||
-			itype==ARM_adc ||
-			itype==ARM_sub ||
-			itype==ARM_sbc ||
-			itype==ARM_rsc ||
-			itype==ARM_mul ||
-			itype==ARM_mla ||
-			itype==ARM_umull ||
-			itype==ARM_umlal ||
-			itype==ARM_smull ||
-			itype==ARM_smlal ||
-			itype==ARM_mov ||
-			itype==ARM_mvn ||
-			itype==ARM_asr ||
-			itype==ARM_lsl ||
-			itype==ARM_lsr ||
-			itype==ARM_ror ||
-			//itype==ARM_rrx ||
-			itype==ARM_and ||
-			itype==ARM_eor ||
-			itype==ARM_orr ||
-			//itype==ARM_orn ||
-			itype==ARM_bic)
+		if(ph.id == PLFM_ARM &&
+			(itype == ARM_add ||
+			itype == ARM_adc ||
+			itype == ARM_sub ||
+			itype == ARM_sbc ||
+			itype == ARM_rsc ||
+			itype == ARM_mul ||
+			itype == ARM_mla ||
+			itype == ARM_umull ||
+			itype == ARM_umlal ||
+			itype == ARM_smull ||
+			itype == ARM_smlal ||
+			itype == ARM_mov ||
+			itype == ARM_mvn ||
+			itype == ARM_asr ||
+			itype == ARM_lsl ||
+			itype == ARM_lsr ||
+			itype == ARM_ror ||
+			//itype == ARM_rrx ||
+			itype == ARM_and ||
+			itype == ARM_eor ||
+			itype == ARM_orr ||
+			//itype == ARM_orn ||
+			itype == ARM_bic)
 		)
 		{
 			Flags.push_back(CONDITION_FLAG);
 		}
 	}else
 	{
-		if(ph.id==PLFM_ARM && itype==ARM_b)
+		if(ph.id == PLFM_ARM && itype == ARM_b)
 		{
 			Flags.push_back(CONDITION_FLAG);
 		}
@@ -541,8 +545,8 @@ void UpdateInstructionMap
 	//Parameter Tracing
 	//ARM_blx/ARM_blx1/ARM_blx2
 	if(
-		(ph.id==PLFM_ARM && (instruction.itype==ARM_bl || instruction.itype==ARM_blx1 || instruction.itype==ARM_blx2)) ||
-		(ph.id==PLFM_MIPS && (instruction.itype==MIPS_jal || instruction.itype==MIPS_jalx))
+		(ph.id == PLFM_ARM && (instruction.itype == ARM_bl || instruction.itype == ARM_blx1 || instruction.itype == ARM_blx2)) ||
+		(ph.id == PLFM_MIPS && (instruction.itype == MIPS_jal || instruction.itype == MIPS_jalx))
 	)
 	{
 		op_t operand;
@@ -585,25 +589,25 @@ void UpdateInstructionMap
 			if(Features[i]&CF_USE)
 			{
 				unordered_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(*pOperand);
-				if(iter==OperandsHash.end())
+				if(iter == OperandsHash.end())
 				{
 					op_t tmp_op;
 					memset(&tmp_op,0,sizeof(op_t));
 					tmp_op.type=o_reg;
-					if(pOperand->type==o_displ)
+					if(pOperand->type == o_displ)
 					{
 						tmp_op.reg=pOperand->reg;
 						iter=OperandsHash.find(tmp_op);
-						if(iter==OperandsHash.end())
+						if(iter == OperandsHash.end())
 						{
 							tmp_op.reg=pOperand->phrase;
 							iter=OperandsHash.find(tmp_op);
 						}
-					}else if(pOperand->type==o_phrase)
+					}else if(pOperand->type == o_phrase)
 					{
 						tmp_op.reg=pOperand->specflag1;
 						iter=OperandsHash.find(tmp_op);
-						if(iter==OperandsHash.end())
+						if(iter == OperandsHash.end())
 						{
 							tmp_op.reg=pOperand->phrase;
 							iter=OperandsHash.find(tmp_op);
@@ -671,10 +675,10 @@ void DumpBasicBlock(
 
 		ea_t cref = get_first_cref_to(src_block_address);
 
-		if(cref==BADADDR || basic_block.StartAddress==basic_block.FunctionAddress)
+		if(cref == BADADDR || basic_block.StartAddress == basic_block.FunctionAddress)
 		{
 			basic_block.BlockType=FUNCTION_BLOCK;
-			if(name[0]==NULL)
+			if(name[0] == NULL)
 			{
 				//TODO: Fix - _snprintf(name,sizeof(name)-1,"func_%X",basic_block.StartAddress);
 			}
@@ -696,56 +700,56 @@ void DumpBasicBlock(
 		
 		if(is_code(flags) &&
 			!( //detect hot patching
-				basic_block.StartAddress==basic_block.FunctionAddress && 
-				CmdArrayIter==pCmdArray->begin() &&
+				basic_block.StartAddress == basic_block.FunctionAddress && 
+				CmdArrayIter == pCmdArray->begin() &&
 				(ph.id == PLFM_386 || ph.id == PLFM_IA64) && (*CmdArrayIter).itype == NN_mov && (*CmdArrayIter).ops[0].reg == (*CmdArrayIter).ops[1].reg
 			) &&
 			!(
 				((ph.id == PLFM_386 || ph.id == PLFM_IA64) &&
 					(
-						(*CmdArrayIter).itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-						(*CmdArrayIter).itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
-						(*CmdArrayIter).itype==NN_jc ||                  // Jump if Carry (CF=1)
-						(*CmdArrayIter).itype==NN_jcxz ||                // Jump if CX is 0
-						(*CmdArrayIter).itype==NN_jecxz ||               // Jump if ECX is 0
-						(*CmdArrayIter).itype==NN_jrcxz ||               // Jump if RCX is 0
-						(*CmdArrayIter).itype==NN_je ||                  // Jump if Equal (ZF=1)
-						(*CmdArrayIter).itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-						(*CmdArrayIter).itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-						(*CmdArrayIter).itype==NN_jo ||                  // Jump if Overflow (OF=1)
-						(*CmdArrayIter).itype==NN_jp ||                  // Jump if Parity (PF=1)
-						(*CmdArrayIter).itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
-						(*CmdArrayIter).itype==NN_js ||                  // Jump if Sign (SF=1)
-						(*CmdArrayIter).itype==NN_jz ||                  // Jump if Zero (ZF=1)
-						(*CmdArrayIter).itype==NN_jmp ||                 // Jump
-						(*CmdArrayIter).itype==NN_jmpfi ||               // Indirect Far Jump
-						(*CmdArrayIter).itype==NN_jmpni ||               // Indirect Near Jump
-						(*CmdArrayIter).itype==NN_jmpshort ||            // Jump Short
-						(*CmdArrayIter).itype==NN_jpo ||                 // Jump if Parity Odd  (PF=0)
-						(*CmdArrayIter).itype==NN_jl ||                  // Jump if Less (SF!=OF)
-						(*CmdArrayIter).itype==NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
-						(*CmdArrayIter).itype==NN_jb ||                  // Jump if Below (CF=1)
-						(*CmdArrayIter).itype==NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
-						(*CmdArrayIter).itype==NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
-						(*CmdArrayIter).itype==NN_jnae ||                // Jump if Not Above or Equal (CF=1)
-						(*CmdArrayIter).itype==NN_jnb ||                 // Jump if Not Below (CF=0)
-						(*CmdArrayIter).itype==NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
-						(*CmdArrayIter).itype==NN_jnc ||                 // Jump if Not Carry (CF=0)
-						(*CmdArrayIter).itype==NN_jne ||                 // Jump if Not Equal (ZF=0)
-						(*CmdArrayIter).itype==NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
-						(*CmdArrayIter).itype==NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
-						(*CmdArrayIter).itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
-						(*CmdArrayIter).itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-						(*CmdArrayIter).itype==NN_jno ||                 // Jump if Not Overflow (OF=0)
-						(*CmdArrayIter).itype==NN_jnp ||                 // Jump if Not Parity (PF=0)
-						(*CmdArrayIter).itype==NN_jns ||                 // Jump if Not Sign (SF=0)
-						(*CmdArrayIter).itype==NN_jnz                 // Jump if Not Zero (ZF=0)
+						(*CmdArrayIter).itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+						(*CmdArrayIter).itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
+						(*CmdArrayIter).itype == NN_jc ||                  // Jump if Carry (CF=1)
+						(*CmdArrayIter).itype == NN_jcxz ||                // Jump if CX is 0
+						(*CmdArrayIter).itype == NN_jecxz ||               // Jump if ECX is 0
+						(*CmdArrayIter).itype == NN_jrcxz ||               // Jump if RCX is 0
+						(*CmdArrayIter).itype == NN_je ||                  // Jump if Equal (ZF=1)
+						(*CmdArrayIter).itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+						(*CmdArrayIter).itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+						(*CmdArrayIter).itype == NN_jo ||                  // Jump if Overflow (OF=1)
+						(*CmdArrayIter).itype == NN_jp ||                  // Jump if Parity (PF=1)
+						(*CmdArrayIter).itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
+						(*CmdArrayIter).itype == NN_js ||                  // Jump if Sign (SF=1)
+						(*CmdArrayIter).itype == NN_jz ||                  // Jump if Zero (ZF=1)
+						(*CmdArrayIter).itype == NN_jmp ||                 // Jump
+						(*CmdArrayIter).itype == NN_jmpfi ||               // Indirect Far Jump
+						(*CmdArrayIter).itype == NN_jmpni ||               // Indirect Near Jump
+						(*CmdArrayIter).itype == NN_jmpshort ||            // Jump Short
+						(*CmdArrayIter).itype == NN_jpo ||                 // Jump if Parity Odd  (PF=0)
+						(*CmdArrayIter).itype == NN_jl ||                  // Jump if Less (SF!=OF)
+						(*CmdArrayIter).itype == NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
+						(*CmdArrayIter).itype == NN_jb ||                  // Jump if Below (CF=1)
+						(*CmdArrayIter).itype == NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
+						(*CmdArrayIter).itype == NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
+						(*CmdArrayIter).itype == NN_jnae ||                // Jump if Not Above or Equal (CF=1)
+						(*CmdArrayIter).itype == NN_jnb ||                 // Jump if Not Below (CF=0)
+						(*CmdArrayIter).itype == NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
+						(*CmdArrayIter).itype == NN_jnc ||                 // Jump if Not Carry (CF=0)
+						(*CmdArrayIter).itype == NN_jne ||                 // Jump if Not Equal (ZF=0)
+						(*CmdArrayIter).itype == NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
+						(*CmdArrayIter).itype == NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
+						(*CmdArrayIter).itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
+						(*CmdArrayIter).itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+						(*CmdArrayIter).itype == NN_jno ||                 // Jump if Not Overflow (OF=0)
+						(*CmdArrayIter).itype == NN_jnp ||                 // Jump if Not Parity (PF=0)
+						(*CmdArrayIter).itype == NN_jns ||                 // Jump if Not Sign (SF=0)
+						(*CmdArrayIter).itype == NN_jnz                 // Jump if Not Zero (ZF=0)
 					)
 				) ||
 				(
-					ph.id==PLFM_ARM &&
+					ph.id == PLFM_ARM &&
 					(
-						(*CmdArrayIter).itype==ARM_b
+						(*CmdArrayIter).itype == ARM_b
 					)
 				)
 			)
@@ -759,7 +763,7 @@ void DumpBasicBlock(
 					FingerPrint.push_back((*CmdArrayIter).ops[i].type);
 					FingerPrint.push_back((*CmdArrayIter).ops[i].dtype);
 					/*
-					if((*CmdArrayIter).ops[i].type==o_imm)
+					if((*CmdArrayIter).ops[i].type == o_imm)
 					{
 						FingerPrint.push_back(((*CmdArrayIter).ops[i].value>>24)&0xff);
 						FingerPrint.push_back(((*CmdArrayIter).ops[i].value>>16)&0xff);
@@ -846,7 +850,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 		if(AdditionallyAnalyzedBlocksIter!=AdditionallyAnalyzedBlocks.end())
 		{
 			//WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Skip %X block to %X\n",__FUNCTION__,StartEA,AdditionallyAnalyzedBlocksIter->second);
-			if(StartEA==AdditionallyAnalyzedBlocksIter->second)
+			if(StartEA == AdditionallyAnalyzedBlocksIter->second)
 				break;
 			StartEA=AdditionallyAnalyzedBlocksIter->second;
 		}else
@@ -904,10 +908,10 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
                         (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)
                     ) ||
 					(
-                        ph.id==PLFM_ARM && 
-                        (insn.itype==ARM_bl || insn.itype==ARM_blx1 || insn.itype==ARM_blx2)
+                        ph.id == PLFM_ARM && 
+                        (insn.itype == ARM_bl || insn.itype == ARM_blx1 || insn.itype == ARM_blx2)
                     ) ||
-					(ph.id==PLFM_MIPS && (insn.itype==MIPS_jal || insn.itype==MIPS_jalx))
+					(ph.id == PLFM_MIPS && (insn.itype == MIPS_jal || insn.itype == MIPS_jalx))
 				)
 				{
 
@@ -926,7 +930,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 
                     decode_insn(&insn, cref);
 
-					if(insn.itype==NN_jmp || insn.itype==NN_jmpfi || insn.itype==NN_jmpni || insn.itype==NN_jmpshort)
+					if(insn.itype == NN_jmp || insn.itype == NN_jmpfi || insn.itype == NN_jmpni || insn.itype == NN_jmpshort)
 					{
 						int cref_from_cref_number=0;
 						ea_t cref_from_cref=get_first_cref_from(cref);
@@ -935,7 +939,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 							cref_from_cref_number++;
 							cref_from_cref=get_next_cref_from(cref,cref_from_cref);
 						}
-						if(cref_from_cref_number==1)
+						if(cref_from_cref_number == 1)
 						{
 							//we add the cref's next position instead cref
 							//because this is a null block(doing nothing but jump)
@@ -977,7 +981,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			{
 				if(
 					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_retn || insn.itype == NN_retf)) ||
-					(ph.id==PLFM_ARM && ((insn.itype==ARM_pop && (insn.ops[0].specval&0xff00)==0x8000) || insn.itype==ARM_ret || insn.itype==ARM_bx))
+					(ph.id == PLFM_ARM && ((insn.itype == ARM_pop && (insn.ops[0].specval&0xff00) == 0x8000) || insn.itype == ARM_ret || insn.itype == ARM_bx))
 				)
 				{
 					found_branch=TRUE;
@@ -1007,7 +1011,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
             insn_t insn;
             decode_insn(&insn, cref);
 
-			if(insn.itype==NN_jmp || insn.itype==NN_jmpfi || insn.itype==NN_jmpni || insn.itype==NN_jmpshort)
+			if(insn.itype == NN_jmp || insn.itype == NN_jmpfi || insn.itype == NN_jmpni || insn.itype == NN_jmpshort)
 			{
 				//we add the cref's next position instead cref
 				//because this is a null block(doing nothing but jump)
@@ -1052,70 +1056,70 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 		{
 			bool is_positive_jmp=TRUE;
 			if(
-				current_itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-				current_itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
-				current_itype==NN_jc ||                  // Jump if Carry (CF=1)
-				current_itype==NN_jcxz ||                // Jump if CX is 0
-				current_itype==NN_jecxz ||               // Jump if ECX is 0
-				current_itype==NN_jrcxz ||               // Jump if RCX is 0
-				current_itype==NN_je ||                  // Jump if Equal (ZF=1)
-				current_itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-				current_itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-				current_itype==NN_jo ||                  // Jump if Overflow (OF=1)
-				current_itype==NN_jp ||                  // Jump if Parity (PF=1)
-				current_itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
-				current_itype==NN_js ||                  // Jump if Sign (SF=1)
-				current_itype==NN_jz ||                  // Jump if Zero (ZF=1)
-				current_itype==NN_jmp ||                 // Jump
-				current_itype==NN_jmpfi ||               // Indirect Far Jump
-				current_itype==NN_jmpni ||               // Indirect Near Jump
-				current_itype==NN_jmpshort ||            // Jump Short
-				current_itype==NN_jpo ||                 // Jump if Parity Odd  (PF=0)
-				current_itype==NN_jl ||                  // Jump if Less (SF!=OF)
-				current_itype==NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
-				current_itype==NN_jb ||                  // Jump if Below (CF=1)
-				current_itype==NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
-				current_itype==NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
-				current_itype==NN_jnae ||                // Jump if Not Above or Equal (CF=1)
-				current_itype==NN_jnb ||                 // Jump if Not Below (CF=0)
-				current_itype==NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
-				current_itype==NN_jnc ||                 // Jump if Not Carry (CF=0)
-				current_itype==NN_jne ||                 // Jump if Not Equal (ZF=0)
-				current_itype==NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
-				current_itype==NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
-				current_itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
-				current_itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-				current_itype==NN_jno ||                 // Jump if Not Overflow (OF=0)
-				current_itype==NN_jnp ||                 // Jump if Not Parity (PF=0)
-				current_itype==NN_jns ||                 // Jump if Not Sign (SF=0)
-				current_itype==NN_jnz                 // Jump if Not Zero (ZF=0)
+				current_itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+				current_itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
+				current_itype == NN_jc ||                  // Jump if Carry (CF=1)
+				current_itype == NN_jcxz ||                // Jump if CX is 0
+				current_itype == NN_jecxz ||               // Jump if ECX is 0
+				current_itype == NN_jrcxz ||               // Jump if RCX is 0
+				current_itype == NN_je ||                  // Jump if Equal (ZF=1)
+				current_itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+				current_itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+				current_itype == NN_jo ||                  // Jump if Overflow (OF=1)
+				current_itype == NN_jp ||                  // Jump if Parity (PF=1)
+				current_itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
+				current_itype == NN_js ||                  // Jump if Sign (SF=1)
+				current_itype == NN_jz ||                  // Jump if Zero (ZF=1)
+				current_itype == NN_jmp ||                 // Jump
+				current_itype == NN_jmpfi ||               // Indirect Far Jump
+				current_itype == NN_jmpni ||               // Indirect Near Jump
+				current_itype == NN_jmpshort ||            // Jump Short
+				current_itype == NN_jpo ||                 // Jump if Parity Odd  (PF=0)
+				current_itype == NN_jl ||                  // Jump if Less (SF!=OF)
+				current_itype == NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
+				current_itype == NN_jb ||                  // Jump if Below (CF=1)
+				current_itype == NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
+				current_itype == NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
+				current_itype == NN_jnae ||                // Jump if Not Above or Equal (CF=1)
+				current_itype == NN_jnb ||                 // Jump if Not Below (CF=0)
+				current_itype == NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
+				current_itype == NN_jnc ||                 // Jump if Not Carry (CF=0)
+				current_itype == NN_jne ||                 // Jump if Not Equal (ZF=0)
+				current_itype == NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
+				current_itype == NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
+				current_itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
+				current_itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+				current_itype == NN_jno ||                 // Jump if Not Overflow (OF=0)
+				current_itype == NN_jnp ||                 // Jump if Not Parity (PF=0)
+				current_itype == NN_jns ||                 // Jump if Not Sign (SF=0)
+				current_itype == NN_jnz                 // Jump if Not Zero (ZF=0)
 			)
 			{
 				//map table
 				//check last instruction whether it was positive or negative to tweak the map
 				if(
-						current_itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-						current_itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
-						current_itype==NN_jc ||                  // Jump if Carry (CF=1)
-						current_itype==NN_jcxz ||                // Jump if CX is 0
-						current_itype==NN_jecxz ||               // Jump if ECX is 0
-						current_itype==NN_jrcxz ||               // Jump if RCX is 0
-						current_itype==NN_je ||                  // Jump if Equal (ZF=1)
-						current_itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-						current_itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-						current_itype==NN_jo ||                  // Jump if Overflow (OF=1)
-						current_itype==NN_jp ||                  // Jump if Parity (PF=1)
-						current_itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
-						current_itype==NN_js ||                  // Jump if Sign (SF=1)
-						current_itype==NN_jz ||                  // Jump if Zero (ZF=1)
-						current_itype==NN_jmp ||                 // Jump
-						current_itype==NN_jmpfi ||               // Indirect Far Jump
-						current_itype==NN_jmpni ||               // Indirect Near Jump
-						current_itype==NN_jmpshort ||            // Jump Short
-						current_itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
-						current_itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-						current_itype==NN_jnb ||                 // Jump if Not Below (CF=0)
-						current_itype==NN_jnbe                 // Jump if Not Below or Equal (CF=0 & ZF=0)						
+						current_itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+						current_itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
+						current_itype == NN_jc ||                  // Jump if Carry (CF=1)
+						current_itype == NN_jcxz ||                // Jump if CX is 0
+						current_itype == NN_jecxz ||               // Jump if ECX is 0
+						current_itype == NN_jrcxz ||               // Jump if RCX is 0
+						current_itype == NN_je ||                  // Jump if Equal (ZF=1)
+						current_itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+						current_itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+						current_itype == NN_jo ||                  // Jump if Overflow (OF=1)
+						current_itype == NN_jp ||                  // Jump if Parity (PF=1)
+						current_itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
+						current_itype == NN_js ||                  // Jump if Sign (SF=1)
+						current_itype == NN_jz ||                  // Jump if Zero (ZF=1)
+						current_itype == NN_jmp ||                 // Jump
+						current_itype == NN_jmpfi ||               // Indirect Far Jump
+						current_itype == NN_jmpni ||               // Indirect Near Jump
+						current_itype == NN_jmpshort ||            // Jump Short
+						current_itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
+						current_itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+						current_itype == NN_jnb ||                 // Jump if Not Below (CF=0)
+						current_itype == NN_jnbe                 // Jump if Not Below or Equal (CF=0 & ZF=0)						
 					)
 				{
 					is_positive_jmp=TRUE;
@@ -1128,7 +1132,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			vector<ea_t>::iterator cref_list_iter;
 			//If Split Block
 			//must be jmp,next block has only one cref_to
-			if(cref_list.size()==1 && current_itype==NN_jmp && InstructionCount>1)
+			if(cref_list.size() == 1 && current_itype == NN_jmp && InstructionCount>1)
 			{
 				cref_list_iter=cref_list.begin();
 				ea_t next_block_addr=*cref_list_iter;
@@ -1142,7 +1146,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 						cref_to_count++;
 					cref_to=get_next_cref_to(next_block_addr,cref_to);
 				}
-				if(cref_to_count==0)
+				if(cref_to_count == 0)
 				{
 					//Merge it
 					if(!first_block_end_address)
@@ -1272,7 +1276,7 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 {
 	ea_t current_addr;
-	size_t current_item_size=0;
+	size_t current_item_size = 0;
 	list <ea_t> AddressQueue;
 	list <ea_t>::iterator AddressQueueIter;
 	AddressQueue.push_back(StartAddress);
@@ -1280,10 +1284,16 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	AddressHash.insert(StartAddress);
 
 	list <AddressRegion> AddressRegions;
-	for(AddressQueueIter=AddressQueue.begin();AddressQueueIter!=AddressQueue.end();AddressQueueIter++)
+
+	for(
+        AddressQueueIter = AddressQueue.begin();
+        AddressQueueIter!=AddressQueue.end();
+        AddressQueueIter++
+    )
 	{
-		msg("Analyzing Address %X\n",*AddressQueueIter);
-		ea_t block_StartAddress=*AddressQueueIter;
+		msg("Analyzing Address %X\n", *AddressQueueIter);
+		ea_t block_StartAddress = *AddressQueueIter;
+
 		for(current_addr=block_StartAddress;;current_addr+=current_item_size)
 		{
 			bool bEndOfBlock=FALSE;
@@ -1304,47 +1314,47 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 			while(cref!=BADADDR)
 			{
 				if(
-                    insn.itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-                    insn.itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
-                    insn.itype==NN_jc ||                  // Jump if Carry (CF=1)
-                    insn.itype==NN_jcxz ||                // Jump if CX is 0
-                    insn.itype==NN_jecxz ||               // Jump if ECX is 0
-                    insn.itype==NN_jrcxz ||               // Jump if RCX is 0
-                    insn.itype==NN_je ||                  // Jump if Equal (ZF=1)
-                    insn.itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-					insn.itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-					insn.itype==NN_jo ||                  // Jump if Overflow (OF=1)
-					insn.itype==NN_jp ||                  // Jump if Parity (PF=1)
-					insn.itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
-					insn.itype==NN_js ||                  // Jump if Sign (SF=1)
-					insn.itype==NN_jz ||                  // Jump if Zero (ZF=1)
-					insn.itype==NN_jmp ||                 // Jump
-					insn.itype==NN_jmpfi ||               // Indirect Far Jump
-					insn.itype==NN_jmpni ||               // Indirect Near Jump
-					insn.itype==NN_jmpshort ||            // Jump Short
-					insn.itype==NN_jpo ||                 // Jump if Parity Odd  (PF=0)
-					insn.itype==NN_jl ||                  // Jump if Less (SF!=OF)
-					insn.itype==NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
-					insn.itype==NN_jb ||                  // Jump if Below (CF=1)
-					insn.itype==NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
-					insn.itype==NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
-					insn.itype==NN_jnae ||                // Jump if Not Above or Equal (CF=1)
-					insn.itype==NN_jnb ||                 // Jump if Not Below (CF=0)
-					insn.itype==NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
-					insn.itype==NN_jnc ||                 // Jump if Not Carry (CF=0)
-					insn.itype==NN_jne ||                 // Jump if Not Equal (ZF=0)
-					insn.itype==NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
-					insn.itype==NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
-					insn.itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
-					insn.itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-					insn.itype==NN_jno ||                 // Jump if Not Overflow (OF=0)
-					insn.itype==NN_jnp ||                 // Jump if Not Parity (PF=0)
-					insn.itype==NN_jns ||                 // Jump if Not Sign (SF=0)
-					insn.itype==NN_jnz                 // Jump if Not Zero (ZF=0)
+                    insn.itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+                    insn.itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
+                    insn.itype == NN_jc ||                  // Jump if Carry (CF=1)
+                    insn.itype == NN_jcxz ||                // Jump if CX is 0
+                    insn.itype == NN_jecxz ||               // Jump if ECX is 0
+                    insn.itype == NN_jrcxz ||               // Jump if RCX is 0
+                    insn.itype == NN_je ||                  // Jump if Equal (ZF=1)
+                    insn.itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+					insn.itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+					insn.itype == NN_jo ||                  // Jump if Overflow (OF=1)
+					insn.itype == NN_jp ||                  // Jump if Parity (PF=1)
+					insn.itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
+					insn.itype == NN_js ||                  // Jump if Sign (SF=1)
+					insn.itype == NN_jz ||                  // Jump if Zero (ZF=1)
+					insn.itype == NN_jmp ||                 // Jump
+					insn.itype == NN_jmpfi ||               // Indirect Far Jump
+					insn.itype == NN_jmpni ||               // Indirect Near Jump
+					insn.itype == NN_jmpshort ||            // Jump Short
+					insn.itype == NN_jpo ||                 // Jump if Parity Odd  (PF=0)
+					insn.itype == NN_jl ||                  // Jump if Less (SF!=OF)
+					insn.itype == NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
+					insn.itype == NN_jb ||                  // Jump if Below (CF=1)
+					insn.itype == NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
+					insn.itype == NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
+					insn.itype == NN_jnae ||                // Jump if Not Above or Equal (CF=1)
+					insn.itype == NN_jnb ||                 // Jump if Not Below (CF=0)
+					insn.itype == NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
+					insn.itype == NN_jnc ||                 // Jump if Not Carry (CF=0)
+					insn.itype == NN_jne ||                 // Jump if Not Equal (ZF=0)
+					insn.itype == NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
+					insn.itype == NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
+					insn.itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
+					insn.itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+					insn.itype == NN_jno ||                 // Jump if Not Overflow (OF=0)
+					insn.itype == NN_jnp ||                 // Jump if Not Parity (PF=0)
+					insn.itype == NN_jns ||                 // Jump if Not Sign (SF=0)
+					insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
 				)
 				{
 					msg("Got Jump at %X\n",current_addr);
-					if(AddressHash.find(cref)==AddressHash.end())
+					if(AddressHash.find(cref) == AddressHash.end())
 					{
 						msg("Adding %X to queue\n",cref);
 						AddressHash.insert(cref);
@@ -1365,8 +1375,8 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					
 					if(
 						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)) ||
-						!(ph.id==PLFM_ARM && (insn.itype==ARM_bl || insn.itype==ARM_blx1 || insn.itype==ARM_blx2)) ||
-						!(ph.id==PLFM_MIPS && (insn.itype==MIPS_jal || insn.itype==MIPS_jalx))
+						!(ph.id == PLFM_ARM && (insn.itype == ARM_bl || insn.itype == ARM_blx1 || insn.itype == ARM_blx2)) ||
+						!(ph.id == PLFM_MIPS && (insn.itype == MIPS_jal || insn.itype == MIPS_jalx))
 					)
 					{
 						//End of block
@@ -1381,13 +1391,14 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 				//jump to local block
 				//block_StartAddress,current_addr+item_size is a block
 				AddressRegion address_region;
-				address_region.startEA=block_StartAddress;
-				address_region.endEA=current_addr+current_item_size;
+				address_region.startEA = block_StartAddress;
+				address_region.endEA = current_addr+current_item_size;
 				AddressRegions.push_back(address_region);
 				break;
 			}
 		}
 	}
+
 	/*
 	list <AddressRegion>::iterator AddressRegionsIter;
 	for(AddressRegionsIter=AddressRegions.begin();AddressRegionsIter!=AddressRegions.end();AddressRegionsIter++)
@@ -1409,7 +1420,7 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 	DWORD UserNameLen=sizeof(file_info.UserName);
 	GetUserName(file_info.UserName,&UserNameLen);
 
-	char *input_file_path=NULL;
+	char *input_file_path = NULL;
 
 #ifdef _USE_IDA_SDK_49_OR_UPPER
 	char OriginalFilePath[1024]={0,};
@@ -1442,7 +1453,7 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 		if(cur_func_t->start_ea == saddr)
 		{
 			//Collect all member addresses
-			AddressRegions=GetMemberAddresses(saddr);
+			AddressRegions = GetMemberAddresses(saddr);
 		}else
 		{
 			AddressRegion address_region;
