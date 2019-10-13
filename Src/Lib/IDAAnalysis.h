@@ -156,6 +156,74 @@ struct OpTHashCompareStr
 	}
 };
 
+class OpTypeHasher
+{
+public:
+    size_t operator() (op_t const& x) const
+    {
+        size_t key = 0;
+        key = x.type;
+
+        if (x.type == o_reg)
+        {
+            key += x.reg * 100;
+        }
+        else if (x.type == o_displ)
+        {
+            key += x.reg * 100;
+            key += x.phrase * 10000;
+        }
+        else if (x.type == o_phrase)
+        {
+            key += x.phrase * 100;
+            key += x.specflag1 * 10000;
+        }
+        return key;
+    }
+};
+
+class OpTypeEqualFn
+{
+public:
+    bool operator() (op_t const& x, op_t const& y) const
+    {
+        if (x.type != y.type)
+        {
+            return x.type < y.type;
+        }
+        else
+        {
+            if (x.type == o_reg)
+            {
+                return x.reg < y.reg;
+            }
+            else if (x.type == o_displ)
+            {
+                if (x.reg != y.reg)
+                {
+                    return x.reg < y.reg;
+                }
+                else
+                {
+                    return x.phrase < y.phrase;
+                }
+            }
+            else if (x.type == o_phrase)
+            {
+                if (x.phrase != y.phrase)
+                {
+                    return x.phrase < y.phrase;
+                }
+                else
+                {
+                    return x.specflag1 < y.specflag1;
+                }
+            }
+            return 0;
+        }
+    }
+};
+
 extern char *OpTypeStr[];
 
 string GetFeatureStr(DWORD features);
@@ -166,7 +234,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 list <int> GetRelatedFlags(int itype,bool IsModifying);
 void UpdateInstructionMap
 (
-	unordered_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
+    unordered_map < op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn > &OperandsHash,
 	unordered_map <int,ea_t> &FlagsHash,
 	//Instruction Hash and Map
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
