@@ -8,8 +8,11 @@ using namespace std;
 DisassemblyStorage::DisassemblyStorage( const char *DatabaseName)
 {
 	db=NULL;
-	if( DatabaseName )
-		CreateDatabase( DatabaseName );
+    if (DatabaseName)
+    {
+        CreateDatabase(DatabaseName);
+        CreateTables();
+    }
 }
 
 DisassemblyStorage::~DisassemblyStorage()

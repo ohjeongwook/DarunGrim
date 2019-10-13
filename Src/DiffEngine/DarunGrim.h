@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "DataBaseWriter.h"
+#include "DisassemblyStorage.h"
 
 #include <string>
 using namespace std;

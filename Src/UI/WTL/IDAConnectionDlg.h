@@ -17,7 +17,7 @@ using namespace stdext;
 #include "atlctrls.h"
 #include "atlctrlw.h"
 
-#include "DataBaseWriter.h"
+#include "DisassemblyStorage.h"
 
 #include "ProcessUtils.h"
 

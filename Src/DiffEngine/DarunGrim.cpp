@@ -6,8 +6,9 @@
 #include "LogOperation.h"
 
 #include "SocketOperation.h"
-#include "DataBaseWriter.h"
+#include "DisassemblyStorage.h"
 #include "ProcessUtils.h"
+#include "IDAAnalysisCommon.h"
 
 LogOperation Logger;
 
@@ -269,14 +270,6 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 		delete m_disassemblyStorage;
 
 	m_disassemblyStorage = new DisassemblyStorage(storage_filename);
-
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_START_ADDRESS_INDEX_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_END_ADDRESS_INDEX_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
-	m_disassemblyStorage->ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
 	return TRUE;
 }
 

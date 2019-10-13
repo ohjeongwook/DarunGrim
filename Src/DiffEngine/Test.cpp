@@ -1,6 +1,6 @@
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "DataBaseWriter.h"
+#include "DisassemblyStorage.h"
 #include "XGetopt.h"
 #include "ProcessUtils.h"
 #include "dprintf.h"

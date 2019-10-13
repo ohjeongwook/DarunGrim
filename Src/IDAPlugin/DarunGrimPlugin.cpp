@@ -25,7 +25,7 @@
 #if defined( USE_SQLITE_DB )
 #include "sqlite3.h"
 #include "DisassemblyStorage.h"
-#include "DataBaseWriter.h"
+#include "DisassemblyStorage.h"
 #endif
 
 using namespace std;
