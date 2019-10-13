@@ -10,3 +10,5 @@
 /Src/UI/WTL/x64/Debug
 /Src/DiffEngine/DiffEngine.vcxproj.user
 /Lib/idasdk71
+/x64/Debug
+*.filters
