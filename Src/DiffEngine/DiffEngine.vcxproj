@@ -408,7 +408,7 @@
     <ClInclude Include="..\Lib\fileinfo.h" />
     <ClInclude Include="..\Lib\IDAAnalysis.h" />
     <ClInclude Include="..\Lib\IDAAnalysisCommon.h" />
-    <ClInclude Include="..\Lib\IdaIncludes.h" />
+    <ClInclude Include="..\Lib\IDAIncludes.h" />
     <ClInclude Include="..\Lib\IDAVerifier.h" />
     <ClInclude Include="..\Lib\LogOperation.h" />
     <ClInclude Include="..\Lib\md5.h" />

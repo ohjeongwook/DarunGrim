@@ -20,7 +20,7 @@ void PrintToStdOutWithTime(const TCHAR *format,...)
 	printf("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
 }
 
-HANDLE OpenLogFile(char *szTempName)
+HANDLE OpenLogFile(const char *szTempName)
 {
 #define BUFSIZE 512
 	

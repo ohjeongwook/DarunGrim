@@ -12,3 +12,4 @@
 /Lib/idasdk71
 /x64/Debug
 *.filters
+/Src/IDAPlugin/IDAPlugin.vcxproj.user

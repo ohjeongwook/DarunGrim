@@ -186,7 +186,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk65\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DiffEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -384,32 +384,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Lib\DataBaseWriter.h" />
-    <ClInclude Include="..\Lib\dprintf.h" />
-    <ClInclude Include="..\Lib\fileinfo.h" />
-    <ClInclude Include="..\Lib\IDAAnalysis.h" />
-    <ClInclude Include="..\Lib\IDAVerifier.h" />
-    <ClInclude Include="..\Lib\md5.h" />
-    <ClInclude Include="..\Lib\ProcessUtils.h" />
-    <ClInclude Include="..\Lib\SharedMemory.h" />
-    <ClInclude Include="..\Lib\SharedSocket.h" />
-    <ClInclude Include="..\Lib\SocketOperation.h" />
-    <ClInclude Include="..\Lib\sqlite3.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Lib\DataBaseWriter.cpp" />
-    <ClCompile Include="..\Lib\dprintf.cpp" />
-    <ClCompile Include="..\Lib\fileinfo.cpp" />
-    <ClCompile Include="..\Lib\IDAAnalysis.cpp" />
-    <ClCompile Include="..\Lib\IDAVerifier.cpp" />
-    <ClCompile Include="..\Lib\md5.cpp" />
-    <ClCompile Include="..\Lib\ProcessUtils.cpp" />
-    <ClCompile Include="..\Lib\SharedMemory.cpp" />
-    <ClCompile Include="..\Lib\SharedSocket.cpp" />
-    <ClCompile Include="..\Lib\SocketOperation.cpp" />
-    <ClCompile Include="..\Lib\sqlite3.c" />
     <ClCompile Include="..\IDAPlugin\DarunGrimPlugin.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -21,6 +21,6 @@ void __inline PrintToNone(const TCHAR *format,...)
 }
 void PrintToStdOutWithTime(const TCHAR *format,...);
 
-HANDLE OpenLogFile(char *szTempName);
+HANDLE OpenLogFile(const char *szTempName);
 void WriteToLogFile(HANDLE hFile,const char *format,...);
 void CloseLogFile(HANDLE hFile);
