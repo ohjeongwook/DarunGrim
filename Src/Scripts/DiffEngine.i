@@ -51,7 +51,7 @@ public:
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
 	BOOL Load( DisassemblyStorage* InputDB);
-	BOOL Save( DisassemblyStorage& OutputDB, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save( DisassemblyStorage& OutputDB, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 };
 
 class DarunGrim
