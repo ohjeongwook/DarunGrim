@@ -1,4 +1,3 @@
-#include "DiffMachine.h"
 #include <string>
 #include <list>
 #include <unordered_set>
@@ -7,6 +6,7 @@
 #include <tchar.h>
 
 #include "Diff.h"
+#include "DiffMachine.h"
 
 #define strtoul10( X ) strtoul( X, NULL, 10 )
 
@@ -16,7 +16,7 @@ using namespace std;
 using namespace stdext;
 #include "Configuration.h"
 
-char *MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function" };
+const char *MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function" };
 
 #include "sqlite3.h"
 
@@ -119,7 +119,7 @@ public:
 		return match_map_iter;
 	}
 
-	void AddMatchData(MatchData &match_data, char *debug_str)
+	void AddMatchData(MatchData &match_data, const char *debug_str)
 	{
 		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 			Logger.Log(10, LOG_DIFF_MACHINE, "%s %s [%d] %X-%X: %d%%\n", __FUNCTION__, debug_str, match_data.Type, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
@@ -324,7 +324,7 @@ int DiffMachine::GetMatchRate( DWORD unpatched_address, DWORD patched_address )
 
 void DiffMachine::DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  MatchData>::iterator match_map_iter )
 {
-	char *SubTypeStr[]={"Cref From", "Cref To", "Call", "Dref From", "Dref To"};	
+	const char *SubTypeStr[]={"Cref From", "Cref To", "Call", "Dref From", "Dref To"};	
 
 	Logger.Log( 11, LOG_DIFF_MACHINE, "%s: match: %X - %X ( %s/%s ) from: %X %X ( Match rate=%u/100 ) Status=%X\n", 
 			prefix, 
@@ -628,7 +628,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 					add_current_entry = false;
 					for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
 					{
-						char *operation = "Retain";
+						const char *operation = "Retain";
 						if ((*it)->MatchRate < current_match_rate)
 						{
 							RemoveMatchData((*it)->Addresses[0], (*it)->Addresses[1]);
@@ -652,7 +652,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 					add_current_entry = false;
 					for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
 					{
-						char *operation = "Retain";
+						const char *operation = "Retain";
 						if ((*it)->MatchRate < current_match_rate)
 						{
 							RemoveMatchData((*it)->Addresses[0], (*it)->Addresses[1]);
@@ -693,7 +693,8 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 					}
 					else
 					{
-						m_diffDisassemblyStorage->ExecuteStatement( NULL, NULL, INSERT_MATCH_MAP_TABLE_STATEMENT, 
+						m_diffDisassemblyStorage->ExecuteStatement( NULL, NULL, 
+                            INSERT_MATCH_MAP_TABLE_STATEMENT, 
 							SourceController->GetFileID(), 
 							TargetController->GetFileID(), 
 							*source_member_iter,
@@ -2394,7 +2395,8 @@ BOOL DiffMachine::Save(DisassemblyStorage& disassemblyStorage, unordered_set <DW
 	vector <FunctionMatchInfo>::iterator iter;
 	for( iter=FunctionMatchList.begin();iter!=FunctionMatchList.end();iter++ )
 	{
-		Logger.Log(10, LOG_DIFF_MACHINE|LOG_SQL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT"\r\n",
+		Logger.Log(10, LOG_DIFF_MACHINE|LOG_SQL,
+            INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT"\r\n",
 			SourceController->GetFileID(),
 			TargetController->GetFileID(),
 			iter->TheSourceAddress,
@@ -2503,11 +2505,11 @@ int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
 	FileList *file_list = (FileList *)arg;
 	if (file_list)
 	{
-		if (!stricmp(argv[0], "source"))
+		if (!_stricmp(argv[0], "source"))
 		{
 			file_list->SourceFilename = GetFilename(argv[1]);
 		}
-		else if (!stricmp(argv[0], "target"))
+		else if (!_stricmp(argv[0], "target"))
 		{
 			file_list->TargetFilename = GetFilename(argv[1]);
 		}
@@ -2521,8 +2523,8 @@ int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
 #define FAILURE_API_CALL            2L
 #define FAILURE_INSUFFICIENT_BUFFER 3L
 
-DWORD GetBasePathFromPathName(LPCTSTR szPathName,
-	LPTSTR  szBasePath,
+DWORD GetBasePathFromPathName(const char *szPathName,
+	const char *szBasePath,
 	DWORD   dwBasePathSize)
 {
 	TCHAR   szDrive[_MAX_DRIVE] = { 0 };
@@ -2555,12 +2557,12 @@ DWORD GetBasePathFromPathName(LPCTSTR szPathName,
 	}
 
 	// Copy the szDrive and szDir into the provide buffer to form the basepath
-	if ((dwReturnCode = _tcscpy_s(szBasePath, dwBasePathSize, szDrive)) != 0)
+	if ((dwReturnCode = _tcscpy_s((char *)szBasePath, dwBasePathSize, szDrive)) != 0)
 	{
 		_ftprintf(stderr, TEXT("Error copying string. _tcscpy_s returned %d\n"), dwReturnCode);
 		return FAILURE_API_CALL;
 	}
-	if ((dwReturnCode = _tcscat_s(szBasePath, dwBasePathSize, szDir)) != 0)
+	if ((dwReturnCode = _tcscat_s((char *)szBasePath, dwBasePathSize, szDir)) != 0)
 	{
 		_ftprintf(stderr, TEXT("Error copying string. _tcscat_s returned %d\n"), dwReturnCode);
 		return FAILURE_API_CALL;
@@ -2678,7 +2680,7 @@ BOOL DiffMachine::_Load()
 		TargetController->Load();
 	}
 
-	char *query = "";
+	const char *query = "";
 
 	if (ShowFullMatched)
 	{
@@ -2747,7 +2749,7 @@ BOOL DiffMachine::DeleteMatchInfo(DisassemblyStorage& OutputDB )
 	return TRUE;
 }
 
-char *DiffMachine::GetMatchTypeStr( int Type )
+const char *DiffMachine::GetMatchTypeStr( int Type )
 {
 	if (Type<sizeof(MatchDataTypeStr) / sizeof(MatchDataTypeStr[0]))
 	{

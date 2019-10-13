@@ -2,7 +2,7 @@
 
 char *GetRegValue( const char *key_name, const char *value_name, DWORD &type, DWORD &data_length )
 {
-	HKEY root_key ;
+	HKEY root_key = HKEY_LOCAL_MACHINE;
 
 	if( !_strnicmp( key_name, "HKEY_LOCAL_MACHINE", 18 ) )
 	{

@@ -383,4 +383,3 @@ int GetStringSimilarity(const char *a,const char *b)
 	}
 	return (match_len*100)/(match_len+unmatch_len);
 }
-

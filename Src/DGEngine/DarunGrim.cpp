@@ -132,7 +132,7 @@ const char *DarunGrim::GetSourceFilename()
 
 const char *DarunGrim::GetSourceIDBFilename()
 {
-	if( GetFileAttributes( SourceIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
+	if( GetFileAttributesA( SourceIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
 		return NULL;
 	return SourceIDBFilename.c_str();
 }
@@ -151,7 +151,7 @@ const char *DarunGrim::GetTargetFilename()
 
 const char *DarunGrim::GetTargetIDBFilename()
 {
-	if( GetFileAttributes( TargetIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
+	if( GetFileAttributesA( TargetIDBFilename.c_str() ) == INVALID_FILE_ATTRIBUTES )
 		return NULL;
 	return TargetIDBFilename.c_str();
 }
@@ -805,7 +805,7 @@ void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long Start
 		EndAddress);
 	free(output_filename);
 
-	char *options = IDAAutoMode ? "-A" : "";
+	const char *options = IDAAutoMode ? "-A" : "";
 	if (idc_filename)
 	{
 		if (LogFilename)
@@ -851,11 +851,11 @@ bool DarunGrim::GenerateIDALogFilename()
 
 	IDALogFilename[0] = NULL;
 	// Get the temp path.
-	DWORD ret_val = GetTempPath(sizeof(temporary_path), temporary_path);
+	DWORD ret_val = GetTempPathA(sizeof(temporary_path), temporary_path);
 	if (ret_val <= sizeof(temporary_path) && (ret_val != 0))
 	{
-		ret_val = GetTempFileName(temporary_path,
-			TEXT("IDALOG"),
+		ret_val = GetTempFileNameA(temporary_path,
+			"IDALOG",
 			0,
 			IDALogFilename);
 		if (ret_val != 0)

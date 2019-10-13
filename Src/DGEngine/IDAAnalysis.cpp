@@ -2,13 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include <lines.hpp>
-#include <kernwin.hpp>
+#include "IDAAnalysisCommon.h"
+#include "IDAAnalysis.h"
 
 #include "DisassemblyProcessor.h"
-#include "IDAAnalysis.h"
-#include "IDAAnalysisCommon.h"
-
 #include <vector>
 #include <unordered_set>
 #include <list>
@@ -1424,13 +1421,8 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 
 	char *input_file_path = NULL;
 
-#ifdef _USE_IDA_SDK_49_OR_UPPER
 	char OriginalFilePath[1024]={0,};
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
-#else
-    strncpy_s(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath), get_input_file_path(), sizeof(file_info.OriginalFilePath))
-#endif
-
     disassemblyProcessor.SetFileInfo(&file_info);
 
 	ea_t saddr, eaddr;

@@ -1,8 +1,6 @@
 #pragma warning(disable:4819)
 
-#define __X64__
 #include <ida.hpp>
-#include <idp.hpp>
 #include <expr.hpp>
 #include <bytes.hpp>
 #include <loader.hpp>

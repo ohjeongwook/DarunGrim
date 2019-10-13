@@ -234,14 +234,7 @@ public:
 	IDAController *GetTargetController();
 	void DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  MatchData>::iterator match_map_iter );
 	DWORD DumpFunctionMatchInfo( int index, DWORD address );
-	void DiffMachine::GetMatchStatistics( 
-		DWORD address, 
-		int index, 
-		int &found_match_number, 
-		int &found_match_with_difference_number,
-		int &not_found_match_number,
-		float &matchrate
-	);
+	void GetMatchStatistics(DWORD address, int index, int &found_match_number, int &found_match_with_difference_number, int &not_found_match_number, float &matchrate);
 	int GetMatchRate( DWORD unpatched_address, DWORD patched_address );
 
 	void RemoveMatchData(DWORD source_address, DWORD target_address);
@@ -279,7 +272,7 @@ public:
 		bRetrieveDataForAnalysis = newRetrieveDataForAnalysis;
 	}
 
-	char *GetMatchTypeStr( int Type );
+	const char *GetMatchTypeStr( int Type );
 
 private:
 	bool LoadDiffResults;

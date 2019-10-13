@@ -410,7 +410,7 @@ void LogOperation::EnableLogType(int log_level)
 	EnabledLogTypes.insert(log_level);
 }
 
-void LogOperation::Log( DWORD debug_level, int type, const WCHAR *format, ... )
+void LogOperation::Log(DWORD debug_level, int type, const WCHAR *format, ...)
 {
 	if (debug_level <= DebugLevel && EnabledLogTypes.find(type) != EnabledLogTypes.end())
 	{

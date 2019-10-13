@@ -9,8 +9,8 @@ using namespace std;
 using namespace stdext;
 
 #define DATA_BUFSIZE 4096
-#define DEFAULT_IDA_PATH TEXT( "c:\\Program Files\\IDA\\idag.exe" )
-#define DEFAULT_IDA64_PATH TEXT( "c:\\Program Files\\IDA\\idag64.exe" )
+#define DEFAULT_IDA_PATH "c:\\Program Files\\IDA\\idag.exe"
+#define DEFAULT_IDA64_PATH "c:\\Program Files\\IDA\\idag64.exe"
 
 enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 

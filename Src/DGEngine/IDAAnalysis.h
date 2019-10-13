@@ -4,7 +4,13 @@
 
 #pragma once
 #include <windows.h>
-#include "IDAIncludes.h"
+
+#include <pro.h>
+#include <idp.hpp>
+#include <ua.hpp>
+#include <name.hpp>
+#include <allins.hpp>
+
 #include "DisassemblyStorage.h"
 #include <map>
 #include <unordered_map>

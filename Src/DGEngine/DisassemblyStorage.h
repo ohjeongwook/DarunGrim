@@ -36,7 +36,7 @@ public:
     int BeginTransaction();
     int EndTransaction();
     int GetLastInsertRowID();
-    int ExecuteStatement(sqlite3_callback callback, void *context, char *format, ...);
+    int ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...);
     static int display_callback(void *NotUsed, int argc, char **argv, char **azColName);
     static int ReadRecordIntegerCallback(void *arg, int argc, char **argv, char **names);
     static int ReadRecordStringCallback(void *arg, int argc, char **argv, char **names);

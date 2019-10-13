@@ -185,7 +185,7 @@ int DisassemblyStorage::GetLastInsertRowID()
 	return (int)sqlite3_last_insert_rowid(db);
 }
 
-int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *context, char *format, ... )
+int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *context, const char *format, ... )
 {
 	int debug=0;
 
