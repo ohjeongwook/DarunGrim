@@ -10,7 +10,7 @@
 #include "sqlite3.h"
 #include "Storage.h"
 
-#include <hash_set>
+#include <unordered_set>
 using namespace std;
 using namespace stdext;
 
@@ -42,31 +42,31 @@ IDAController::~IDAController()
 
 	if( ClientAnalysisInfo )
 	{
-		ClientAnalysisInfo->name_hash_map.clear();
+		ClientAnalysisInfo->name_map.clear();
 
-		multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
-		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.begin();
-			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_iter++)
+		multimap <DWORD,  PMapInfo>::iterator map_info_map_iter;
+		for(map_info_map_iter = ClientAnalysisInfo->map_info_map.begin();
+			map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
+			map_info_map_iter++)
 		{
-			if( map_info_hash_map_iter->second )
-				delete map_info_hash_map_iter->second;
+			if( map_info_map_iter->second )
+				delete map_info_map_iter->second;
 		}
 
-		ClientAnalysisInfo->map_info_hash_map.clear();
+		ClientAnalysisInfo->map_info_map.clear();
 
-		multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
-		for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-			address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
-			address_fingerprint_hash_map_Iter++)
+		multimap <DWORD, unsigned char *>::iterator address_fingerprint_map_Iter;
+		for(address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.begin();
+			address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end();
+			address_fingerprint_map_Iter++)
 		{
-			if( address_fingerprint_hash_map_Iter->second )
+			if( address_fingerprint_map_Iter->second )
 			{
-				free( address_fingerprint_hash_map_Iter->second );
+				free( address_fingerprint_map_Iter->second );
 			}
 		}
-		ClientAnalysisInfo->address_fingerprint_hash_map.clear();
-		ClientAnalysisInfo->fingerprint_hash_map.clear();
+		ClientAnalysisInfo->address_fingerprint_map.clear();
+		ClientAnalysisInfo->fingerprint_map.clear();
 
 		delete ClientAnalysisInfo;
 	}
@@ -81,13 +81,13 @@ int ReadBasicBlockDataCallback(void *arg, int argc, char **argv, char **names)
 		unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
 		if (FingerprintStr)
 		{
-			ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
+			ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
 		}
 
 		if (strtoul10(argv[3]) == 1 && strlen(argv[2]) > 0)
 		{
 			char *name = argv[2];
-			ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(name, Address));
+			ClientAnalysisInfo->name_map.insert(NameAddress_Pair(name, Address));
 		}
 	}
 	return 0;
@@ -95,7 +95,7 @@ int ReadBasicBlockDataCallback(void *arg, int argc, char **argv, char **names)
 
 static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char **names)
 {
-	hash_set <DWORD> *FunctionAddressHash = (hash_set <DWORD> *)arg;
+	unordered_set <DWORD> *FunctionAddressHash = (unordered_set <DWORD> *)arg;
 	if (FunctionAddressHash)
 	{
 #if DEBUG_LEVEL > 1
@@ -170,37 +170,37 @@ DWORD *IDAController::GetMappedAddresses(DWORD address, int type, int *p_length)
 	addresses = (DWORD *)malloc(sizeof(DWORD)*current_size);
 	int addresses_i = 0;
 
-	multimap <DWORD, PMapInfo> *p_map_info_hash_map;
+	multimap <DWORD, PMapInfo> *p_map_info_map;
 
-	if (ClientAnalysisInfo && ClientAnalysisInfo->map_info_hash_map.size()>0)
+	if (ClientAnalysisInfo && ClientAnalysisInfo->map_info_map.size()>0)
 	{
-		p_map_info_hash_map = &ClientAnalysisInfo->map_info_hash_map;
+		p_map_info_map = &ClientAnalysisInfo->map_info_map;
 	}
 	else
 	{
-		p_map_info_hash_map = new multimap <DWORD, PMapInfo>();
-		LoadMapInfo(p_map_info_hash_map, address);
+		p_map_info_map = new multimap <DWORD, PMapInfo>();
+		LoadMapInfo(p_map_info_map, address);
 	}
 
-	multimap <DWORD, PMapInfo>::iterator map_info_hash_map_pIter;
+	multimap <DWORD, PMapInfo>::iterator map_info_map_pIter;
 	
-	for (map_info_hash_map_pIter = p_map_info_hash_map->find(address);
-		map_info_hash_map_pIter != p_map_info_hash_map->end();
-		map_info_hash_map_pIter++
+	for (map_info_map_pIter = p_map_info_map->find(address);
+		map_info_map_pIter != p_map_info_map->end();
+		map_info_map_pIter++
 		)
 	{
-		if (map_info_hash_map_pIter->first != address)
+		if (map_info_map_pIter->first != address)
 			break;
-		if (map_info_hash_map_pIter->second->Type == type)
+		if (map_info_map_pIter->second->Type == type)
 		{
-			//map_info_hash_map_pIter->second->Dst
+			//map_info_map_pIter->second->Dst
 			//TODO: add
 			if (current_size < addresses_i + 2)
 			{
 				current_size += 50;
 				addresses = (DWORD *)realloc(addresses, sizeof(DWORD)*(current_size));
 			}
-			addresses[addresses_i] = map_info_hash_map_pIter->second->Dst;
+			addresses[addresses_i] = map_info_map_pIter->second->Dst;
 			addresses_i++;
 			addresses[addresses_i] = NULL;
 		}
@@ -208,8 +208,8 @@ DWORD *IDAController::GetMappedAddresses(DWORD address, int type, int *p_length)
 
 	if (!ClientAnalysisInfo)
 	{
-		p_map_info_hash_map->clear();
-		free(p_map_info_hash_map);
+		p_map_info_map->clear();
+		free(p_map_info_map);
 	}
 
 	if(p_length)
@@ -238,14 +238,14 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 
 	int DoCrefFromCheck = FALSE;
 	int DoCallCheck = TRUE;
-	hash_set <DWORD> function_address_hash;
+	unordered_set <DWORD> function_address_hash;
 	hash_map <DWORD, short> addresses;
 
 	if (DoCrefFromCheck)
 	{
 		Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
-		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_hash_map.begin();
-			it != ClientAnalysisInfo->map_info_hash_map.end();
+		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_map.begin();
+			it != ClientAnalysisInfo->map_info_map.end();
 			it++
 			)
 		{
@@ -260,12 +260,12 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 			}
 		}
 		Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
-		multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_iter;
-		for (address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-			address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
-			address_fingerprint_hash_map_iter++)
+		multimap <DWORD, unsigned char *>::iterator address_fingerprint_map_iter;
+		for (address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.begin();
+			address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end();
+			address_fingerprint_map_iter++)
 		{
-			addresses.insert(pair<DWORD, short>(address_fingerprint_hash_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
+			addresses.insert(pair<DWORD, short>(address_fingerprint_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
 		}
 		
 		Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
@@ -286,8 +286,8 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 
 	if (DoCallCheck && ClientAnalysisInfo)
 	{
-		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_hash_map.begin();
-			it != ClientAnalysisInfo->map_info_hash_map.end();
+		for (multimap <DWORD, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_map.begin();
+			it != ClientAnalysisInfo->map_info_map.end();
 			it++
 			)
 		{
@@ -305,7 +305,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	list <DWORD> *function_addresses = new list<DWORD>;
 	if (function_addresses)
 	{
-		for (hash_set <DWORD>::iterator it = function_address_hash.begin();
+		for (unordered_set <DWORD>::iterator it = function_address_hash.begin();
 			it != function_address_hash.end();
 			it++)
 		{
@@ -334,17 +334,17 @@ void IDAController::RemoveFromFingerprintHash(DWORD address)
 
 	if (Fingerprint)
 	{
-		multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_PIter;
-		for (fingerprint_hash_map_PIter = ClientAnalysisInfo->fingerprint_hash_map.find(Fingerprint);
-			fingerprint_hash_map_PIter != ClientAnalysisInfo->fingerprint_hash_map.end();
-			fingerprint_hash_map_PIter++
+		multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_map_PIter;
+		for (fingerprint_map_PIter = ClientAnalysisInfo->fingerprint_map.find(Fingerprint);
+			fingerprint_map_PIter != ClientAnalysisInfo->fingerprint_map.end();
+			fingerprint_map_PIter++
 			)
 		{
-			if (!IsEqualByteWithLengthAmble(fingerprint_hash_map_PIter->first, Fingerprint))
+			if (!IsEqualByteWithLengthAmble(fingerprint_map_PIter->first, Fingerprint))
 				break;
-			if (fingerprint_hash_map_PIter->second == address)
+			if (fingerprint_map_PIter->second == address)
 			{
-				ClientAnalysisInfo->fingerprint_hash_map.erase(fingerprint_hash_map_PIter);
+				ClientAnalysisInfo->fingerprint_map.erase(fingerprint_map_PIter);
 				break;
 			}
 		}
@@ -354,12 +354,12 @@ void IDAController::RemoveFromFingerprintHash(DWORD address)
 
 char *IDAController::GetFingerPrintStr(DWORD address)
 {
-	if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_hash_map.size()>0)
+	if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_map.size()>0)
 	{
-		multimap <DWORD , unsigned char *>::iterator address_fingerprint_hash_map_PIter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-		if(address_fingerprint_hash_map_PIter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
+		multimap <DWORD , unsigned char *>::iterator address_fingerprint_map_PIter = ClientAnalysisInfo->address_fingerprint_map.find(address);
+		if(address_fingerprint_map_PIter != ClientAnalysisInfo->address_fingerprint_map.end())
 		{
-			return BytesWithLengthAmbleToHex(address_fingerprint_hash_map_PIter->second);
+			return BytesWithLengthAmbleToHex(address_fingerprint_map_PIter->second);
 		}
 	}else
 	{
@@ -374,12 +374,12 @@ char *IDAController::GetFingerPrintStr(DWORD address)
 char *IDAController::GetName(DWORD address)
 {
 #ifdef USE_LEGACY_MAP
-	multimap <DWORD,  string>::iterator address_name_hash_map_iter;
+	multimap <DWORD,  string>::iterator address_name_map_iter;
 
-	address_name_hash_map_iter = ClientAnalysisInfo->address_name_hash_map.find(address);
-	if(address_name_hash_map_iter != ClientAnalysisInfo->address_name_hash_map.end())
+	address_name_map_iter = ClientAnalysisInfo->address_name_map.find(address);
+	if(address_name_map_iter != ClientAnalysisInfo->address_name_map.end())
 	{
-		return _strdup((*address_name_hash_map_iter).second.c_str());
+		return _strdup((*address_name_map_iter).second.c_str());
 	}
 	return NULL;
 #else
@@ -395,7 +395,7 @@ DWORD IDAController::GetBlockAddress(DWORD address)
 #ifdef USE_LEGACY_MAP
 	while(1)
 	{
-		if(ClientAnalysisInfo->address_hash_map.find(address) != ClientAnalysisInfo->address_hash_map.end())
+		if(ClientAnalysisInfo->address_map.find(address) != ClientAnalysisInfo->address_map.end())
 			break;
 		address--;
 	}
@@ -454,7 +454,7 @@ const char *GetFileDataTypeStr(int type)
 	return "Unknown";
 }
 
-BOOL IDAController::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod, hash_set <DWORD> *pSelectedAddresses)
+BOOL IDAController::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod, unordered_set <DWORD> *pSelectedAddresses)
 {
 	return TRUE;
 }
@@ -467,7 +467,7 @@ BOOL IDAController::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 {
 	//Logger.Log( 10, "%s: %s %s %s %s\n", __FUNCTION__, m_FileID, argv[0], argv[1], argv[2], argv[3]);
-	multimap <DWORD, PMapInfo> *p_map_info_hash_map = (multimap <DWORD, PMapInfo> *)arg;
+	multimap <DWORD, PMapInfo> *p_map_info_map = (multimap <DWORD, PMapInfo> *)arg;
 
 	PMapInfo p_map_info = new MapInfo;
 	p_map_info->Type = strtoul10(argv[0]);
@@ -482,7 +482,7 @@ int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names)
 		argv[3], strtoul10(argv[3])
 	);
 #endif
-	p_map_info_hash_map->insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+	p_map_info_map->insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
 	return 0;
 }
 
@@ -493,7 +493,7 @@ char *IDAController::GetOriginalFilePath()
 
 BOOL IDAController::LoadBasicBlock()
 {
-	if (ClientAnalysisInfo->fingerprint_hash_map.size() == 0)
+	if (ClientAnalysisInfo->fingerprint_map.size() == 0)
 	{
 		char FunctionAddressConditionBuffer[50] = { 0, };
 		if (TargetFunctionAddress)
@@ -523,11 +523,11 @@ void IDAController::SetFileID(int FileID)
 	m_FileID = FileID;
 }
 
-void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address, bool IsFunction)
+void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_map, DWORD Address, bool IsFunction)
 {
 	if (Address == 0)
 	{
-		m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+		m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_map,
 			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u", 
 			m_FileID);
 	}
@@ -535,7 +535,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 	{
 		if (IsFunction)
 		{
-			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_map,
 				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 				"WHERE FileID = %u "
 				"AND ( SrcBlock IN ( SELECT StartAddress FROM BasicBlock WHERE FunctionAddress='%d') )",
@@ -543,7 +543,7 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 		}
 		else
 		{
-			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_hash_map,
+			m_disassemblyStorage->ExecuteStatement(ReadMapInfoCallback, (void *)p_map_info_map,
 				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
 				"WHERE FileID = %u "
 				"AND SrcBlock  = '%d'",
@@ -551,14 +551,14 @@ void IDAController::LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map,
 		}
 	}
 
-	BuildCrefToMap(p_map_info_hash_map);
+	BuildCrefToMap(p_map_info_map);
 }
 
 
-void IDAController::BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_map)
+void IDAController::BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_map)
 {
-	for (multimap <DWORD, PMapInfo>::iterator it = p_map_info_hash_map->begin();
-		it != p_map_info_hash_map->end();
+	for (multimap <DWORD, PMapInfo>::iterator it = p_map_info_map->begin();
+		it != p_map_info_map->end();
 		it++
 	)
 	{
@@ -576,7 +576,7 @@ BOOL IDAController::Load()
 	m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
 	LoadBasicBlock();
-	LoadMapInfo(&(ClientAnalysisInfo->map_info_hash_map), TargetFunctionAddress, true);
+	LoadMapInfo(&(ClientAnalysisInfo->map_info_map), TargetFunctionAddress, true);
 
 	return TRUE;
 }
@@ -609,10 +609,10 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 	BYTE type;
 	DWORD length;
 
-	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
-	multimap <string,  DWORD>::iterator fingerprint_hash_map_pIter;
-	multimap <string,  DWORD>::iterator name_hash_map_pIter;
-	multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
+	multimap <string,  DWORD>::iterator fingerprint_map_pIter;
+	multimap <string,  DWORD>::iterator name_map_pIter;
+	multimap <DWORD,  PMapInfo>::iterator map_info_map_pIter;
 
 	DWORD current_addr = 0L;
 
@@ -629,13 +629,13 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 		{
 #if DEBUG_LEVEL > -1
 			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d End of Analysis\n", __FUNCTION__);
-			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d address_hash_map:%u/address_fingerprint_hash_map:%u/fingerprint_hash_map:%u/name_hash_map:%u/map_info_hash_map:%u\n",
+			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d address_map:%u/address_fingerprint_map:%u/fingerprint_map:%u/name_map:%u/map_info_map:%u\n",
 				__FUNCTION__, m_FileID, 
-				ClientAnalysisInfo->address_hash_map.size(), 
-				ClientAnalysisInfo->address_fingerprint_hash_map.size(), 
-				ClientAnalysisInfo->fingerprint_hash_map.size(), 
-				ClientAnalysisInfo->name_hash_map.size(), 
-				ClientAnalysisInfo->map_info_hash_map.size()
+				ClientAnalysisInfo->address_map.size(), 
+				ClientAnalysisInfo->address_fingerprint_map.size(), 
+				ClientAnalysisInfo->fingerprint_map.size(), 
+				ClientAnalysisInfo->name_map.size(), 
+				ClientAnalysisInfo->map_info_map.size()
 			);
 #endif
 			if(data)
@@ -658,15 +658,15 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 				pBasicBlock->FunctionAddress, 
 				pBasicBlock->BlockType);
 #ifdef USE_LEGACY_MAP
-			ClientAnalysisInfo->address_hash_map.insert(AddrPBasicBlock_Pair(pBasicBlock->StartAddress, pBasicBlock) );			
+			ClientAnalysisInfo->address_map.insert(AddrPBasicBlock_Pair(pBasicBlock->StartAddress, pBasicBlock) );			
 #endif
-			ClientAnalysisInfo->name_hash_map.insert(NameAddress_Pair(pBasicBlock->Data, pBasicBlock->StartAddress));
+			ClientAnalysisInfo->name_map.insert(NameAddress_Pair(pBasicBlock->Data, pBasicBlock->StartAddress));
 			if(pBasicBlock->FingerprintLen>0)
 			{
 				unsigned char *FingerprintBuffer = (unsigned char *)malloc(pBasicBlock->FingerprintLen+sizeof(short));
 				*(unsigned short *)FingerprintBuffer = pBasicBlock->FingerprintLen;
 				memcpy(FingerprintBuffer+sizeof(short), pBasicBlock->Data+pBasicBlock->NameLen+pBasicBlock->DisasmLinesLen, *(unsigned short *)FingerprintBuffer);
-				ClientAnalysisInfo->address_fingerprint_hash_map.insert(AddressFingerPrintAddress_Pair(pBasicBlock->StartAddress, FingerprintBuffer));
+				ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(pBasicBlock->StartAddress, FingerprintBuffer));
 			}
 			free(data);
 		}else if(type  ==  MAP_INFO && length  ==  sizeof(MapInfo))
@@ -679,7 +679,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 				p_map_info->SrcBlockEnd, 
 				p_map_info->Dst);
 #endif
-			ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+			ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
 			/*
 			We don't use backward CFG anymore.
 			if(p_map_info->Type  ==  CREF_FROM || p_map_info->Type  ==  CALL)
@@ -692,7 +692,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 					p_new_map_info->Type = CREF_TO;
 				else
 					p_new_map_info->Type = CALLED;
-				ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(p_new_map_info->SrcBlock, p_new_map_info));
+				ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(p_new_map_info->SrcBlock, p_new_map_info));
 			}*/
 		}else
 		{
@@ -708,28 +708,28 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 
 void IDAController::GenerateFingerprintHashMap()
 {
-	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
 	list <AddressPair> AddressPairs;
 	multimap <DWORD, PBasicBlock>::iterator iter;
-	for(iter = ClientAnalysisInfo->address_hash_map.begin();
-		iter != ClientAnalysisInfo->address_hash_map.end();
+	for(iter = ClientAnalysisInfo->address_map.begin();
+		iter != ClientAnalysisInfo->address_map.end();
 		iter++)
 	{
 		DWORD address = iter->first;
-		multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
+		multimap <DWORD,  PMapInfo>::iterator map_info_map_iter;
 		int matched_children_count = 0;
 		DWORD matched_child_addr = 0L;
-		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(address);
-			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_iter++
+		for(map_info_map_iter = ClientAnalysisInfo->map_info_map.find(address);
+			map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
+			map_info_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first != address)
+			if(map_info_map_iter->first != address)
 				break;
-			PMapInfo p_map_info = map_info_hash_map_iter->second;
+			PMapInfo p_map_info = map_info_map_iter->second;
 			if(p_map_info->Type  ==  CREF_FROM)
 			{
-				matched_child_addr = map_info_hash_map_iter->second->Dst;
+				matched_child_addr = map_info_map_iter->second->Dst;
 				matched_children_count++;
 			}
 		}
@@ -737,24 +737,24 @@ void IDAController::GenerateFingerprintHashMap()
 		if(matched_children_count  ==  1 && matched_child_addr != 0L)
 		{
 			int matched_parents_count = 0;
-			for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(matched_child_addr);
-				map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-				map_info_hash_map_iter++
+			for(map_info_map_iter = ClientAnalysisInfo->map_info_map.find(matched_child_addr);
+				map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
+				map_info_map_iter++
 				)
 			{
-				if(map_info_hash_map_iter->first != matched_child_addr)
+				if(map_info_map_iter->first != matched_child_addr)
 					break;
-				PMapInfo p_map_info = map_info_hash_map_iter->second;
+				PMapInfo p_map_info = map_info_map_iter->second;
 				if(p_map_info->Type  ==  CREF_TO || p_map_info->Type  ==  CALLED)
 					matched_parents_count++;
 			}
 			Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%X -> 0x%X parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
 			if(matched_parents_count  ==  1)
 			{
-				address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(matched_child_addr);
-				if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
+				address_map_pIter = ClientAnalysisInfo->address_map.find(matched_child_addr);
+				if(address_map_pIter != ClientAnalysisInfo->address_map.end())
 				{
-					PBasicBlock pBasicBlock = (PBasicBlock)address_hash_map_pIter->second;
+					PBasicBlock pBasicBlock = (PBasicBlock)address_map_pIter->second;
 					if(pBasicBlock->FunctionAddress != matched_child_addr)
 					{
 						AddressPair address_pair;
@@ -778,73 +778,73 @@ void IDAController::GenerateFingerprintHashMap()
 
 		DWORD matched_child_addr = 0L;
 
-		multimap <DWORD,  PMapInfo>::iterator map_info_hash_map_iter;
-		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(child_address);
-			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_iter++
+		multimap <DWORD,  PMapInfo>::iterator map_info_map_iter;
+		for(map_info_map_iter = ClientAnalysisInfo->map_info_map.find(child_address);
+			map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
+			map_info_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first != child_address)
+			if(map_info_map_iter->first != child_address)
 				break;
-			PMapInfo p_map_info = map_info_hash_map_iter->second;
+			PMapInfo p_map_info = map_info_map_iter->second;
 			PMapInfo p_new_map_info = (PMapInfo)malloc(sizeof(MapInfo));
 			p_new_map_info->SrcBlockEnd = address;
 			p_new_map_info->SrcBlock = address;
 			p_new_map_info->Dst = p_map_info->Dst;
 			p_new_map_info->Type = p_map_info->Type;
-			ClientAnalysisInfo->map_info_hash_map.insert(AddrPMapInfo_Pair(address, p_new_map_info));
+			ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(address, p_new_map_info));
 		}
-		for(map_info_hash_map_iter = ClientAnalysisInfo->map_info_hash_map.find(address);
-			map_info_hash_map_iter != ClientAnalysisInfo->map_info_hash_map.end();
-			map_info_hash_map_iter++
+		for(map_info_map_iter = ClientAnalysisInfo->map_info_map.find(address);
+			map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
+			map_info_map_iter++
 			)
 		{
-			if(map_info_hash_map_iter->first != address)
+			if(map_info_map_iter->first != address)
 				break;
-			PMapInfo p_map_info = map_info_hash_map_iter->second;
+			PMapInfo p_map_info = map_info_map_iter->second;
 			if(p_map_info->Dst  ==  child_address)
 			{
-				ClientAnalysisInfo->map_info_hash_map.erase(map_info_hash_map_iter);
+				ClientAnalysisInfo->map_info_map.erase(map_info_map_iter);
 				break;
 			}
 		}
-		multimap <DWORD,  string>::iterator child_address_disassembly_hash_map_iter;
-		child_address_disassembly_hash_map_iter = ClientAnalysisInfo->address_disassembly_hash_map.find(child_address);
-		if(child_address_disassembly_hash_map_iter != ClientAnalysisInfo->address_disassembly_hash_map.end())
+		multimap <DWORD,  string>::iterator child_address_disassembly_map_iter;
+		child_address_disassembly_map_iter = ClientAnalysisInfo->address_disassembly_map.find(child_address);
+		if(child_address_disassembly_map_iter != ClientAnalysisInfo->address_disassembly_map.end())
 		{
-			multimap <DWORD,  string>::iterator address_disassembly_hash_map_iter;
-			address_disassembly_hash_map_iter = ClientAnalysisInfo->address_disassembly_hash_map.find(address);
-			if(address_disassembly_hash_map_iter != ClientAnalysisInfo->address_disassembly_hash_map.end())
+			multimap <DWORD,  string>::iterator address_disassembly_map_iter;
+			address_disassembly_map_iter = ClientAnalysisInfo->address_disassembly_map.find(address);
+			if(address_disassembly_map_iter != ClientAnalysisInfo->address_disassembly_map.end())
 			{
-				address_disassembly_hash_map_iter->second += child_address_disassembly_hash_map_iter->second;
+				address_disassembly_map_iter->second += child_address_disassembly_map_iter->second;
 			}
 		}
 
-		multimap <DWORD, unsigned char *>::iterator child_address_fingerprint_hash_map_iter;
-		child_address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(child_address);
-		if(child_address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
+		multimap <DWORD, unsigned char *>::iterator child_address_fingerprint_map_iter;
+		child_address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.find(child_address);
+		if(child_address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end())
 		{
-			multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_iter;
-			address_fingerprint_hash_map_iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(address);
-			if(address_fingerprint_hash_map_iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
+			multimap <DWORD, unsigned char *>::iterator address_fingerprint_map_iter;
+			address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.find(address);
+			if(address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end())
 			{
-				//TODO: address_fingerprint_hash_map_iter->second += child_address_fingerprint_hash_map_iter->second;
+				//TODO: address_fingerprint_map_iter->second += child_address_fingerprint_map_iter->second;
 			}
 		}
-		ClientAnalysisInfo->address_hash_map.erase((*AddressPairsIter).child_address);
-		ClientAnalysisInfo->address_name_hash_map.erase((*AddressPairsIter).child_address);
-		ClientAnalysisInfo->map_info_hash_map.erase((*AddressPairsIter).child_address);
-		ClientAnalysisInfo->address_disassembly_hash_map.erase((*AddressPairsIter).child_address);
-		ClientAnalysisInfo->address_fingerprint_hash_map.erase((*AddressPairsIter).child_address);
+		ClientAnalysisInfo->address_map.erase((*AddressPairsIter).child_address);
+		ClientAnalysisInfo->address_name_map.erase((*AddressPairsIter).child_address);
+		ClientAnalysisInfo->map_info_map.erase((*AddressPairsIter).child_address);
+		ClientAnalysisInfo->address_disassembly_map.erase((*AddressPairsIter).child_address);
+		ClientAnalysisInfo->address_fingerprint_map.erase((*AddressPairsIter).child_address);
 	}
 	AddressPairs.clear();
 
-	multimap <DWORD, unsigned char *>::iterator address_fingerprint_hash_map_Iter;
-	for(address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.begin();
-		address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end();
-		address_fingerprint_hash_map_Iter++)
+	multimap <DWORD, unsigned char *>::iterator address_fingerprint_map_Iter;
+	for(address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.begin();
+		address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end();
+		address_fingerprint_map_Iter++)
 	{
-		ClientAnalysisInfo->fingerprint_hash_map.insert(FingerPrintAddress_Pair(address_fingerprint_hash_map_Iter->second, address_fingerprint_hash_map_Iter->first));
+		ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(address_fingerprint_map_Iter->second, address_fingerprint_map_Iter->first));
 	}
 	GenerateTwoLevelFingerPrint();
 }
@@ -852,29 +852,29 @@ void IDAController::GenerateFingerprintHashMap()
 void IDAController::GenerateTwoLevelFingerPrint()
 {
 	/*
-	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_hash_map_pIter;
-	for(fingerprint_hash_map_pIter = ClientAnalysisInfo->fingerprint_hash_map.begin();
-		fingerprint_hash_map_pIter != ClientAnalysisInfo->fingerprint_hash_map.end();
-		fingerprint_hash_map_pIter++)
+	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
+	for(fingerprint_map_pIter = ClientAnalysisInfo->fingerprint_map.begin();
+		fingerprint_map_pIter != ClientAnalysisInfo->fingerprint_map.end();
+		fingerprint_map_pIter++)
 
 	{
-		if(ClientAnalysisInfo->fingerprint_hash_map.count(fingerprint_hash_map_pIter->first)>1)
+		if(ClientAnalysisInfo->fingerprint_map.count(fingerprint_map_pIter->first)>1)
 		{
 			int addresses_number = 0;
-			DWORD *addresses = GetMappedAddresses(fingerprint_hash_map_pIter->second, CREF_FROM, &addresses_number);
+			DWORD *addresses = GetMappedAddresses(fingerprint_map_pIter->second, CREF_FROM, &addresses_number);
 			if(!addresses)
-				addresses = GetMappedAddresses(fingerprint_hash_map_pIter->second, CREF_TO, NULL);
+				addresses = GetMappedAddresses(fingerprint_map_pIter->second, CREF_TO, NULL);
 			if(addresses)
 			{
 				int TwoLevelFingerprintLength = 0;
-				TwoLevelFingerprintLength += *(unsigned short *)fingerprint_hash_map_pIter->first; //+
-				multimap <DWORD,  unsigned char *>::iterator address_fingerprint_hash_map_Iter;
+				TwoLevelFingerprintLength += *(unsigned short *)fingerprint_map_pIter->first; //+
+				multimap <DWORD,  unsigned char *>::iterator address_fingerprint_map_Iter;
 				for(int i = 0;i<addresses_number;i++)
 				{
-					address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
-					if(address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
+					address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
+					if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())
 					{
-						TwoLevelFingerprintLength += *(unsigned short *)address_fingerprint_hash_map_Iter->second; //+
+						TwoLevelFingerprintLength += *(unsigned short *)address_fingerprint_map_Iter->second; //+
 					}
 				}
 
@@ -886,18 +886,18 @@ void IDAController::GenerateTwoLevelFingerPrint()
 						*(unsigned short *)TwoLevelFingerprint = TwoLevelFingerprintLength;
 
 						int Offset = sizeof(short);
-						memcpy(TwoLevelFingerprint+Offset, fingerprint_hash_map_pIter->first+sizeof(short), *(unsigned short *)fingerprint_hash_map_pIter->first);
-						Offset += *(unsigned short *)fingerprint_hash_map_pIter->first;
+						memcpy(TwoLevelFingerprint+Offset, fingerprint_map_pIter->first+sizeof(short), *(unsigned short *)fingerprint_map_pIter->first);
+						Offset += *(unsigned short *)fingerprint_map_pIter->first;
 						for(int i = 0;i<addresses_number;i++)
 						{
-							address_fingerprint_hash_map_Iter = ClientAnalysisInfo->address_fingerprint_hash_map.find(addresses[i]);
-							if(address_fingerprint_hash_map_Iter != ClientAnalysisInfo->address_fingerprint_hash_map.end())
+							address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
+							if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())
 							{
-								memcpy(TwoLevelFingerprint+Offset, address_fingerprint_hash_map_Iter->second+sizeof(short), *(unsigned short *)address_fingerprint_hash_map_Iter->second);
-								Offset += *(unsigned short *)address_fingerprint_hash_map_Iter->second;
+								memcpy(TwoLevelFingerprint+Offset, address_fingerprint_map_Iter->second+sizeof(short), *(unsigned short *)address_fingerprint_map_Iter->second);
+								Offset += *(unsigned short *)address_fingerprint_map_Iter->second;
 							}
 						}
-						ClientAnalysisInfo->fingerprint_hash_map.insert(FingerPrintAddress_Pair(TwoLevelFingerprint, fingerprint_hash_map_pIter->second));
+						ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(TwoLevelFingerprint, fingerprint_map_pIter->second));
 					}
 				}
 			}
@@ -920,7 +920,7 @@ void IDAController::DumpAnalysisInfo()
 		Logger.Log(10, LOG_IDA_CONTROLLER, "ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
 		Logger.Log(10, LOG_IDA_CONTROLLER, "MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
 
-		Logger.Log(10, LOG_IDA_CONTROLLER, "fingerprint_hash_map = %u\n", ClientAnalysisInfo->fingerprint_hash_map.size());
+		Logger.Log(10, LOG_IDA_CONTROLLER, "fingerprint_map = %u\n", ClientAnalysisInfo->fingerprint_map.size());
 	}
 }
 
@@ -942,25 +942,25 @@ BOOL IDAController::SendTLVData(char type, PBYTE data, DWORD data_length)
 char *IDAController::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
 {
 #ifdef USE_LEGACY_MAP
-	//Look for p_analysis_info->address_disassembly_hash_map first
-	multimap <DWORD,  string>::iterator address_disassembly_hash_map_pIter;
-	address_disassembly_hash_map_pIter = ClientAnalysisInfo->address_disassembly_hash_map.find(StartAddress);
-	if(address_disassembly_hash_map_pIter != ClientAnalysisInfo->address_disassembly_hash_map.end())
+	//Look for p_analysis_info->address_disassembly_map first
+	multimap <DWORD,  string>::iterator address_disassembly_map_pIter;
+	address_disassembly_map_pIter = ClientAnalysisInfo->address_disassembly_map.find(StartAddress);
+	if(address_disassembly_map_pIter != ClientAnalysisInfo->address_disassembly_map.end())
 	{
-		return _strdup(address_disassembly_hash_map_pIter->second.c_str());
+		return _strdup(address_disassembly_map_pIter->second.c_str());
 	}
 	CodeBlock code_block;
 	code_block.StartAddress = StartAddress;
 	if(Socket  ==  INVALID_SOCKET)
 		return strdup("");
 
-	multimap <DWORD,  PBasicBlock>::iterator address_hash_map_pIter;
+	multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
 	if(EndAddress  ==  0)
 	{
-		address_hash_map_pIter = ClientAnalysisInfo->address_hash_map.find(StartAddress);
-		if(address_hash_map_pIter != ClientAnalysisInfo->address_hash_map.end())
+		address_map_pIter = ClientAnalysisInfo->address_map.find(StartAddress);
+		if(address_map_pIter != ClientAnalysisInfo->address_map.end())
 		{
-			PBasicBlock pBasicBlock = (PBasicBlock)address_hash_map_pIter->second;
+			PBasicBlock pBasicBlock = (PBasicBlock)address_map_pIter->second;
 			EndAddress = pBasicBlock->EndAddress;
 		}
 	}
@@ -1069,7 +1069,7 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_addre
 	{
 		list <DWORD> address_list;
 		list <DWORD>::iterator address_list_iter;
-		hash_set <DWORD> checked_addresses;
+		unordered_set <DWORD> checked_addresses;
 		address_list.push_back(function_address);
 		
 		BLOCK block;
@@ -1126,20 +1126,20 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_addre
 
 void IDAController::MergeBlocks()
 {
-	multimap <DWORD,  PMapInfo>::iterator last_iter = ClientAnalysisInfo->map_info_hash_map.end();
+	multimap <DWORD,  PMapInfo>::iterator last_iter = ClientAnalysisInfo->map_info_map.end();
 	multimap <DWORD,  PMapInfo>::iterator iter;
 	multimap <DWORD,  PMapInfo>::iterator child_iter;
 
 	int NumberOfChildren = 1;
-	for(iter = ClientAnalysisInfo->map_info_hash_map.begin();
-		iter != ClientAnalysisInfo->map_info_hash_map.end();
+	for(iter = ClientAnalysisInfo->map_info_map.begin();
+		iter != ClientAnalysisInfo->map_info_map.end();
 		iter++
 		)
 	{
 		if(iter->second->Type  ==  CREF_FROM)
 		{
 			BOOL bHasOnlyOneChild = FALSE;
-			if(last_iter != ClientAnalysisInfo->map_info_hash_map.end())
+			if(last_iter != ClientAnalysisInfo->map_info_map.end())
 			{
 				if(last_iter->first  ==  iter->first)
 				{
@@ -1154,7 +1154,7 @@ void IDAController::MergeBlocks()
 						bHasOnlyOneChild = TRUE;
 					multimap <DWORD,  PMapInfo>::iterator next_iter = iter;
 					next_iter++;
-					if(next_iter  ==  ClientAnalysisInfo->map_info_hash_map.end())
+					if(next_iter  ==  ClientAnalysisInfo->map_info_map.end())
 					{
 						last_iter = iter;
 						bHasOnlyOneChild = TRUE;
@@ -1165,8 +1165,8 @@ void IDAController::MergeBlocks()
 			if(bHasOnlyOneChild)
 			{
 				int NumberOfParents = 0;
-				for(child_iter = ClientAnalysisInfo->map_info_hash_map.find(last_iter->second->Dst);
-					child_iter != ClientAnalysisInfo->map_info_hash_map.end() && child_iter->first  ==  last_iter->second->Dst;
+				for(child_iter = ClientAnalysisInfo->map_info_map.find(last_iter->second->Dst);
+					child_iter != ClientAnalysisInfo->map_info_map.end() && child_iter->first  ==  last_iter->second->Dst;
 					child_iter++)
 				{
 					if(child_iter->second->Type  ==  CREF_TO && child_iter->second->Dst != last_iter->first)

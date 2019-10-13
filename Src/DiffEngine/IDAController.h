@@ -4,7 +4,7 @@
 #include <winsock.h>
 #include <hash_map>
 #include <list>
-#include <hash_set>
+#include <unordered_set>
 
 #include "Common.h"
 #include "DataStructure.h"
@@ -59,14 +59,14 @@ public:
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
 
 	void SetFileID(int FileID = 1);
-	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_hash_map, DWORD Address, bool IsFunction = false);
+	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_map, DWORD Address, bool IsFunction = false);
 	BOOL Load();
 	void DeleteMatchInfo(DisassemblyStorage *disassemblyStorage, int FileID=1, DWORD FunctionAddress = 0 );
 
 	void AddAnalysisTargetFunction(DWORD FunctionAddress);
 	BOOL LoadBasicBlock();
 
-	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pSelectedAddresses=NULL);
+	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <DWORD> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();
 	char *GetName(DWORD address);
 	void DumpBlockInfo(DWORD block_address);
@@ -80,11 +80,11 @@ public:
 	string Identity;
 
 	multimap <DWORD, DWORD> CrefToMap;
-	void BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_hash_map);
+	void BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_map);
 
 	multimap <DWORD, DWORD> BlockToFunction;
 	multimap <DWORD, DWORD> FunctionToBlock;
-	hash_set <DWORD> FunctionHeads;
+	unordered_set <DWORD> FunctionHeads;
 public:
 	bool GetFunctionAddress(DWORD address, DWORD &function_address)
 	{

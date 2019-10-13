@@ -5,9 +5,10 @@
 #pragma once
 #include <windows.h>
 #include "IdaIncludes.h"
+#include "DisassemblyStorage.h"
 #include <map>
-#include <hash_map>
-#include <hash_set>
+#include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include <list>
 
@@ -157,25 +158,25 @@ struct OpTHashCompareStr
 
 extern char *OpTypeStr[];
 
-string GetFeatureStr(ulong features);
+string GetFeatureStr(DWORD features);
 void GetFeatureBits(int itype,char *FeatureMap,int Size);
 void DumpOperand(HANDLE hFile,op_t operand);
-void AddInstructionByOrder(hash_map <ea_t,insn_t> &InstructionHash,list <ea_t> &Addresses,ea_t Address);
-list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,hash_map <ea_t,insn_t> &InstructionHash);
+void AddInstructionByOrder(unordered_map <ea_t,insn_t> &InstructionHash,list <ea_t> &Addresses,ea_t Address);
+list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,unordered_map <ea_t,insn_t> &InstructionHash);
 list <int> GetRelatedFlags(int itype,bool IsModifying);
 void UpdateInstructionMap
 (
-	hash_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
-	hash_map <int,ea_t> &FlagsHash,
+	unordered_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
+	unordered_map <int,ea_t> &FlagsHash,
 	//Instruction Hash and Map
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
-	hash_map <ea_t,insn_t> &InstructionHash,
+	unordered_map <ea_t,insn_t> &InstructionHash,
 	insn_t &instruction
 );
 void DumpDOT(
 	char *Filename,
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
-	hash_map <ea_t,insn_t> &InstructionHash
+	unordered_map <ea_t,insn_t> &InstructionHash
 );
 
 AddrMapHash *AddToAddrMap(AddrMapHash *addr_map_hash,LocationInfo *p_location_info);
@@ -185,4 +186,4 @@ void DumpLocationInfo(AddrMapHash *addr_map_base,ea_t address);
 bool MakeMemberOfFunction(AddrMapHash *addr_map_base,ea_t function_start_address,LocationInfo *p_location_info);
 void CheckLocationInfos(AddrMapHash *addr_map_base,LocationInfo *p_first_location_info);
 bool AnalyzeRegion(AddrMapHash **p_addr_map_base,LocationInfo **p_p_first_location_info);
-void AnalyzeIDAData(Storage storage,PVOID Context,ea_t StartEA,ea_t EndEA,int GatherCmdArray=FALSE);
+void AnalyzeIDAData(DisassemblyStorage disassemblyStorage, ea_t StartEA, ea_t EndEA, int GatherCmdArray = FALSE);

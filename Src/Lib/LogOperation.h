@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 #include <string>
-#include <hash_set>
+#include <unordered_set>
 
 using namespace std;
 using namespace stdext;
@@ -12,7 +12,7 @@ class LogOperation
 {
 private:
 	DWORD DebugLevel;
-	hash_set<DWORD> EnabledLogTypes;
+	unordered_set<DWORD> EnabledLogTypes;
 	DWORD OutputType;
 
 	std::string CompanyName;

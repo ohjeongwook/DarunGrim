@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <hash_set>
+#include <unordered_set>
 #include <list>
 
 #include "Common.h"
@@ -149,11 +149,11 @@ class AnalysisResult;
 class BREAKPOINTS
 {
 public:
-	hash_set<DWORD> SourceFunctionMap;
-	hash_set<DWORD> SourceAddressMap;
+	unordered_set<DWORD> SourceFunctionMap;
+	unordered_set<DWORD> SourceAddressMap;
 
-	hash_set<DWORD> TargetFunctionMap;
-	hash_set<DWORD> TargetAddressMap;
+	unordered_set<DWORD> TargetFunctionMap;
+	unordered_set<DWORD> TargetAddressMap;
 };
 
 typedef struct
@@ -167,8 +167,8 @@ typedef struct
 class DumpAddressChecker
 {
 private:
-	hash_set <DWORD> SrcDumpAddresses;
-	hash_set <DWORD> TargetDumpAddresses;
+	unordered_set <DWORD> SrcDumpAddresses;
+	unordered_set <DWORD> TargetDumpAddresses;
 
 public:
 	void AddSrcDumpAddress(DWORD address);
@@ -192,8 +192,8 @@ private:
 
 	BOOL DeleteMatchInfo(DisassemblyStorage& disassemblyStorage );
 
-	hash_set <DWORD> TheSourceUnidentifedBlockHash;
-	hash_set <DWORD> TheTargetUnidentifedBlockHash;
+	unordered_set <DWORD> TheSourceUnidentifedBlockHash;
+	unordered_set <DWORD> TheTargetUnidentifedBlockHash;
 
 	vector <FunctionMatchInfo> FunctionMatchList;
 	vector <FunctionMatchInfo> ReverseFunctionMatchList;
@@ -267,8 +267,8 @@ public:
 	CodeBlock GetUnidentifiedBlock( int index, int i );
 	BOOL IsInUnidentifiedBlockHash( int index, DWORD address );
 
-	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Save(DisassemblyStorage& disassemblyStorage, hash_set <DWORD> *pTheSourceSelectedAddresses=NULL, hash_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	
 private:
 	BOOL bRetrieveDataForAnalysis;

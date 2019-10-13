@@ -2,8 +2,8 @@
 #pragma pack(push)
 #pragma pack(1)
 
-#include <hash_set>
-#include <hash_map>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "Common.h"
 #include "IDAAnalysisCommon.h"
@@ -84,13 +84,13 @@ public:
 //,hash_compare<string,equ_str> 
 typedef struct _AnalysisInfo_ {
 	FileInfo file_info;
-	multimap <DWORD, PBasicBlock> address_hash_map;
-	multimap <DWORD,string> address_disassembly_hash_map;
-	multimap <unsigned char *,DWORD,hash_compare_fingerprint> fingerprint_hash_map;
-	multimap <DWORD,unsigned char *> address_fingerprint_hash_map;
-	multimap <string, DWORD> name_hash_map;
-	multimap <DWORD,string> address_name_hash_map;
-	multimap <DWORD, PMapInfo> map_info_hash_map;
+	multimap <DWORD, PBasicBlock> address_map;
+	multimap <DWORD,string> address_disassembly_map;
+	multimap <unsigned char *,DWORD,hash_compare_fingerprint> fingerprint_map;
+	multimap <DWORD,unsigned char *> address_fingerprint_map;
+	multimap <string, DWORD> name_map;
+	multimap <DWORD,string> address_name_map;
+	multimap <DWORD, PMapInfo> map_info_map;
 } AnalysisInfo,*PAnalysisInfo;
 
 typedef struct _MatchData_{
