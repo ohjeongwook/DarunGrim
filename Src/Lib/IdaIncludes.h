@@ -1,4 +1,6 @@
 #pragma once
+
+#define __X64__
 #include <ida.hpp>
 #include <idp.hpp>
 #include <expr.hpp>

@@ -14,7 +14,7 @@ FlowGrapher::FlowGrapher() : FontColor(NULL), FillColor(NULL), FontName(NULL), F
 	gvc = gvContext();
 	g = agopen("g", AGDIGRAPH);
 
-	NodeToUserDataMap = new stdext::hash_map<Agnode_t *, DWORD>;
+	NodeToUserDataMap = new stdext::unordered_map<Agnode_t *, DWORD>;
 }
 
 FlowGrapher::~FlowGrapher()
@@ -97,7 +97,7 @@ void FlowGrapher::AddNode(DWORD node_id, LPCSTR node_name, LPCSTR node_data)
 void FlowGrapher::AddLink(DWORD src, DWORD dst)
 {
 	Agedge_t *e;
-	stdext::hash_map<DWORD, Agnode_t *>::iterator it;
+	stdext::unordered_map<DWORD, Agnode_t *>::iterator it;
 	Agnode_t *src_node = NULL;
 	Agnode_t *dst_node = NULL;
 

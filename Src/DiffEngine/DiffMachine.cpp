@@ -2,7 +2,7 @@
 #include <string>
 #include <list>
 #include <unordered_set>
-#include <hash_map>
+#include <unordered_map>
 #include <stdlib.h>
 #include <tchar.h>
 
@@ -1321,7 +1321,7 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 		if( FunctionMembersIter==FunctionMembersMapForTheSource->end() || source_function_addr!=FunctionMembersIter->first )
 		{
 			//Analyze Function, block_addresses contains all the members
-			hash_map <DWORD, DWORD> function_match_count;
+            unordered_map <DWORD, DWORD> function_match_count;
 			if( source_function_addr!=0 )
 			{
 				list <DWORD>::iterator block_addr_it;
@@ -1346,7 +1346,7 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 							if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
 								Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_address, block_address, target_addr);
 
-							hash_map <DWORD, DWORD>::iterator function_match_count_it = function_match_count.find(target_function_address);
+                            unordered_map <DWORD, DWORD>::iterator function_match_count_it = function_match_count.find(target_function_address);
 							if (function_match_count_it == function_match_count.end())
 							{
 								function_match_count.insert(pair<DWORD, DWORD>(target_function_address, 1));
@@ -1362,7 +1362,7 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 				//Get Maximum value in function_match_count
 				DWORD maximum_function_match_count=0;
 				DWORD chosen_target_function_addr=0;
-				for (hash_map <DWORD, DWORD>::iterator it = function_match_count.begin(); it != function_match_count.end(); it++)
+				for (unordered_map <DWORD, DWORD>::iterator it = function_match_count.begin(); it != function_match_count.end(); it++)
 				{
 					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, it->first))
 						Logger.Log(10, LOG_DIFF_MACHINE, "%X:%X( %u )\n", source_function_addr, it->first, it->second);
@@ -1481,8 +1481,8 @@ void DiffMachine::DoFingerPrintMatchInsideFunction(DWORD SourceFunctionAddress, 
 	}*/
 	//Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Entry\n", __FUNCTION__ );
 	multimap <DWORD,  unsigned char *>::iterator address_fingerprint_map_Iter;
-	hash_map <unsigned char *, AddressesInfo, hash_compare_fingerprint> fingerprint_map;
-	hash_map <unsigned char *, AddressesInfo, hash_compare_fingerprint>::iterator fingerprint_map_iter;
+	unordered_map <unsigned char *, AddressesInfo, hash_compare_fingerprint> fingerprint_map;
+	unordered_map <unsigned char *, AddressesInfo, hash_compare_fingerprint>::iterator fingerprint_map_iter;
 
 	list <DWORD>::iterator SourceBlockAddressIter;
 	for( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
@@ -1865,7 +1865,7 @@ void DiffMachine::RemoveDuplicates()
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
 
-					hash_map <DWORD, DWORD>::iterator reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( found_match_map_iter->second.Addresses[1] );
+					unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( found_match_map_iter->second.Addresses[1] );
 					if( reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end() && reverse_match_map_iterator->second.Address==found_match_map_iter->first )
 					{
 						iter->second.Status|=STATUS_MAPPING_DISABLED;
@@ -1877,7 +1877,7 @@ void DiffMachine::RemoveDuplicates()
 	}
 
 	/*CLEAN UP
-	hash_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
+	unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
 	for( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
 		reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end();
 		reverse_match_map_iterator++ )
@@ -1887,7 +1887,7 @@ void DiffMachine::RemoveDuplicates()
 		int found_duplicate=FALSE;
 		max_match_map_iter=match_map_iter;
 		int maximum_matchrate=match_map_iter->second.MatchRate;
-		hash_map <DWORD, DWORD>::iterator found_reverse_match_map_iterator;
+		unordered_map <DWORD, DWORD>::iterator found_reverse_match_map_iterator;
 		for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 			found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 			match_map_iter->first==found_match_map_iter->first;
@@ -1909,7 +1909,7 @@ void DiffMachine::RemoveDuplicates()
 		{
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing( reverse ) %X %X match\n", __FUNCTION__, max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
 			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
-			hash_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
+			unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
 			for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 				match_map_iter->first==found_match_map_iter->first;

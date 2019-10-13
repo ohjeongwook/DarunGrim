@@ -239,7 +239,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	int DoCrefFromCheck = FALSE;
 	int DoCallCheck = TRUE;
 	unordered_set <DWORD> function_address_hash;
-	hash_map <DWORD, short> addresses;
+	unordered_map <DWORD, short> addresses;
 
 	if (DoCrefFromCheck)
 	{
@@ -252,7 +252,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 			Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", it->first, it->second->Dst, MapInfoTypesStr[it->second->Type]);
 			if (it->second->Type == CREF_FROM)
 			{
-				hash_map <DWORD, short>::iterator iter = addresses.find(it->second->Dst);
+				unordered_map <DWORD, short>::iterator iter = addresses.find(it->second->Dst);
 				if (iter != addresses.end())
 				{
 					iter->second = FALSE;
@@ -269,7 +269,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 		}
 		
 		Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
-		for (hash_map <DWORD, short>::iterator it = addresses.begin(); it != addresses.end(); it++)
+		for (unordered_map <DWORD, short>::iterator it = addresses.begin(); it != addresses.end(); it++)
 		{
 			if (it->second)
 			{
@@ -318,7 +318,7 @@ list <DWORD> *IDAController::GetFunctionAddresses()
 	return function_addresses;
 }
 
-#undef USE_LEGACY_MAP_FOR_ADDRESS_HASH_MAP
+#undef USE_LEGACY_MAP_FOR_ADDRESS_unordered_map
 void IDAController::RemoveFromFingerprintHash(DWORD address)
 {
 	unsigned char *Fingerprint = NULL;
@@ -444,11 +444,11 @@ const char *GetAnalysisDataTypeStr(int type)
 	return "Unknown";
 }
 
-enum {TYPE_FILE_INFO, TYPE_ADDRESS_HASH_MAP, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_FINGERPRINT_HASH_MAP, TYPE_TWO_LEVEL_FINGERPRINT_HASH_MAP, TYPE_ADDRESS_FINGERPRINT_HASH_MAP, TYPE_NAME_HASH_MAP, TYPE_ADDRESS_NAME_HASH_MAP, TYPE_MAP_INFO_HASH_MAP};
+enum {TYPE_FILE_INFO, TYPE_ADDRESS_unordered_map, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_FINGERPRINT_unordered_map, TYPE_TWO_LEVEL_FINGERPRINT_unordered_map, TYPE_ADDRESS_FINGERPRINT_unordered_map, TYPE_NAME_unordered_map, TYPE_ADDRESS_NAME_unordered_map, TYPE_MAP_INFO_unordered_map};
 
 const char *GetFileDataTypeStr(int type)
 {
-	static const char *Types[] = {"FILE_INFO", "ADDRESS_HASH_MAP", "ADDRESS_DISASSEMBLY_MAP", "FINGERPRINT_HASH_MAP", "TWO_LEVEL_FINGERPRINT_HASH_MAP", "ADDRESS_FINGERPRINT_HASH_MAP", "NAME_HASH_MAP", "ADDRESS_NAME_HASH_MAP", "MAP_INFO_HASH_MAP"};
+	static const char *Types[] = {"FILE_INFO", "ADDRESS_unordered_map", "ADDRESS_DISASSEMBLY_MAP", "FINGERPRINT_unordered_map", "TWO_LEVEL_FINGERPRINT_unordered_map", "ADDRESS_FINGERPRINT_unordered_map", "NAME_unordered_map", "ADDRESS_NAME_unordered_map", "MAP_INFO_unordered_map"};
 	if(type<sizeof(Types)/sizeof(Types[0]))
 		return Types[type];
 	return "Unknown";
@@ -1279,7 +1279,7 @@ multimap <DWORD, DWORD> *IDAController::GetFunctionToBlock()
 
 static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **argv, char **names)
 {
-	hash_map <DWORD, DWORD> *AddressToFunctionMap = (hash_map <DWORD, DWORD> *)arg;
+	unordered_map <DWORD, DWORD> *AddressToFunctionMap = (unordered_map <DWORD, DWORD> *)arg;
 	if(AddressToFunctionMap)
 	{
 #if DEBUG_LEVEL > 1
@@ -1300,8 +1300,8 @@ void IDAController::LoadBlockToFunction()
 	{
 		Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, function_addresses->size());
 		
-		hash_map<DWORD, DWORD> addresses;
-		hash_map<DWORD, DWORD> membership_hash;
+		unordered_map<DWORD, DWORD> addresses;
+		unordered_map<DWORD, DWORD> membership_hash;
 		for (list <DWORD>::iterator it = function_addresses->begin(); it != function_addresses->end(); it++)
 		{
 			list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(*it);
@@ -1334,7 +1334,7 @@ void IDAController::LoadBlockToFunction()
 			}
 		}
 
-		for (hash_map<DWORD, DWORD>::iterator it = addresses.begin();
+		for (unordered_map<DWORD, DWORD>::iterator it = addresses.begin();
 			it != addresses.end();
 			it++)
 		{
@@ -1346,10 +1346,10 @@ void IDAController::LoadBlockToFunction()
 					it2++
 				)
 				{
-					hash_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(it->first);
+					unordered_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(it->first);
 					DWORD parent=it2->second;
 					Logger.Log(10, LOG_IDA_CONTROLLER, "Found parent for %X -> %X\n", it->first, parent);
-					hash_map<DWORD, DWORD>::iterator parent_membership_it = membership_hash.find(parent);
+					unordered_map<DWORD, DWORD>::iterator parent_membership_it = membership_hash.find(parent);
 					if (current_membership_it!=membership_hash.end() && parent_membership_it != membership_hash.end())
 					{
 						if (current_membership_it->second==parent_membership_it->second)
@@ -1367,7 +1367,7 @@ void IDAController::LoadBlockToFunction()
 					DWORD function_start_addr = it->first;
 					FunctionHeads.insert(function_start_addr);
 					list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(function_start_addr);
-					hash_map<DWORD, DWORD>::iterator function_start_membership_it = membership_hash.find(function_start_addr);
+					unordered_map<DWORD, DWORD>::iterator function_start_membership_it = membership_hash.find(function_start_addr);
 
 					for (list <BLOCK>::iterator it2 = function_member_blocks.begin();
 						it2 != function_member_blocks.end();
@@ -1376,7 +1376,7 @@ void IDAController::LoadBlockToFunction()
 					{
 						DWORD addr = (*it2).Start;
 
-						hash_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(addr);
+						unordered_map<DWORD, DWORD>::iterator current_membership_it = membership_hash.find(addr);
 
 						if (function_start_membership_it->second != current_membership_it->second)
 							continue;

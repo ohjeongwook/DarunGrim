@@ -7,7 +7,7 @@
 #include <atlmisc.h>
 #include <atlframe.h>
 #include <atlscrl.h>
-#include <hash_map>
+#include <unordered_map>
 #include <list>
 using namespace std;
 using namespace stdext;

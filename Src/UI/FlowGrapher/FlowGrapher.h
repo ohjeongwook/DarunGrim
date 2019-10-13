@@ -8,7 +8,7 @@
 #include "dprintf.h"
 #endif
 
-#include <hash_map>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 using namespace stdext;
@@ -27,8 +27,8 @@ private:
 	char *FontName;
 	char *FontSize;
 
-	stdext::hash_map<DWORD,Agnode_t *> AddressToNodeMap;
-	stdext::hash_map<Agnode_t *,DWORD> *NodeToUserDataMap;
+	stdext::unordered_map<DWORD,Agnode_t *> AddressToNodeMap;
+	stdext::unordered_map<Agnode_t *,DWORD> *NodeToUserDataMap;
 
 	vector <DrawingInfo *> *ParseXDOTAttributeString(char *buffer);
 	void DumpNodeInfo(Agnode_t *n);
