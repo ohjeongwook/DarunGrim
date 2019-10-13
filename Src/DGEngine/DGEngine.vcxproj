@@ -105,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>__X64__;_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;WIN32;_DEBUG;_LIB;__EA64__ </PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -163,7 +164,6 @@
     <ClInclude Include="IDAAnalysis.h" />
     <ClInclude Include="IDAAnalysisCommon.h" />
     <ClInclude Include="IDAController.h" />
-    <ClInclude Include="IDAIncludes.h" />
     <ClInclude Include="IDAVerifier.h" />
     <ClInclude Include="LogOperation.h" />
     <ClInclude Include="md5.h" />
@@ -195,6 +195,7 @@
     <ClCompile Include="SharedMemory.cpp" />
     <ClCompile Include="SharedSocket.cpp" />
     <ClCompile Include="SocketOperation.cpp" />
+    <ClCompile Include="sqlite3.c" />
     <ClCompile Include="Varray.cpp" />
     <ClCompile Include="XGetopt.cpp" />
   </ItemGroup>
