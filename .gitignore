@@ -13,3 +13,4 @@
 /x64/Debug
 *.filters
 /Src/IDAPlugin/IDAPlugin.vcxproj.user
+/Src/DiffEngine/DarunGrimC.vcxproj.user
