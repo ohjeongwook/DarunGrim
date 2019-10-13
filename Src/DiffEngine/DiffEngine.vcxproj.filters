@@ -13,15 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Lib">
-      <UniqueIdentifier>{39fed655-777c-47c9-80a9-8e9b150d68d0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lib\Header Files">
-      <UniqueIdentifier>{da967e1f-cc9c-4c52-b5b7-19707499a600}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lib\Source Files">
-      <UniqueIdentifier>{febc8f95-a7ef-4b8e-9b61-287879342093}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
