@@ -618,7 +618,6 @@ int ProcessCommandFromDarunGrim( SOCKET data_socket, char type, DWORD length, PB
 		int new_buffer_offset=0;
 		for( ea_t current_address=p_code_block->StartAddress;current_address<p_code_block->EndAddress;current_address+=get_item_size( current_address ) )
 		{
-			//ua_mnem( current_address, op_buffer, sizeof( op_buffer ) );
 			generate_disasm_line( current_address, op_buffer, sizeof( op_buffer )-1, 0 );
 			tag_remove( op_buffer, op_buffer, sizeof( op_buffer ) );
 			strcat_s( op_buffer, "\n" );

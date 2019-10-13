@@ -10,7 +10,7 @@
 #include "IDAAnalysisCommon.h"
 
 #include <vector>
-#include <hash_set>
+#include <unordered_set>
 #include <list>
 #include <string>
 
@@ -26,7 +26,7 @@ typedef struct {
 	ea_t endEA;
 } AddressRegion;
 
-string GetFeatureStr(ulong features)
+string GetFeatureStr(DWORD features)
 {
 	string FeatureStr=" ";
 	if(features&CF_STOP)
@@ -69,12 +69,12 @@ string GetFeatureStr(ulong features)
 #define CF_USE 1
 #define CF_CHG 2
 
-void GetFeatureBits(int itype,char *FeatureMap,int Size)
+void GetFeatureBits(int itype, char *FeatureMap, int Size, insn_t insn)
 {
 	memset(FeatureMap,0,Size);
 	if(Size<sizeof(char)*6)
 		return;
-	ulong features=ph.instruc[itype].feature;	
+	DWORD features=ph.instruc[itype].feature;	
 	if(features&CF_CHG1)
 		FeatureMap[0]|=CF_CHG;
 	if(features&CF_CHG2)
@@ -101,10 +101,13 @@ void GetFeatureBits(int itype,char *FeatureMap,int Size)
 	if(features&CF_USE6)
 		FeatureMap[5]|=CF_USE;
 	
+    
+
 	if(ph.id==PLFM_ARM && 
-		(cmd.itype==ARM_stm && //STMFD SP!,...
-		cmd.Operands[0].type==o_reg && 
-		cmd.Operands[0].reg==0xd //SP
+		(
+            insn.itype==ARM_stm && //STMFD SP!,...
+            insn.ops[0].type==o_reg &&
+            insn.ops[0].reg==0xd //SP
 		)
 	)
 	{
@@ -131,12 +134,15 @@ char *OpTypeStr[]={
 
 void DumpOperand(HANDLE hFile,op_t operand)
 {
-
+    /* TODO: Conert ph.regNames to ph.get_reg_name
 	if(operand.type==o_reg)
 	{
+        qstring name;
+        ph.get_reg_name(&name, operand.reg, operand.dtype, 0);
+
 		WriteToLogFile(hFile,"%s %s(%u)",
 			OpTypeStr[operand.type],
-			ph.regNames[operand.reg],
+            name.c_str(),         
 			operand.reg);
 	}else if(operand.type==o_displ)
 	{
@@ -176,6 +182,8 @@ void DumpOperand(HANDLE hFile,op_t operand)
 			ph.regNames[operand.reg],
 			operand.phrase);
 	}
+    */
+
 	/*
 	if(operand.hasSIB)
 	{
@@ -191,73 +199,73 @@ int GetInstructionWeight(insn_t instruction)
 	Weight=instruction.itype*1000;
 	for(int i=0;i<UA_MAXOP;i++)
 	{
-		if(instruction.Operands[i].type>0)
+		if(instruction.ops[i].type>0)
 		{
-			Weight+=instruction.Operands[i].type*100;
-			if(instruction.Operands[i].type==o_reg)
+			Weight+=instruction.ops[i].type*100;
+			if(instruction.ops[i].type==o_reg)
 			{
-				Weight+=instruction.Operands[i].reg;
-			}else if(instruction.Operands[i].type==o_displ)
+				Weight+=instruction.ops[i].reg;
+			}else if(instruction.ops[i].type==o_displ)
 			{
-				Weight+=instruction.Operands[i].reg;
-				Weight+=instruction.Operands[i].phrase;
-			}else if(instruction.Operands[i].type==o_imm)
+				Weight+=instruction.ops[i].reg;
+				Weight+=instruction.ops[i].phrase;
+			}else if(instruction.ops[i].type==o_imm)
 			{
-				//Weight+=instruction.Operands[i].value;
-			}else if(instruction.Operands[i].type==o_near)
+				//Weight+=instruction.ops[i].value;
+			}else if(instruction.ops[i].type==o_near)
 			{
-				//Weight+=instruction.Operands[i].addr;
-			}else if(instruction.Operands[i].type==o_mem)
+				//Weight+=instruction.ops[i].addr;
+			}else if(instruction.ops[i].type==o_mem)
 			{
-				//Weight+=instruction.Operands[i].addr;
-			}else if(instruction.Operands[i].type==o_phrase)
+				//Weight+=instruction.ops[i].addr;
+			}else if(instruction.ops[i].type==o_phrase)
 			{
-				Weight+=instruction.Operands[i].phrase+instruction.Operands[i].specflag1;
+				Weight+=instruction.ops[i].phrase+instruction.ops[i].specflag1;
 			}else
 			{
 				/*
-					instruction.Operands[i].dtyp,
-					instruction.Operands[i].addr,
-					instruction.Operands[i].value,
-					instruction.Operands[i].specval,
-					ph.regNames[instruction.Operands[i].reg],
-					instruction.Operands[i].phrase*/
+					instruction.ops[i].dtyp,
+					instruction.ops[i].addr,
+					instruction.ops[i].value,
+					instruction.ops[i].specval,
+					ph.regNames[instruction.ops[i].reg],
+					instruction.ops[i].phrase*/
 			}
 		}
 	}
 	return Weight;
 }
 
-char *EscapeString(char *Src)
+char *EscapeString(qstring &input_string)
 {
 	//<>{}|
-	int SrcLen=strlen(Src);
-	char *Dst=(char *)malloc(strlen(Src)*2+1);
+	char *buffer=(char *)malloc(input_string.length() *2+1);
 	int j=0;
-	for(int i=0;i<SrcLen+1;i++,j++)
+	for(int i=0;i< input_string.length() +1;i++,j++)
 	{
-		if(Src[i]=='<' || Src[i]=='>' || Src[i]=='{' || Src[i]=='}' || Src[i]=='|')
+        char ch = input_string[i];
+		if(ch == '<' || ch == '>' || ch == '{' || ch == '}' || ch == '|')
 		{
-			Dst[j]='\\';
+            buffer[j] = '\\';
 			j++;
-			Dst[j]=Src[i];
+            buffer[j] = ch;
 		}else
 		{
-			Dst[j]=Src[i];
+            buffer[j] = ch;
 		}
 	}
-	return Dst;
+	return buffer;
 }
 
-void AddInstructionByOrder(hash_map <ea_t,insn_t> &InstructionHash,list <ea_t> &Addresses,ea_t Address)
+void AddInstructionByOrder(unordered_map <ea_t,insn_t> &InstructionHash,list <ea_t> &Addresses,ea_t Address)
 {
-	hash_map <ea_t,insn_t>::iterator InstructionHashIter=InstructionHash.find(Address);
+	unordered_map <ea_t,insn_t>::iterator InstructionHashIter=InstructionHash.find(Address);
 
 	bool IsInserted=FALSE;
 	list <ea_t>::iterator AddressesIter;
 	for(AddressesIter=Addresses.begin();AddressesIter!=Addresses.end();AddressesIter++)
 	{
-		hash_map <ea_t,insn_t>::iterator CurrentInstructionHashIter=InstructionHash.find(*AddressesIter);
+		unordered_map <ea_t,insn_t>::iterator CurrentInstructionHashIter=InstructionHash.find(*AddressesIter);
 		if(GetInstructionWeight(CurrentInstructionHashIter->second)<GetInstructionWeight(InstructionHashIter->second))
 		{
 			Addresses.insert(AddressesIter,Address);
@@ -269,10 +277,10 @@ void AddInstructionByOrder(hash_map <ea_t,insn_t> &InstructionHash,list <ea_t> &
 		Addresses.push_back(Address);
 }
 
-list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,hash_map <ea_t,insn_t> &InstructionHash)
+list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,unordered_map <ea_t,insn_t> &InstructionHash)
 {
 	list <insn_t> *CmdArray=new list <insn_t>;
-	hash_set <ea_t> ChildAddresses;
+	unordered_set <ea_t> ChildAddresses;
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait>::iterator InstructionMapIter;
 
 	for(InstructionMapIter=InstructionMap.begin();InstructionMapIter!=InstructionMap.end();InstructionMapIter++)
@@ -281,7 +289,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 	}
 
 	list <ea_t> RootAddresses;
-	hash_map <ea_t,insn_t>::iterator InstructionHashIter;
+	unordered_map <ea_t,insn_t>::iterator InstructionHashIter;
 	for(InstructionHashIter=InstructionHash.begin();InstructionHashIter!=InstructionHash.end();InstructionHashIter++)
 	{
 		if(ChildAddresses.find(InstructionHashIter->first)==ChildAddresses.end())
@@ -293,7 +301,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 
 	list <ea_t> OrderedAddresses;
 	list <string> Signatures;
-	hash_set <ea_t>::iterator RootAddressesIter;
+	unordered_set <ea_t>::iterator RootAddressesIter;
 	for(RootAddressesIter=RootAddresses.begin();RootAddressesIter!=RootAddresses.end();RootAddressesIter++)
 	{
 		list <ea_t> TargetAddresses;
@@ -355,9 +363,9 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 			WriteToLogFile(gLogFile,"Instruction at %X==%X: ",*AddressesIter,InstructionHashIter->second.ea);
 			for(int i=0;i<UA_MAXOP;i++)
 			{
-				if(InstructionHashIter->second.Operands[i].type>0)
+				if(InstructionHashIter->second.ops[i].type>0)
 				{
-					DumpOperand(gLogFile,InstructionHashIter->second.Operands[i]);
+					DumpOperand(gLogFile,InstructionHashIter->second.ops[i]);
 				}
 			}
 			WriteToLogFile(gLogFile,"\r\n");
@@ -371,7 +379,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 void DumpDOT(
 	char *Filename,
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
-	hash_map <ea_t,insn_t> &InstructionHash
+	unordered_map <ea_t,insn_t> &InstructionHash
 )
 {
 	HANDLE hFile=OpenLogFile(Filename);
@@ -389,22 +397,24 @@ void DumpDOT(
 
 	//shape = \"ellipse\"\r\n\
 
-	hash_map <ea_t,insn_t>::iterator InstructionHashIter;
+	unordered_map <ea_t,insn_t>::iterator InstructionHashIter;
 	//Write Node Data
 	for(InstructionHashIter=InstructionHash.begin();InstructionHashIter!=InstructionHash.end();InstructionHashIter++)
 	{
 		ea_t address=InstructionHashIter->first;
-		char op_buffer[100]={0,};
-		ua_mnem(address,op_buffer,sizeof(op_buffer));
+        qstring op_buffer;
 
-		WriteToLogFile(hFile,"\"%X\" [\r\n\tlabel=\"%s",address,op_buffer);
+        print_insn_mnem(&op_buffer, address);
+
+		WriteToLogFile(hFile,"\"%X\" [\r\n\tlabel=\"%s", address, op_buffer.c_str());
 		for(int i=0;i<UA_MAXOP;i++)
 		{
-			if(InstructionHashIter->second.Operands[i].type>0)
+			if(InstructionHashIter->second.ops[i].type>0)
 			{
-				char operand_str[MAXSTR]={0,};
-				ua_outop(address,operand_str,sizeof(operand_str)-1,i);
-				tag_remove(operand_str,operand_str,0);
+				qstring operand_str;
+
+                print_operand(&operand_str, address, i);
+				tag_remove(&operand_str,operand_str,0);
 				char *escaped_operand_str=EscapeString(operand_str);
 				if(escaped_operand_str)
 				{
@@ -477,18 +487,22 @@ list <int> GetRelatedFlags(int itype,bool IsModifying)
 //Save & Trace Variables
 void UpdateInstructionMap
 (
-	hash_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
-	hash_map <int,ea_t> &FlagsHash,
+	unordered_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
+	unordered_map <int,ea_t> &FlagsHash,
 	//Instruction Hash and Map
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
-	hash_map <ea_t,insn_t> &InstructionHash,
+	unordered_map <ea_t,insn_t> &InstructionHash,
 	insn_t &instruction
 )
 {
 	ea_t address=instruction.ea;
 	InstructionHash.insert(pair<ea_t,insn_t>(address,instruction));
 	char Features[UA_MAXOP*2];
-	GetFeatureBits(instruction.itype,Features,sizeof(Features));
+
+    insn_t insn;
+    decode_insn(&insn, address);
+
+	GetFeatureBits(instruction.itype,Features,sizeof(Features), insn);
 
 	if(Debug>0)
 		WriteToLogFile(gLogFile,"%s(%X) %s\r\n",ph.instruc[instruction.itype].name,instruction.itype,GetFeatureStr(ph.instruc[instruction.itype].feature).c_str());
@@ -506,7 +520,7 @@ void UpdateInstructionMap
 	for(FlagsIter=Flags.begin();FlagsIter!=Flags.end();FlagsIter++)
 	{
 		//Use Flags: FlagsHash
-		hash_map <int,ea_t>::iterator FlagsHashIter=FlagsHash.find(*FlagsIter);
+		unordered_map <int,ea_t>::iterator FlagsHashIter=FlagsHash.find(*FlagsIter);
 		if(FlagsHashIter!=FlagsHash.end())
 		{
 			//FlagsHashIter->first
@@ -536,7 +550,7 @@ void UpdateInstructionMap
 		for(int reg=0;reg<5;reg++)
 		{
 			operand.reg=reg;
-			hash_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(operand);
+			unordered_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(operand);
 			if(iter!=OperandsHash.end())
 			{
 				OperandPosition SrcOperandPosition;
@@ -559,7 +573,7 @@ void UpdateInstructionMap
 	//Operand Tracing
 	for(int i=UA_MAXOP-1;i>=0;i--)
 	{
-		op_t *pOperand=&instruction.Operands[i];
+		op_t *pOperand=&instruction.ops[i];
 		if(pOperand->type>0)
 		{
 			//o_mem,o_displ,o_far,o_near -> addr
@@ -570,7 +584,7 @@ void UpdateInstructionMap
 			WriteToLogFile(gLogFile,"\tOperand %u: [%s%s] ",i,(Features[i]&CF_CHG)?"CHG":"",(Features[i]&CF_USE)?"USE":"");
 			if(Features[i]&CF_USE)
 			{
-				hash_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(*pOperand);
+				unordered_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(*pOperand);
 				if(iter==OperandsHash.end())
 				{
 					op_t tmp_op;
@@ -615,49 +629,54 @@ void UpdateInstructionMap
 				OperandPosition operand_position;
 				operand_position.Address=address;
 				operand_position.Index=i;
-				OperandsHash.erase(instruction.Operands[i]);
+				OperandsHash.erase(instruction.ops[i]);
 				WriteToLogFile(gLogFile,"Inserting %u\r\n",i);
-				OperandsHash.insert(pair<op_t,OperandPosition>(instruction.Operands[i],operand_position));
+				OperandsHash.insert(pair<op_t,OperandPosition>(instruction.ops[i],operand_position));
 			}
 		}
 	}
 }
 
-void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag, int GatherCmdArray=FALSE);
+void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address,list <insn_t> *pCmdArray,flags_t Flag, int GatherCmdArray=FALSE);
 
-void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,list <insn_t> *pCmdArray,flags_t Flag,int GatherCmdArray)
+void DumpBasicBlock(
+    DisassemblyProcessor disassemblyProcessor,
+    ea_t src_block_address,
+    list <insn_t> *pCmdArray,
+    flags_t flags,
+    int GatherCmdArray)
 {
 	string disasm_buffer;
 	
 	BasicBlock basic_block;
 	basic_block.FunctionAddress=0;
 	basic_block.BlockType=UNKNOWN_BLOCK;
-	basic_block.StartAddress=SrcBlock;
-	basic_block.Flag=Flag;
+	basic_block.StartAddress=src_block_address;
+	basic_block.Flag=flags;
 
-	TCHAR name[225]={0,};
+	qstring name;
 
-	get_short_name(SrcBlock, SrcBlock, name, sizeof(name));
+    get_short_name(&name, src_block_address);
 
-	if(isCode(Flag))
+	if(is_code(flags))
 	{
-		func_t *p_func = get_func(SrcBlock);
+		func_t *p_func = get_func(src_block_address);
 		if(p_func)
 		{
-			basic_block.FunctionAddress=p_func->startEA;
+			basic_block.FunctionAddress=p_func->start_ea;
 		}
 
 		//WriteToLogFile(gLogFile, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
 		//msg("Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
 
-		ea_t cref = get_first_cref_to(SrcBlock);
+		ea_t cref = get_first_cref_to(src_block_address);
 
 		if(cref==BADADDR || basic_block.StartAddress==basic_block.FunctionAddress)
 		{
 			basic_block.BlockType=FUNCTION_BLOCK;
 			if(name[0]==NULL)
 			{
-				_snprintf(name,sizeof(name)-1,"func_%X",basic_block.StartAddress);
+				//TODO: Fix - _snprintf(name,sizeof(name)-1,"func_%X",basic_block.StartAddress);
 			}
 		}
 	}
@@ -675,11 +694,11 @@ void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,lis
 		if(basic_block.EndAddress<(*CmdArrayIter).ea && (*CmdArrayIter).ea!=0xffffffff)
 			basic_block.EndAddress=(*CmdArrayIter).ea;
 		
-		if(isCode(Flag) &&
+		if(is_code(flags) &&
 			!( //detect hot patching
 				basic_block.StartAddress==basic_block.FunctionAddress && 
 				CmdArrayIter==pCmdArray->begin() &&
-				(ph.id == PLFM_386 || ph.id == PLFM_IA64) && (*CmdArrayIter).itype == NN_mov && (*CmdArrayIter).Operands[0].reg == (*CmdArrayIter).Operands[1].reg
+				(ph.id == PLFM_386 || ph.id == PLFM_IA64) && (*CmdArrayIter).itype == NN_mov && (*CmdArrayIter).ops[0].reg == (*CmdArrayIter).ops[1].reg
 			) &&
 			!(
 				((ph.id == PLFM_386 || ph.id == PLFM_IA64) &&
@@ -735,37 +754,38 @@ void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,lis
 			FingerPrint.push_back((unsigned char)(*CmdArrayIter).itype);
 			for(int i=0;i<UA_MAXOP;i++)
 			{
-				if((*CmdArrayIter).Operands[i].type!=0)
+				if((*CmdArrayIter).ops[i].type!=0)
 				{
-					FingerPrint.push_back((*CmdArrayIter).Operands[i].type);
-					FingerPrint.push_back((*CmdArrayIter).Operands[i].dtyp);
+					FingerPrint.push_back((*CmdArrayIter).ops[i].type);
+					FingerPrint.push_back((*CmdArrayIter).ops[i].dtype);
 					/*
-					if((*CmdArrayIter).Operands[i].type==o_imm)
+					if((*CmdArrayIter).ops[i].type==o_imm)
 					{
-						FingerPrint.push_back(((*CmdArrayIter).Operands[i].value>>24)&0xff);
-						FingerPrint.push_back(((*CmdArrayIter).Operands[i].value>>16)&0xff);
-						FingerPrint.push_back(((*CmdArrayIter).Operands[i].value>>8)&0xff);								
-						FingerPrint.push_back((*CmdArrayIter).Operands[i].value&0xff);
+						FingerPrint.push_back(((*CmdArrayIter).ops[i].value>>24)&0xff);
+						FingerPrint.push_back(((*CmdArrayIter).ops[i].value>>16)&0xff);
+						FingerPrint.push_back(((*CmdArrayIter).ops[i].value>>8)&0xff);								
+						FingerPrint.push_back((*CmdArrayIter).ops[i].value&0xff);
 					}*/
 				}
 			}
 		}
 
-		if(isCode(Flag))
+		if(is_code(flags))
 		{
-			char buf[MAXSTR];
+			qstring buf;
 
-			generate_disasm_line((*CmdArrayIter).ea,buf,sizeof(buf)-1);
-			tag_remove(buf,buf,sizeof(buf)-1);
+			generate_disasm_line(&buf, (*CmdArrayIter).ea);
+            tag_remove(&buf);
+
 			if(Debug>3)
 				WriteToLogFile(gLogFile,"%X(%X): [%s]\n",(*CmdArrayIter).ea,basic_block.StartAddress,buf);
 
-			strcat_s(buf, MAXSTR, "\n");
-			disasm_buffer+=buf;
+            buf += "\n";
+			disasm_buffer += buf.c_str();
 		}
 	}
 
-	basic_block.NameLen=strlen(name)+1;
+	basic_block.NameLen= name.length() + 1;
 	basic_block.DisasmLinesLen=disasm_buffer.length()+1;
 	basic_block.FingerprintLen=FingerPrint.size();
 
@@ -782,8 +802,8 @@ void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,lis
 
 	if(p_basic_block)
 	{
-		memcpy(p_basic_block,&basic_block,sizeof(basic_block));
-		memcpy(p_basic_block->Data,name,basic_block.NameLen);
+		memcpy(p_basic_block, &basic_block, sizeof(basic_block));
+		memcpy(p_basic_block->Data, name.c_str(), basic_block.NameLen);
 
 		if(disasm_buffer.length()>0)
 		{
@@ -818,11 +838,11 @@ void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t SrcBlock,lis
 	FingerPrint.clear();			
 }
 
-ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *pFlag,hash_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
+ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
 {
 	while(1)
 	{
-		hash_map <ea_t,ea_t>::iterator AdditionallyAnalyzedBlocksIter=AdditionallyAnalyzedBlocks.find(StartEA);
+		unordered_map <ea_t,ea_t>::iterator AdditionallyAnalyzedBlocksIter=AdditionallyAnalyzedBlocks.find(StartEA);
 		if(AdditionallyAnalyzedBlocksIter!=AdditionallyAnalyzedBlocks.end())
 		{
 			//WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Skip %X block to %X\n",__FUNCTION__,StartEA,AdditionallyAnalyzedBlocksIter->second);
@@ -836,35 +856,40 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 	}
 
 	ea_t current_addr=StartEA;
-	ea_t SrcBlock=current_addr;
-	ea_t FirstBlockEndAddr=0;
-	ea_t CurrentBlockStart=current_addr;
+	ea_t src_block_address=current_addr;
+	ea_t first_block_end_address=0;
+	ea_t current_block_start_address=current_addr;
 
 	int InstructionCount=0;
 	//WriteToLogFile(gLogFile,"%s: %X~%X\n",__FUNCTION__,current_addr,endEA);
-	bool FoundBranching=FALSE; //first we branch
+
+	bool found_branch=FALSE; //first we branch
 	for(;current_addr<=endEA;)
 	{
 		InstructionCount++;
 		bool cref_to_next_addr=FALSE;
-		*pFlag=getFlags(current_addr);
+		*p_flags= get_full_flags(current_addr);
 		int current_item_size=get_item_size(current_addr);
-		char op_buffer[40]={0,};
-		ua_mnem(current_addr,op_buffer,sizeof(op_buffer));
-		pCmdArray->push_back(cmd);
-		short current_itype=cmd.itype;
+
+		qstring op_buffer;
+        print_insn_mnem(&op_buffer, current_addr);
+
+        insn_t insn;
+        decode_insn(&insn, current_addr);
+		pCmdArray->push_back(insn);
+		short current_itype= insn.itype;
 
 		MapInfo map_info;
 		//New Location Found
-		map_info.SrcBlock=SrcBlock;
+		map_info.SrcBlock=src_block_address;
 		//Finding Next CREF
 		vector<ea_t> cref_list;
 		//cref from
-		ea_t cref=get_first_cref_from(current_addr);
-		while(cref!=BADADDR)
+		ea_t cref = get_first_cref_from(current_addr);
+		while(cref != BADADDR)
 		{
 			//if just flowing
-			if(cref==current_addr+current_item_size)
+			if(cref == current_addr+current_item_size)
 			{
 				//next instruction...
 				cref_to_next_addr=TRUE;
@@ -872,10 +897,17 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 				//j* something or call
 				//if branching
 				//if cmd type is "call"
+
 				if(
-					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_call || cmd.itype == NN_callfi || cmd.itype == NN_callni)) ||
-					(ph.id==PLFM_ARM && (cmd.itype==ARM_bl || cmd.itype==ARM_blx1 || cmd.itype==ARM_blx2)) ||
-					(ph.id==PLFM_MIPS && (cmd.itype==MIPS_jal || cmd.itype==MIPS_jalx))
+					(
+                        (ph.id == PLFM_386 || ph.id == PLFM_IA64) && 
+                        (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)
+                    ) ||
+					(
+                        ph.id==PLFM_ARM && 
+                        (insn.itype==ARM_bl || insn.itype==ARM_blx1 || insn.itype==ARM_blx2)
+                    ) ||
+					(ph.id==PLFM_MIPS && (insn.itype==MIPS_jal || insn.itype==MIPS_jalx))
 				)
 				{
 
@@ -887,12 +919,14 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
                     disassemblyProcessor.AddMapInfo(&map_info);
 				}else{
 					//this is a jump
-					FoundBranching=TRUE; //j* or ret* instruction found
+					found_branch=TRUE; //j* or ret* instruction found
 					bool IsNOPBlock=FALSE;
 					//check if the jumped position(cref) is a nop block
-					//if cmd type is "j*"
-					ua_mnem(cref,op_buffer,sizeof(op_buffer));
-					if(cmd.itype==NN_jmp || cmd.itype==NN_jmpfi || cmd.itype==NN_jmpni || cmd.itype==NN_jmpshort)
+					//if insn type is "j*"
+
+                    decode_insn(&insn, cref);
+
+					if(insn.itype==NN_jmp || insn.itype==NN_jmpfi || insn.itype==NN_jmpni || insn.itype==NN_jmpshort)
 					{
 						int cref_from_cref_number=0;
 						ea_t cref_from_cref=get_first_cref_from(cref);
@@ -926,7 +960,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			cref=get_next_cref_from(current_addr,cref);
 		}
 
-		if(!FoundBranching)
+		if(!found_branch)
 		{
 			//cref_to
 			ea_t cref_to=get_first_cref_to(current_addr+current_item_size);
@@ -934,46 +968,46 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			{
 				if(cref_to!=current_addr)
 				{
-					FoundBranching=TRUE;
+					found_branch=TRUE;
 					break;
 				}
 				cref_to=get_next_cref_to(current_addr+current_item_size,cref_to);
 			}
-			if(!FoundBranching)
+			if(!found_branch)
 			{
 				if(
-					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_retn || cmd.itype == NN_retf)) ||
-					(ph.id==PLFM_ARM && ((cmd.itype==ARM_pop && (cmd.Operands[0].specval&0xff00)==0x8000) || cmd.itype==ARM_ret || cmd.itype==ARM_bx))
+					((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_retn || insn.itype == NN_retf)) ||
+					(ph.id==PLFM_ARM && ((insn.itype==ARM_pop && (insn.ops[0].specval&0xff00)==0x8000) || insn.itype==ARM_ret || insn.itype==ARM_bx))
 				)
 				{
-					FoundBranching=TRUE;
-				}else if(isCode(*pFlag)!=isCode(getFlags(current_addr+current_item_size)))
+					found_branch=TRUE;
+				}else if(is_code(*p_flags)!=is_code(get_full_flags(current_addr+current_item_size)))
 				{
 					//or if code/data type changes
-					FoundBranching=TRUE; //code, data type change...
+					found_branch=TRUE; //code, data type change...
 				}
-				if(!FoundBranching)
+
+				if(!found_branch)
 				{
-					if(!isCode(*pFlag))
+					if(!is_code(*p_flags) && has_name(*p_flags))
 					{
-						TCHAR name[225]={0,};
-						if(get_true_name(current_addr+current_item_size,current_addr+current_item_size,name,sizeof(name)))
-							FoundBranching=TRUE;
+					    found_branch=TRUE;
 					}
 				}
 			}
 		}
 
 		//Skip Null Block
-		if(isCode(*pFlag) && 
-			FoundBranching && 
+		if(is_code(*p_flags) && 
+			found_branch && 
 			cref_to_next_addr)
 		{
-			char op_buffer[40]={0,};
 			ea_t cref=current_addr+current_item_size;
-			ua_mnem(cref,op_buffer,sizeof(op_buffer));
 
-			if(cmd.itype==NN_jmp || cmd.itype==NN_jmpfi || cmd.itype==NN_jmpni || cmd.itype==NN_jmpshort)
+            insn_t insn;
+            decode_insn(&insn, cref);
+
+			if(insn.itype==NN_jmp || insn.itype==NN_jmpfi || insn.itype==NN_jmpni || insn.itype==NN_jmpshort)
 			{
 				//we add the cref's next position instead cref
 				//because this is a null block(doing nothing but jump)
@@ -1014,7 +1048,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			dref=get_next_dref_from(current_addr,dref);
 		}
 
-		if(FoundBranching)
+		if(found_branch)
 		{
 			bool is_positive_jmp=TRUE;
 			if(
@@ -1111,20 +1145,20 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 				if(cref_to_count==0)
 				{
 					//Merge it
-					if(!FirstBlockEndAddr)
-						FirstBlockEndAddr=current_addr+current_item_size;
+					if(!first_block_end_address)
+						first_block_end_address=current_addr+current_item_size;
 					//next_block_addr should not be analyzed again next time.
-					if(CurrentBlockStart!=StartEA)
+					if(current_block_start_address!=StartEA)
 					{
-						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,CurrentBlockStart,current_addr+current_item_size);
-						AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(CurrentBlockStart,current_addr+current_item_size));
+						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+						AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 					}
-					if(CurrentBlockStart!=next_block_addr)
+					if(current_block_start_address!=next_block_addr)
 					{
-						CurrentBlockStart=next_block_addr;
-						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set CurrentBlockStart=%X\n",__FUNCTION__,CurrentBlockStart);
+						current_block_start_address=next_block_addr;
+						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set current_block_start_address=%X\n",__FUNCTION__,current_block_start_address);
 						current_addr=next_block_addr;
-						FoundBranching=FALSE;
+						found_branch=FALSE;
 						cref_list.clear();
 						continue;
 					}
@@ -1153,26 +1187,26 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 				}
 			}
 
-			if(CurrentBlockStart!=StartEA)
+			if(current_block_start_address!=StartEA)
 			{
-				WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,CurrentBlockStart,current_addr+current_item_size);
-				AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(CurrentBlockStart,current_addr+current_item_size));
+				WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+				AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 			}
 
-			if(FirstBlockEndAddr)
-				return FirstBlockEndAddr;
+			if(first_block_end_address)
+				return first_block_end_address;
 			return current_addr+current_item_size;
 		}
 		current_addr+=current_item_size;
 	}
-	if(CurrentBlockStart!=StartEA)
+	if(current_block_start_address!=StartEA)
 	{
-		WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,CurrentBlockStart,current_addr);
-		AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(CurrentBlockStart,current_addr));
+		WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr);
+		AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr));
 	}
 	WriteToLogFile(gLogFile,"%s: CmdArray size=%u\n",__FUNCTION__,pCmdArray->size());
-	if(FirstBlockEndAddr)
-		return FirstBlockEndAddr;
+	if(first_block_end_address)
+		return first_block_end_address;
 	return current_addr;
 }
 
@@ -1183,7 +1217,7 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 	if(!pAddressRegions)
 		return;
 
-	hash_map <ea_t,ea_t> additionally_analyzed_blocks;
+	unordered_map <ea_t,ea_t> additionally_analyzed_blocks;
 
 	for (list <AddressRegion>::iterator it = pAddressRegions->begin(); it != pAddressRegions->end(); it++)
 	{
@@ -1201,10 +1235,10 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 			ea_t next_address = AnalyzeBlock(disassemblyProcessor, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
 			if(0)
 			{
-				hash_map <op_t,OperandPosition,OpTHashCompareStr> OperandsHash;
+				unordered_map <op_t,OperandPosition,OpTHashCompareStr> OperandsHash;
 				multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> InstructionMap;
-				hash_map <ea_t,insn_t> InstructionHash;
-				hash_map <int,ea_t> FlagsHash;
+				unordered_map <ea_t,insn_t> InstructionHash;
+				unordered_map <int,ea_t> FlagsHash;
 
 				for(list <insn_t>::iterator CmdArrayIter=CmdArray.begin();CmdArrayIter!=CmdArray.end();CmdArrayIter++)
 				{			
@@ -1242,7 +1276,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	list <ea_t> AddressQueue;
 	list <ea_t>::iterator AddressQueueIter;
 	AddressQueue.push_back(StartAddress);
-	hash_set <ea_t> AddressHash;
+	unordered_set <ea_t> AddressHash;
 	AddressHash.insert(StartAddress);
 
 	list <AddressRegion> AddressRegions;
@@ -1254,55 +1288,59 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 		{
 			bool bEndOfBlock=FALSE;
 
-			char op_buffer[100];
-			ua_mnem(current_addr,op_buffer,sizeof(op_buffer));
+            qstring op_buffer;
+            print_insn_mnem(&op_buffer, current_addr);
 			current_item_size=get_item_size(current_addr);
 
-			if(!strnicmp(op_buffer,"ret",3))
+			if(!strnicmp(op_buffer.c_str(),"ret",3))
 			{
 				bEndOfBlock=TRUE;
 			}
+
+            insn_t insn;
+            decode_insn(&insn, current_addr);
+
 			ea_t cref=get_first_cref_from(current_addr);
 			while(cref!=BADADDR)
 			{
 				if(
-					cmd.itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-					cmd.itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
-					cmd.itype==NN_jc ||                  // Jump if Carry (CF=1)
-					cmd.itype==NN_jcxz ||                // Jump if CX is 0
-					cmd.itype==NN_jecxz ||               // Jump if ECX is 0
-					cmd.itype==NN_jrcxz ||               // Jump if RCX is 0
-					cmd.itype==NN_je ||                  // Jump if Equal (ZF=1)
-					cmd.itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-					cmd.itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-					cmd.itype==NN_jo ||                  // Jump if Overflow (OF=1)
-					cmd.itype==NN_jp ||                  // Jump if Parity (PF=1)
-					cmd.itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
-					cmd.itype==NN_js ||                  // Jump if Sign (SF=1)
-					cmd.itype==NN_jz ||                  // Jump if Zero (ZF=1)
-					cmd.itype==NN_jmp ||                 // Jump
-					cmd.itype==NN_jmpfi ||               // Indirect Far Jump
-					cmd.itype==NN_jmpni ||               // Indirect Near Jump
-					cmd.itype==NN_jmpshort ||            // Jump Short
-					cmd.itype==NN_jpo ||                 // Jump if Parity Odd  (PF=0)
-					cmd.itype==NN_jl ||                  // Jump if Less (SF!=OF)
-					cmd.itype==NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
-					cmd.itype==NN_jb ||                  // Jump if Below (CF=1)
-					cmd.itype==NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
-					cmd.itype==NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
-					cmd.itype==NN_jnae ||                // Jump if Not Above or Equal (CF=1)
-					cmd.itype==NN_jnb ||                 // Jump if Not Below (CF=0)
-					cmd.itype==NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
-					cmd.itype==NN_jnc ||                 // Jump if Not Carry (CF=0)
-					cmd.itype==NN_jne ||                 // Jump if Not Equal (ZF=0)
-					cmd.itype==NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
-					cmd.itype==NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
-					cmd.itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
-					cmd.itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-					cmd.itype==NN_jno ||                 // Jump if Not Overflow (OF=0)
-					cmd.itype==NN_jnp ||                 // Jump if Not Parity (PF=0)
-					cmd.itype==NN_jns ||                 // Jump if Not Sign (SF=0)
-					cmd.itype==NN_jnz                 // Jump if Not Zero (ZF=0)
+                    insn.itype==NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+                    insn.itype==NN_jae ||                 // Jump if Above or Equal (CF=0)
+                    insn.itype==NN_jc ||                  // Jump if Carry (CF=1)
+                    insn.itype==NN_jcxz ||                // Jump if CX is 0
+                    insn.itype==NN_jecxz ||               // Jump if ECX is 0
+                    insn.itype==NN_jrcxz ||               // Jump if RCX is 0
+                    insn.itype==NN_je ||                  // Jump if Equal (ZF=1)
+                    insn.itype==NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+					insn.itype==NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+					insn.itype==NN_jo ||                  // Jump if Overflow (OF=1)
+					insn.itype==NN_jp ||                  // Jump if Parity (PF=1)
+					insn.itype==NN_jpe ||                 // Jump if Parity Even (PF=1)
+					insn.itype==NN_js ||                  // Jump if Sign (SF=1)
+					insn.itype==NN_jz ||                  // Jump if Zero (ZF=1)
+					insn.itype==NN_jmp ||                 // Jump
+					insn.itype==NN_jmpfi ||               // Indirect Far Jump
+					insn.itype==NN_jmpni ||               // Indirect Near Jump
+					insn.itype==NN_jmpshort ||            // Jump Short
+					insn.itype==NN_jpo ||                 // Jump if Parity Odd  (PF=0)
+					insn.itype==NN_jl ||                  // Jump if Less (SF!=OF)
+					insn.itype==NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
+					insn.itype==NN_jb ||                  // Jump if Below (CF=1)
+					insn.itype==NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
+					insn.itype==NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
+					insn.itype==NN_jnae ||                // Jump if Not Above or Equal (CF=1)
+					insn.itype==NN_jnb ||                 // Jump if Not Below (CF=0)
+					insn.itype==NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
+					insn.itype==NN_jnc ||                 // Jump if Not Carry (CF=0)
+					insn.itype==NN_jne ||                 // Jump if Not Equal (ZF=0)
+					insn.itype==NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
+					insn.itype==NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
+					insn.itype==NN_jnl ||                 // Jump if Not Less (SF=OF)
+					insn.itype==NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+					insn.itype==NN_jno ||                 // Jump if Not Overflow (OF=0)
+					insn.itype==NN_jnp ||                 // Jump if Not Parity (PF=0)
+					insn.itype==NN_jns ||                 // Jump if Not Sign (SF=0)
+					insn.itype==NN_jnz                 // Jump if Not Zero (ZF=0)
 				)
 				{
 					msg("Got Jump at %X\n",current_addr);
@@ -1323,12 +1361,12 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 			{
 				if(current_addr!=cref)
 				{
-					ua_mnem(cref,op_buffer,sizeof(op_buffer));
+                    print_insn_mnem(&op_buffer, cref);
 					
 					if(
-						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (cmd.itype == NN_call || cmd.itype == NN_callfi || cmd.itype == NN_callni)) ||
-						!(ph.id==PLFM_ARM && (cmd.itype==ARM_bl || cmd.itype==ARM_blx1 || cmd.itype==ARM_blx2)) ||
-						!(ph.id==PLFM_MIPS && (cmd.itype==MIPS_jal || cmd.itype==MIPS_jalx))
+						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)) ||
+						!(ph.id==PLFM_ARM && (insn.itype==ARM_bl || insn.itype==ARM_blx1 || insn.itype==ARM_blx2)) ||
+						!(ph.id==PLFM_MIPS && (insn.itype==MIPS_jal || insn.itype==MIPS_jalx))
 					)
 					{
 						//End of block
@@ -1393,7 +1431,7 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 		eaddr=EndEA;
 	}else
 	{
-		selected=read_selection(&saddr,&eaddr);
+		//TODO: Porting selected= read_range_selection(&saddr,&eaddr);
 	}
 
 	printf("Sending Analyzed Information\n");
@@ -1401,7 +1439,7 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 	if(selected)
 	{
 		func_t *cur_func_t=get_func(saddr);
-		if(cur_func_t->startEA==saddr)
+		if(cur_func_t->start_ea == saddr)
 		{
 			//Collect all member addresses
 			AddressRegions=GetMemberAddresses(saddr);
@@ -1418,8 +1456,8 @@ void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t
 		{
 			segment_t *seg_p=getnseg(n);
 			AddressRegion address_region;
-			address_region.startEA=seg_p->startEA;
-			address_region.endEA=seg_p->endEA;
+			address_region.startEA=seg_p->start_ea;
+			address_region.endEA=seg_p->end_ea;
 			AddressRegions.push_back(address_region);
 		}
 	}

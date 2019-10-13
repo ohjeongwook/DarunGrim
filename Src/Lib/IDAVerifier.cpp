@@ -24,8 +24,9 @@ bool IsValidFunctionStart(ea_t address)
 	while(cref!=BADADDR)
 	{
 		cref_to_count++;
-		char op_buffer[40]={0,};
-		ua_mnem(cref,op_buffer,sizeof(op_buffer));
+
+        qstring op_buffer;
+        print_insn_mnem(&op_buffer, cref);
 
 		if(!(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni))
 		{
@@ -66,8 +67,8 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		func_t *cref_func=get_func(cref);
 		if(cref_func!=func)
 		{
-			char op_buffer[40]={0,};
-			ua_mnem(cref,op_buffer,sizeof(op_buffer));
+            qstring op_buffer;
+            print_insn_mnem(&op_buffer, cref);
 			if(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni)
 			{
 				is_function=true;
@@ -102,8 +103,8 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_first_cref_to(address);
 		while(cref!=BADADDR)
 		{
-			char op_buffer[40]={0,};
-			ua_mnem(cref,op_buffer,sizeof(op_buffer));
+            qstring op_buffer;
+            print_insn_mnem(&op_buffer, cref);
 			if(!(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni))
 			{
 				func_t *cref_func=get_func(cref);
