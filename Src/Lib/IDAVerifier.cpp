@@ -1,4 +1,6 @@
 #pragma warning(disable:4819)
+
+#define __X64__
 #include <ida.hpp>
 #include <idp.hpp>
 #include <expr.hpp>
@@ -11,7 +13,7 @@
 #include <struct.hpp>
 #include <allins.hpp>
 #include <auto.hpp>
-#include <area.hpp>
+#include <range.hpp>
 
 #include "IDAVerifier.h"
 
@@ -25,10 +27,10 @@ bool IsValidFunctionStart(ea_t address)
 	{
 		cref_to_count++;
 
-        qstring op_buffer;
-        print_insn_mnem(&op_buffer, cref);
+        insn_t insn;
+        decode_insn(&insn, cref);
 
-		if(!(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni))
+		if(!(insn.itype==NN_call || insn.itype==NN_callfi || insn.itype==NN_callni))
 		{
 			return false;
 		}
@@ -40,12 +42,12 @@ bool IsValidFunctionStart(ea_t address)
 
 ea_t GetBlockEnd(ea_t address)
 {
-	while(address=nextthat(address,BADADDR,f_isCode,NULL))
+	while(address= next_that(address, BADADDR, f_is_code, NULL))
 	{
-		if(address==BADADDR)
+		if(address == BADADDR)
 			break;
-		ea_t fcref=get_first_fcref_to(address);
-		if(fcref!=BADADDR)
+		ea_t fcref = get_first_fcref_to(address);
+		if(fcref != BADADDR)
 			break;
 	}
 	return address;
@@ -55,8 +57,8 @@ int ConnectBrokenFunctionChunk(ea_t address)
 {
 	int connected_links_count=0;
 	func_t *func=get_func(address);
-	char function_name[1024]={0,};
-	get_short_name(address, address, function_name, sizeof(function_name));
+	qstring function_name;
+	get_short_name(&function_name, address);
 
 	bool is_function=false;
 	bool AddFunctionAsMemberOfFunction=false;
@@ -67,9 +69,9 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		func_t *cref_func=get_func(cref);
 		if(cref_func!=func)
 		{
-            qstring op_buffer;
-            print_insn_mnem(&op_buffer, cref);
-			if(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni)
+            insn_t insn;
+            decode_insn(&insn, cref);
+			if(insn.itype==NN_call || insn.itype==NN_callfi || insn.itype==NN_callni)
 			{
 				is_function=true;
 				break;
@@ -78,7 +80,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_next_cref_to(address,cref);
 	}
 
-	msg("ConnectBrokenFunctionChunk: %s %s\n", function_name, is_function? "is function": "is not function" );
+	msg("ConnectBrokenFunctionChunk: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
 
 	if(!is_function)
 	{
@@ -90,9 +92,11 @@ int ConnectBrokenFunctionChunk(ea_t address)
 			func_t *cref_func=get_func(cref);
 			if(cref_func)
 			{
-				char cref_function_name[1024];
-				get_func_name(cref,cref_function_name,sizeof(cref_function_name));
-				msg("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
+				qstring cref_function_name;
+                get_func_name(&cref_function_name, cref);
+
+				msg("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n", function_name.c_str(), address, cref_function_name.c_str(), cref_func->start_ea, cref);
+
 				append_func_tail(cref_func,address,GetBlockEnd(address));
 				connected_links_count++;
 			}
@@ -103,16 +107,17 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_first_cref_to(address);
 		while(cref!=BADADDR)
 		{
-            qstring op_buffer;
-            print_insn_mnem(&op_buffer, cref);
-			if(!(cmd.itype==NN_call || cmd.itype==NN_callfi || cmd.itype==NN_callni))
+            insn_t insn;
+            decode_insn(&insn, cref);
+			if(!(insn.itype==NN_call || insn.itype==NN_callfi || insn.itype==NN_callni))
 			{
 				func_t *cref_func=get_func(cref);
 				if(cref_func)
 				{
-					char cref_function_name[1024];
-					get_func_name(cref,cref_function_name,sizeof(cref_function_name));
-					msg("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name,cref_func->startEA,cref);
+					qstring cref_function_name;
+					get_func_name(&cref_function_name, cref);
+					msg("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name.c_str(), cref_func->start_ea, cref);
+
 					append_func_tail(cref_func,address,GetBlockEnd(address));
 					connected_links_count++;
 				}
@@ -132,13 +137,13 @@ void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
 		for(size_t i=0;i<get_func_qty();i++)
 		{
 			func_t *f=getn_func(i);
-			if(!IsValidFunctionStart(f->startEA))
+			if(!IsValidFunctionStart(f->start_ea))
 			{
-				char function_name[100] = { 0, };
-				get_short_name(f->startEA, f->startEA, function_name, sizeof(function_name));
+				qstring function_name;
+				get_short_name(&function_name, f->start_ea);
 
-				msg("Found invalid function: %s\n", function_name);
-				connected_links_count+=ConnectBrokenFunctionChunk(f->startEA);
+				msg("Found invalid function: %s\n", function_name.c_str());
+				connected_links_count+=ConnectBrokenFunctionChunk(f->start_ea);
 			}		
 		}
 	}while(connected_links_count>0);
