@@ -100,6 +100,8 @@ void GetFeatureBits(int itype, char *FeatureMap, int Size, insn_t insn)
 		FeatureMap[4]|=CF_USE;
 	if(features&CF_USE6)
 		FeatureMap[5]|=CF_USE;
+	
+    
 
 	if(ph.id == PLFM_ARM && 
 		(
@@ -491,7 +493,7 @@ list <int> GetRelatedFlags(int itype,bool IsModifying)
 //Save & Trace Variables
 void UpdateInstructionMap
 (
-	unordered_map <op_t,OperandPosition,OpTHashCompareStr> &OperandsHash,
+	unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> &OperandsHash,
 	unordered_map <int,ea_t> &FlagsHash,
 	//Instruction Hash and Map
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
@@ -554,7 +556,7 @@ void UpdateInstructionMap
 		for(int reg=0;reg<5;reg++)
 		{
 			operand.reg=reg;
-			unordered_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(operand);
+			unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn>::iterator iter=OperandsHash.find(operand);
 			if(iter!=OperandsHash.end())
 			{
 				OperandPosition SrcOperandPosition;
@@ -588,7 +590,7 @@ void UpdateInstructionMap
 			WriteToLogFile(gLogFile,"\tOperand %u: [%s%s] ",i,(Features[i]&CF_CHG)?"CHG":"",(Features[i]&CF_USE)?"USE":"");
 			if(Features[i]&CF_USE)
 			{
-				unordered_map <op_t,OperandPosition,OpTHashCompareStr>::iterator iter=OperandsHash.find(*pOperand);
+				unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn>::iterator iter=OperandsHash.find(*pOperand);
 				if(iter == OperandsHash.end())
 				{
 					op_t tmp_op;
@@ -1239,7 +1241,7 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 			ea_t next_address = AnalyzeBlock(disassemblyProcessor, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
 			if(0)
 			{
-				unordered_map <op_t,OperandPosition,OpTHashCompareStr> OperandsHash;
+				unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
 				multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> InstructionMap;
 				unordered_map <ea_t,insn_t> InstructionHash;
 				unordered_map <int,ea_t> FlagsHash;
