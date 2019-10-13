@@ -2,12 +2,10 @@
 
 ## Prerequisites
 
-### Must-have
-IDA 5.6
-We tested current release of DarunGrim3 on IDA 5.6. Any other versions are not officially supported yet. Further support for other versions will come soon after more testing. You can always try yourself if it works, though. Theoretically there will not be any major problems with any IDA upper 5.0.
+* IDA 7.x - supporting of IDA 7.x is undergoing
 
+### Using Python Script
 
-### Optional
 If you are going to use python source code for execution, you need to install following Python distribution and Python modules. The other versions might work, but this is the exact packages we tested. This Python and Python module installation is not necessary if you are using the compiled package we provide.
 
 [Python 2.6.5](http://www.python.org/ftp/python/2.6.5/python-2.6.5.msi)
