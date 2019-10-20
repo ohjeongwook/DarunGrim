@@ -283,13 +283,13 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 	return NULL;
 }
 
-BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *shared_memory_name,int shared_memory_size,BOOL is_server)
+BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shared_memory_size,BOOL is_server)
 {
 	HANDLE MapFileHandle=INVALID_HANDLE_VALUE;
 	PBYTE shared_buffer;
 #define READ_EVENT_POSTIFX TEXT("_read")
 #define WRITE_EVENT_POSTIFX TEXT("_write")
-	int event_name_len=(_tcslen(shared_memory_name)+max(_tcslen(READ_EVENT_POSTIFX),_tcslen(WRITE_EVENT_POSTIFX))+10)*sizeof(TCHAR);
+	int event_name_len=(_tcslen(shared_memory_name)+max(_tcslen(READ_EVENT_POSTIFX),_tcslen(WRITE_EVENT_POSTIFX))+10)*sizeof(char);
 	char *event_name=(char *)malloc(event_name_len);
 	memset(event_name,0,event_name_len);
 #ifdef UNICODE

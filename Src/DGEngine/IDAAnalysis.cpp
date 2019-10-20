@@ -18,11 +18,6 @@ int Debug=1;
 
 HANDLE gLogFile=INVALID_HANDLE_VALUE;
 
-typedef struct {
-	ea_t startEA;
-	ea_t endEA;
-} AddressRegion;
-
 string GetFeatureStr(DWORD features)
 {
 	string FeatureStr=" ";
@@ -97,8 +92,6 @@ void GetFeatureBits(int itype, char *FeatureMap, int Size, insn_t insn)
 		FeatureMap[4]|=CF_USE;
 	if(features&CF_USE6)
 		FeatureMap[5]|=CF_USE;
-	
-    
 
 	if(ph.id == PLFM_ARM && 
 		(
@@ -640,14 +633,8 @@ void UpdateInstructionMap
 	}
 }
 
-void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address,list <insn_t> *pCmdArray,flags_t Flag, int GatherCmdArray=FALSE);
 
-void DumpBasicBlock(
-    DisassemblyProcessor disassemblyProcessor,
-    ea_t src_block_address,
-    list <insn_t> *pCmdArray,
-    flags_t flags,
-    int GatherCmdArray)
+void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
 {
 	string disasm_buffer;
 	
@@ -1213,9 +1200,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 	return current_addr;
 }
 
-void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions,int GatherCmdArray=FALSE);
-
-void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions,int GatherCmdArray)
+void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
 {
 	if(!pAddressRegions)
 		return;
@@ -1408,7 +1393,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	return AddressRegions;
 }
 
-void AnalyzeIDAData(DisassemblyProcessor disassemblyProcessor, ea_t StartEA,ea_t EndEA,int GatherCmdArray)
+void AnalyzeIDAData(DisassemblyProcessor &disassemblyProcessor, ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
 {
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));

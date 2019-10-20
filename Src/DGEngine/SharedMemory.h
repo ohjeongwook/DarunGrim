@@ -3,6 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#pragma pack(push)
 #pragma pack(4)
 
 #include "TLV.h"
@@ -27,7 +28,9 @@ typedef struct _DataSharer_ {
 	PMemoryHeader MemoryHeaderPtr;
 } DataSharer,*PDataSharer;
 
-BOOL InitDataSharer(PDataSharer p_data_sharer,TCHAR *shared_memory_name,int shared_memory_size,BOOL is_server);
+BOOL InitDataSharer(PDataSharer p_data_sharer,char *shared_memory_name,int shared_memory_size,BOOL is_server);
 BOOL PutData(PDataSharer p_data_sharer,BYTE type,PBYTE data,DWORD length);
 PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length);
 int CheckForData(DataSharer *DataSharerPtr,int NumberOfDataSharer);
+
+#pragma pack(pop)

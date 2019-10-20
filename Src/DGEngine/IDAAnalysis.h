@@ -21,8 +21,7 @@
 using namespace std;
 using namespace stdext;
 
-/****************************************************************************************************************/
-/* Location Info && AddrMapHash structures and routines*/
+// Location Info && AddrMapHash structures and routines
 
 typedef struct _LocationInfo_{
 	ea_t address;
@@ -230,6 +229,11 @@ public:
     }
 };
 
+typedef struct {
+    ea_t startEA;
+    ea_t endEA;
+} AddressRegion;
+
 extern char *OpTypeStr[];
 
 string GetFeatureStr(DWORD features);
@@ -260,4 +264,10 @@ void DumpLocationInfo(AddrMapHash *addr_map_base,ea_t address);
 bool MakeMemberOfFunction(AddrMapHash *addr_map_base,ea_t function_start_address,LocationInfo *p_location_info);
 void CheckLocationInfos(AddrMapHash *addr_map_base,LocationInfo *p_first_location_info);
 bool AnalyzeRegion(AddrMapHash **p_addr_map_base,LocationInfo **p_p_first_location_info);
-void AnalyzeIDAData(DisassemblyStorage disassemblyStorage, ea_t StartEA, ea_t EndEA, int GatherCmdArray = FALSE);
+
+extern "C" {
+    void AnalyzeIDAData(DisassemblyStorage &disassemblyStorage, ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);
+}
+
+void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address, list <insn_t> *pCmdArray, flags_t Flag, bool GatherCmdArray = false);
+void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions, bool GatherCmdArray = false);
