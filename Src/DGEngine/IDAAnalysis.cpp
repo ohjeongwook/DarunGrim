@@ -5,7 +5,7 @@
 #include "IDAAnalysisCommon.h"
 #include "IDAAnalysis.h"
 
-#include "DisassemblyProcessor.h"
+#include "DisassemblyStorage.h"
 #include <vector>
 #include <unordered_set>
 #include <list>
@@ -634,7 +634,7 @@ void UpdateInstructionMap
 }
 
 
-void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
+void DumpBasicBlock(DisassemblyStorage DisassemblyStorage, ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
 {
 	string disasm_buffer;
 	
@@ -821,14 +821,14 @@ void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_ad
 			}
 		}
 
-        disassemblyProcessor.AddBasicBlock(p_basic_block);
+        DisassemblyStorage.AddBasicBlock(p_basic_block);
 		free(p_basic_block);
 	}
 	//Reset FingerPrint Data
 	FingerPrint.clear();			
 }
 
-ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
+ea_t AnalyzeBlock(DisassemblyStorage DisassemblyStorage, ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
 {
 	while(1)
 	{
@@ -906,7 +906,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 					map_info.Type=CALL;
 					map_info.Dst=cref;
 
-                    disassemblyProcessor.AddMapInfo(&map_info);
+                    DisassemblyStorage.AddMapInfo(&map_info);
 				}else{
 					//this is a jump
 					found_branch=TRUE; //j* or ret* instruction found
@@ -1022,7 +1022,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 			//PUSH THIS: dref
 			map_info.Type=DREF_TO;
 			map_info.Dst=dref;
-            disassemblyProcessor.AddMapInfo(&map_info);
+            DisassemblyStorage.AddMapInfo(&map_info);
 			dref=get_next_dref_to(current_addr,dref);
 		}
 
@@ -1034,7 +1034,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 
 			map_info.Type=DREF_FROM;
 			map_info.Dst=dref;
-            disassemblyProcessor.AddMapInfo(&map_info);
+            DisassemblyStorage.AddMapInfo(&map_info);
 			dref=get_next_dref_from(current_addr,dref);
 		}
 
@@ -1162,7 +1162,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 				{
 					map_info.Type=CREF_FROM;
 					map_info.Dst=*cref_list_iter;
-                    disassemblyProcessor.AddMapInfo(&map_info);
+                    DisassemblyStorage.AddMapInfo(&map_info);
 				}
 			}else
 			{
@@ -1173,7 +1173,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 				{
 					map_info.Type=CREF_FROM;
 					map_info.Dst=*cref_list_iter;
-                    disassemblyProcessor.AddMapInfo(&map_info);
+                    DisassemblyStorage.AddMapInfo(&map_info);
 				}
 			}
 
@@ -1200,7 +1200,7 @@ ea_t AnalyzeBlock(DisassemblyProcessor disassemblyProcessor, ea_t &StartEA,ea_t 
 	return current_addr;
 }
 
-void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
+void AnalyzeIDADataByRegion(DisassemblyStorage DisassemblyStorage, list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
 {
 	if(!pAddressRegions)
 		return;
@@ -1220,7 +1220,7 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 			list <insn_t> CmdArray;
 			flags_t Flag;
 			
-			ea_t next_address = AnalyzeBlock(disassemblyProcessor, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
+			ea_t next_address = AnalyzeBlock(DisassemblyStorage, current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
 			if(0)
 			{
 				unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
@@ -1239,12 +1239,12 @@ void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <Add
 
 				if(NewCmdArray)
 				{
-					DumpBasicBlock(disassemblyProcessor, current_address, NewCmdArray, Flag, GatherCmdArray);
+					DumpBasicBlock(DisassemblyStorage, current_address, NewCmdArray, Flag, GatherCmdArray);
 					delete NewCmdArray;
 				}
 			}else
 			{
-				DumpBasicBlock(disassemblyProcessor, current_address, &CmdArray, Flag, GatherCmdArray);
+				DumpBasicBlock(DisassemblyStorage, current_address, &CmdArray, Flag, GatherCmdArray);
 			}
 
 			CmdArray.clear();
@@ -1393,7 +1393,12 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	return AddressRegions;
 }
 
-void AnalyzeIDAData(DisassemblyProcessor &disassemblyProcessor, ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
+IDAAnalyzer::IDAAnalyzer(DisassemblyStorage& disassemblyStorage)
+{
+	m_disassemblyStorage = disassemblyStorage;
+}
+
+void IDAAnalyzer::AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
 {
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));
@@ -1408,7 +1413,7 @@ void AnalyzeIDAData(DisassemblyProcessor &disassemblyProcessor, ea_t StartEA, ea
 
 	char OriginalFilePath[1024]={0,};
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
-    disassemblyProcessor.SetFileInfo(&file_info);
+	m_disassemblyStorage.SetFileInfo(&file_info);
 
 	ea_t saddr, eaddr;
 
@@ -1452,8 +1457,8 @@ void AnalyzeIDAData(DisassemblyProcessor &disassemblyProcessor, ea_t StartEA, ea
 		}
 	}
 	
-	AnalyzeIDADataByRegion(disassemblyProcessor, &AddressRegions, GatherCmdArray);
+	AnalyzeIDADataByRegion(m_disassemblyStorage, &AddressRegions, GatherCmdArray);
 	
-    disassemblyProcessor.EndAnalysis();
+	m_disassemblyStorage.EndAnalysis();
 	msg("Sent All Analysis Informations\n");
 }

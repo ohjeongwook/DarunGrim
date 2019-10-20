@@ -5,7 +5,7 @@
 #include <string>
 using namespace std;
 
-DisassemblyStorage::DisassemblyStorage( const char *DatabaseName)
+DisassemblyStorage::DisassemblyStorage(const char *DatabaseName)
 {
 	db=NULL;
     if (DatabaseName)

@@ -264,10 +264,15 @@ void DumpLocationInfo(AddrMapHash *addr_map_base,ea_t address);
 bool MakeMemberOfFunction(AddrMapHash *addr_map_base,ea_t function_start_address,LocationInfo *p_location_info);
 void CheckLocationInfos(AddrMapHash *addr_map_base,LocationInfo *p_first_location_info);
 bool AnalyzeRegion(AddrMapHash **p_addr_map_base,LocationInfo **p_p_first_location_info);
+void DumpBasicBlock(DisassemblyStorage DisassemblyStorage, ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool GatherCmdArray = false);
+void AnalyzeIDADataByRegion(DisassemblyStorage DisassemblyStorage, list <AddressRegion>* pAddressRegions, bool GatherCmdArray = false);
 
-extern "C" {
-    void AnalyzeIDAData(DisassemblyStorage &disassemblyStorage, ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);
-}
+class IDAAnalyzer
+{
+private:
+	DisassemblyStorage m_disassemblyStorage;
 
-void DumpBasicBlock(DisassemblyProcessor disassemblyProcessor, ea_t src_block_address, list <insn_t> *pCmdArray, flags_t Flag, bool GatherCmdArray = false);
-void AnalyzeIDADataByRegion(DisassemblyProcessor disassemblyProcessor, list <AddressRegion> *pAddressRegions, bool GatherCmdArray = false);
+public:
+	IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
+	void AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);
+};
