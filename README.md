@@ -15,6 +15,9 @@ If you are going to use python source code for execution, you need to install fo
 [BeautifulSoup 3.1.0](http://www.crummy.com/software/BeautifulSoup/)
 [Mako 0.3.4](http://www.makotemplates.org/download.html)
 
+## Build
+
+Download and install [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) to build the projects.
 
 ### Web Browser
 Any web browser will work except lynx, but we found that Mozilla Firefox is the best in rendering the results as we intended. IE is good, but sometimes it needs you some patience displaying big size table.
