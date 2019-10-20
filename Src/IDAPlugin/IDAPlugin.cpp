@@ -836,7 +836,9 @@ void SaveDGF(bool ask_file_path)
         DisassemblyStorage disassemblyStorage(OutputFilename);
         disassemblyStorage.CreateTables();
         disassemblyStorage.BeginTransaction();
-        AnalyzeIDAData(disassemblyStorage, StartEA, EndEA, false);
+
+		IDAAnalyzer idaAnalyzer = IDAAnalyzer(disassemblyStorage);
+		idaAnalyzer.AnalyzeIDAData(StartEA, EndEA, false);
         disassemblyStorage.EndTransaction();
         disassemblyStorage.CloseDatabase();
     }
