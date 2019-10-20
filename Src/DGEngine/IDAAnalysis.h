@@ -257,16 +257,6 @@ void DumpDOT(
 	unordered_map <ea_t,insn_t> &InstructionHash
 );
 
-AddrMapHash *AddToAddrMap(AddrMapHash *addr_map_hash,LocationInfo *p_location_info);
-LocationInfo *FindFromAddrMap(AddrMapHash *addr_map_hash,ea_t address);
-void DumpAddressInfo(ea_t address);
-void DumpLocationInfo(AddrMapHash *addr_map_base,ea_t address);
-bool MakeMemberOfFunction(AddrMapHash *addr_map_base,ea_t function_start_address,LocationInfo *p_location_info);
-void CheckLocationInfos(AddrMapHash *addr_map_base,LocationInfo *p_first_location_info);
-bool AnalyzeRegion(AddrMapHash **p_addr_map_base,LocationInfo **p_p_first_location_info);
-void DumpBasicBlock(DisassemblyStorage DisassemblyStorage, ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool GatherCmdArray = false);
-void AnalyzeIDADataByRegion(DisassemblyStorage DisassemblyStorage, list <AddressRegion>* pAddressRegions, bool GatherCmdArray = false);
-
 class IDAAnalyzer
 {
 private:
@@ -274,5 +264,9 @@ private:
 
 public:
 	IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
-	void AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);
+
+	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool GatherCmdArray = false);
+	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags, unordered_map <ea_t, ea_t>& AdditionallyAnalyzedBlocks);
+	void AnalyzeIDADataByRegion(list <AddressRegion>* pAddressRegions, bool GatherCmdArray = false);
+	void AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);	
 };
