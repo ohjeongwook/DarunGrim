@@ -103,7 +103,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>__X64__;_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__EA64__;__X64__;_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>

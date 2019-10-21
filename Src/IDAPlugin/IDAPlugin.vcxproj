@@ -184,7 +184,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>__X64__;WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__EA64__;__X64__;WIN32;_DEBUG;_WINDOWS;_USRDLL;DARUNGRIMPLUGIN_EXPORTS;DIFFENGINEPYD_EXPORTS;_CRT_SECURE_NO_WARNINGS;__NT__;_USE_IDA_SDK_49_OR_UPPER;__IDP__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;$(SolutionDir)\Src\Lib;$(SolutionDir)\Src\DGEngine</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -195,6 +195,9 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;advapi32.lib;Version.lib;ida.lib;pro.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x64_win_vc_64</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /y $(OutDir)\DarunGrim64.dll "C:\Program Files\IDA 7.1\plugins"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -212,6 +215,9 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;advapi32.lib;Version.lib;ida.lib;pro.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x86_win_vc_32</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\DarunGrim64.dll "%ProgramFiles%\IDA 7.1\plugins"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-x64|x64'">
     <ClCompile>
