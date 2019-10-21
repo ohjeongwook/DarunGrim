@@ -634,7 +634,7 @@ void UpdateInstructionMap
 }
 
 
-void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
+void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
 {
 	string disasm_buffer;
 	
@@ -828,7 +828,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 	FingerPrint.clear();			
 }
 
-ea_t IDAAnalyzer::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
+ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
 {
 	while(1)
 	{
@@ -1200,7 +1200,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 	return current_addr;
 }
 
-void IDAAnalyzer::AnalyzeIDADataByRegion(list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
+void IDAAnalysis::AnalyzeIDADataByRegion(list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
 {
 	if(!pAddressRegions)
 		return;
@@ -1393,12 +1393,12 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	return AddressRegions;
 }
 
-IDAAnalyzer::IDAAnalyzer(DisassemblyStorage& disassemblyStorage)
+IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
 {
 	m_disassemblyStorage = disassemblyStorage;
 }
 
-void IDAAnalyzer::AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
+void IDAAnalysis::AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
 {
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));

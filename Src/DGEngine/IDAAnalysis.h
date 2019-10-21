@@ -257,13 +257,13 @@ void DumpDOT(
 	unordered_map <ea_t,insn_t> &InstructionHash
 );
 
-class IDAAnalyzer
+class IDAAnalysis
 {
 private:
 	DisassemblyStorage m_disassemblyStorage;
 
 public:
-	IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
+	IDAAnalysis(DisassemblyStorage& disassemblyStorage);
 
 	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool GatherCmdArray = false);
 	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags, unordered_map <ea_t, ea_t>& AdditionallyAnalyzedBlocks);
