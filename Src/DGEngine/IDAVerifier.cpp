@@ -79,7 +79,7 @@ int ConnectFunctionChunks(ea_t address)
 		cref=get_next_cref_to(address,cref);
 	}
 
-	dprintf(0, __FUNCTION__, "ConnectFunctionChunks: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
+	LogMessage(0, __FUNCTION__, "ConnectFunctionChunks: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
 
 	if(!is_function)
 	{
@@ -94,7 +94,7 @@ int ConnectFunctionChunks(ea_t address)
 				qstring cref_function_name;
                 get_func_name(&cref_function_name, cref);
 
-				dprintf(0, __FUNCTION__, "%s: Adding Location %s(%X) To Function Member Of %s(%X:%X)\n",
+				LogMessage(0, __FUNCTION__, "%s: Adding Location %s(%X) To Function Member Of %s(%X:%X)\n",
 					__FUNCTION__,
 					function_name.c_str(),
 					address, 
@@ -122,7 +122,7 @@ int ConnectFunctionChunks(ea_t address)
 				{
 					qstring cref_function_name;
 					get_func_name(&cref_function_name, cref);
-					dprintf(0, __FUNCTION__, "%s: Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",
+					LogMessage(0, __FUNCTION__, "%s: Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",
 						__FUNCTION__,
 						function_name,address,
 						cref_function_name.c_str(),
@@ -153,7 +153,7 @@ void FixFunctionChunks()
 				qstring function_name;
 				get_short_name(&function_name, f->start_ea);
 
-				dprintf(0, __FUNCTION__, "%s: Found invalid function: %s\n", __FUNCTION__, function_name.c_str());
+				LogMessage(0, __FUNCTION__, "%s: Found invalid function: %s\n", __FUNCTION__, function_name.c_str());
 				connected_links_count+=ConnectFunctionChunks(f->start_ea);
 			}		
 		}

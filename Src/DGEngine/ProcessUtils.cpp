@@ -5,12 +5,12 @@ HANDLE ServerHandle=NULL;
 
 bool StartProcess(LPTSTR szCmdline)
 {
-	//dprintf(0, __FUNCTION__, "%s: Entry\n",__FUNCTION__);
+	//LogMessage(1, __FUNCTION__, "%s: Entry\n",__FUNCTION__);
 
 	STARTUPINFO StartupInfo;
 	PROCESS_INFORMATION ProcessInformation;
 
-	//dprintf(0, __FUNCTION__, "%s: Executing [%s] \n",__FUNCTION__,szCmdline);
+	//LogMessage(1, __FUNCTION__, "%s: Executing [%s] \n",__FUNCTION__,szCmdline);
 	if(CreateProcess(
 		NULL,
 		szCmdline,      // Command line
@@ -25,7 +25,7 @@ bool StartProcess(LPTSTR szCmdline)
 	)
 	{
 		ServerHandle=ProcessInformation.hProcess;
-		//dprintf(0, __FUNCTION__, "%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
+		//LogMessage(1, __FUNCTION__, "%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
 		return TRUE;
 	}
 	if(1) //if server process is already up
@@ -35,7 +35,7 @@ bool StartProcess(LPTSTR szCmdline)
 			PROCESS_ALL_ACCESS,
 			FALSE,
 			10656);
-		//dprintf(0, __FUNCTION__, "%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
+		//LogMessage(1, __FUNCTION__, "%s: ServerHandle=%X\n",__FUNCTION__,ServerHandle);
 	}
 	return FALSE;
 }

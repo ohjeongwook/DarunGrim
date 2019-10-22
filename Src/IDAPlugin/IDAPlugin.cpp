@@ -97,7 +97,7 @@ static error_t idaapi idc_connect_to_darungrim(
     idc_value_t *argv,
     idc_value_t *res)
 {
-    dprintf(0, __FUNCTION__, "%s\n", __FUNCTION__);
+    LogMessage(1, __FUNCTION__, "%s\n", __FUNCTION__);
     OutputFilename = NULL;
     unsigned short port = argv[0].num;
 
@@ -178,7 +178,7 @@ void MakeCode(ea_t start_addr, ea_t end_addr)
 {
     while (1) {
         bool converted = TRUE;
-        dprintf(0, __FUNCTION__, "MakeCode: %X - %X \n", start_addr, end_addr);
+        LogMessage(1, __FUNCTION__, "MakeCode: %X - %X \n", start_addr, end_addr);
 
         del_items(start_addr, 0, end_addr - start_addr);
         for (ea_t addr = start_addr; addr <= end_addr; addr += get_item_size(addr))
@@ -214,24 +214,24 @@ void FixExceptionHandlers()
                 get_name(&name, current_addr);
                 if (!stricmp(name.c_str(), "_except_handler3") || !stricmp(name.c_str(), "__imp__except_handler3"))
                 {
-                    dprintf(0, __FUNCTION__, "name=%s\n", name);
+                    LogMessage(1, __FUNCTION__, "name=%s\n", name);
                     //dref_to
                     ea_t sub_exception_handler = get_first_dref_to(current_addr);
                     while (sub_exception_handler != BADADDR)
                     {
                         exception_handler_addr = sub_exception_handler;
                         get_name(&name, sub_exception_handler);
-                        dprintf(0, __FUNCTION__, "name=%s\n", name.c_str());
+                        LogMessage(1, __FUNCTION__, "name=%s\n", name.c_str());
 
                         ea_t push_exception_handler = get_first_dref_to(sub_exception_handler);
                         while (push_exception_handler != BADADDR)
                         {
-                            dprintf(0, __FUNCTION__, "push exception_handler: %X\n", push_exception_handler);
+                            LogMessage(1, __FUNCTION__, "push exception_handler: %X\n", push_exception_handler);
                             ea_t push_handlers_structure = get_first_cref_to(push_exception_handler);
 
                             while (push_handlers_structure != BADADDR)
                             {
-                                dprintf(0, __FUNCTION__, "push hanlders structure: %X\n", push_handlers_structure);
+                                LogMessage(1, __FUNCTION__, "push hanlders structure: %X\n", push_handlers_structure);
                                 ea_t handlers_structure_start = get_first_dref_from(push_handlers_structure);
                                 while (handlers_structure_start != BADADDR)
                                 {
@@ -240,7 +240,7 @@ void FixExceptionHandlers()
                                     ea_t handlers_structure = handlers_structure_start;
                                     while (1)
                                     {
-                                        dprintf(0, __FUNCTION__, "handlers_structure: %X\n", handlers_structure);
+                                        LogMessage(1, __FUNCTION__, "handlers_structure: %X\n", handlers_structure);
                                         qstring handlers_structure_name;
                                         get_name(&handlers_structure_name, handlers_structure);
 
@@ -249,7 +249,7 @@ void FixExceptionHandlers()
                                             is_code(get_full_flags(handlers_structure))
                                             )
                                         {
-                                            dprintf(0, __FUNCTION__, "breaking\n");
+                                            LogMessage(1, __FUNCTION__, "breaking\n");
                                             break;
                                         }
                                         if ((handlers_structure - handlers_structure_start) % 4 == 0)
@@ -257,15 +257,15 @@ void FixExceptionHandlers()
                                             int pos = (handlers_structure - handlers_structure_start) / 4;
                                             if (pos % 3 == 1 || pos % 3 == 2)
                                             {
-                                                dprintf(0, __FUNCTION__, "Checking handlers_structure: %X\n", handlers_structure);
+                                                LogMessage(1, __FUNCTION__, "Checking handlers_structure: %X\n", handlers_structure);
 
                                                 ea_t exception_handler_routine = get_first_dref_from(handlers_structure);
                                                 while (exception_handler_routine != BADADDR)
                                                 {
-                                                    dprintf(0, __FUNCTION__, "Checking exception_handler_routine: %X\n", exception_handler_routine);
+                                                    LogMessage(1, __FUNCTION__, "Checking exception_handler_routine: %X\n", exception_handler_routine);
                                                     if (!is_code(get_full_flags(exception_handler_routine)))
                                                     {
-                                                        dprintf(0, __FUNCTION__, "Reanalyzing exception_handler_routine: %X\n", exception_handler_routine);
+                                                        LogMessage(1, __FUNCTION__, "Reanalyzing exception_handler_routine: %X\n", exception_handler_routine);
                                                         ea_t end_pos = exception_handler_routine;
                                                         while (1)
                                                         {
@@ -276,7 +276,7 @@ void FixExceptionHandlers()
                                                         }
                                                         if (!is_code(exception_handler_routine))
                                                         {
-                                                            dprintf(0, __FUNCTION__, "routine 01: %X~%X\n", exception_handler_routine, end_pos);
+                                                            LogMessage(1, __FUNCTION__, "routine 01: %X~%X\n", exception_handler_routine, end_pos);
                                                             MakeCode(exception_handler_routine, end_pos);
                                                         }
                                                     }
@@ -284,7 +284,7 @@ void FixExceptionHandlers()
                                                 }
                                             }
                                         }
-                                        dprintf(0, __FUNCTION__, "checked handlers_structure: %X\n", handlers_structure);
+                                        LogMessage(1, __FUNCTION__, "checked handlers_structure: %X\n", handlers_structure);
                                         handlers_structure += get_item_size(handlers_structure);
                                     }
                                     handlers_structure_start = get_next_dref_from(push_handlers_structure, handlers_structure_start);
@@ -384,7 +384,7 @@ static void idaapi enter_callback(void *obj, DWORD n)
     {
         if (i == n - 1)
         {
-            dprintf(0, __FUNCTION__, "Jump to %X\n", (*range_list_itr)->TheSourceAddress);
+            LogMessage(1, __FUNCTION__, "Jump to %X\n", (*range_list_itr)->TheSourceAddress);
             jumpto((*range_list_itr)->TheSourceAddress);
             SendTLVData(
                 ((PChooseListObj)obj)->socket,
@@ -410,12 +410,12 @@ static int idaapi graph_callback(void *obj, int code, va_list va)
     {
         graph_viewer_t *v = va_arg(va, graph_viewer_t *);
         selection_item_t *s = va_arg(va, selection_item_t *);
-        //dprintf( "%X: %sclicked on ", v, code == grcode_clicked ? "" : "dbl" );
+        //LogMessage( "%X: %sclicked on ", v, code == grcode_clicked ? "" : "dbl" );
         if (s && s->is_node)
         {
             DWORD addr = get_screen_ea();
-            //dprintf( "node %d( %X )\n", s->node, addr );
-            dprintf(0, __FUNCTION__, "Showing Block %X\n", addr);
+            //LogMessage( "node %d( %X )\n", s->node, addr );
+            LogMessage(1, __FUNCTION__, "Showing Block %X\n", addr);
             SendTLVData(
                 ((PChooseListObj)obj)->socket,
                 SHOW_MATCH_ADDR,
@@ -458,7 +458,7 @@ static void idaapi enter_callback_for_unidentified_block_choose_list(void *obj, 
     {
         if (i == n - 1)
         {
-            dprintf(0, __FUNCTION__, "Jump to %X\n", (*range_list_itr).start);
+            LogMessage(1, __FUNCTION__, "Jump to %X\n", (*range_list_itr).start);
             jumpto((*range_list_itr).start);
             break;
         }
@@ -495,13 +495,13 @@ static void idaapi line_callback_for_unidentified_block_choose_list(void *obj, D
 
 int idaapi graph_viewer_callback(void *user_data, int notification_code, va_list va)
 {
-    dprintf(0, __FUNCTION__, "graph_viewer_callback called with notification_code=%d\n", notification_code);
+    LogMessage(1, __FUNCTION__, "graph_viewer_callback called with notification_code=%d\n", notification_code);
     if (notification_code == grcode_dblclicked)
     {
         ea_t addr = get_screen_ea();
 
         SOCKET socket = (SOCKET)user_data;
-        dprintf(0, __FUNCTION__, "Showing Block %X(socket=%d)\n", addr, socket);
+        LogMessage(1, __FUNCTION__, "Showing Block %X(socket=%d)\n", addr, socket);
         SendTLVData(
             socket,
             SHOW_MATCH_ADDR,
@@ -723,18 +723,18 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
 
 BOOL ConnectToDarunGrim(unsigned short port)
 {
-    dprintf(0, __FUNCTION__, "Connecting to DarunGrim GUI on port %d...\n", port);
+    LogMessage(1, __FUNCTION__, "Connecting to DarunGrim GUI on port %d...\n", port);
     SOCKET data_socket = ConnectToServer("127.0.0.1", port);
     if (data_socket != INVALID_SOCKET)
     {
-        dprintf(0, __FUNCTION__, "Connected to DarunGrim GUI on port %d\n", port);
+        LogMessage(1, __FUNCTION__, "Connected to DarunGrim GUI on port %d\n", port);
         SetSharedSocketDataReceiver(ProcessCommandFromDarunGrim);
         PutSocketToWSAAsyncSelect(data_socket, SharedSocketDataReceiverWndProc, WM_SHARED_SOCKET_EVENT);
         return TRUE;
     }
     else
     {
-        dprintf(0, __FUNCTION__, "Failed to connect to DarunGrim GUI on port %d\n", port);
+        LogMessage(1, __FUNCTION__, "Failed to connect to DarunGrim GUI on port %d\n", port);
     }
     return FALSE;
 }
@@ -798,8 +798,8 @@ void SaveDGF(bool ask_file_path)
     long start_tick = GetTickCount();
 
     FixFunctionChunks();
-
     //FixExceptionHandlers();
+
     char orignal_file_path[1024] = { 0, };
     char root_file_path[1024] = { 0, };
     char *input_file_path = NULL;
@@ -811,12 +811,12 @@ void SaveDGF(bool ask_file_path)
 		input_file_path = ask_file(true, "*.db", "Select DB File to Output");
 		if (input_file_path == NULL)
 		{
-			dprintf(0, __FUNCTION__, "input_file_path == NULL\n");
+			LogMessage(1, __FUNCTION__, "input_file_path == NULL\n");
 			return;
 		}
     }
 
-	dprintf(0, __FUNCTION__, "input_file_path = [%s]\n", input_file_path);
+	LogMessage(1, __FUNCTION__, "input_file_path = [%s]\n", input_file_path);
 
     if (input_file_path)
     {
@@ -830,12 +830,14 @@ void SaveDGF(bool ask_file_path)
     }
 
     long end_tick = GetTickCount();
-    dprintf(0, __FUNCTION__, "DarunGrim Analysis Finished %.3f sec\n", (float)(end_tick - start_tick) / 1000);
+    LogMessage(1, __FUNCTION__, "DarunGrim Analysis Finished %.3f sec\n", (float)(end_tick - start_tick) / 1000);
 }
 
 bool idaapi run(size_t arg)
 {
-    dprintf(0, __FUNCTION__, "DarunGrim plugin started...\n");
+	SetLogLevel(1);
+    LogMessage(1, __FUNCTION__, "DarunGrim plugin started...\n");
+
     if (arg == 1)
     {
         return false;

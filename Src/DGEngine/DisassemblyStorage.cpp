@@ -226,7 +226,7 @@ int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *conte
 
 		if(debug>1)
 		{
-			dprintf(0, __FUNCTION__, "Executing [%s]\n", statement_buffer);
+			LogMessage(1, __FUNCTION__, "Executing [%s]\n", statement_buffer);
 		}
 
 		if(statement_buffer)
@@ -238,9 +238,9 @@ int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *conte
 				if(debug>0)
 				{
 #ifdef IDA_PLUGIN				
-					dprintf(0, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
+					LogMessage(1, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
 #else
-					dprintf(0, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
+					LogMessage(1, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
 #endif
 				}
 			}
@@ -260,7 +260,7 @@ int DisassemblyStorage::display_callback(void *NotUsed, int argc, char **argv, c
 {
 	int i;
 	for(i=0; i<argc; i++){
-		dprintf(0, __FUNCTION__, "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+		LogMessage(1, __FUNCTION__, "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 	}
 	return 0;
 }

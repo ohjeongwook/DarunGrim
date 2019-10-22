@@ -13,7 +13,7 @@
 #define DEBUG_LEVEL 0
 
 #ifndef dprintf
-void dprintf(TCHAR *format, ...)
+void LogMessage(TCHAR *format, ...)
 {
 	va_list args;
 	va_start(args,format);
@@ -59,7 +59,7 @@ BOOL PutData(
 		//Wait For Read Event
 #if DEBUG_LEVEL > 1 
 		//too small buffer
-		dprintf(TEXT("%s: Wait For Read Event(1) BufferSize=%d WritePoint=%d buffer_length=%d ReadPoint=%d\n"),
+		LogMessage(TEXT("%s: Wait For Read Event(1) BufferSize=%d WritePoint=%d buffer_length=%d ReadPoint=%d\n"),
 			__FUNCTION__,
 			p_data_sharer->MemoryHeaderPtr->BufferSize,
 			p_data_sharer->MemoryHeaderPtr->WritePoint,
@@ -74,7 +74,7 @@ BOOL PutData(
 		}
 #if DEBUG_LEVEL > 1 
 		//too small buffer
-		dprintf(TEXT("%s: Got it\n"),
+		LogMessage(TEXT("%s: Got it\n"),
 				__FUNCTION__);
 #endif				
 	}
@@ -85,7 +85,7 @@ BOOL PutData(
 	{
 #if DEBUG_LEVEL > 1 
 		//too small buffer
-		dprintf(TEXT("%s: WritePoint %d -> %d\n"),
+		LogMessage(TEXT("%s: WritePoint %d -> %d\n"),
 				__FUNCTION__,
 				p_data_sharer->MemoryHeaderPtr->WritePoint,
 				p_data_sharer->MemoryHeaderPtr->WritePoint+real_writable_size);
@@ -101,7 +101,7 @@ BOOL PutData(
 		//lack buffer to write
 		//Wait For Read Event
 #if DEBUG_LEVEL > 1 
-		dprintf(TEXT("%s: Wait For Read Event\n"),
+		LogMessage(TEXT("%s: Wait For Read Event\n"),
 				__FUNCTION__);
 #endif		
 		if(WaitForSingleObject(p_data_sharer->EventHandleForWriting,INFINITE)==WAIT_OBJECT_0)
@@ -110,16 +110,16 @@ BOOL PutData(
 			continue;
 		}
 #if DEBUG_LEVEL > 1 
-		dprintf(TEXT("%s: Got it\n"),
+		LogMessage(TEXT("%s: Got it\n"),
 				__FUNCTION__);
 #endif		
 		
 	}
 #if DEBUG_LEVEL > 3
-	dprintf(TEXT("%s: BufferSize:%d<WP:%d+buffer_length:%d-RP=%d"),
+	LogMessage(TEXT("%s: BufferSize:%d<WP:%d+buffer_length:%d-RP=%d"),
 		__FUNCTION__,
 		p_data_sharer->MemoryHeaderPtr->BufferSize,p_data_sharer->MemoryHeaderPtr->WritePoint,buffer_length,p_data_sharer->MemoryHeaderPtr->ReadPoint);
-	dprintf(TEXT("%s: real_writer_point=%d\n"),
+	LogMessage(TEXT("%s: real_writer_point=%d\n"),
 		__FUNCTION__,
 		real_writer_point);
 #endif
@@ -130,7 +130,7 @@ BOOL PutData(
 	if(data && length>0)
 		memcpy(p_tlv->Data,data,length);
 #if DEBUG_LEVEL > 2
-	dprintf(TEXT("%s: W=%d/R=%d type=%d length=%d(length=%d)\n"),
+	LogMessage(TEXT("%s: W=%d/R=%d type=%d length=%d(length=%d)\n"),
 		__FUNCTION__,
 		p_data_sharer->MemoryHeaderPtr->WritePoint,
 		p_data_sharer->MemoryHeaderPtr->ReadPoint,
@@ -171,13 +171,13 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 	while(1)
 #endif
 	{
-		dprintf(TEXT("RP:%d WP: %d\n"),
+		LogMessage(TEXT("RP:%d WP: %d\n"),
 			p_data_sharer->MemoryHeaderPtr->ReadPoint,
 			p_data_sharer->MemoryHeaderPtr->WritePoint);
 		while(p_data_sharer->MemoryHeaderPtr->ReadPoint==p_data_sharer->MemoryHeaderPtr->WritePoint)
 		{
 			//Wait For Read Event
-			dprintf(TEXT("WaitForSingleObject\n"));
+			LogMessage(TEXT("WaitForSingleObject\n"));
 			if(WaitForSingleObject(p_data_sharer->EventHandleForReading,INFINITE)==WAIT_OBJECT_0)
 			{
 				ResetEvent(p_data_sharer->EventHandleForReading);
@@ -196,14 +196,14 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 		//Read
 		readable_buffer_size=p_data_sharer->MemoryHeaderPtr->WritePoint-p_data_sharer->MemoryHeaderPtr->ReadPoint;
 #if DEBUG_LEVEL > 3
-		dprintf(TEXT("Real RP: %d Size: %d readable_buffer_size: %d\n"),real_read_point,real_readable_buffer_size,readable_buffer_size);
+		LogMessage(TEXT("Real RP: %d Size: %d readable_buffer_size: %d\n"),real_read_point,real_readable_buffer_size,readable_buffer_size);
 #endif
 		if(readable_buffer_size>0 && real_readable_buffer_size>0)
 		{
 			if(p_data_sharer->MemoryHeaderPtr->Data[real_read_point]==NULL_DATA)
 			{
 #if DEBUG_LEVEL > 2
-				dprintf(TEXT("%s: got NULL moving ReadPoint %d -> %d\n"),
+				LogMessage(TEXT("%s: got NULL moving ReadPoint %d -> %d\n"),
 						__FUNCTION__,
 						p_data_sharer->MemoryHeaderPtr->ReadPoint,
 						p_data_sharer->MemoryHeaderPtr->ReadPoint+real_readable_buffer_size);
@@ -226,7 +226,7 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 			current_block_length=p_tlv->Length+sizeof(TLV);
 
 #if DEBUG_LEVEL > 2
-			dprintf(TEXT("%s: R=%d/W=%d p_tlv->Length=%d current_block_length=%d readable_buffer_size=%d\n"),
+			LogMessage(TEXT("%s: R=%d/W=%d p_tlv->Length=%d current_block_length=%d readable_buffer_size=%d\n"),
 				__FUNCTION__,
 				p_data_sharer->MemoryHeaderPtr->ReadPoint,
 				p_data_sharer->MemoryHeaderPtr->WritePoint,
@@ -238,17 +238,17 @@ PBYTE GetData(PDataSharer p_data_sharer,BYTE *p_type,DWORD *p_length)
 			if(current_block_length<=readable_buffer_size)
 			{
 #if DEBUG_LEVEL > 3
-				dprintf(TEXT("%s: p_tlv->Length=%d\n"),
+				LogMessage(TEXT("%s: p_tlv->Length=%d\n"),
 					__FUNCTION__,
 					p_tlv->Length);
 #endif
 				if(p_tlv->Length>200000)
 				{
 #if DEBUG_LEVEL > 3
-					dprintf(TEXT("%s: p_tlv->Length=%d\n"),
+					LogMessage(TEXT("%s: p_tlv->Length=%d\n"),
 						__FUNCTION__,
 						p_tlv->Length);
-					dprintf(TEXT("%s: R=%d/W=%d p_tlv->Length=%d current_block_length=%d readable_buffer_size=%d\n"),
+					LogMessage(TEXT("%s: R=%d/W=%d p_tlv->Length=%d current_block_length=%d readable_buffer_size=%d\n"),
 						__FUNCTION__,
 						p_data_sharer->MemoryHeaderPtr->ReadPoint,
 						p_data_sharer->MemoryHeaderPtr->WritePoint,
@@ -297,7 +297,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 #else
 	_snprintf(event_name,event_name_len-1,"%s%s",shared_memory_name,READ_EVENT_POSTIFX);
 #endif
-	dprintf(TEXT("%s: Creating Event[%s]\n"),__FUNCTION__,event_name);
+	LogMessage(TEXT("%s: Creating Event[%s]\n"),__FUNCTION__,event_name);
 	//Init R/W Event
 	if(1 || is_server)
 	{
@@ -310,7 +310,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 	if (!p_data_sharer->EventHandleForReading) 
 	{
 		//error
-		dprintf(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
+		LogMessage(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
 		return FALSE;
 	}
 
@@ -320,7 +320,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 #else
 	_snprintf(event_name,event_name_len-1,"%s%s",shared_memory_name,WRITE_EVENT_POSTIFX);	
 #endif
-	dprintf(TEXT("Creating Event[%s]\n"),event_name);
+	LogMessage(TEXT("Creating Event[%s]\n"),event_name);
 	if(1 || is_server)
 	{
 		p_data_sharer->EventHandleForWriting= CreateEventA(NULL,TRUE,FALSE,(LPCSTR)event_name);
@@ -333,7 +333,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 	if (!p_data_sharer->EventHandleForWriting) 
 	{ 
 		//error
-		dprintf(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
+		LogMessage(TEXT("%s: Creating Event Failed\n"), __FUNCTION__);
 		return FALSE;
 	}
 
@@ -359,7 +359,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 
 	if (MapFileHandle!=INVALID_HANDLE_VALUE && MapFileHandle)  
 	{
-		dprintf(TEXT("%s: Created Shared Memory[%s]\n"),__FUNCTION__,shared_memory_name);
+		LogMessage(TEXT("%s: Created Shared Memory[%s]\n"),__FUNCTION__,shared_memory_name);
 	
 		shared_buffer=(PBYTE)MapViewOfFile(
 			MapFileHandle,
@@ -370,7 +370,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 
 		if(shared_buffer)
 		{
-			dprintf(TEXT("%s: shared_buffer=%X\n"),
+			LogMessage(TEXT("%s: shared_buffer=%X\n"),
 				__FUNCTION__,
 				shared_buffer);
 		
@@ -381,7 +381,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 				p_data_sharer->MemoryHeaderPtr->BufferSize=shared_memory_size;
 				p_data_sharer->MemoryHeaderPtr->ReadPoint=p_data_sharer->MemoryHeaderPtr->WritePoint=0;
 			}
-			dprintf(TEXT("%s: p_data_sharer->MemoryHeaderPtr->Data=%X\n"),
+			LogMessage(TEXT("%s: p_data_sharer->MemoryHeaderPtr->Data=%X\n"),
 				__FUNCTION__,
 				p_data_sharer->MemoryHeaderPtr->Data);
 #ifndef USE_SINGLE_THREAD_FOR_SHARED_MEMORY
@@ -390,7 +390,7 @@ BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name,int shar
 			return TRUE;
 		}
 	}
-	dprintf(TEXT("%s: Returning False\n"), __FUNCTION__);
+	LogMessage(TEXT("%s: Returning False\n"), __FUNCTION__);
 	return FALSE;	
 }
 

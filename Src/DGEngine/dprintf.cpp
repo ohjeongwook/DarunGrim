@@ -1,5 +1,4 @@
 #pragma warning(disable:4996)
-#undef printf
 #include <windows.h>
 #include <stdio.h>
 #include <TCHAR.H>
@@ -10,8 +9,19 @@
 #include <kernwin.hpp>
 #include "dprintf.h"
 
-void dprintf(int level, const char *function_name, const TCHAR *format,...)
+int ThresholdLevel = 0;
+void SetLogLevel(int thresholdLevel)
 {
+	ThresholdLevel = thresholdLevel;
+}
+
+void LogMessage(int level, const char *function_name, const TCHAR *format,...)
+{
+	if (level < ThresholdLevel)
+	{
+		return;
+	}
+
 	TCHAR statement_buffer[1024*4]={0,};
 
 	va_list args;
@@ -72,7 +82,7 @@ void WriteToLogFile(HANDLE hFile,const char *format,...)
 	}else
 	{
 #ifdef IDA_PLUGIN
-		dprintf(0, __FUNCTION__, "%s",Contents);
+		dprintf(1, __FUNCTION__, "%s",Contents);
 #else
 		OutputDebugStringA(Contents);
 #endif

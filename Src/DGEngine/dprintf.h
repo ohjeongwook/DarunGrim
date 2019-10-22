@@ -3,7 +3,10 @@
 #include <stdarg.h>
 #include <wtypes.h>
 
-void dprintf(int level, const char* function_name, const TCHAR* format, ...);
+void SetLogLevel(int level);
+void LogMessage(int level, const char* function_name, const TCHAR* format, ...);
+
+
 void __inline dprintf_null(int level, const char *function_name, const TCHAR *format,...)
 {
 }
