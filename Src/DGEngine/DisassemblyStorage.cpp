@@ -1,8 +1,12 @@
 #pragma once
 #include <stdio.h>
-#include "sqlite3.h"
-#include "DisassemblyStorage.h"
 #include <string>
+
+#include "sqlite3.h"
+
+#include "DisassemblyStorage.h"
+#include "dprintf.h"
+
 using namespace std;
 
 DisassemblyStorage::DisassemblyStorage(const char *DatabaseName)
@@ -222,11 +226,7 @@ int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *conte
 
 		if(debug>1)
 		{
-#ifdef IDA_PLUGIN			
-			dprintf("Executing [%s]\n",statement_buffer);
-#else
-			printf("Executing [%s]\n",statement_buffer);
-#endif
+			dprintf(0, __FUNCTION__, "Executing [%s]\n", statement_buffer);
 		}
 
 		if(statement_buffer)
@@ -238,9 +238,9 @@ int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *conte
 				if(debug>0)
 				{
 #ifdef IDA_PLUGIN				
-					dprintf("SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
+					dprintf(0, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
 #else
-					printf("SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
+					dprintf(0, __FUNCTION__, "SQL error: [%s] [%s]\n",statement_buffer,zErrMsg);
 #endif
 				}
 			}
@@ -260,7 +260,7 @@ int DisassemblyStorage::display_callback(void *NotUsed, int argc, char **argv, c
 {
 	int i;
 	for(i=0; i<argc; i++){
-		//dprintf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+		dprintf(0, __FUNCTION__, "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 	}
 	return 0;
 }

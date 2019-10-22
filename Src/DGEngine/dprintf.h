@@ -3,11 +3,10 @@
 #include <stdarg.h>
 #include <wtypes.h>
 
-void dprintf(const TCHAR *format,...);
-void __inline PrintToNone(const TCHAR *format,...)
+void dprintf(int level, const char* function_name, const TCHAR* format, ...);
+void __inline dprintf_null(int level, const char *function_name, const TCHAR *format,...)
 {
 }
-void dprintf(const TCHAR *format,...);
 
 HANDLE OpenLogFile(const char *szTempName);
 void WriteToLogFile(HANDLE hFile,const char *format,...);

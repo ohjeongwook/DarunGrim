@@ -52,7 +52,7 @@ ea_t GetBlockEnd(ea_t address)
 	return address;
 }
 
-int ConnectBrokenFunctionChunk(ea_t address)
+int ConnectFunctionChunks(ea_t address)
 {
 	int connected_links_count=0;
 	func_t *func=get_func(address);
@@ -79,7 +79,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_next_cref_to(address,cref);
 	}
 
-	dprintf("ConnectBrokenFunctionChunk: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
+	dprintf(0, __FUNCTION__, "ConnectFunctionChunks: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
 
 	if(!is_function)
 	{
@@ -94,7 +94,14 @@ int ConnectBrokenFunctionChunk(ea_t address)
 				qstring cref_function_name;
                 get_func_name(&cref_function_name, cref);
 
-				dprintf("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n", function_name.c_str(), address, cref_function_name.c_str(), cref_func->start_ea, cref);
+				dprintf(0, __FUNCTION__, "%s: Adding Location %s(%X) To Function Member Of %s(%X:%X)\n",
+					__FUNCTION__,
+					function_name.c_str(),
+					address, 
+					cref_function_name.c_str(),
+					cref_func->start_ea, 
+					cref
+				);
 
 				append_func_tail(cref_func,address,GetBlockEnd(address));
 				connected_links_count++;
@@ -115,7 +122,12 @@ int ConnectBrokenFunctionChunk(ea_t address)
 				{
 					qstring cref_function_name;
 					get_func_name(&cref_function_name, cref);
-					dprintf("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name.c_str(), cref_func->start_ea, cref);
+					dprintf(0, __FUNCTION__, "%s: Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",
+						__FUNCTION__,
+						function_name,address,
+						cref_function_name.c_str(),
+						cref_func->start_ea, cref
+					);
 
 					append_func_tail(cref_func,address,GetBlockEnd(address));
 					connected_links_count++;
@@ -127,7 +139,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 	return connected_links_count;
 }
 
-void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
+void FixFunctionChunks()
 {
 	int connected_links_count=0;
 	do
@@ -141,8 +153,8 @@ void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
 				qstring function_name;
 				get_short_name(&function_name, f->start_ea);
 
-				dprintf("Found invalid function: %s\n", function_name.c_str());
-				connected_links_count+=ConnectBrokenFunctionChunk(f->start_ea);
+				dprintf(0, __FUNCTION__, "%s: Found invalid function: %s\n", __FUNCTION__, function_name.c_str());
+				connected_links_count+=ConnectFunctionChunks(f->start_ea);
 			}		
 		}
 	}while(connected_links_count>0);

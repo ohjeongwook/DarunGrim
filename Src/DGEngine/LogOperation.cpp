@@ -103,7 +103,7 @@ void LogOperation::_Log(const CHAR *log_message)
 	if( OutputType & LogToIDAMessageBox )
 	{
 #ifdef IDA_PLUGIN
-		dprintf("%s", full_log_message.c_str() );
+		dprintf(0, __FUNCTION__, "%s", full_log_message.c_str() );
 #endif
 	}
 

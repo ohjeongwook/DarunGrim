@@ -10,7 +10,7 @@
 #include <kernwin.hpp>
 #include "dprintf.h"
 
-void dprintf(const TCHAR *format,...)
+void dprintf(int level, const char *function_name, const TCHAR *format,...)
 {
 	TCHAR statement_buffer[1024*4]={0,};
 
@@ -22,7 +22,7 @@ void dprintf(const TCHAR *format,...)
 	SYSTEMTIME lt;
 	GetLocalTime(&lt);
 
-	msg("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
+	msg("[%02d:%02d:%02d] %s: %s", lt.wHour, lt.wMinute, lt.wSecond, function_name, statement_buffer);
 }
 
 HANDLE OpenLogFile(const char *szTempName)
@@ -72,7 +72,7 @@ void WriteToLogFile(HANDLE hFile,const char *format,...)
 	}else
 	{
 #ifdef IDA_PLUGIN
-		dprintf("%s",Contents);
+		dprintf(0, __FUNCTION__, "%s",Contents);
 #else
 		OutputDebugStringA(Contents);
 #endif
