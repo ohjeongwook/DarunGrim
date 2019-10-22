@@ -12,7 +12,7 @@
 
 void dprintf(const TCHAR *format,...)
 {
-	TCHAR statement_buffer[1024]={0,};
+	TCHAR statement_buffer[1024*4]={0,};
 
 	va_list args;
 	va_start(args,format);
@@ -22,7 +22,7 @@ void dprintf(const TCHAR *format,...)
 	SYSTEMTIME lt;
 	GetLocalTime(&lt);
 
-	dprintf("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
+	msg("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
 }
 
 HANDLE OpenLogFile(const char *szTempName)
