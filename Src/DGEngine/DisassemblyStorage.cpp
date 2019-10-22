@@ -33,8 +33,39 @@ void DisassemblyStorage::EndAnalysis()
 {
 }
 
-void DisassemblyStorage::AddBasicBlock(PBasicBlock p_basic_block)
+void DisassemblyStorage::AddBasicBlock(PBasicBlock pBasicBlock)
 {
+	char* fingerprintStr = NULL;
+	if (pBasicBlock->FingerprintLen > 0)
+	{
+		fingerprintStr = (char*)malloc(pBasicBlock->FingerprintLen * 2 + 10);
+		if (fingerprintStr)
+		{
+			memset(fingerprintStr, 0, pBasicBlock->FingerprintLen * 2 + 10);
+			char tmp_buffer[10];
+			for (int i = 0; i < pBasicBlock->FingerprintLen; i++)
+			{
+				_snprintf(tmp_buffer, sizeof(tmp_buffer) - 1, "%.2x", pBasicBlock->Data[pBasicBlock->NameLen + pBasicBlock->DisasmLinesLen + i] & 0xff);
+				tmp_buffer[sizeof(tmp_buffer) - 1] = NULL;
+				strncat(fingerprintStr, tmp_buffer, sizeof(tmp_buffer));
+			}
+		}
+	}
+
+	ExecuteStatement(NULL, NULL, INSERT_BASIC_BLOCK_TABLE_STATEMENT,
+		0,
+		pBasicBlock->StartAddress,
+		pBasicBlock->EndAddress,
+		pBasicBlock->Flag,
+		pBasicBlock->FunctionAddress,
+		pBasicBlock->BlockType,
+		pBasicBlock->Data,
+		pBasicBlock->Data + pBasicBlock->NameLen,
+		fingerprintStr ? fingerprintStr : ""
+	);
+
+	if (fingerprintStr)
+		free(fingerprintStr);
 }
 
 void DisassemblyStorage::AddMapInfo(PMapInfo p_map_info)
@@ -64,19 +95,19 @@ int DisassemblyStorage::DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Lengt
         if (sizeof(BasicBlock) <= Length)
         {
             PBasicBlock pBasicBlock = (PBasicBlock)Data;
-            char *FingerprintHexStringBuffer = NULL;
+            char *fingerprintStr = NULL;
             if (pBasicBlock->FingerprintLen > 0)
             {
-                FingerprintHexStringBuffer = (char *)malloc(pBasicBlock->FingerprintLen * 2 + 10);
-                if (FingerprintHexStringBuffer)
+                fingerprintStr = (char *)malloc(pBasicBlock->FingerprintLen * 2 + 10);
+                if (fingerprintStr)
                 {
-                    memset(FingerprintHexStringBuffer, 0, pBasicBlock->FingerprintLen * 2 + 10);
+                    memset(fingerprintStr, 0, pBasicBlock->FingerprintLen * 2 + 10);
                     char tmp_buffer[10];
                     for (int i = 0; i < pBasicBlock->FingerprintLen; i++)
                     {
                         _snprintf(tmp_buffer, sizeof(tmp_buffer) - 1, "%.2x", pBasicBlock->Data[pBasicBlock->NameLen + pBasicBlock->DisasmLinesLen + i] & 0xff);
                         tmp_buffer[sizeof(tmp_buffer) - 1] = NULL;
-                        strncat(FingerprintHexStringBuffer, tmp_buffer, sizeof(tmp_buffer));
+                        strncat(fingerprintStr, tmp_buffer, sizeof(tmp_buffer));
                     }
                 }
             }
@@ -91,11 +122,11 @@ int DisassemblyStorage::DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Lengt
                 pBasicBlock->BlockType,
                 pBasicBlock->Data,
                 pBasicBlock->Data + pBasicBlock->NameLen,
-                FingerprintHexStringBuffer ? FingerprintHexStringBuffer : ""
+                fingerprintStr ? fingerprintStr : ""
             );
 
-            if (FingerprintHexStringBuffer)
-                free(FingerprintHexStringBuffer);
+            if (fingerprintStr)
+                free(fingerprintStr);
         }
         break;
 
@@ -189,7 +220,7 @@ int DisassemblyStorage::GetLastInsertRowID()
 	return (int)sqlite3_last_insert_rowid(db);
 }
 
-int DisassemblyStorage::ExecuteStatement( sqlite3_callback callback, void *context, const char *format, ... )
+int DisassemblyStorage::ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...)
 {
 	int debug=0;
 
