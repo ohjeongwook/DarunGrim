@@ -481,7 +481,7 @@ list <int> GetRelatedFlags(int itype,bool IsModifying)
 
 ///////////////////////////////////////////////////////////
 //Save & Trace Variables
-void UpdateInstructionMap
+void IDAAnalysis::UpdateInstructionMap
 (
 	unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> &OperandsHash,
 	unordered_map <int,ea_t> &FlagsHash,
@@ -632,7 +632,6 @@ void UpdateInstructionMap
 		}
 	}
 }
-
 
 void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool gatherCmdArray)
 {
@@ -828,33 +827,172 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 	FingerPrint.clear();			
 }
 
-ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray,flags_t *p_flags,unordered_map <ea_t,ea_t> &AdditionallyAnalyzedBlocks)
+list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
+{
+	ea_t current_addr;
+	size_t current_item_size = 0;
+	list <ea_t> blocks;
+	list <ea_t>::iterator blocksIter;
+	blocks.push_back(address);
+	unordered_set <ea_t> AddressHash;
+	AddressHash.insert(address);
+
+	list <AddressRegion> regions;
+
+	for (
+		blocksIter = blocks.begin();
+		blocksIter != blocks.end();
+		blocksIter++
+		)
+	{
+		LogMessage(1, __FUNCTION__, "Analyzing %X\n", *blocksIter);
+		ea_t block_StartAddress = *blocksIter;
+
+		for (current_addr = block_StartAddress;; current_addr += current_item_size)
+		{
+			bool bEndOfBlock = FALSE;
+
+			qstring op_buffer;
+			print_insn_mnem(&op_buffer, current_addr);
+			current_item_size = get_item_size(current_addr);
+
+			if (!strnicmp(op_buffer.c_str(), "ret", 3))
+			{
+				bEndOfBlock = TRUE;
+			}
+
+			insn_t insn;
+			decode_insn(&insn, current_addr);
+
+			ea_t cref = get_first_cref_from(current_addr);
+			while (cref != BADADDR)
+			{
+				if (
+					insn.itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
+					insn.itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
+					insn.itype == NN_jc ||                  // Jump if Carry (CF=1)
+					insn.itype == NN_jcxz ||                // Jump if CX is 0
+					insn.itype == NN_jecxz ||               // Jump if ECX is 0
+					insn.itype == NN_jrcxz ||               // Jump if RCX is 0
+					insn.itype == NN_je ||                  // Jump if Equal (ZF=1)
+					insn.itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
+					insn.itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
+					insn.itype == NN_jo ||                  // Jump if Overflow (OF=1)
+					insn.itype == NN_jp ||                  // Jump if Parity (PF=1)
+					insn.itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
+					insn.itype == NN_js ||                  // Jump if Sign (SF=1)
+					insn.itype == NN_jz ||                  // Jump if Zero (ZF=1)
+					insn.itype == NN_jmp ||                 // Jump
+					insn.itype == NN_jmpfi ||               // Indirect Far Jump
+					insn.itype == NN_jmpni ||               // Indirect Near Jump
+					insn.itype == NN_jmpshort ||            // Jump Short
+					insn.itype == NN_jpo ||                 // Jump if Parity Odd  (PF=0)
+					insn.itype == NN_jl ||                  // Jump if Less (SF!=OF)
+					insn.itype == NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
+					insn.itype == NN_jb ||                  // Jump if Below (CF=1)
+					insn.itype == NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
+					insn.itype == NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
+					insn.itype == NN_jnae ||                // Jump if Not Above or Equal (CF=1)
+					insn.itype == NN_jnb ||                 // Jump if Not Below (CF=0)
+					insn.itype == NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
+					insn.itype == NN_jnc ||                 // Jump if Not Carry (CF=0)
+					insn.itype == NN_jne ||                 // Jump if Not Equal (ZF=0)
+					insn.itype == NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
+					insn.itype == NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
+					insn.itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
+					insn.itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
+					insn.itype == NN_jno ||                 // Jump if Not Overflow (OF=0)
+					insn.itype == NN_jnp ||                 // Jump if Not Parity (PF=0)
+					insn.itype == NN_jns ||                 // Jump if Not Sign (SF=0)
+					insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
+					)
+				{
+					LogMessage(1, __FUNCTION__, "Got Jump at %X\n", current_addr);
+					if (AddressHash.find(cref) == AddressHash.end())
+					{
+						LogMessage(1, __FUNCTION__, "Adding %X to queue\n", cref);
+						AddressHash.insert(cref);
+						blocks.push_back(cref);
+					}
+					//cref is the next block position
+					bEndOfBlock = TRUE;
+				}
+				cref = get_next_cref_from(current_addr, cref);
+			}
+			//cref_to
+			cref = get_first_cref_to(current_addr + current_item_size);
+			while (cref != BADADDR)
+			{
+				if (current_addr != cref)
+				{
+					print_insn_mnem(&op_buffer, cref);
+
+					if (
+						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)) ||
+						!(ph.id == PLFM_ARM && (insn.itype == ARM_bl || insn.itype == ARM_blx1 || insn.itype == ARM_blx2)) ||
+						!(ph.id == PLFM_MIPS && (insn.itype == MIPS_jal || insn.itype == MIPS_jalx))
+						)
+					{
+						//End of block
+						LogMessage(1, __FUNCTION__, "Got End of Block at %X\n", current_addr);
+						bEndOfBlock = TRUE;
+					}
+				}
+				cref = get_next_cref_to(current_addr + current_item_size, cref);
+			}
+			if (bEndOfBlock)
+			{
+				//jump to local block
+				//block_StartAddress,current_addr+item_size is a block
+				AddressRegion address_region;
+				address_region.startEA = block_StartAddress;
+				address_region.endEA = current_addr + current_item_size;
+				regions.push_back(address_region);
+				break;
+			}
+		}
+	}
+
+	/*
+	list <AddressRegion>::iterator regionsIter;
+	for(regionsIter=regions.begin();regionsIter!=regions.end();regionsIter++)
+	{
+		LogMessage(1, __FUNCTION__, "Collected Addresses %X - %X\n",(*regionsIter).startEA,(*regionsIter).endEA);
+	}
+	*/
+	return regions;
+}
+
+
+ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArray, flags_t *p_flags)
 {
 	while(1)
 	{
-		unordered_map <ea_t,ea_t>::iterator AdditionallyAnalyzedBlocksIter=AdditionallyAnalyzedBlocks.find(StartEA);
-		if(AdditionallyAnalyzedBlocksIter!=AdditionallyAnalyzedBlocks.end())
+		unordered_map <ea_t,ea_t>::iterator newFoundblockIter=NewFoundBlocks.find(startEA);
+		if(newFoundblockIter!= NewFoundBlocks.end())
 		{
-			//WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Skip %X block to %X\n",__FUNCTION__,StartEA,AdditionallyAnalyzedBlocksIter->second);
-			if(StartEA == AdditionallyAnalyzedBlocksIter->second)
+			LogMessage(1, __FUNCTION__, "%s: [newFoundblockIter] Skip %X block to %X\n",__FUNCTION__, startEA, newFoundblockIter->second);
+
+			if(startEA == newFoundblockIter->second)
 				break;
-			StartEA=AdditionallyAnalyzedBlocksIter->second;
+
+			startEA = newFoundblockIter->second;
 		}else
 		{
 			break;
 		}
 	}
 
-	ea_t current_addr=StartEA;
+	ea_t current_addr= startEA;
 	ea_t src_block_address=current_addr;
 	ea_t first_block_end_address=0;
 	ea_t current_block_start_address=current_addr;
 
 	int InstructionCount=0;
-	//WriteToLogFile(gLogFile,"%s: %X~%X\n",__FUNCTION__,current_addr,endEA);
+	LogMessage(1, __FUNCTION__, "Analyzing %X ~ %X\n", current_addr, endEA);
 
 	bool found_branch=FALSE; //first we branch
-	for(;current_addr<=endEA;)
+	for( ; current_addr <= endEA ; )
 	{
 		InstructionCount++;
 		bool cref_to_next_addr=FALSE;
@@ -1138,15 +1276,15 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 					if(!first_block_end_address)
 						first_block_end_address=current_addr+current_item_size;
 					//next_block_addr should not be analyzed again next time.
-					if(current_block_start_address!=StartEA)
+					if(current_block_start_address != startEA)
 					{
-						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
-						AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
+						WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+						NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 					}
 					if(current_block_start_address!=next_block_addr)
 					{
 						current_block_start_address=next_block_addr;
-						WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set current_block_start_address=%X\n",__FUNCTION__,current_block_start_address);
+						WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set current_block_start_address=%X\n",__FUNCTION__,current_block_start_address);
 						current_addr=next_block_addr;
 						found_branch=FALSE;
 						cref_list.clear();
@@ -1177,10 +1315,10 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 				}
 			}
 
-			if(current_block_start_address!=StartEA)
+			if(current_block_start_address != startEA)
 			{
-				WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
-				AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
+				WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+				NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 			}
 
 			if(first_block_end_address)
@@ -1189,10 +1327,10 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 		}
 		current_addr+=current_item_size;
 	}
-	if(current_block_start_address!=StartEA)
+	if(current_block_start_address != startEA)
 	{
-		WriteToLogFile(gLogFile,"%s: [AdditionallyAnalyzedBlocksIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr);
-		AdditionallyAnalyzedBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr));
+		WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr);
+		NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr));
 	}
 	WriteToLogFile(gLogFile,"%s: CmdArray size=%u\n",__FUNCTION__,pCmdArray->size());
 	if(first_block_end_address)
@@ -1200,199 +1338,53 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 	return current_addr;
 }
 
-void IDAAnalysis::AnalyzeRegion(list <AddressRegion> &addressRegions, bool gatherCmdArray)
-{
-	unordered_map <ea_t,ea_t> additionally_analyzed_blocks;
-
-	for (list <AddressRegion>::iterator it = addressRegions.begin(); it != addressRegions.end(); it++)
-	{
-		ea_t startEA = (*it).startEA;
-		ea_t endEA = (*it).endEA;
-		
-		WriteToLogFile(gLogFile,"Analyzing %X~%X\n",startEA,endEA);
-
-		ea_t current_address;
-		for (current_address = startEA; current_address<endEA;)
-		{
-			list <insn_t> CmdArray;
-			flags_t Flag;
-			
-			ea_t next_address = AnalyzeBlock(current_address, endEA, &CmdArray, &Flag, additionally_analyzed_blocks);
-			if(0)
-			{
-				unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
-				multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> InstructionMap;
-				unordered_map <ea_t,insn_t> InstructionHash;
-				unordered_map <int,ea_t> FlagsHash;
-
-				for(list <insn_t>::iterator CmdArrayIter=CmdArray.begin();CmdArrayIter!=CmdArray.end();CmdArrayIter++)
-				{			
-					UpdateInstructionMap(OperandsHash,FlagsHash,InstructionMap,InstructionHash,*CmdArrayIter);
-				}
-				
-				list <insn_t> *NewCmdArray=ReoderInstructions(InstructionMap,InstructionHash);
-				
-				WriteToLogFile(gLogFile,"NewCmdArray=%X\n",NewCmdArray);
-
-				if(NewCmdArray)
-				{
-					DumpBasicBlock(current_address, NewCmdArray, Flag, gatherCmdArray);
-					delete NewCmdArray;
-				}
-			}else
-			{
-				DumpBasicBlock(current_address, &CmdArray, Flag, gatherCmdArray);
-			}
-
-			CmdArray.clear();
-
-			if (current_address == next_address)
-				break;
-
-			current_address = next_address;
-		}
-	}
-}
-
-list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
-{
-	ea_t current_addr;
-	size_t current_item_size = 0;
-	list <ea_t> AddressQueue;
-	list <ea_t>::iterator AddressQueueIter;
-	AddressQueue.push_back(StartAddress);
-	unordered_set <ea_t> AddressHash;
-	AddressHash.insert(StartAddress);
-
-	list <AddressRegion> AddressRegions;
-
-	for(
-        AddressQueueIter = AddressQueue.begin();
-        AddressQueueIter!=AddressQueue.end();
-        AddressQueueIter++
-    )
-	{
-		LogMessage(1, __FUNCTION__, "Analyzing Address %X\n", *AddressQueueIter);
-		ea_t block_StartAddress = *AddressQueueIter;
-
-		for(current_addr=block_StartAddress;;current_addr+=current_item_size)
-		{
-			bool bEndOfBlock=FALSE;
-
-            qstring op_buffer;
-            print_insn_mnem(&op_buffer, current_addr);
-			current_item_size=get_item_size(current_addr);
-
-			if(!strnicmp(op_buffer.c_str(),"ret",3))
-			{
-				bEndOfBlock=TRUE;
-			}
-
-            insn_t insn;
-            decode_insn(&insn, current_addr);
-
-			ea_t cref=get_first_cref_from(current_addr);
-			while(cref!=BADADDR)
-			{
-				if(
-                    insn.itype == NN_ja ||                  // Jump if Above (CF=0 & ZF=0)
-                    insn.itype == NN_jae ||                 // Jump if Above or Equal (CF=0)
-                    insn.itype == NN_jc ||                  // Jump if Carry (CF=1)
-                    insn.itype == NN_jcxz ||                // Jump if CX is 0
-                    insn.itype == NN_jecxz ||               // Jump if ECX is 0
-                    insn.itype == NN_jrcxz ||               // Jump if RCX is 0
-                    insn.itype == NN_je ||                  // Jump if Equal (ZF=1)
-                    insn.itype == NN_jg ||                  // Jump if Greater (ZF=0 & SF=OF)
-					insn.itype == NN_jge ||                 // Jump if Greater or Equal (SF=OF)
-					insn.itype == NN_jo ||                  // Jump if Overflow (OF=1)
-					insn.itype == NN_jp ||                  // Jump if Parity (PF=1)
-					insn.itype == NN_jpe ||                 // Jump if Parity Even (PF=1)
-					insn.itype == NN_js ||                  // Jump if Sign (SF=1)
-					insn.itype == NN_jz ||                  // Jump if Zero (ZF=1)
-					insn.itype == NN_jmp ||                 // Jump
-					insn.itype == NN_jmpfi ||               // Indirect Far Jump
-					insn.itype == NN_jmpni ||               // Indirect Near Jump
-					insn.itype == NN_jmpshort ||            // Jump Short
-					insn.itype == NN_jpo ||                 // Jump if Parity Odd  (PF=0)
-					insn.itype == NN_jl ||                  // Jump if Less (SF!=OF)
-					insn.itype == NN_jle ||                 // Jump if Less or Equal (ZF=1 | SF!=OF)
-					insn.itype == NN_jb ||                  // Jump if Below (CF=1)
-					insn.itype == NN_jbe ||                 // Jump if Below or Equal (CF=1 | ZF=1)
-					insn.itype == NN_jna ||                 // Jump if Not Above (CF=1 | ZF=1)
-					insn.itype == NN_jnae ||                // Jump if Not Above or Equal (CF=1)
-					insn.itype == NN_jnb ||                 // Jump if Not Below (CF=0)
-					insn.itype == NN_jnbe ||                // Jump if Not Below or Equal (CF=0 & ZF=0)
-					insn.itype == NN_jnc ||                 // Jump if Not Carry (CF=0)
-					insn.itype == NN_jne ||                 // Jump if Not Equal (ZF=0)
-					insn.itype == NN_jng ||                 // Jump if Not Greater (ZF=1 | SF!=OF)
-					insn.itype == NN_jnge ||                // Jump if Not Greater or Equal (ZF=1)
-					insn.itype == NN_jnl ||                 // Jump if Not Less (SF=OF)
-					insn.itype == NN_jnle ||                // Jump if Not Less or Equal (ZF=0 & SF=OF)
-					insn.itype == NN_jno ||                 // Jump if Not Overflow (OF=0)
-					insn.itype == NN_jnp ||                 // Jump if Not Parity (PF=0)
-					insn.itype == NN_jns ||                 // Jump if Not Sign (SF=0)
-					insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
-				)
-				{
-					LogMessage(1, __FUNCTION__, "Got Jump at %X\n",current_addr);
-					if(AddressHash.find(cref) == AddressHash.end())
-					{
-						LogMessage(1, __FUNCTION__, "Adding %X to queue\n",cref);
-						AddressHash.insert(cref);
-						AddressQueue.push_back(cref);
-					}
-					//cref is the next block position
-					bEndOfBlock=TRUE;
-				}
-				cref=get_next_cref_from(current_addr,cref);
-			}
-			//cref_to
-			cref=get_first_cref_to(current_addr+current_item_size);
-			while(cref!=BADADDR)
-			{
-				if(current_addr!=cref)
-				{
-                    print_insn_mnem(&op_buffer, cref);
-					
-					if(
-						!((ph.id == PLFM_386 || ph.id == PLFM_IA64) && (insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni)) ||
-						!(ph.id == PLFM_ARM && (insn.itype == ARM_bl || insn.itype == ARM_blx1 || insn.itype == ARM_blx2)) ||
-						!(ph.id == PLFM_MIPS && (insn.itype == MIPS_jal || insn.itype == MIPS_jalx))
-					)
-					{
-						//End of block
-						LogMessage(1, __FUNCTION__, "Got End of Block at %X\n",current_addr);
-						bEndOfBlock=TRUE;
-					}
-				}
-				cref=get_next_cref_to(current_addr+current_item_size,cref);
-			}
-			if(bEndOfBlock)
-			{	
-				//jump to local block
-				//block_StartAddress,current_addr+item_size is a block
-				AddressRegion address_region;
-				address_region.startEA = block_StartAddress;
-				address_region.endEA = current_addr+current_item_size;
-				AddressRegions.push_back(address_region);
-				break;
-			}
-		}
-	}
-
-	/*
-	list <AddressRegion>::iterator AddressRegionsIter;
-	for(AddressRegionsIter=AddressRegions.begin();AddressRegionsIter!=AddressRegions.end();AddressRegionsIter++)
-	{
-		LogMessage(1, __FUNCTION__, "Collected Addresses %X - %X\n",(*AddressRegionsIter).startEA,(*AddressRegionsIter).endEA);
-	}
-	*/
-	return AddressRegions;
-}
-
 IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
 {
 	m_disassemblyStorage = disassemblyStorage;
+}
+
+void IDAAnalysis::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
+{
+	LogMessage(1, __FUNCTION__, "AnalyzeRegion %X ~ %X\n", region.startEA, region.endEA);
+
+	ea_t current_address;
+	for (current_address = region.startEA; current_address < region.endEA; )
+	{
+		list <insn_t> CmdArray;
+		flags_t Flag;
+
+		ea_t next_address = AnalyzeBlock(current_address, region.endEA, &CmdArray, &Flag);
+		if (0)
+		{
+			unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
+			multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait> InstructionMap;
+			unordered_map <ea_t, insn_t> InstructionHash;
+			unordered_map <int, ea_t> FlagsHash;
+
+			for (list <insn_t>::iterator CmdArrayIter = CmdArray.begin(); CmdArrayIter != CmdArray.end(); CmdArrayIter++)
+			{
+				UpdateInstructionMap(OperandsHash, FlagsHash, InstructionMap, InstructionHash, *CmdArrayIter);
+			}
+
+			list <insn_t>* NewCmdArray = ReoderInstructions(InstructionMap, InstructionHash);
+			if (NewCmdArray)
+			{
+				DumpBasicBlock(current_address, NewCmdArray, Flag, gatherCmdArray);
+				delete NewCmdArray;
+			}
+		}
+		else
+		{
+			DumpBasicBlock(current_address, &CmdArray, Flag, gatherCmdArray);
+		}
+
+		CmdArray.clear();
+
+		if (current_address == next_address)
+			break;
+
+		current_address = next_address;
+	}
 }
 
 void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
@@ -1406,12 +1398,14 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 	DWORD UserNameLen=sizeof(file_info.UserName);
 	GetUserName(file_info.UserName,&UserNameLen);
 
+	m_disassemblyStorage.BeginTransaction();
+
 	char *input_file_path = NULL;
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
 	m_disassemblyStorage.SetFileInfo(&file_info);
 
 	LogMessage(1, __FUNCTION__, "Analyze: %x ~ %x\n", startEA, endEA);
-	list <AddressRegion> AddressRegions;
+	list <AddressRegion> regions;
 
 	if (startEA == 0 && endEA == 0)
 	{
@@ -1423,7 +1417,7 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 			AddressRegion address_region;
 			address_region.startEA = seg_p->start_ea;
 			address_region.endEA = seg_p->end_ea;
-			AddressRegions.push_back(address_region);
+			regions.push_back(address_region);
 		}
 	}
 	else
@@ -1433,17 +1427,22 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 		if(cur_func_t->start_ea == startEA)
 		{
 			//Collect all member addresses
-			AddressRegions = GetMemberAddresses(startEA);
+			regions = GetFunctionBlocks(startEA);
 		}else
 		{
 			AddressRegion address_region;
 			address_region.startEA = startEA;
 			address_region.endEA= endEA;
-			AddressRegions.push_back(address_region);
+			regions.push_back(address_region);
 		}
 	}
+	for (list <AddressRegion>::iterator it = regions.begin(); it != regions.end(); it++)
+	{
+		AnalyzeRegion(*it, gatherCmdArray);
+	}
 
-	AnalyzeRegion(AddressRegions, gatherCmdArray);
+	m_disassemblyStorage.EndTransaction();
 	m_disassemblyStorage.EndAnalysis();
-	LogMessage(1, __FUNCTION__, "Sent All Analysis Informations\n");
+
+	LogMessage(1, __FUNCTION__, "Finished Analysis\n");
 }

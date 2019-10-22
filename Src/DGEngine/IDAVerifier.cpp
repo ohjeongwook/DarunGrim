@@ -159,3 +159,135 @@ void FixFunctionChunks()
 		}
 	}while(connected_links_count>0);
 }
+
+void MakeCode(ea_t start_addr, ea_t end_addr)
+{
+	while (1) {
+		bool converted = TRUE;
+		LogMessage(1, __FUNCTION__, "MakeCode: %X - %X \n", start_addr, end_addr);
+
+		del_items(start_addr, 0, end_addr - start_addr);
+		for (ea_t addr = start_addr; addr <= end_addr; addr += get_item_size(addr))
+		{
+			create_insn(addr);
+			if (!is_code(get_full_flags(addr)))
+			{
+				converted = FALSE;
+				break;
+			}
+		}
+		if (converted)
+			break;
+		end_addr += get_item_size(end_addr);
+	}
+}
+
+ea_t exception_handler_addr = 0L;
+
+void FixExceptionHandlers()
+{
+	qstring name;
+
+	for (int n = 0; n < get_segm_qty(); n++)
+	{
+		segment_t* seg_p = getnseg(n);
+		if (seg_p->type == SEG_XTRN)
+		{
+			asize_t current_item_size;
+			ea_t current_addr;
+			for (current_addr = seg_p->start_ea;
+				current_addr < seg_p->end_ea;
+				current_addr += current_item_size)
+			{
+				get_name(&name, current_addr);
+				if (!stricmp(name.c_str(), "_except_handler3") || !stricmp(name.c_str(), "__imp__except_handler3"))
+				{
+					LogMessage(1, __FUNCTION__, "name=%s\n", name);
+					//dref_to
+					ea_t sub_exception_handler = get_first_dref_to(current_addr);
+					while (sub_exception_handler != BADADDR)
+					{
+						exception_handler_addr = sub_exception_handler;
+						get_name(&name, sub_exception_handler);
+						LogMessage(1, __FUNCTION__, "name=%s\n", name.c_str());
+
+						ea_t push_exception_handler = get_first_dref_to(sub_exception_handler);
+						while (push_exception_handler != BADADDR)
+						{
+							LogMessage(1, __FUNCTION__, "push exception_handler: %X\n", push_exception_handler);
+							ea_t push_handlers_structure = get_first_cref_to(push_exception_handler);
+
+							while (push_handlers_structure != BADADDR)
+							{
+								LogMessage(1, __FUNCTION__, "push hanlders structure: %X\n", push_handlers_structure);
+								ea_t handlers_structure_start = get_first_dref_from(push_handlers_structure);
+								while (handlers_structure_start != BADADDR)
+								{
+									qstring handlers_structure_start_name;
+									get_name(&handlers_structure_start_name, handlers_structure_start);
+									ea_t handlers_structure = handlers_structure_start;
+									while (1)
+									{
+										LogMessage(1, __FUNCTION__, "handlers_structure: %X\n", handlers_structure);
+										qstring handlers_structure_name;
+										get_name(&handlers_structure_name, handlers_structure);
+
+										if ((handlers_structure_name[0] != NULL &&
+											strcmp(handlers_structure_start_name.c_str(), handlers_structure_name.c_str())) ||
+											is_code(get_full_flags(handlers_structure))
+											)
+										{
+											LogMessage(1, __FUNCTION__, "breaking\n");
+											break;
+										}
+										if ((handlers_structure - handlers_structure_start) % 4 == 0)
+										{
+											int pos = (handlers_structure - handlers_structure_start) / 4;
+											if (pos % 3 == 1 || pos % 3 == 2)
+											{
+												LogMessage(1, __FUNCTION__, "Checking handlers_structure: %X\n", handlers_structure);
+
+												ea_t exception_handler_routine = get_first_dref_from(handlers_structure);
+												while (exception_handler_routine != BADADDR)
+												{
+													LogMessage(1, __FUNCTION__, "Checking exception_handler_routine: %X\n", exception_handler_routine);
+													if (!is_code(get_full_flags(exception_handler_routine)))
+													{
+														LogMessage(1, __FUNCTION__, "Reanalyzing exception_handler_routine: %X\n", exception_handler_routine);
+														ea_t end_pos = exception_handler_routine;
+														while (1)
+														{
+															if (!is_code(get_full_flags(end_pos)))
+																end_pos += get_item_size(end_pos);
+															else
+																break;
+														}
+														if (!is_code(exception_handler_routine))
+														{
+															LogMessage(1, __FUNCTION__, "routine 01: %X~%X\n", exception_handler_routine, end_pos);
+															MakeCode(exception_handler_routine, end_pos);
+														}
+													}
+													exception_handler_routine = get_next_dref_from(handlers_structure, exception_handler_routine);
+												}
+											}
+										}
+										LogMessage(1, __FUNCTION__, "checked handlers_structure: %X\n", handlers_structure);
+										handlers_structure += get_item_size(handlers_structure);
+									}
+									handlers_structure_start = get_next_dref_from(push_handlers_structure, handlers_structure_start);
+								}
+								push_handlers_structure = get_next_cref_to(push_exception_handler, push_handlers_structure);
+							}
+							push_exception_handler = get_next_dref_to(sub_exception_handler, push_exception_handler);
+						}
+
+						sub_exception_handler = get_next_dref_to(current_addr, sub_exception_handler);
+					}
+
+				}
+				current_item_size = get_item_size(current_addr);
+			}
+		}
+	}
+}

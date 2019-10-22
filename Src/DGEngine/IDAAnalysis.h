@@ -242,15 +242,7 @@ void DumpOperand(HANDLE hFile,op_t operand);
 void AddInstructionByOrder(unordered_map <ea_t,insn_t> &InstructionHash,list <ea_t> &Addresses,ea_t Address);
 list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,unordered_map <ea_t,insn_t> &InstructionHash);
 list <int> GetRelatedFlags(int itype,bool IsModifying);
-void UpdateInstructionMap
-(
-    unordered_map < op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn > &OperandsHash,
-	unordered_map <int,ea_t> &FlagsHash,
-	//Instruction Hash and Map
-	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
-	unordered_map <ea_t,insn_t> &InstructionHash,
-	insn_t &instruction
-);
+
 void DumpDOT(
 	char *Filename,
 	multimap <OperandPosition,OperandPosition,OperandPositionCompareTrait> &InstructionMap,
@@ -261,12 +253,21 @@ class IDAAnalysis
 {
 private:
 	DisassemblyStorage m_disassemblyStorage;
+	unordered_map <ea_t, ea_t> NewFoundBlocks;
 
+	void UpdateInstructionMap(
+		unordered_map < op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn >& OperandsHash,
+		unordered_map <int, ea_t>& FlagsHash,
+		multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, //Instruction Hash and Map
+		unordered_map <ea_t, insn_t>& InstructionHash,
+		insn_t& instruction
+	);
+	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool gatherCmdArray = false);
+	list <AddressRegion> GetFunctionBlocks(ea_t address);
+	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags);
+	void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
 public:
 	IDAAnalysis(DisassemblyStorage& disassemblyStorage);
 
-	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool gatherCmdArray = false);
-	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags, unordered_map <ea_t, ea_t>& AdditionallyAnalyzedBlocks);
-	void AnalyzeRegion(list <AddressRegion> &addressRegions, bool gatherCmdArray = false);
 	void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);	
 };
