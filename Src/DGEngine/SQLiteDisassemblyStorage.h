@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "sqlite3.h"
 #include "IDAAnalysisCommon.h"
-#include "DisassemblyProcessor.h"
+#include "DisassemblyStorage.h"
 #include <string>
 using namespace std;
 
@@ -10,7 +10,7 @@ typedef unsigned char BYTE;
 typedef unsigned char *PBYTE;
 typedef unsigned long DWORD;
 
-class SQLiteDisassemblyStorage: DisassemblyProcessor
+class SQLiteDisassemblyStorage: DisassemblyStorage
 {
 private:
 	sqlite3 *db;

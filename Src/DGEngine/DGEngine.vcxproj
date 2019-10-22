@@ -158,7 +158,7 @@
     <ClInclude Include="DataStructure.h" />
     <ClInclude Include="Diff.h" />
     <ClInclude Include="DiffMachine.h" />
-    <ClInclude Include="DisassemblyProcessor.h" />
+    <ClInclude Include="DisassemblyStorage.h" />
     <ClInclude Include="SQLiteDisassemblyStorage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="fileinfo.h" />
@@ -183,7 +183,7 @@
     <ClCompile Include="DarunGrim.cpp" />
     <ClCompile Include="Diff.cpp" />
     <ClCompile Include="DiffMachine.cpp" />
-    <ClCompile Include="DisassemblyStorage.cpp" />
+    <ClCompile Include="SQLiteDisassemblyStorage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="fileinfo.cpp" />
     <ClCompile Include="IDAAnalysis.cpp" />

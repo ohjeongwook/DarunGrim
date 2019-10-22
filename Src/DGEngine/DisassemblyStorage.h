@@ -3,7 +3,7 @@
 #include "IDAAnalysisCommon.h"
 using namespace std;
 
-class DisassemblyProcessor
+class DisassemblyStorage
 {
 public:
     virtual void SetFileInfo(FileInfo *p_file_info)
