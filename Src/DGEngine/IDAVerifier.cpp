@@ -13,6 +13,7 @@
 #include <auto.hpp>
 #include <range.hpp>
 
+#include "dprintf.h"
 #include "IDAVerifier.h"
 
 bool IsValidFunctionStart(ea_t address)
@@ -78,7 +79,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 		cref=get_next_cref_to(address,cref);
 	}
 
-	msg("ConnectBrokenFunctionChunk: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
+	dprintf("ConnectBrokenFunctionChunk: %s %s\n", function_name.c_str(), is_function? "is function": "is not function" );
 
 	if(!is_function)
 	{
@@ -93,7 +94,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 				qstring cref_function_name;
                 get_func_name(&cref_function_name, cref);
 
-				msg("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n", function_name.c_str(), address, cref_function_name.c_str(), cref_func->start_ea, cref);
+				dprintf("Adding Location %s(%X) To Function Member Of %s(%X:%X)\n", function_name.c_str(), address, cref_function_name.c_str(), cref_func->start_ea, cref);
 
 				append_func_tail(cref_func,address,GetBlockEnd(address));
 				connected_links_count++;
@@ -114,7 +115,7 @@ int ConnectBrokenFunctionChunk(ea_t address)
 				{
 					qstring cref_function_name;
 					get_func_name(&cref_function_name, cref);
-					msg("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name.c_str(), cref_func->start_ea, cref);
+					dprintf("Adding Function %s(%X) To Function Member Of %s(%X:%X)\n",function_name,address,cref_function_name.c_str(), cref_func->start_ea, cref);
 
 					append_func_tail(cref_func,address,GetBlockEnd(address));
 					connected_links_count++;
@@ -140,7 +141,7 @@ void FindInvalidFunctionStartAndConnectBrokenFunctionChunk()
 				qstring function_name;
 				get_short_name(&function_name, f->start_ea);
 
-				msg("Found invalid function: %s\n", function_name.c_str());
+				dprintf("Found invalid function: %s\n", function_name.c_str());
 				connected_links_count+=ConnectBrokenFunctionChunk(f->start_ea);
 			}		
 		}

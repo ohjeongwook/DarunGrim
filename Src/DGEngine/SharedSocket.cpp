@@ -70,7 +70,7 @@ PBYTE RecvTLVData(SOCKET client_socket,char *p_type,DWORD *p_length)
 		//return FALSE;
 	}else
 	{
-		//msg("Got %d bytes only\n",result);
+		//dprintf("Got %d bytes only\n",result);
 	}
 	if(WSAGetLastError()!=WSAEWOULDBLOCK)
 	{
@@ -107,7 +107,7 @@ LRESULT CALLBACK SharedSocketDataReceiverWndProc(HWND wnd,UINT message,WPARAM wp
 							{
 								gSharedSocketDataReceiver(data_socket,type,length,data);
 							}else{
-								//msg("Got Error on Socket\n");
+								//dprintf("Got Error on Socket\n");
 							}
 						
 							//WSAAsyncSelect: READ|CLOSE

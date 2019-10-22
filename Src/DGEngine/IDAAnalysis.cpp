@@ -634,7 +634,7 @@ void UpdateInstructionMap
 }
 
 
-void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool GatherCmdArray)
+void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool gatherCmdArray)
 {
 	string disasm_buffer;
 	
@@ -657,7 +657,7 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 		}
 
 		//WriteToLogFile(gLogFile, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
-		//msg("Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
+		//dprintf("Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
 
 		ea_t cref = get_first_cref_to(src_block_address);
 
@@ -779,7 +779,7 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 	basic_block.DisasmLinesLen=disasm_buffer.length()+1;
 	basic_block.FingerprintLen=FingerPrint.size();
 
-	if(GatherCmdArray)
+	if(gatherCmdArray)
 	{
 		basic_block.CmdArrayLen=pCmdArray->size()*sizeof(insn_t);
 	}else
@@ -812,7 +812,7 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 
 		insn_t *CmdsPtr=(insn_t *)(p_basic_block->Data+basic_block.NameLen+basic_block.DisasmLinesLen+basic_block.FingerprintLen);
 
-		if(GatherCmdArray)
+		if(gatherCmdArray)
 		{
 			int CmdArrayIndex=0;
 			for(list <insn_t>::iterator iter=pCmdArray->begin();iter!=pCmdArray->end();iter++,CmdArrayIndex++)
@@ -1200,14 +1200,11 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &StartEA,ea_t endEA,list <insn_t> *pCmdArray
 	return current_addr;
 }
 
-void IDAAnalysis::AnalyzeIDADataByRegion(list <AddressRegion> *pAddressRegions, bool GatherCmdArray)
+void IDAAnalysis::AnalyzeRegion(list <AddressRegion> &addressRegions, bool gatherCmdArray)
 {
-	if(!pAddressRegions)
-		return;
-
 	unordered_map <ea_t,ea_t> additionally_analyzed_blocks;
 
-	for (list <AddressRegion>::iterator it = pAddressRegions->begin(); it != pAddressRegions->end(); it++)
+	for (list <AddressRegion>::iterator it = addressRegions.begin(); it != addressRegions.end(); it++)
 	{
 		ea_t startEA = (*it).startEA;
 		ea_t endEA = (*it).endEA;
@@ -1239,12 +1236,12 @@ void IDAAnalysis::AnalyzeIDADataByRegion(list <AddressRegion> *pAddressRegions, 
 
 				if(NewCmdArray)
 				{
-					DumpBasicBlock(current_address, NewCmdArray, Flag, GatherCmdArray);
+					DumpBasicBlock(current_address, NewCmdArray, Flag, gatherCmdArray);
 					delete NewCmdArray;
 				}
 			}else
 			{
-				DumpBasicBlock(current_address, &CmdArray, Flag, GatherCmdArray);
+				DumpBasicBlock(current_address, &CmdArray, Flag, gatherCmdArray);
 			}
 
 			CmdArray.clear();
@@ -1275,7 +1272,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
         AddressQueueIter++
     )
 	{
-		msg("Analyzing Address %X\n", *AddressQueueIter);
+		dprintf("Analyzing Address %X\n", *AddressQueueIter);
 		ea_t block_StartAddress = *AddressQueueIter;
 
 		for(current_addr=block_StartAddress;;current_addr+=current_item_size)
@@ -1337,10 +1334,10 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
 				)
 				{
-					msg("Got Jump at %X\n",current_addr);
+					dprintf("Got Jump at %X\n",current_addr);
 					if(AddressHash.find(cref) == AddressHash.end())
 					{
-						msg("Adding %X to queue\n",cref);
+						dprintf("Adding %X to queue\n",cref);
 						AddressHash.insert(cref);
 						AddressQueue.push_back(cref);
 					}
@@ -1364,7 +1361,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 					)
 					{
 						//End of block
-						msg("Got End of Block at %X\n",current_addr);
+						dprintf("Got End of Block at %X\n",current_addr);
 						bEndOfBlock=TRUE;
 					}
 				}
@@ -1387,7 +1384,7 @@ list <AddressRegion> GetMemberAddresses(ea_t StartAddress)
 	list <AddressRegion>::iterator AddressRegionsIter;
 	for(AddressRegionsIter=AddressRegions.begin();AddressRegionsIter!=AddressRegions.end();AddressRegionsIter++)
 	{
-		msg("Collected Addresses %X - %X\n",(*AddressRegionsIter).startEA,(*AddressRegionsIter).endEA);
+		dprintf("Collected Addresses %X - %X\n",(*AddressRegionsIter).startEA,(*AddressRegionsIter).endEA);
 	}
 	*/
 	return AddressRegions;
@@ -1398,66 +1395,55 @@ IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
 	m_disassemblyStorage = disassemblyStorage;
 }
 
-void IDAAnalysis::AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray)
+void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
 	FileInfo file_info;
 	memset((char *)&file_info,0,sizeof(file_info));
 
-	msg("Retrieving File Information\n");
+	dprintf("Analyze: Retrieving File Information\n");
 	DWORD ComputerNameLen=sizeof(file_info.ComputerName);
 	GetComputerName(file_info.ComputerName,&ComputerNameLen);
 	DWORD UserNameLen=sizeof(file_info.UserName);
 	GetUserName(file_info.UserName,&UserNameLen);
 
 	char *input_file_path = NULL;
-
-	char OriginalFilePath[1024]={0,};
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
 	m_disassemblyStorage.SetFileInfo(&file_info);
 
-	ea_t saddr, eaddr;
+	dprintf("Analyze: %x ~ %x\n", startEA, endEA);
+	list <AddressRegion> AddressRegions;
 
-	// Get the user selection
-	int selected=0;
-	if(StartEA!=0 && EndEA!=0)
+	if (startEA == 0 && endEA == 0)
 	{
-		selected=TRUE;
-		saddr=StartEA;
-		eaddr=EndEA;
-	}else
+		for (int i = 0; i < get_segm_qty(); i++)
+		{
+			segment_t* seg_p = getnseg(i);
+			dprintf("Segment: %d (%llu ~ %llu)\n", i, seg_p->start_ea, seg_p->end_ea);
+
+			AddressRegion address_region;
+			address_region.startEA = seg_p->start_ea;
+			address_region.endEA = seg_p->end_ea;
+			AddressRegions.push_back(address_region);
+		}
+	}
+	else
 	{
 		//TODO: Porting selected= read_range_selection(&saddr,&eaddr);
-	}
-
-	printf("Sending Analyzed Information\n");
-	list <AddressRegion> AddressRegions;
-	if(selected)
-	{
-		func_t *cur_func_t=get_func(saddr);
-		if(cur_func_t->start_ea == saddr)
+		func_t *cur_func_t=get_func(startEA);
+		if(cur_func_t->start_ea == startEA)
 		{
 			//Collect all member addresses
-			AddressRegions = GetMemberAddresses(saddr);
+			AddressRegions = GetMemberAddresses(startEA);
 		}else
 		{
 			AddressRegion address_region;
-			address_region.startEA=saddr;
-			address_region.endEA=eaddr;
-			AddressRegions.push_back(address_region);
-		}
-	}else
-	{
-		for(int n=0;n<get_segm_qty();n++)
-		{
-			segment_t *seg_p=getnseg(n);
-			AddressRegion address_region;
-			address_region.startEA=seg_p->start_ea;
-			address_region.endEA=seg_p->end_ea;
+			address_region.startEA = startEA;
+			address_region.endEA= endEA;
 			AddressRegions.push_back(address_region);
 		}
 	}
 
-	AnalyzeIDADataByRegion(&AddressRegions, GatherCmdArray);	
+	AnalyzeRegion(AddressRegions, gatherCmdArray);
 	m_disassemblyStorage.EndAnalysis();
-	msg("Sent All Analysis Informations\n");
+	dprintf("Sent All Analysis Informations\n");
 }

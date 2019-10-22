@@ -3,9 +3,14 @@
 #include <windows.h>
 #include <stdio.h>
 #include <TCHAR.H>
+#include <ida.hpp>
+#include <expr.hpp>
+#include <bytes.hpp>
+#include <loader.hpp>
+#include <kernwin.hpp>
 #include "dprintf.h"
 
-void PrintToStdOutWithTime(const TCHAR *format,...)
+void dprintf(const TCHAR *format,...)
 {
 	TCHAR statement_buffer[1024]={0,};
 
@@ -17,7 +22,7 @@ void PrintToStdOutWithTime(const TCHAR *format,...)
 	SYSTEMTIME lt;
 	GetLocalTime(&lt);
 
-	printf("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
+	dprintf("[%02d:%02d:%02d] %s",lt.wHour,lt.wMinute,lt.wSecond,statement_buffer);
 }
 
 HANDLE OpenLogFile(const char *szTempName)
@@ -67,7 +72,7 @@ void WriteToLogFile(HANDLE hFile,const char *format,...)
 	}else
 	{
 #ifdef IDA_PLUGIN
-		msg("%s",Contents);
+		dprintf("%s",Contents);
 #else
 		OutputDebugStringA(Contents);
 #endif

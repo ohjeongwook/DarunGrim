@@ -265,8 +265,8 @@ private:
 public:
 	IDAAnalysis(DisassemblyStorage& disassemblyStorage);
 
-	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool GatherCmdArray = false);
+	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool gatherCmdArray = false);
 	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags, unordered_map <ea_t, ea_t>& AdditionallyAnalyzedBlocks);
-	void AnalyzeIDADataByRegion(list <AddressRegion>* pAddressRegions, bool GatherCmdArray = false);
-	void AnalyzeIDAData(ea_t StartEA, ea_t EndEA, bool GatherCmdArray = false);	
+	void AnalyzeRegion(list <AddressRegion> &addressRegions, bool gatherCmdArray = false);
+	void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);	
 };
