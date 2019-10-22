@@ -264,7 +264,9 @@ private:
 	);
 	void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool gatherCmdArray = false);
 	list <AddressRegion> GetFunctionBlocks(ea_t address);
-	ea_t AnalyzeBlock(ea_t& StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags);
+
+	ea_t AnalyzeBlock(ea_t StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags);
+	void AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray);
 	void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
 public:
 	IDAAnalysis(DisassemblyStorage& disassemblyStorage);

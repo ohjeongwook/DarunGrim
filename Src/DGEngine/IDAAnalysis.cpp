@@ -293,7 +293,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 			AddInstructionByOrder(InstructionHash,RootAddresses,InstructionHashIter->first);
 		}
 	}
-	WriteToLogFile(gLogFile,"InstructionHash=%u, RootAddresses=%u entries\r\n",InstructionHash.size(),RootAddresses.size());
+	LogMessage(0, __FUNCTION__,"InstructionHash=%u, RootAddresses=%u entries\r\n",InstructionHash.size(),RootAddresses.size());
 
 	list <ea_t> OrderedAddresses;
 	list <string> Signatures;
@@ -304,7 +304,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 		list <ea_t>::iterator TargetAddressesIter;
 		TargetAddresses.push_back(*RootAddressesIter);
 		list <insn_t> Signature;
-		WriteToLogFile(gLogFile,"RootAddressesIter=%X ",*RootAddressesIter);
+		LogMessage(0, __FUNCTION__,"RootAddressesIter=%X ",*RootAddressesIter);
 		for(TargetAddressesIter=TargetAddresses.begin();TargetAddressesIter!=TargetAddresses.end();TargetAddressesIter++)
 		{
 			for(int Index=0;Index<UA_MAXOP;Index++)
@@ -330,11 +330,11 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 		//Convert it to string and add to string list.
 		for(TargetAddressesIter=TargetAddresses.begin();TargetAddressesIter!=TargetAddresses.end();TargetAddressesIter++)
 		{
-			WriteToLogFile(gLogFile,"%X-",*TargetAddressesIter);
+			LogMessage(0, __FUNCTION__,"%X-",*TargetAddressesIter);
 			OrderedAddresses.push_back(*TargetAddressesIter);
 		}
 		//Signatures.push_back();
-		WriteToLogFile(gLogFile,"\r\n");
+		LogMessage(0, __FUNCTION__,"\r\n");
 	}
 
 	//OrderedAddresses
@@ -356,7 +356,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 		InstructionHashIter=InstructionHash.find(*AddressesIter);
 		if(InstructionHashIter!=InstructionHash.end())
 		{
-			WriteToLogFile(gLogFile,"Instruction at %X == %X: ",*AddressesIter,InstructionHashIter->second.ea);
+			LogMessage(0, __FUNCTION__,"Instruction at %X == %X: ",*AddressesIter,InstructionHashIter->second.ea);
 			for(int i=0;i<UA_MAXOP;i++)
 			{
 				if(InstructionHashIter->second.ops[i].type>0)
@@ -364,7 +364,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition,OperandPosition,Oper
 					DumpOperand(gLogFile,InstructionHashIter->second.ops[i]);
 				}
 			}
-			WriteToLogFile(gLogFile,"\r\n");
+			LogMessage(0, __FUNCTION__,"\r\n");
 
 			CmdArray->push_back(InstructionHashIter->second);
 		}
@@ -501,7 +501,7 @@ void IDAAnalysis::UpdateInstructionMap
 	GetFeatureBits(instruction.itype,Features,sizeof(Features), insn);
 
 	if(Debug>0)
-		WriteToLogFile(gLogFile,"%s(%X) %s\r\n",ph.instruc[instruction.itype].name,instruction.itype,GetFeatureStr(ph.instruc[instruction.itype].feature).c_str());
+		LogMessage(0, __FUNCTION__,"%s(%X) %s\r\n",ph.instruc[instruction.itype].name,instruction.itype,GetFeatureStr(ph.instruc[instruction.itype].feature).c_str());
 
 	//Flags Tracing
 	list <int> Flags=GetRelatedFlags(instruction.itype,true);
@@ -577,7 +577,7 @@ void IDAAnalysis::UpdateInstructionMap
 			//o_phrase,o_displ -> phrase
 			//outer displacement (o_displ+OF_OUTER_DISP) -> value
 			//o_imm -> value
-			WriteToLogFile(gLogFile,"\tOperand %u: [%s%s] ",i,(Features[i]&CF_CHG)?"CHG":"",(Features[i]&CF_USE)?"USE":"");
+			LogMessage(0, __FUNCTION__,"\tOperand %u: [%s%s] ",i,(Features[i]&CF_CHG)?"CHG":"",(Features[i]&CF_USE)?"USE":"");
 			if(Features[i]&CF_USE)
 			{
 				unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn>::iterator iter=OperandsHash.find(*pOperand);
@@ -626,7 +626,7 @@ void IDAAnalysis::UpdateInstructionMap
 				operand_position.Address=address;
 				operand_position.Index=i;
 				OperandsHash.erase(instruction.ops[i]);
-				WriteToLogFile(gLogFile,"Inserting %u\r\n",i);
+				LogMessage(0, __FUNCTION__,"Inserting %u\r\n",i);
 				OperandsHash.insert(pair<op_t,OperandPosition>(instruction.ops[i],operand_position));
 			}
 		}
@@ -655,8 +655,8 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 			basic_block.FunctionAddress=p_func->start_ea;
 		}
 
-		//WriteToLogFile(gLogFile, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
-		//LogMessage(1, __FUNCTION__, "Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
+		//LogMessage(0, __FUNCTION__, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
+		//LogMessage(0, __FUNCTION__, "Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
 
 		ea_t cref = get_first_cref_to(src_block_address);
 
@@ -767,7 +767,7 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
             tag_remove(&buf);
 
 			if(Debug>3)
-				WriteToLogFile(gLogFile,"%X(%X): [%s]\n",(*CmdArrayIter).ea,basic_block.StartAddress,buf);
+				LogMessage(0, __FUNCTION__,"%X(%X): [%s]\n",(*CmdArrayIter).ea,basic_block.StartAddress,buf);
 
             buf += "\n";
 			disasm_buffer += buf.c_str();
@@ -845,7 +845,7 @@ list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
 		blocksIter++
 		)
 	{
-		LogMessage(1, __FUNCTION__, "Analyzing %X\n", *blocksIter);
+		LogMessage(0, __FUNCTION__, "Analyzing %X\n", *blocksIter);
 		ea_t block_StartAddress = *blocksIter;
 
 		for (current_addr = block_StartAddress;; current_addr += current_item_size)
@@ -907,10 +907,10 @@ list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
 					insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
 					)
 				{
-					LogMessage(1, __FUNCTION__, "Got Jump at %X\n", current_addr);
+					LogMessage(0, __FUNCTION__, "Got Jump at %X\n", current_addr);
 					if (AddressHash.find(cref) == AddressHash.end())
 					{
-						LogMessage(1, __FUNCTION__, "Adding %X to queue\n", cref);
+						LogMessage(0, __FUNCTION__, "Adding %X to queue\n", cref);
 						AddressHash.insert(cref);
 						blocks.push_back(cref);
 					}
@@ -934,7 +934,7 @@ list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
 						)
 					{
 						//End of block
-						LogMessage(1, __FUNCTION__, "Got End of Block at %X\n", current_addr);
+						LogMessage(0, __FUNCTION__, "Got End of Block at %X\n", current_addr);
 						bEndOfBlock = TRUE;
 					}
 				}
@@ -957,21 +957,21 @@ list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
 	list <AddressRegion>::iterator regionsIter;
 	for(regionsIter=regions.begin();regionsIter!=regions.end();regionsIter++)
 	{
-		LogMessage(1, __FUNCTION__, "Collected Addresses %X - %X\n",(*regionsIter).startEA,(*regionsIter).endEA);
+		LogMessage(0, __FUNCTION__, "Collected Addresses %X - %X\n",(*regionsIter).startEA,(*regionsIter).endEA);
 	}
 	*/
 	return regions;
 }
 
 
-ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArray, flags_t *p_flags)
+ea_t IDAAnalysis::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArray, flags_t *p_flags)
 {
 	while(1)
 	{
 		unordered_map <ea_t,ea_t>::iterator newFoundblockIter=NewFoundBlocks.find(startEA);
 		if(newFoundblockIter!= NewFoundBlocks.end())
 		{
-			LogMessage(1, __FUNCTION__, "%s: [newFoundblockIter] Skip %X block to %X\n",__FUNCTION__, startEA, newFoundblockIter->second);
+			LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Skip %X block to %X\n",__FUNCTION__, startEA, newFoundblockIter->second);
 
 			if(startEA == newFoundblockIter->second)
 				break;
@@ -989,7 +989,13 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArr
 	ea_t current_block_start_address=current_addr;
 
 	int InstructionCount=0;
-	LogMessage(1, __FUNCTION__, "Analyzing %X ~ %X\n", current_addr, endEA);
+
+	int logLevel = 0;
+	if (is_code(current_addr))
+	{
+		logLevel = 1;
+	}
+	LogMessage(logLevel, __FUNCTION__, "Analyzing %X ~ %X\n", current_addr, endEA);
 
 	bool found_branch=FALSE; //first we branch
 	for( ; current_addr <= endEA ; )
@@ -1278,13 +1284,13 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArr
 					//next_block_addr should not be analyzed again next time.
 					if(current_block_start_address != startEA)
 					{
-						WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+						LogMessage(0, __FUNCTION__,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
 						NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 					}
 					if(current_block_start_address!=next_block_addr)
 					{
 						current_block_start_address=next_block_addr;
-						WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set current_block_start_address=%X\n",__FUNCTION__,current_block_start_address);
+						LogMessage(0, __FUNCTION__,"%s: [newFoundblockIter] Set current_block_start_address=%X\n",__FUNCTION__,current_block_start_address);
 						current_addr=next_block_addr;
 						found_branch=FALSE;
 						cref_list.clear();
@@ -1317,7 +1323,7 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArr
 
 			if(current_block_start_address != startEA)
 			{
-				WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
+				LogMessage(0, __FUNCTION__,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr+current_item_size);
 				NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr+current_item_size));
 			}
 
@@ -1329,10 +1335,11 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t &startEA, ea_t endEA, list <insn_t> *pCmdArr
 	}
 	if(current_block_start_address != startEA)
 	{
-		WriteToLogFile(gLogFile,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr);
+		LogMessage(0, __FUNCTION__,"%s: [newFoundblockIter] Set Analyzed %X~%X\n",__FUNCTION__,current_block_start_address,current_addr);
 		NewFoundBlocks.insert(pair<ea_t,ea_t>(current_block_start_address,current_addr));
 	}
-	WriteToLogFile(gLogFile,"%s: CmdArray size=%u\n",__FUNCTION__,pCmdArray->size());
+
+	LogMessage(0, __FUNCTION__,"%s: CmdArray size=%u\n",__FUNCTION__,pCmdArray->size());
 	if(first_block_end_address)
 		return first_block_end_address;
 	return current_addr;
@@ -1343,17 +1350,16 @@ IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
 	m_disassemblyStorage = disassemblyStorage;
 }
 
-void IDAAnalysis::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
+void IDAAnalysis::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
-	LogMessage(1, __FUNCTION__, "AnalyzeRegion %X ~ %X\n", region.startEA, region.endEA);
+	LogMessage(1, __FUNCTION__, "AnalyzeRegion %X ~ %X\n", startEA, endEA);
 
-	ea_t current_address;
-	for (current_address = region.startEA; current_address < region.endEA; )
+	for (ea_t current_address = startEA; current_address < endEA; )
 	{
 		list <insn_t> CmdArray;
 		flags_t Flag;
 
-		ea_t next_address = AnalyzeBlock(current_address, region.endEA, &CmdArray, &Flag);
+		ea_t next_address = AnalyzeBlock(current_address, endEA, &CmdArray, &Flag);
 		if (0)
 		{
 			unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
@@ -1387,6 +1393,11 @@ void IDAAnalysis::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
 	}
 }
 
+void IDAAnalysis::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
+{
+	AnalyzeRegion(region.startEA, region.endEA, gatherCmdArray);
+}
+
 void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
 	FileInfo file_info;
@@ -1405,7 +1416,6 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 	m_disassemblyStorage.SetFileInfo(&file_info);
 
 	LogMessage(1, __FUNCTION__, "Analyze: %x ~ %x\n", startEA, endEA);
-	list <AddressRegion> regions;
 
 	if (startEA == 0 && endEA == 0)
 	{
@@ -1417,7 +1427,7 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 			AddressRegion address_region;
 			address_region.startEA = seg_p->start_ea;
 			address_region.endEA = seg_p->end_ea;
-			regions.push_back(address_region);
+			AnalyzeRegion(address_region, gatherCmdArray);
 		}
 	}
 	else
@@ -1427,18 +1437,18 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 		if(cur_func_t->start_ea == startEA)
 		{
 			//Collect all member addresses
-			regions = GetFunctionBlocks(startEA);
+			list <AddressRegion> regions = GetFunctionBlocks(startEA);
+			for (list <AddressRegion>::iterator it = regions.begin(); it != regions.end(); it++)
+			{
+				AnalyzeRegion(*it, gatherCmdArray);
+			}
 		}else
 		{
 			AddressRegion address_region;
 			address_region.startEA = startEA;
 			address_region.endEA= endEA;
-			regions.push_back(address_region);
+			AnalyzeRegion(address_region, gatherCmdArray);
 		}
-	}
-	for (list <AddressRegion>::iterator it = regions.begin(); it != regions.end(); it++)
-	{
-		AnalyzeRegion(*it, gatherCmdArray);
 	}
 
 	m_disassemblyStorage.EndTransaction();

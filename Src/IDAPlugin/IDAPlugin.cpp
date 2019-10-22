@@ -177,7 +177,6 @@ typedef struct _ChooseListObj_ {
     RangeList range_list;
 } ChooseListObj, *PChooseListObj;
 
-
 const int column_widths[] = { 16, 32, 5, 5, 16, 32, 5, 5 };
 const char *column_header[] =
 {
@@ -730,7 +729,7 @@ bool idaapi run(size_t arg)
                 "from DarunGrim4 GUI to get the port information\n"
                 "<Port:D:10:10::>\n";
             sval_t port = DARUNGRIM_PORT;
-            //TODO: if (AskUsingForm_c(dialog, &port) == 1)
+            if (ask_form(dialog, &port) == 1)
             {
                 ConnectToDarunGrim(port);
             }
@@ -750,7 +749,7 @@ char help[] =
 "This module let you analyze differences in two binaries.\n";
 
 char wanted_name[] = "DarunGrim";
-char wanted_hotkey[] = "Alt-6";
+char wanted_hotkey[] = "Alt-7";
 
 plugin_t PLUGIN =
 {
@@ -764,4 +763,3 @@ plugin_t PLUGIN =
     wanted_name,
     wanted_hotkey
 };
-
