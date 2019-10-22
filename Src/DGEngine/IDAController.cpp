@@ -646,7 +646,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 			continue;
 
 		if( m_disassemblyStorage )
-			m_FileID = m_disassemblyStorage->DatabaseWriterWrapper(type, data, length);
+			m_FileID = m_disassemblyStorage->ProcessTLV(type, data, length);
 
 		if(type  ==  BASIC_BLOCK && sizeof(BasicBlock)<= length)
 		{

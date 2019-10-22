@@ -23,10 +23,10 @@ public:
 public:
     void SetFileInfo(FileInfo *p_file_info);
     void EndAnalysis();
-    void AddBasicBlock(PBasicBlock p_basic_block);
-    void AddMapInfo(PMapInfo p_map_info);
+	void AddBasicBlock(PBasicBlock pBasicBlock, int fileID = 0);
+    void AddMapInfo(PMapInfo p_map_info, int fileID = 0);
 
-    int DatabaseWriterWrapper(BYTE Type, PBYTE Data, DWORD Length);
+    int ProcessTLV(BYTE Type, PBYTE Data, DWORD Length);
 
     void CreateTables();
     bool Open(char *DatabaseName);

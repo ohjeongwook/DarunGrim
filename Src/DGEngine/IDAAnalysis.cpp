@@ -1451,8 +1451,8 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 		}
 	}
 
-	m_disassemblyStorage.EndTransaction();
 	m_disassemblyStorage.EndAnalysis();
+	m_disassemblyStorage.EndTransaction();
 
 	LogMessage(1, __FUNCTION__, "Finished Analysis\n");
 }
