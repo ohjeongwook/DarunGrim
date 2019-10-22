@@ -8,7 +8,7 @@
 
 //DB Related
 #include "sqlite3.h"
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 
 #include <unordered_set>
 using namespace std;
@@ -23,7 +23,7 @@ extern LogOperation Logger;
 char *MapInfoTypesStr[] = {"Call", "Cref From", "Cref To", "Dref From", "Dref To"};
 int types[] = {CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED};
 
-IDAController::IDAController(DisassemblyStorage *disassemblyStorage):
+IDAController::IDAController(SQLiteDisassemblyStorage *disassemblyStorage):
 	ClientAnalysisInfo(NULL),
 	TargetFunctionAddress(0),
 	m_OriginalFilePath(NULL),
@@ -581,7 +581,7 @@ BOOL IDAController::Load()
 	return TRUE;
 }
 
-void IDAController::DeleteMatchInfo(DisassemblyStorage *InputDB, int FileID, DWORD FunctionAddress )
+void IDAController::DeleteMatchInfo(SQLiteDisassemblyStorage *InputDB, int FileID, DWORD FunctionAddress )
 {
 	if( m_disassemblyStorage )
 	{

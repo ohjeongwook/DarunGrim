@@ -4,12 +4,12 @@
 
 #include "sqlite3.h"
 
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 #include "Log.h"
 
 using namespace std;
 
-DisassemblyStorage::DisassemblyStorage(const char *DatabaseName)
+SQLiteDisassemblyStorage::SQLiteDisassemblyStorage(const char *DatabaseName)
 {
 	db=NULL;
     if (DatabaseName)
@@ -19,12 +19,12 @@ DisassemblyStorage::DisassemblyStorage(const char *DatabaseName)
     }
 }
 
-DisassemblyStorage::~DisassemblyStorage()
+SQLiteDisassemblyStorage::~SQLiteDisassemblyStorage()
 {
 	CloseDatabase();
 }
 
-void DisassemblyStorage::CreateTables()
+void SQLiteDisassemblyStorage::CreateTables()
 {
 	ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_STATEMENT);
 	ExecuteStatement(NULL, NULL, CREATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_INDEX_STATEMENT);
@@ -34,13 +34,13 @@ void DisassemblyStorage::CreateTables()
 	ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
 	ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
 }
-bool DisassemblyStorage::Open(char* DatabaseName)
+bool SQLiteDisassemblyStorage::Open(char* DatabaseName)
 {
 	m_DatabaseName = DatabaseName;
 	return CreateDatabase(DatabaseName);
 }
 
-bool DisassemblyStorage::CreateDatabase(const char* DatabaseName)
+bool SQLiteDisassemblyStorage::CreateDatabase(const char* DatabaseName)
 {
 	//Database Setup
 	m_DatabaseName = DatabaseName;
@@ -55,12 +55,12 @@ bool DisassemblyStorage::CreateDatabase(const char* DatabaseName)
 	return TRUE;
 }
 
-const char* DisassemblyStorage::GetDatabaseName()
+const char* SQLiteDisassemblyStorage::GetDatabaseName()
 {
 	return m_DatabaseName.c_str();
 }
 
-void DisassemblyStorage::CloseDatabase()
+void SQLiteDisassemblyStorage::CloseDatabase()
 {
 	//Close Database
 	if (db)
@@ -70,22 +70,22 @@ void DisassemblyStorage::CloseDatabase()
 	}
 }
 
-int DisassemblyStorage::BeginTransaction()
+int SQLiteDisassemblyStorage::BeginTransaction()
 {
 	return ExecuteStatement(NULL, NULL, "BEGIN TRANSACTION");
 }
 
-int DisassemblyStorage::EndTransaction()
+int SQLiteDisassemblyStorage::EndTransaction()
 {
 	return ExecuteStatement(NULL, NULL, "COMMIT");
 }
 
-int DisassemblyStorage::GetLastInsertRowID()
+int SQLiteDisassemblyStorage::GetLastInsertRowID()
 {
 	return (int)sqlite3_last_insert_rowid(db);
 }
 
-int DisassemblyStorage::ExecuteStatement(sqlite3_callback callback, void* context, const char* format, ...)
+int SQLiteDisassemblyStorage::ExecuteStatement(sqlite3_callback callback, void* context, const char* format, ...)
 {
 	int debug = 0;
 
@@ -152,7 +152,7 @@ int DisassemblyStorage::ExecuteStatement(sqlite3_callback callback, void* contex
 	return SQLITE_ERROR;
 }
 
-void DisassemblyStorage::SetFileInfo(FileInfo * pFileInfo)
+void SQLiteDisassemblyStorage::SetFileInfo(FileInfo * pFileInfo)
 {
 	ExecuteStatement(NULL, NULL, INSERT_FILE_INFO_TABLE_STATEMENT,
 		pFileInfo->OriginalFilePath,
@@ -168,7 +168,7 @@ void DisassemblyStorage::SetFileInfo(FileInfo * pFileInfo)
 	);
 }
 
-void DisassemblyStorage::AddBasicBlock(PBasicBlock pBasicBlock, int fileID)
+void SQLiteDisassemblyStorage::AddBasicBlock(PBasicBlock pBasicBlock, int fileID)
 {
 	char* fingerprintStr = NULL;
 	if (pBasicBlock->FingerprintLen > 0)
@@ -203,7 +203,7 @@ void DisassemblyStorage::AddBasicBlock(PBasicBlock pBasicBlock, int fileID)
 		free(fingerprintStr);
 }
 
-void DisassemblyStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
+void SQLiteDisassemblyStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
 {
 	ExecuteStatement(NULL, NULL, INSERT_MAP_INFO_TABLE_STATEMENT,
 		fileID,
@@ -214,11 +214,11 @@ void DisassemblyStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
 	);
 }
 
-void DisassemblyStorage::EndAnalysis()
+void SQLiteDisassemblyStorage::EndAnalysis()
 {
 }
 
-int DisassemblyStorage::ProcessTLV(BYTE Type, PBYTE Data, DWORD Length)
+int SQLiteDisassemblyStorage::ProcessTLV(BYTE Type, PBYTE Data, DWORD Length)
 {
     static int fileID = 0;
     bool Status = FALSE;
@@ -254,7 +254,7 @@ int DisassemblyStorage::ProcessTLV(BYTE Type, PBYTE Data, DWORD Length)
 }
 
 
-int DisassemblyStorage::display_callback(void *NotUsed, int argc, char **argv, char **azColName)
+int SQLiteDisassemblyStorage::display_callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	int i;
 	for(i=0; i<argc; i++){
@@ -263,7 +263,7 @@ int DisassemblyStorage::display_callback(void *NotUsed, int argc, char **argv, c
 	return 0;
 }
 
-int DisassemblyStorage::ReadRecordIntegerCallback(void *arg,int argc,char **argv,char **names)
+int SQLiteDisassemblyStorage::ReadRecordIntegerCallback(void *arg,int argc,char **argv,char **names)
 {
 #if DEBUG_LEVEL > 2
 	printf("%s: arg=%x %d\n",__FUNCTION__,arg,argc);
@@ -276,7 +276,7 @@ int DisassemblyStorage::ReadRecordIntegerCallback(void *arg,int argc,char **argv
 	return 0;
 }
 
-int DisassemblyStorage::ReadRecordStringCallback(void *arg,int argc,char **argv,char **names)
+int SQLiteDisassemblyStorage::ReadRecordStringCallback(void *arg,int argc,char **argv,char **names)
 {
 #if DEBUG_LEVEL > 2
 	printf("%s: arg=%x %d\n",__FUNCTION__,arg,argc);

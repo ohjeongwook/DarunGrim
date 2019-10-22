@@ -10,15 +10,15 @@ typedef unsigned char BYTE;
 typedef unsigned char *PBYTE;
 typedef unsigned long DWORD;
 
-class DisassemblyStorage: DisassemblyProcessor
+class SQLiteDisassemblyStorage: DisassemblyProcessor
 {
 private:
 	sqlite3 *db;
 	string m_DatabaseName;
 
 public:
-    DisassemblyStorage(const char *DatabaseName = NULL);
-    ~DisassemblyStorage();
+    SQLiteDisassemblyStorage(const char *DatabaseName = NULL);
+    ~SQLiteDisassemblyStorage();
 
 public:
     void SetFileInfo(FileInfo *p_file_info);

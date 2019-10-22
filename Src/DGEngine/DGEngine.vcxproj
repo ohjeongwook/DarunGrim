@@ -159,7 +159,7 @@
     <ClInclude Include="Diff.h" />
     <ClInclude Include="DiffMachine.h" />
     <ClInclude Include="DisassemblyProcessor.h" />
-    <ClInclude Include="DisassemblyStorage.h" />
+    <ClInclude Include="SQLiteDisassemblyStorage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="fileinfo.h" />
     <ClInclude Include="IDAAnalysis.h" />

@@ -5,7 +5,7 @@
 #include "IDAAnalysisCommon.h"
 #include "IDAAnalysis.h"
 
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 #include <vector>
 #include <unordered_set>
 #include <list>
@@ -1345,7 +1345,7 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
 	return current_addr;
 }
 
-IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
+IDAAnalysis::IDAAnalysis(SQLiteDisassemblyStorage& disassemblyStorage)
 {
 	m_disassemblyStorage = disassemblyStorage;
 }

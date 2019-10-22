@@ -11,7 +11,7 @@
 #include <name.hpp>
 #include <allins.hpp>
 
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -252,7 +252,7 @@ void DumpDOT(
 class IDAAnalysis
 {
 private:
-	DisassemblyStorage m_disassemblyStorage;
+	SQLiteDisassemblyStorage m_disassemblyStorage;
 	unordered_map <ea_t, ea_t> NewFoundBlocks;
 
 	void UpdateInstructionMap(
@@ -269,7 +269,7 @@ private:
 	void AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray);
 	void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
 public:
-	IDAAnalysis(DisassemblyStorage& disassemblyStorage);
+	IDAAnalysis(SQLiteDisassemblyStorage& disassemblyStorage);
 
 	void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);	
 };

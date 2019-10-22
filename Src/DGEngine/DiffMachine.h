@@ -190,7 +190,7 @@ private:
 	void RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address );
 	void GenerateFunctionMatchInfo();
 
-	BOOL DeleteMatchInfo(DisassemblyStorage& disassemblyStorage );
+	BOOL DeleteMatchInfo(SQLiteDisassemblyStorage& disassemblyStorage );
 
 	unordered_set <DWORD> TheSourceUnidentifedBlockHash;
 	unordered_set <DWORD> TheTargetUnidentifedBlockHash;
@@ -261,7 +261,7 @@ public:
 	BOOL IsInUnidentifiedBlockHash( int index, DWORD address );
 
 	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
+	BOOL Save(SQLiteDisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
 	
 private:
 	BOOL bRetrieveDataForAnalysis;
@@ -297,9 +297,9 @@ private:
 	int TargetID;
 	DWORD TargetFunctionAddress;
 
-    DisassemblyStorage *m_diffDisassemblyStorage;
-    DisassemblyStorage *m_sourceDisassemblyStorage;
-    DisassemblyStorage *m_targetDisassemblyStorage;
+    SQLiteDisassemblyStorage *m_diffDisassemblyStorage;
+    SQLiteDisassemblyStorage *m_sourceDisassemblyStorage;
+    SQLiteDisassemblyStorage *m_targetDisassemblyStorage;
 
 	IDAController *SourceController;
 	IDAController *TargetController;
@@ -323,14 +323,14 @@ public:
 		TargetFunctionAddress = function_address;
 	}
 
-	void SetSource(DisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
+	void SetSource(SQLiteDisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_sourceDisassemblyStorage = disassemblyStorage;
 		SourceID = id;
 		SourceFunctionAddress = function_address;
 	}
 
-	void SetTarget(DisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
+	void SetTarget(SQLiteDisassemblyStorage *disassemblyStorage, DWORD id = 1, DWORD function_address = 0)
 	{
 		m_targetDisassemblyStorage = disassemblyStorage;
 		TargetID = id;
@@ -345,7 +345,7 @@ public:
 
 	BOOL Create(const char *DiffDBFilename);
 	BOOL Load(const char *DiffDBFilename);
-	BOOL Load(DisassemblyStorage *disassemblyStorage);
+	BOOL Load(SQLiteDisassemblyStorage *disassemblyStorage);
 
 	bool ShowFullMatched;
 	bool ShowNonMatched;

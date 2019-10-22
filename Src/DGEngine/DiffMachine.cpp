@@ -2333,7 +2333,7 @@ BOOL DiffMachine::Save(char *DataFile, BYTE Type, DWORD Offset, DWORD dwMoveMeth
 	return FALSE;
 }
 
-BOOL DiffMachine::Save(DisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses, unordered_set <DWORD> *pTheTargetSelectedAddresses )
+BOOL DiffMachine::Save(SQLiteDisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses, unordered_set <DWORD> *pTheTargetSelectedAddresses )
 {
 	if( !SourceController || !TargetController)
 		return FALSE;
@@ -2574,7 +2574,7 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 {
 	Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-	m_diffDisassemblyStorage = new DisassemblyStorage(DiffDBFilename);
+	m_diffDisassemblyStorage = new SQLiteDisassemblyStorage(DiffDBFilename);
 	FileList DiffFileList;
 	m_diffDisassemblyStorage->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
 
@@ -2612,12 +2612,12 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 	if (SourceDBName.size()>0 && TargetDBName.size()>0)
 	{
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", SourceDBName.c_str());
-		m_sourceDisassemblyStorage = new DisassemblyStorage();
+		m_sourceDisassemblyStorage = new SQLiteDisassemblyStorage();
 		m_sourceDisassemblyStorage->CreateDatabase(SourceDBName.c_str());
 		SetSource(SourceDBName.c_str(), 1, SourceFunctionAddress);
 
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
-		m_targetDisassemblyStorage = new DisassemblyStorage();
+		m_targetDisassemblyStorage = new SQLiteDisassemblyStorage();
 		m_targetDisassemblyStorage->CreateDatabase(TargetDBName.c_str());
 		SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
 	}
@@ -2633,7 +2633,7 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 	return _Load();
 }
 
-BOOL DiffMachine::Load(DisassemblyStorage* DiffDB)
+BOOL DiffMachine::Load(SQLiteDisassemblyStorage* DiffDB)
 {
 	m_diffDisassemblyStorage = DiffDB;
 	m_sourceDisassemblyStorage = DiffDB;
@@ -2729,7 +2729,7 @@ BOOL DiffMachine::_Load()
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo(DisassemblyStorage& OutputDB )
+BOOL DiffMachine::DeleteMatchInfo(SQLiteDisassemblyStorage& OutputDB )
 {
 	if( SourceFunctionAddress > 0 && TargetFunctionAddress > 0 )
 	{

@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 
 #include <string>
 using namespace std;
@@ -20,7 +20,7 @@ private:
 	IDAController *pSourceController;
 	IDAController *pTargetController;
 
-    DisassemblyStorage *pDisassemblyStorage;
+    SQLiteDisassemblyStorage *pDisassemblyStorage;
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase(char *storage_filename);
 	string SourceFilename;
@@ -152,7 +152,7 @@ public:
 	void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-    DisassemblyStorage *m_disassemblyStorage;
+    SQLiteDisassemblyStorage *m_disassemblyStorage;
 	unsigned short ListeningPort;
 	SOCKET ListeningSocket;
 	IDAController *IDAControllers[2];
@@ -174,7 +174,7 @@ private:
 	string TargetIdentity;
 public:
 
-	void SetDatabase(DisassemblyStorage *disassemblyStorage);
+	void SetDatabase(SQLiteDisassemblyStorage *disassemblyStorage);
 	unsigned short StartIDAListenerThread(unsigned short port);
 	void ListIDAControllers();
 	IDAController *FindIDAController(const char *identity);

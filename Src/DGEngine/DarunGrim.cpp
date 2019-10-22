@@ -6,7 +6,7 @@
 #include "LogOperation.h"
 
 #include "SocketOperation.h"
-#include "DisassemblyStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 #include "ProcessUtils.h"
 #include "IDAAnalysisCommon.h"
 
@@ -182,7 +182,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 		if( m_disassemblyStorage )
 			delete m_disassemblyStorage;
 
-		m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
+		m_disassemblyStorage = new SQLiteDisassemblyStorage( (char *) storage_filename );
 	}
 
 	if( m_disassemblyStorage )
@@ -228,7 +228,7 @@ int ReadFileInfo(void *arg, int argc, char **argv, char **names)
 
 void DarunGrim::ListDiffDatabase(const char *storage_filename)
 {
-    DisassemblyStorage *disassemblyStorage = new DisassemblyStorage((char *)storage_filename);
+    SQLiteDisassemblyStorage *disassemblyStorage = new SQLiteDisassemblyStorage((char *)storage_filename);
     disassemblyStorage->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
 }
 
@@ -254,7 +254,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_addre
 		delete m_disassemblyStorage;
 
 	Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-	m_disassemblyStorage = new DisassemblyStorage((char *)output_storage_filename);
+	m_disassemblyStorage = new SQLiteDisassemblyStorage((char *)output_storage_filename);
 	SetDatabase(m_disassemblyStorage);
 
 	pDiffMachine->Save(*m_disassemblyStorage);
@@ -269,13 +269,13 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 	if( m_disassemblyStorage )
 		delete m_disassemblyStorage;
 
-	m_disassemblyStorage = new DisassemblyStorage(storage_filename);
+	m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
 	return TRUE;
 }
 
 bool DarunGrim::Load( const char *storage_filename )
 {
-	m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
+	m_disassemblyStorage = new SQLiteDisassemblyStorage( (char *) storage_filename );
 	if( m_disassemblyStorage )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
@@ -322,7 +322,7 @@ bool DarunGrim::ShowOnIDA()
 	return TRUE;
 }
 
-void DarunGrim::SetDatabase(DisassemblyStorage *OutputDB)
+void DarunGrim::SetDatabase(SQLiteDisassemblyStorage *OutputDB)
 {
 	m_disassemblyStorage = OutputDB;
 }
