@@ -7,7 +7,7 @@
 #include <bytes.hpp>
 #include <loader.hpp>
 #include <kernwin.hpp>
-#include "dprintf.h"
+#include "Log.h"
 
 int ThresholdLevel = 0;
 void SetLogLevel(int thresholdLevel)

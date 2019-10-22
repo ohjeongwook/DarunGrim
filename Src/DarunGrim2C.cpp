@@ -10,7 +10,7 @@
 #include "DisassemblyStorage.h"
 #include "XGetopt.h"
 #include "ProcessUtils.h"
-#include "dprintf.h"
+#include "Log.h"
 #include "DarunGrim.h"
 
 #define strtoul10(X) strtoul(X,NULL,10)

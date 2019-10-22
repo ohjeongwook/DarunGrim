@@ -13,7 +13,7 @@
 #include <auto.hpp>
 #include <range.hpp>
 
-#include "dprintf.h"
+#include "Log.h"
 #include "IDAVerifier.h"
 
 bool IsValidFunctionStart(ea_t address)

@@ -160,7 +160,7 @@
     <ClInclude Include="DiffMachine.h" />
     <ClInclude Include="DisassemblyProcessor.h" />
     <ClInclude Include="DisassemblyStorage.h" />
-    <ClInclude Include="dprintf.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="fileinfo.h" />
     <ClInclude Include="IDAAnalysis.h" />
     <ClInclude Include="IDAAnalysisCommon.h" />
@@ -184,7 +184,7 @@
     <ClCompile Include="Diff.cpp" />
     <ClCompile Include="DiffMachine.cpp" />
     <ClCompile Include="DisassemblyStorage.cpp" />
-    <ClCompile Include="dprintf.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="fileinfo.cpp" />
     <ClCompile Include="IDAAnalysis.cpp" />
     <ClCompile Include="IDAController.cpp" />

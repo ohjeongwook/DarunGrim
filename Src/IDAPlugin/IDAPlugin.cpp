@@ -28,7 +28,7 @@ void SaveDGF(bool ask_file_path);
 
 #include "fileinfo.h"
 #include "IDAVerifier.h"
-#include "dprintf.h"
+#include "Log.h"
 
 ea_t exception_handler_addr = 0L;
 

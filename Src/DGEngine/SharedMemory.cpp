@@ -8,7 +8,7 @@
 #include <malloc.h>
 #include <tchar.h>
 #include "SharedMemory.h"
-#include "dprintf.h"
+#include "Log.h"
 
 #define DEBUG_LEVEL 0
 

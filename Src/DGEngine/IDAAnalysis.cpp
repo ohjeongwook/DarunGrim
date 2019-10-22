@@ -14,7 +14,7 @@
 using namespace std;
 using namespace stdext;
 int Debug=1;
-#include "dprintf.h"
+#include "Log.h"
 
 HANDLE gLogFile=INVALID_HANDLE_VALUE;
 

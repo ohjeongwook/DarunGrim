@@ -5,7 +5,7 @@
 #include "sqlite3.h"
 
 #include "DisassemblyStorage.h"
-#include "dprintf.h"
+#include "Log.h"
 
 using namespace std;
 
