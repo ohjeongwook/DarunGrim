@@ -568,9 +568,6 @@ copy $(SolutionDir)\Src\Scripts\*.py $(OutDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DiffEngine_wrap.cxx" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="DarunGrim.py" />
     <None Include="DarunGrimDatabase.py" />
     <None Include="DarunGrimEngine.py" />
