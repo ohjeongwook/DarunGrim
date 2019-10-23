@@ -187,7 +187,7 @@
     <ClCompile Include="SQLiteDisassemblyStorage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="fileinfo.cpp" />
-    <ClCompile Include="IDAAnalysis.cpp" />
+    <ClCompile Include="IDAAnalyzer.cpp" />
     <ClCompile Include="IDASession.cpp" />
     <ClCompile Include="IDAVerifier.cpp" />
     <ClCompile Include="LogOperation.cpp" />

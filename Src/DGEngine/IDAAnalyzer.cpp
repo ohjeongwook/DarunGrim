@@ -9,7 +9,7 @@
 #include <string>
 
 #include "Common.h"
-#include "IDAAnalysis.h"
+#include "IDAAnalyzer.h"
 #include "DisassemblyStorage.h"
 
 using namespace std;
@@ -485,7 +485,7 @@ list <int> GetRelatedFlags(int itype, bool IsModifying)
 
 ///////////////////////////////////////////////////////////
 //Save & Trace Variables
-void IDAAnalysis::UpdateInstructionMap
+void IDAAnalyzer::UpdateInstructionMap
 (
     unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn>& OperandsHash,
     unordered_map <int, ea_t>& FlagsHash,
@@ -639,7 +639,7 @@ void IDAAnalysis::UpdateInstructionMap
     }
 }
 
-void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t flags, bool gatherCmdArray)
+void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t flags, bool gatherCmdArray)
 {
     string disasm_buffer;
 
@@ -835,7 +835,7 @@ void IDAAnalysis::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArra
     FingerPrint.clear();
 }
 
-list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
+list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
 {
     ea_t current_addr;
     size_t current_item_size = 0;
@@ -972,7 +972,7 @@ list <AddressRegion> IDAAnalysis::GetFunctionBlocks(ea_t address)
 }
 
 
-ea_t IDAAnalysis::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags)
+ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags)
 {
     while (1)
     {
@@ -1360,12 +1360,12 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t>* pCmdArra
     return current_addr;
 }
 
-IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
+IDAAnalyzer::IDAAnalyzer(DisassemblyStorage& disassemblyStorage)
 {
     m_disassemblyStorage = disassemblyStorage;
 }
 
-void IDAAnalysis::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
+void IDAAnalyzer::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
     LogMessage(1, __FUNCTION__, "AnalyzeRegion %X ~ %X\n", startEA, endEA);
 
@@ -1408,12 +1408,12 @@ void IDAAnalysis::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
     }
 }
 
-void IDAAnalysis::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
+void IDAAnalyzer::AnalyzeRegion(AddressRegion& region, bool gatherCmdArray)
 {
     AnalyzeRegion(region.startEA, region.endEA, gatherCmdArray);
 }
 
-void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
+void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
     FileInfo file_info;
     memset((char*)&file_info, 0, sizeof(file_info));

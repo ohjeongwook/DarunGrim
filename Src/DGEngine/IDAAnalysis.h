@@ -257,7 +257,7 @@ void DumpDOT(
     unordered_map <ea_t, insn_t>& InstructionHash
 );
 
-class IDAAnalysis
+class IDAAnalyzer
 {
 private:
     DisassemblyStorage m_disassemblyStorage;
@@ -277,7 +277,7 @@ private:
     void AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray);
     void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
 public:
-    IDAAnalysis(DisassemblyStorage& disassemblyStorage);
+    IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
 
     void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);
 };
