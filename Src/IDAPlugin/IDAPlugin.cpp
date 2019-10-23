@@ -22,7 +22,7 @@
 #include "IDAAnalyzer.h"
 #include "SQLiteDisassemblyStorage.h"
 #include "DisassemblyStorage.h"
-#include "fileinfo.h"
+#include "FileVersion.h"
 #include "Log.h"
 
 using namespace std;

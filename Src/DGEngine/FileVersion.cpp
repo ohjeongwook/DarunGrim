@@ -4,7 +4,7 @@
 #include <string.h>
 #include <malloc.h>
 #include "md5.h"
-#include "fileinfo.h"
+#include "FileVersion.h"
 
 char* GetVersionData(LPVOID pVersionBlock, char* EntryName)
 {
