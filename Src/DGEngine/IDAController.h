@@ -10,15 +10,15 @@
 #include "DataStructure.h"
 #include "SharedMemory.h"
 #include "SharedSocket.h"
-#include "SQLiteDisassemblyStorage.h"
+#include "DisassemblyStorage.h"
 
 using namespace std;
 using namespace stdext;
 
 typedef struct
 {
-	DWORD Start;
-	DWORD End;
+	va_t Start;
+	va_t End;
 } BLOCK;
 
 class IDAController
@@ -27,9 +27,9 @@ private:
 #ifndef USE_LEGACY_MAP
 	int m_FileID;
 #endif
-    SQLiteDisassemblyStorage *m_disassemblyStorage;
+    DisassemblyStorage *m_disassemblyStorage;
 	char *m_OriginalFilePath;
-	DWORD TargetFunctionAddress;
+	va_t TargetFunctionAddress;
 
 	SOCKET Socket;
 	AnalysisInfo *ClientAnalysisInfo;
@@ -51,7 +51,7 @@ public:
 	{
 		return &ClientAnalysisInfo->file_info;
 	}
-	IDAController(SQLiteDisassemblyStorage *disassemblyStorage=NULL);
+	IDAController(DisassemblyStorage *disassemblyStorage=NULL);
 	~IDAController();
 	BOOL LoadIDARawDataFromFile(const char *Filename);
 	void SetSocket(SOCKET socket);
@@ -59,36 +59,36 @@ public:
 	BOOL Retrieve(char *DataFile, DWORD Offset=0L, DWORD Length=0L);
 
 	void SetFileID(int FileID = 1);
-	void LoadMapInfo(multimap <DWORD, PMapInfo> *p_map_info_map, DWORD Address, bool IsFunction = false);
+	void LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Address, bool IsFunction = false);
 	BOOL Load();
-	void DeleteMatchInfo(SQLiteDisassemblyStorage *disassemblyStorage, int FileID=1, DWORD FunctionAddress = 0 );
+	void DeleteMatchInfo(DisassemblyStorage *disassemblyStorage, int FileID=1, va_t FunctionAddress = 0 );
 
-	void AddAnalysisTargetFunction(DWORD FunctionAddress);
+	void AddAnalysisTargetFunction(va_t FunctionAddress);
 	BOOL LoadBasicBlock();
 
-	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <DWORD> *pSelectedAddresses=NULL);
+	BOOL Save(char *DataFile, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <va_t> *pSelectedAddresses=NULL);
 	void DumpAnalysisInfo();
-	char *GetName(DWORD address);
-	void DumpBlockInfo(DWORD block_address);
-	char *GetFingerPrintStr(DWORD address);
-	void RemoveFromFingerprintHash(DWORD address);
-	DWORD GetBlockAddress(DWORD address);
-	DWORD *GetMappedAddresses(DWORD address, int type, int *p_length);
+	char *GetName(va_t address);
+	void DumpBlockInfo(va_t block_address);
+	char *GetFingerPrintStr(va_t address);
+	void RemoveFromFingerprintHash(va_t address);
+	va_t GetBlockAddress(va_t address);
+	va_t*GetMappedAddresses(va_t address, int type, int *p_length);
 	BOOL SendTLVData(char type, PBYTE data, DWORD data_length);
 	char *GetDisasmLines(unsigned long start_addr, unsigned long end_addr);
 
 	string Identity;
 
-	multimap <DWORD, DWORD> CrefToMap;
-	void BuildCrefToMap(multimap <DWORD, PMapInfo> *p_map_info_map);
+	multimap <va_t, va_t> CrefToMap;
+	void BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map);
 
-	multimap <DWORD, DWORD> BlockToFunction;
-	multimap <DWORD, DWORD> FunctionToBlock;
-	unordered_set <DWORD> FunctionHeads;
+	multimap <va_t, va_t> BlockToFunction;
+	multimap <va_t, va_t> FunctionToBlock;
+	unordered_set <va_t> FunctionHeads;
 public:
-	bool GetFunctionAddress(DWORD address, DWORD &function_address)
+	bool GetFunctionAddress(va_t address, va_t&function_address)
 	{
-		multimap <DWORD, DWORD>::iterator it = BlockToFunction.find(address);
+		multimap <va_t, va_t>::iterator it = BlockToFunction.find(address);
 
 		if (it != BlockToFunction.end())
 		{
@@ -99,9 +99,9 @@ public:
 		return false;
 	}
 
-	bool FindBlockFunctionMatch(DWORD block, DWORD function)
+	bool FindBlockFunctionMatch(va_t block, va_t function)
 	{
-		for (multimap <DWORD, DWORD>::iterator it = BlockToFunction.find(block);
+		for (multimap <va_t, va_t>::iterator it = BlockToFunction.find(block);
 			it != BlockToFunction.end() && it->first==block;
 			it++)
 		{
@@ -114,7 +114,7 @@ public:
 	}
 
 	void LoadBlockToFunction();
-	multimap <DWORD, DWORD> *GetFunctionToBlock();
+	multimap <va_t, va_t> *GetFunctionToBlock();
 	void ClearBlockToFunction()
 	{
 		BlockToFunction.clear();
@@ -125,7 +125,7 @@ public:
 	void RetrieveIdentity();
 	string GetIdentity();
 
-	PBasicBlock GetBasicBlock(DWORD address);
+	PBasicBlock GetBasicBlock(va_t address);
 	void FreeDisasmLines();
 	void JumpToAddress(unsigned long address);
 	void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
@@ -135,10 +135,10 @@ public:
 	char *GetOriginalFilePath();
 
 	BOOL FixFunctionAddresses();
-	list <DWORD> *GetFunctionAddresses();
+	list <va_t> *GetFunctionAddresses();
 
 	bool SendMatchedAddrTLVData(FunctionMatchInfo &Data);
-	bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End);
+	bool SendAddrTypeTLVData(int Type, va_t Start, va_t End);
 };
 
 unsigned char HexToChar(char *Hex);

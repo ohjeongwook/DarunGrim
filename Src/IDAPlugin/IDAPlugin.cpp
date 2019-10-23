@@ -21,6 +21,7 @@
 
 #include "IDAAnalysis.h"
 #include "SQLiteDisassemblyStorage.h"
+#include "DisassemblyStorage.h"
 
 using namespace std;
 
@@ -686,8 +687,8 @@ void SaveIDAAnalysis(bool ask_file_path)
 
     if (input_file_path)
     {
-        SQLiteDisassemblyStorage disassemblyStorage(input_file_path);       
-		IDAAnalysis idaAnalysis = IDAAnalysis(disassemblyStorage);
+        SQLiteDisassemblyStorage disassemblyStorage(input_file_path);
+		IDAAnalysis idaAnalysis = IDAAnalysis((DisassemblyStorage) disassemblyStorage);
 		idaAnalysis.Analyze(StartEA, EndEA, false);
     }
 

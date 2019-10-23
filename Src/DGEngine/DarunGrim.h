@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "SQLiteDisassemblyStorage.h"
+#include "DisassemblyStorage.h"
 
 #include <string>
 using namespace std;
@@ -20,7 +20,7 @@ private:
 	IDAController *pSourceController;
 	IDAController *pTargetController;
 
-    SQLiteDisassemblyStorage *pDisassemblyStorage;
+    DisassemblyStorage *pDisassemblyStorage;
 	DiffMachine *pDiffMachine;
 	bool OpenDatabase(char *storage_filename);
 	string SourceFilename;
@@ -36,12 +36,12 @@ public:
 	~DarunGrim();
 
 
-	void AddSrcDumpAddress(DWORD address)
+	void AddSrcDumpAddress(va_t address)
 	{
 		aDumpAddress.AddSrcDumpAddress(address);
 	}
 
-	void AddTargetDumpAddress(DWORD address)
+	void AddTargetDumpAddress(va_t address)
 	{
 		aDumpAddress.AddTargetDumpAddress(address);
 	}
@@ -62,7 +62,7 @@ public:
 		return pTargetController;
 	}
 
-	void JumpToAddress(DWORD address, DWORD type)
+	void JumpToAddress(va_t address, DWORD type)
 	{
 		if (type == SOURCE_CONTROLLER)
 		{
@@ -80,7 +80,7 @@ public:
 		}
 	}
 
-	void ShowReverseAddress(DWORD address, DWORD type)
+	void ShowReverseAddress(va_t address, DWORD type)
 	{
 		if (type == TARGET_CONTROLLER)
 		{
@@ -116,12 +116,12 @@ public:
 		return NULL;
 	}
 
-	list <BLOCK> GetSourceAddresses(DWORD address)
+	list <BLOCK> GetSourceAddresses(va_t address)
 	{
 		return pSourceController->GetFunctionMemberBlocks(address);
 	}
 
-	list <BLOCK> GetTargetAddresses(DWORD address)
+	list <BLOCK> GetTargetAddresses(va_t address)
 	{
 		return pTargetController->GetFunctionMemberBlocks(address);
 	}
@@ -130,11 +130,10 @@ public:
 
 	bool AcceptIDAClientsFromSocket( const char *storage_filename = NULL );
 	
-	void ListDiffDatabase(const char *storage_filename);
 	bool Load( const char *storage_filename );
 
 	bool PerformDiff();
-	bool PerformDiff(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename);
+	bool PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, va_t target_address, const char *output_storage_filename);
 
 
 	bool ShowOnIDA();
@@ -152,7 +151,7 @@ public:
 	void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-    SQLiteDisassemblyStorage *m_disassemblyStorage;
+    DisassemblyStorage *m_disassemblyStorage;
 	unsigned short ListeningPort;
 	SOCKET ListeningSocket;
 	IDAController *IDAControllers[2];
@@ -174,7 +173,7 @@ private:
 	string TargetIdentity;
 public:
 
-	void SetDatabase(SQLiteDisassemblyStorage *disassemblyStorage);
+	void SetDatabase(DisassemblyStorage *disassemblyStorage);
 	unsigned short StartIDAListenerThread(unsigned short port);
 	void ListIDAControllers();
 	IDAController *FindIDAController(const char *identity);

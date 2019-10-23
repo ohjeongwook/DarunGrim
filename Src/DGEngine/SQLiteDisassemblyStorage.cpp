@@ -222,7 +222,7 @@ int SQLiteDisassemblyStorage::ProcessTLV(BYTE Type, PBYTE Data, DWORD Length)
 {
     static int fileID = 0;
     bool Status = FALSE;
-    static DWORD CurrentAddress = 0L;
+    static va_t CurrentAddress = 0L;
 
     switch (Type)
     {
@@ -288,3 +288,5 @@ int SQLiteDisassemblyStorage::ReadRecordStringCallback(void *arg,int argc,char *
 	*(char **)arg=_strdup(argv[0]);
 	return 0;
 }
+
+

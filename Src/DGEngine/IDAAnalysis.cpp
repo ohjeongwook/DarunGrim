@@ -5,7 +5,7 @@
 #include "IDAAnalysisCommon.h"
 #include "IDAAnalysis.h"
 
-#include "SQLiteDisassemblyStorage.h"
+#include "DisassemblyStorage.h"
 #include <vector>
 #include <unordered_set>
 #include <list>
@@ -1345,7 +1345,7 @@ ea_t IDAAnalysis::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
 	return current_addr;
 }
 
-IDAAnalysis::IDAAnalysis(SQLiteDisassemblyStorage& disassemblyStorage)
+IDAAnalysis::IDAAnalysis(DisassemblyStorage& disassemblyStorage)
 {
 	m_disassemblyStorage = disassemblyStorage;
 }
@@ -1409,7 +1409,7 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 	DWORD UserNameLen=sizeof(file_info.UserName);
 	GetUserName(file_info.UserName,&UserNameLen);
 
-	m_disassemblyStorage.BeginTransaction();
+	//m_disassemblyStorage.BeginTransaction();
 
 	char *input_file_path = NULL;
 	get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
@@ -1452,7 +1452,7 @@ void IDAAnalysis::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 	}
 
 	m_disassemblyStorage.EndAnalysis();
-	m_disassemblyStorage.EndTransaction();
+	//m_disassemblyStorage.EndTransaction();
 
 	LogMessage(1, __FUNCTION__, "Finished Analysis\n");
 }

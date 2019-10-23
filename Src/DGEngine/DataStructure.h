@@ -14,14 +14,14 @@ using namespace stdext;
 //FingerPrintInfo
 //Pushing Fingerprint Information
 typedef struct _FingerPrintInfo_ {
-	DWORD addr;
+	va_t addr;
 } FingerPrintInfo,*PFingerPrintInfo;
 
 typedef struct _FunctionMatchInfo_
 {
-	DWORD TheSourceAddress;
-	DWORD EndAddress;
-	DWORD TheTargetAddress;
+	va_t TheSourceAddress;
+	va_t EndAddress;
+	va_t TheTargetAddress;
 	short BlockType;
 	short MatchRate;
 	char *TheSourceFunctionName;
@@ -37,8 +37,8 @@ typedef struct _FunctionMatchInfo_
 
 typedef struct _CodeBlock_
 {
-	DWORD StartAddress;
-	DWORD EndAddress;
+	va_t StartAddress;
+	va_t EndAddress;
 } CodeBlock;
 
 enum { SEND_ANALYSIS_DATA, UNINDENTIFIED_ADDR, MATCHED_ADDR, SHOW_DATA, SHOW_MATCH_ADDR, JUMP_TO_ADDR, GET_DISASM_LINES, COLOR_ADDRESS, GET_INPUT_NAME, MODIFIED_ADDR };
@@ -84,23 +84,23 @@ public:
 //,hash_compare<string,equ_str> 
 typedef struct _AnalysisInfo_ {
 	FileInfo file_info;
-	multimap <DWORD, PBasicBlock> address_map;
-	multimap <DWORD,string> address_disassembly_map;
-	multimap <unsigned char *,DWORD,hash_compare_fingerprint> fingerprint_map;
-	multimap <DWORD,unsigned char *> address_fingerprint_map;
-	multimap <string, DWORD> name_map;
-	multimap <DWORD,string> address_name_map;
-	multimap <DWORD, PMapInfo> map_info_map;
+	multimap <va_t, PBasicBlock> address_map;
+	multimap <va_t,string> address_disassembly_map;
+	multimap <unsigned char *,va_t,hash_compare_fingerprint> fingerprint_map;
+	multimap <va_t,unsigned char *> address_fingerprint_map;
+	multimap <string, va_t> name_map;
+	multimap <va_t,string> address_name_map;
+	multimap <va_t, PMapInfo> map_info_map;
 } AnalysisInfo,*PAnalysisInfo;
 
 typedef struct _MatchData_{
 	short Type;
 	short SubType;
 	short Status;
-	DWORD Addresses[2];
+	va_t Addresses[2];
 	short MatchRate;
-	DWORD UnpatchedParentAddress;
-	DWORD PatchedParentAddress;
+	va_t UnpatchedParentAddress;
+	va_t PatchedParentAddress;
 } MatchData;
 
 enum {NAME_MATCH,FINGERPRINT_MATCH,TWO_LEVEL_FINGERPRINT_MATCH,TREE_MATCH,FINGERPRINT_INSIDE_FUNCTION_MATCH,FUNCTION_MATCH};
@@ -108,20 +108,20 @@ enum {NAME_MATCH,FINGERPRINT_MATCH,TWO_LEVEL_FINGERPRINT_MATCH,TREE_MATCH,FINGER
 typedef struct _AnalysisInfoList_ {
 	PAnalysisInfo p_analysis_info;
 	SOCKET socket;
-	DWORD address;
+	va_t address;
 	struct _AnalysisInfoList_ *prev;
 	struct _AnalysisInfoList_ *next;
 } AnalysisInfoList;
 
-typedef pair <DWORD, PBasicBlock> AddrPBasicBlock_Pair;
-typedef pair <DWORD, string> AddrDisassembly_Pair;
-typedef pair <unsigned char *,DWORD> FingerPrintAddress_Pair;
-typedef pair <string, DWORD*> TwoLevelFingerPrintAddress_Pair;
-typedef pair <DWORD,unsigned char *> AddressFingerPrintAddress_Pair;
-typedef pair <string, DWORD> NameAddress_Pair;
-typedef pair <DWORD, string> AddressName_Pair;
-typedef pair <DWORD, PMapInfo> AddrPMapInfo_Pair;
-typedef pair <DWORD, MatchData> MatchMap_Pair;
+typedef pair <va_t, PBasicBlock> AddrPBasicBlock_Pair;
+typedef pair <va_t, string> AddrDisassembly_Pair;
+typedef pair <unsigned char *, va_t> FingerPrintAddress_Pair;
+typedef pair <string, va_t*> TwoLevelFingerPrintAddress_Pair;
+typedef pair <va_t,unsigned char *> AddressFingerPrintAddress_Pair;
+typedef pair <string, va_t> NameAddress_Pair;
+typedef pair <va_t, string> AddressName_Pair;
+typedef pair <va_t, PMapInfo> AddrPMapInfo_Pair;
+typedef pair <va_t, MatchData> MatchMap_Pair;
 typedef pair <unsigned char *,unsigned char *> Fingerprint_Pair;
 
 #define STATUS_TREE_CHECKED 0x00000001

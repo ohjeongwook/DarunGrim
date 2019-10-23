@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <stdlib.h>
 #include <tchar.h>
+#include <malloc.h>
 
 #include "Diff.h"
 #include "DiffMachine.h"
@@ -26,7 +27,7 @@ class AnalysisResult
 {
 public:
 	MATCHMAP MatchMap;
-	multimap <DWORD, DWORD> ReverseAddressMap;
+	multimap <va_t, va_t> ReverseAddressMap;
 	DumpAddressChecker *pDumpAddressChecker;
 public:
 	AnalysisResult() :pDumpAddressChecker(NULL)
@@ -44,9 +45,9 @@ public:
 		ReverseAddressMap.clear();
 	}
 
-	void EraseSource(vector <DWORD> &addresses, DWORD address, DWORD source, DWORD target)
+	void EraseSource(vector <va_t> &addresses, va_t address, va_t source, va_t target)
 	{
-		for (multimap <DWORD, MatchData>::iterator it = MatchMap.find(address); it != MatchMap.end() && it->first==address; it++)
+		for (multimap <va_t, MatchData>::iterator it = MatchMap.find(address); it != MatchMap.end() && it->first==address; it++)
 		{
 			if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(it->first, it->second.Addresses[1]))
 			{
@@ -58,9 +59,9 @@ public:
 		}
 	}
 
-	void EraseTarget(vector <DWORD> &addresses, DWORD address, DWORD source, DWORD target)
+	void EraseTarget(vector <va_t> &addresses, va_t address, va_t source, va_t target)
 	{
-		for (multimap <DWORD, DWORD>::iterator it = ReverseAddressMap.find(address); it != ReverseAddressMap.end() && it->first==address; it++)
+		for (multimap <va_t, va_t>::iterator it = ReverseAddressMap.find(address); it != ReverseAddressMap.end() && it->first==address; it++)
 		{
 			if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(it->second, it->first))
 			{
@@ -72,26 +73,26 @@ public:
 		}
 	}
 
-	void Erase(DWORD source, DWORD target)
+	void Erase(va_t source, va_t target)
 	{
 		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source, target))
 			Logger.Log(10, LOG_DIFF_MACHINE, "%s -> %X-%X\n", __FUNCTION__, source, target);
 
-		vector <DWORD> sources;
-		vector <DWORD> targets;
+		vector <va_t> sources;
+		vector <va_t> targets;
 
 		sources.push_back(source);
 		targets.push_back(target);
 
 		while (sources.size()>0)
 		{
-			for (vector<DWORD>::iterator it=sources.begin(); it != sources.end(); it++)
+			for (vector<va_t>::iterator it=sources.begin(); it != sources.end(); it++)
 			{
 				EraseSource(targets, *it, source, target );
 			}
 			sources.clear();
 
-			for (vector <DWORD>::iterator it = targets.begin(); it != targets.end(); it++)
+			for (vector <va_t>::iterator it = targets.begin(); it != targets.end(); it++)
 			{
 				EraseTarget(sources, *it, source, target);
 			}
@@ -99,7 +100,7 @@ public:
 		}
 	}
 
-	multimap <DWORD, MatchData>::iterator Erase(multimap <DWORD, MatchData>::iterator match_map_iter)
+	multimap <va_t, MatchData>::iterator Erase(multimap <va_t, MatchData>::iterator match_map_iter)
 	{
 		if (match_map_iter != MatchMap.end())
 		{
@@ -107,7 +108,7 @@ public:
 				Logger.Log(10, LOG_DIFF_MACHINE, "%s %X-%X\n", __FUNCTION__, match_map_iter->second.Addresses[0], match_map_iter->second.Addresses[1]);
 
 			for (
-				multimap <DWORD, DWORD>::iterator it = ReverseAddressMap.find(match_map_iter->second.Addresses[1]);
+				multimap <va_t, va_t>::iterator it = ReverseAddressMap.find(match_map_iter->second.Addresses[1]);
 				it != ReverseAddressMap.end() && it->first == match_map_iter->second.Addresses[1]; 
 				it++)
 			{
@@ -124,10 +125,10 @@ public:
 		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 			Logger.Log(10, LOG_DIFF_MACHINE, "%s %s [%d] %X-%X: %d%%\n", __FUNCTION__, debug_str, match_data.Type, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
 
-		DWORD src = match_data.Addresses[0];
-		DWORD target = match_data.Addresses[1];
+		va_t src = match_data.Addresses[0];
+		va_t target = match_data.Addresses[1];
 		bool add = true;
-		for (multimap <DWORD, MatchData>::iterator it = MatchMap.find(src); it != MatchMap.end() && it->first == src; it++)
+		for (multimap <va_t, MatchData>::iterator it = MatchMap.find(src); it != MatchMap.end() && it->first == src; it++)
 		{
 			if ((*it).second.MatchRate < match_data.MatchRate)
 			{
@@ -145,9 +146,9 @@ public:
 			}
 		}
 
-		for (multimap<DWORD, DWORD>::iterator it = ReverseAddressMap.find(target); it != ReverseAddressMap.end() && it->first == target; it++)
+		for (multimap<va_t, va_t>::iterator it = ReverseAddressMap.find(target); it != ReverseAddressMap.end() && it->first == target; it++)
 		{
-			for (multimap <DWORD, MatchData>::iterator it2 = MatchMap.find(it->second); it2 != MatchMap.end() && it2->first == it->second; it2++)
+			for (multimap <va_t, MatchData>::iterator it2 = MatchMap.find(it->second); it2 != MatchMap.end() && it2->first == it->second; it2++)
 			{
 				if ((*it2).second.MatchRate < match_data.MatchRate)
 				{
@@ -170,13 +171,13 @@ public:
 		if (add)
 		{
 			MatchMap.insert(MatchMap_Pair(src, match_data));
-			ReverseAddressMap.insert(pair<DWORD, DWORD>(target, src));
+			ReverseAddressMap.insert(pair<va_t, va_t>(target, src));
 		}
 	}
 
 	void Append(MATCHMAP *pTemporaryMap)
 	{
-		multimap <DWORD, MatchData>::iterator match_map_iter;
+		multimap <va_t, MatchData>::iterator match_map_iter;
 		for (match_map_iter = pTemporaryMap->begin();
 			match_map_iter != pTemporaryMap->end();
 			match_map_iter++)
@@ -187,20 +188,20 @@ public:
 
 	void CleanUp()
 	{
-		multimap <DWORD, MatchData>::iterator match_map_iter;
+		multimap <va_t, MatchData>::iterator match_map_iter;
 		for (match_map_iter = MatchMap.begin();
 			match_map_iter != MatchMap.end();
 			)
 		{
 			if (match_map_iter->second.Status&STATUS_MAPPING_DISABLED)
 			{
-				multimap <DWORD, MatchData>::iterator current_map_iter = match_map_iter;
+				multimap <va_t, MatchData>::iterator current_map_iter = match_map_iter;
 				match_map_iter++;
 
 				if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(current_map_iter->second.Addresses[0], current_map_iter->second.Addresses[1]))
 					Logger.Log(10, LOG_DIFF_MACHINE, "%s Erase (CleanUp) %X-%X\n", __FUNCTION__, current_map_iter->second.Addresses[0], current_map_iter->second.Addresses[1]);
 
-				for (multimap <DWORD, DWORD>::iterator reverse_match_map_iter = ReverseAddressMap.find(current_map_iter->second.Addresses[1]); 
+				for (multimap <va_t, va_t>::iterator reverse_match_map_iter = ReverseAddressMap.find(current_map_iter->second.Addresses[1]);
 					reverse_match_map_iter != ReverseAddressMap.end() && reverse_match_map_iter->first == current_map_iter->second.Addresses[1];
 					reverse_match_map_iter++)
 				{
@@ -302,10 +303,10 @@ int DiffMachine::GetFingerPrintMatchRate( unsigned char* unpatched_finger_print,
 	return rate;
 }
 
-int DiffMachine::GetMatchRate( DWORD unpatched_address, DWORD patched_address )
+int DiffMachine::GetMatchRate(va_t unpatched_address, va_t patched_address )
 {
-	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_map_Iter;
-	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator source_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator target_fingerprint_map_Iter;
 						
 	source_fingerprint_map_Iter=SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find( unpatched_address );
 	target_fingerprint_map_Iter=TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find( patched_address );
@@ -322,7 +323,7 @@ int DiffMachine::GetMatchRate( DWORD unpatched_address, DWORD patched_address )
 	return 0;
 }
 
-void DiffMachine::DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  MatchData>::iterator match_map_iter )
+void DiffMachine::DumpMatchMapIterInfo( const char *prefix, multimap <va_t,  MatchData>::iterator match_map_iter )
 {
 	const char *SubTypeStr[]={"Cref From", "Cref To", "Call", "Dref From", "Dref To"};	
 
@@ -340,12 +341,12 @@ void DiffMachine::DumpMatchMapIterInfo( const char *prefix, multimap <DWORD,  Ma
 
 void DiffMachine::AnalyzeFunctionSanity()
 {
-	multimap <DWORD,  MatchData>::iterator last_match_map_iter;
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
-	DWORD last_unpatched_addr=0;
-	DWORD last_patched_addr=0;
-	DWORD unpatched_addr=0;
-	DWORD patched_addr=0;
+	multimap <va_t,  MatchData>::iterator last_match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
+	va_t last_unpatched_addr=0;
+	va_t last_patched_addr=0;
+	va_t unpatched_addr=0;
+	va_t patched_addr=0;
 
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: DiffResults->MatchMap Size=%u\n", __FUNCTION__, DiffResults->MatchMap.size() );	
 	for( match_map_iter=DiffResults->MatchMap.begin();
@@ -353,7 +354,7 @@ void DiffMachine::AnalyzeFunctionSanity()
 		match_map_iter++ )
 	{
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
+		multimap <va_t,  PBasicBlock>::iterator address_map_pIter;
 		address_map_pIter = SourceController->GetClientAnalysisInfo()->address_map.find( match_map_iter->first );
 		if( address_map_pIter != SourceController->GetClientAnalysisInfo()->address_map.end() )
 		{
@@ -393,13 +394,13 @@ void DiffMachine::AnalyzeFunctionSanity()
 		}
 	}
 
-	multimap <DWORD, DWORD>::iterator reverse_match_map_iterator;
+	multimap <va_t, va_t>::iterator reverse_match_map_iterator;
 	for( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
 		reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end();
 		reverse_match_map_iterator++ )
 	{
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
+		multimap <va_t,  PBasicBlock>::iterator address_map_pIter;
 		address_map_pIter = TargetController->GetClientAnalysisInfo()->address_map.find( reverse_match_map_iterator->first );
 
 		if( address_map_pIter != TargetController->GetClientAnalysisInfo()->address_map.end() )
@@ -439,9 +440,9 @@ void DiffMachine::AnalyzeFunctionSanity()
 	}
 }
 
-void DiffMachine::CleanUpMatchDataList(vector<MatchData *> match_data_list)
+void DiffMachine::FreeMatchMapList(vector<MatchData *> *pMatchMapList)
 {
-	for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+	for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 	{
 		if (*it)
 		{
@@ -450,7 +451,7 @@ void DiffMachine::CleanUpMatchDataList(vector<MatchData *> match_data_list)
 	}
 }
 
-void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
+void DiffMachine::TestFunctionMatchRate( int index, va_t Address )
 {
 	IDAController *ClientManager=index==0?SourceController:TargetController;
 	list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(Address);
@@ -461,25 +462,25 @@ void DiffMachine::TestFunctionMatchRate( int index, DWORD Address )
 		address_list_iter++
 	 )
 	{
-		vector<MatchData *> match_data_list=GetMatchData(index, (*address_list_iter).Start);
-		if (match_data_list.size()>0)
+		vector<MatchData *> *pMatchMapList=GetMatchData(index, (*address_list_iter).Start);
+		if (pMatchMapList->size()>0)
 		{
-			for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+			for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 			{
 				Logger.Log(10, LOG_DIFF_MACHINE, "Basic Block: %X Match Rate: %d%%\n", (*address_list_iter).Start, (*it)->MatchRate);
 			}
-			CleanUpMatchDataList(match_data_list);
+			FreeMatchMapList(pMatchMapList);
 		}
 		else
 		{
 			Logger.Log(10, LOG_DIFF_MACHINE, "Basic Block: %X Has No Match.\n", (*address_list_iter).Start);
 		}
 
-		CleanUpMatchDataList(match_data_list);
+		FreeMatchMapList(pMatchMapList);
 	}
 }
 
-void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, list <DWORD>& Members )
+void DiffMachine::RetrieveNonMatchingMembers( int index, va_t FunctionAddress, list <va_t>& Members )
 {
 	IDAController *ClientManager=index==0?SourceController:TargetController;
 	list <BLOCK> address_list=ClientManager->GetFunctionMemberBlocks( FunctionAddress );
@@ -490,10 +491,10 @@ void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, 
 	 )
 	{
 
-		vector<MatchData *> match_data_list = GetMatchData(index, (*address_list_iter).Start);
-		if (match_data_list.size()>0)
+		vector<MatchData *> *pMatchMapList = GetMatchData(index, (*address_list_iter).Start);
+		if (pMatchMapList->size()>0)
 		{
-			for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+			for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 			{
 				if ((*it)->MatchRate < 100)
 				{
@@ -501,14 +502,14 @@ void DiffMachine::RetrieveNonMatchingMembers( int index, DWORD FunctionAddress, 
 					break;
 				}
 			}
-			CleanUpMatchDataList(match_data_list);
+			FreeMatchMapList(pMatchMapList);
 		}
 		else
 		{
 			Members.push_back((*address_list_iter).Start);
 		}
 
-		CleanUpMatchDataList(match_data_list);
+		FreeMatchMapList(pMatchMapList);
 	}
 }
 
@@ -569,17 +570,17 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 			TestFunctionMatchRate( 1, iter->TheTargetAddress );
 		}
 
-		list <DWORD> SourceMembers;
+		list <va_t> SourceMembers;
 		RetrieveNonMatchingMembers( 0, iter->TheSourceAddress, SourceMembers );
 
-		list <DWORD> TargetMembers;
+		list <va_t> TargetMembers;
 		RetrieveNonMatchingMembers( 1, iter->TheTargetAddress, TargetMembers );
 
 
 		if( DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING )
 		{
 			Logger.Log( 10, LOG_DIFF_MACHINE,  "Source Members\n" );
-			for( list <DWORD>::iterator member_iter = SourceMembers.begin();
+			for( list <va_t>::iterator member_iter = SourceMembers.begin();
 				member_iter != SourceMembers.end();
 				member_iter++
 			 )
@@ -589,7 +590,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 			Logger.Log( 10, LOG_DIFF_MACHINE,  "\n" );
 
 			Logger.Log( 10, LOG_DIFF_MACHINE,  "Target Members\n" );
-			for( list <DWORD>::iterator member_iter = TargetMembers.begin();
+			for( list <va_t>::iterator member_iter = TargetMembers.begin();
 				member_iter != TargetMembers.end();
 				member_iter++
 			 )
@@ -599,12 +600,12 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 			Logger.Log( 10, LOG_DIFF_MACHINE,  "\n" );
 		}
 
-		for( list <DWORD>::iterator source_member_iter = SourceMembers.begin();
+		for( list <va_t>::iterator source_member_iter = SourceMembers.begin();
 			source_member_iter != SourceMembers.end();
 			source_member_iter++
 		 )
 		{
-			for( list <DWORD>::iterator target_member_iter = TargetMembers.begin();
+			for( list <va_t>::iterator target_member_iter = TargetMembers.begin();
 				target_member_iter != TargetMembers.end();
 				target_member_iter++
 			 )
@@ -622,11 +623,11 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 				bool add_current_entry = true;
 
 				//Remove any existing entries with smaller match rate than current one
-				vector<MatchData *> match_data_list = GetMatchData(0, *source_member_iter);
-				if (match_data_list.size()>0)
+				vector<MatchData *> *pMatchMapList = GetMatchData(0, *source_member_iter);
+				if (pMatchMapList->size()>0)
 				{
 					add_current_entry = false;
-					for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+					for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 					{
 						const char *operation = "Retain";
 						if ((*it)->MatchRate < current_match_rate)
@@ -641,16 +642,16 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 						if (debug)
 							Logger.Log(10, LOG_DIFF_MACHINE, "\t%s %X-%X: %d%%\n", operation, *source_member_iter, (*it)->Addresses[1], (*it)->MatchRate);
 					}
-					CleanUpMatchDataList(match_data_list);
+					FreeMatchMapList(pMatchMapList);
 				}
 
-				CleanUpMatchDataList(match_data_list);
+				FreeMatchMapList(pMatchMapList);
 
-				match_data_list = GetMatchData(1, *target_member_iter);
-				if (match_data_list.size()>0)
+				pMatchMapList = GetMatchData(1, *target_member_iter);
+				if (pMatchMapList->size()>0)
 				{
 					add_current_entry = false;
-					for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+					for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 					{
 						const char *operation = "Retain";
 						if ((*it)->MatchRate < current_match_rate)
@@ -664,7 +665,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 						if (debug)
 							Logger.Log(10, LOG_DIFF_MACHINE, "\t%s %X-%X: %d%%\n", operation, (*it)->Addresses[0], *target_member_iter, (*it)->MatchRate);
 					}
-					CleanUpMatchDataList(match_data_list);
+					FreeMatchMapList(pMatchMapList);
 				}
 
 				if (add_current_entry)
@@ -693,10 +694,8 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 					}
 					else
 					{
-						m_diffDisassemblyStorage->ExecuteStatement( NULL, NULL, 
-                            INSERT_MATCH_MAP_TABLE_STATEMENT, 
-							SourceController->GetFileID(), 
-							TargetController->GetFileID(), 
+						m_diffDisassemblyStorage->InsertMatchMap(SourceController->GetFileID(),
+							TargetController->GetFileID(),
 							*source_member_iter,
 							*target_member_iter,
 							TYPE_MATCH,
@@ -705,7 +704,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 							0,
 							current_match_rate,
 							0,
-							0 );
+							0);
 					}
 				}
 			}
@@ -715,17 +714,17 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 	return TRUE;
 }
 
-void DumpAddressChecker::AddSrcDumpAddress(DWORD address)
+void DumpAddressChecker::AddSrcDumpAddress(va_t address)
 {
 	SrcDumpAddresses.insert(address);
 }
 
-void DumpAddressChecker::AddTargetDumpAddress(DWORD address)
+void DumpAddressChecker::AddTargetDumpAddress(va_t address)
 {
 	TargetDumpAddresses.insert(address);
 }
 
-bool DumpAddressChecker::IsDumpPair(DWORD src, DWORD target)
+bool DumpAddressChecker::IsDumpPair(va_t src, va_t target)
 {
 	if ((SrcDumpAddresses.size() == 0 && TargetDumpAddresses.size() == 0) ||
 		SrcDumpAddresses.find(src) != SrcDumpAddresses.end() ||
@@ -737,7 +736,7 @@ bool DumpAddressChecker::IsDumpPair(DWORD src, DWORD target)
 	return false;
 }
 
-void DumpAddressChecker::DumpMatchInfo(DWORD src, DWORD target, int match_rate, const char *format, ...)
+void DumpAddressChecker::DumpMatchInfo(va_t src, va_t target, int match_rate, const char *format, ...)
 {
 	if (IsDumpPair(src, target))
 	{
@@ -748,10 +747,10 @@ void DumpAddressChecker::DumpMatchInfo(DWORD src, DWORD target, int match_rate, 
 
 bool DiffMachine::Analyze()
 {
-	multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
-	multimap <string,  DWORD>::iterator fingerprint_map_pIter;
-	multimap <string,  DWORD>::iterator name_map_pIter;
-	multimap <DWORD,  PMapInfo>::iterator map_info_map_pIter;
+	multimap <va_t,  PBasicBlock>::iterator address_map_pIter;
+	multimap <string, va_t>::iterator fingerprint_map_pIter;
+	multimap <string, va_t>::iterator name_map_pIter;
+	multimap <va_t,  PMapInfo>::iterator map_info_map_pIter;
 	MATCHMAP TemporaryMatchMap;
 
 	if (!SourceController || !TargetController)
@@ -770,7 +769,7 @@ bool DiffMachine::Analyze()
 	// Name Match
 	Logger.Log(10, LOG_DIFF_MACHINE, "Name Match\n");
 
-	multimap <string,  DWORD>::iterator patched_name_map_pIter;
+	multimap <string, va_t>::iterator patched_name_map_pIter;
 
 	for (name_map_pIter = SourceController->GetClientAnalysisInfo()->name_map.begin();
 		name_map_pIter != SourceController->GetClientAnalysisInfo()->name_map.end();
@@ -862,7 +861,7 @@ bool DiffMachine::Analyze()
 
 void DiffMachine::AppendToMatchMap(MATCHMAP *pBaseMap, MATCHMAP *pTemporaryMap)
 {
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Appending %u Items To MatchMap\n", __FUNCTION__, pTemporaryMap->size() );
 	for( match_map_iter=pTemporaryMap->begin();
@@ -875,7 +874,7 @@ void DiffMachine::AppendToMatchMap(MATCHMAP *pBaseMap, MATCHMAP *pTemporaryMap)
 
 void DiffMachine::PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap)
 {
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Delete %u Items from Fingerprint Map( %u-%u )\n", __FUNCTION__, pTemporaryMap->size(), 
 		SourceController->GetClientAnalysisInfo()->fingerprint_map.size(), 
@@ -886,7 +885,7 @@ void DiffMachine::PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap)
 		match_map_iter++ )
 	{
 		//Remove from fingerprint hash map
-		multimap <DWORD,  unsigned char *>::iterator address_fingerprint_map_Iter;
+		multimap <va_t,  unsigned char *>::iterator address_fingerprint_map_Iter;
 		address_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(match_map_iter->second.Addresses[0]);
 		if( address_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end() )
 		{
@@ -906,8 +905,8 @@ void DiffMachine::PurgeFingerprintHashMap(MATCHMAP *pTemporaryMap)
 
 void DiffMachine::DoFingerPrintMatch(MATCHMAP *p_match_map)
 {
-	multimap <unsigned char *, DWORD, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
-	multimap <unsigned char *,  DWORD, hash_compare_fingerprint>::iterator patched_fingerprint_map_pIter;
+	multimap <unsigned char *, va_t, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
+	multimap <unsigned char *, va_t, hash_compare_fingerprint>::iterator patched_fingerprint_map_pIter;
 
 	for (fingerprint_map_pIter = SourceController->GetClientAnalysisInfo()->fingerprint_map.begin();
 		fingerprint_map_pIter != SourceController->GetClientAnalysisInfo()->fingerprint_map.end();
@@ -943,7 +942,7 @@ void DiffMachine::DoFingerPrintMatch(MATCHMAP *p_match_map)
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Matched pair count=%u\n", __FUNCTION__, p_match_map->size() );
 }
 
-MatchRateInfo *DiffMachine::GetMatchRateInfoArray(DWORD source_address, DWORD target_address, int type, int &match_rate_info_count)
+MatchRateInfo *DiffMachine::GetMatchRateInfoArray(va_t source_address, va_t target_address, int type, int &match_rate_info_count)
 {
 	int source_addresses_number;
 	int target_addresses_number;
@@ -956,8 +955,8 @@ MatchRateInfo *DiffMachine::GetMatchRateInfoArray(DWORD source_address, DWORD ta
 		Logger.Log(10, LOG_DIFF_MACHINE, "%s: %X-%X %d\n", __FUNCTION__, source_address, target_address, type);
 	}
 
-	DWORD *source_addresses = SourceController->GetMappedAddresses(source_address, type, &source_addresses_number);
-	DWORD *target_addresses = TargetController->GetMappedAddresses(target_address, type, &target_addresses_number);
+	va_t*source_addresses = SourceController->GetMappedAddresses(source_address, type, &source_addresses_number);
+	va_t*target_addresses = TargetController->GetMappedAddresses(target_address, type, &target_addresses_number);
 
 	if (debug)
 	{
@@ -985,8 +984,8 @@ MatchRateInfo *DiffMachine::GetMatchRateInfoArray(DWORD source_address, DWORD ta
 			//Special case for switch case
 			for (int i = 0; i < source_addresses_number; i++)
 			{
-				multimap <DWORD, unsigned char *>::iterator source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(source_addresses[i]);
-				multimap <DWORD, unsigned char *>::iterator target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find(target_addresses[i]);
+				multimap <va_t, unsigned char *>::iterator source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(source_addresses[i]);
+				multimap <va_t, unsigned char *>::iterator target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find(target_addresses[i]);
 
 				if (source_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end() &&
 					target_fingerprint_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_map.end())
@@ -1009,14 +1008,14 @@ MatchRateInfo *DiffMachine::GetMatchRateInfoArray(DWORD source_address, DWORD ta
 			if (debug)
 				Logger.Log(10, LOG_DIFF_MACHINE, "Adding matches\n");
 
-			multimap <DWORD, DWORD> address_pair_map;
+			multimap <va_t, va_t> address_pair_map;
 			for (int i = 0; i < source_addresses_number; i++)
 			{
-				multimap <DWORD, unsigned char *>::iterator source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(source_addresses[i]);
+				multimap <va_t, unsigned char *>::iterator source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(source_addresses[i]);
 
 				for (int j = 0; j < target_addresses_number; j++)
 				{
-					multimap <DWORD, DWORD>::iterator it = address_pair_map.find(source_addresses[i]);
+					multimap <va_t, va_t>::iterator it = address_pair_map.find(source_addresses[i]);
 
 					bool skip = false;
 					if (it != address_pair_map.end())
@@ -1034,9 +1033,9 @@ MatchRateInfo *DiffMachine::GetMatchRateInfoArray(DWORD source_address, DWORD ta
 					if (skip)
 						continue;
 
-					address_pair_map.insert(pair<DWORD, DWORD>(source_addresses[i], target_addresses[j]));
+					address_pair_map.insert(pair<va_t, va_t>(source_addresses[i], target_addresses[j]));
 
-					multimap <DWORD, unsigned char *>::iterator target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find(target_addresses[j]);
+					multimap <va_t, unsigned char *>::iterator target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find(target_addresses[j]);
 
 					if (source_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end() &&
 						target_fingerprint_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_map.end())
@@ -1085,7 +1084,7 @@ void DiffMachine::DoIsomorphMatch(MATCHMAP *pOrigTemporaryMap)
 	while( pTemporaryMap->size()>0 )
 	{
 		int processed_count=0;
-		multimap <DWORD,  MatchData>::iterator match_map_iter;
+		multimap <va_t,  MatchData>::iterator match_map_iter;
 		MATCHMAP *pNewTemporaryMap = new MATCHMAP;
 
 		Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Current match count=%u\n", __FUNCTION__, pTemporaryMap->size() );
@@ -1139,7 +1138,7 @@ void DiffMachine::DoIsomorphMatch(MATCHMAP *pOrigTemporaryMap)
 						pNewTemporaryMap,
 						pTemporaryMap };
 
-					multimap <DWORD, MatchData>::iterator it;
+					multimap <va_t, MatchData>::iterator it;
 					for (int compare_i = 0; compare_i < sizeof(p_compared_match_map) / sizeof(p_compared_match_map[0]); compare_i++)
 					{
 						it = p_compared_match_map[compare_i]->find(p_match_rate_info_array[selected_index].Source);
@@ -1263,37 +1262,37 @@ void DiffMachine::DoIsomorphMatch(MATCHMAP *pOrigTemporaryMap)
 
 void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 {
-	multimap <DWORD, DWORD> *FunctionMembersMapForTheSource;
-	multimap <DWORD, DWORD> *FunctionMembersMapForTheTarget;
+	multimap <va_t, va_t> *FunctionMembersMapForTheSource;
+	multimap <va_t, va_t> *FunctionMembersMapForTheTarget;
 
 	SourceController->LoadBlockToFunction();
 	TargetController->LoadBlockToFunction();
 	FunctionMembersMapForTheSource = SourceController->GetFunctionToBlock();
 	FunctionMembersMapForTheTarget = TargetController->GetFunctionToBlock();
 
-	multimap <DWORD, DWORD>::iterator FunctionMembersIter;
+	multimap <va_t, va_t>::iterator FunctionMembersIter;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	multimap <DWORD, DWORD>::iterator SourceFunctionMembersIter;
-	DWORD SourceFunctionAddress=0;
-	list <DWORD> SourceBlockAddresses;
+	multimap <va_t, va_t>::iterator SourceFunctionMembersIter;
+	va_t SourceFunctionAddress=0;
+	list <va_t> SourceBlockAddresses;
 	for( SourceFunctionMembersIter=FunctionMembersMapForTheSource->begin();;SourceFunctionMembersIter++ )
 	{
 		if( SourceFunctionMembersIter==FunctionMembersMapForTheSource->end() || SourceFunctionAddress!=SourceFunctionMembersIter->first )
 		{
 			//SourceFunctionAddress, SourceBlockAddresses
-			unordered_set <DWORD> TargetFunctionAddresses;
-			for (multimap <DWORD, MatchData>::iterator MatchMapIter = DiffResults->MatchMap.find(SourceFunctionAddress); 
+			unordered_set <va_t> TargetFunctionAddresses;
+			for (multimap <va_t, MatchData>::iterator MatchMapIter = DiffResults->MatchMap.find(SourceFunctionAddress);
 				MatchMapIter != DiffResults->MatchMap.end() && MatchMapIter->first == SourceFunctionAddress;
 				MatchMapIter++)
 			{
 				//TargetFunctionAddress, TargetBlockAddresses
-				DWORD TargetFunctionAddress=MatchMapIter->second.Addresses[1];
+				va_t TargetFunctionAddress=MatchMapIter->second.Addresses[1];
 				if( TargetFunctionAddresses.find( TargetFunctionAddress )==TargetFunctionAddresses.end() )
 					continue;
 
 				TargetFunctionAddresses.insert( TargetFunctionAddress );
-				multimap <DWORD, DWORD>::iterator TargetFunctionMembersIter;
-				list <DWORD> TargetBlockAddresses;
+				multimap <va_t, va_t>::iterator TargetFunctionMembersIter;
+				list <va_t> TargetBlockAddresses;
 				for( TargetFunctionMembersIter=FunctionMembersMapForTheTarget->find( TargetFunctionAddress );
 					TargetFunctionMembersIter!=FunctionMembersMapForTheTarget->end() &&
 					TargetFunctionMembersIter->first==TargetFunctionAddress;
@@ -1315,42 +1314,42 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 		SourceBlockAddresses.push_back( SourceFunctionMembersIter->second );
 	}
 	
-	list <DWORD> block_addresses;
-	DWORD source_function_addr=0;
+	list <va_t> block_addresses;
+	va_t source_function_addr=0;
 	for( FunctionMembersIter=FunctionMembersMapForTheSource->begin();;FunctionMembersIter++ )
 	{
 		if( FunctionMembersIter==FunctionMembersMapForTheSource->end() || source_function_addr!=FunctionMembersIter->first )
 		{
 			//Analyze Function, block_addresses contains all the members
-            unordered_map <DWORD, DWORD> function_match_count;
+            unordered_map <va_t, va_t> function_match_count;
 			if( source_function_addr!=0 )
 			{
-				list <DWORD>::iterator block_addr_it;
+				list <va_t>::iterator block_addr_it;
 				for (block_addr_it = block_addresses.begin(); block_addr_it != block_addresses.end(); block_addr_it++)
 				{
-					DWORD block_address=*block_addr_it;
+					va_t block_address=*block_addr_it;
 
 					if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, 0) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 						Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X Block: %X\r\n", source_function_addr, block_address);
 
-					for (multimap <DWORD, MatchData>::iterator match_map_it = DiffResults->MatchMap.find(block_address);
+					for (multimap <va_t, MatchData>::iterator match_map_it = DiffResults->MatchMap.find(block_address);
 						match_map_it != DiffResults->MatchMap.end() && match_map_it->first == block_address;
 						match_map_it++)
 					{
-						DWORD target_addr = match_map_it->second.Addresses[1];
+						va_t target_addr = match_map_it->second.Addresses[1];
 						if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 							Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X Block: %X:%X\r\n", source_function_addr, match_map_it->second.Addresses[0], target_addr);
 
-						DWORD target_function_address;
+						va_t target_function_address;
 						if (TargetController->GetFunctionAddress(target_addr, target_function_address))
 						{
 							if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
 								Logger.Log(10, LOG_DIFF_MACHINE, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_address, block_address, target_addr);
 
-                            unordered_map <DWORD, DWORD>::iterator function_match_count_it = function_match_count.find(target_function_address);
+                            unordered_map <va_t, va_t>::iterator function_match_count_it = function_match_count.find(target_function_address);
 							if (function_match_count_it == function_match_count.end())
 							{
-								function_match_count.insert(pair<DWORD, DWORD>(target_function_address, 1));
+								function_match_count.insert(pair<va_t, va_t>(target_function_address, 1));
 							}else
 							{
 								function_match_count_it->second++;
@@ -1361,9 +1360,9 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 				//source_function_addr
 				//We have function_match_count filled up!
 				//Get Maximum value in function_match_count
-				DWORD maximum_function_match_count=0;
-				DWORD chosen_target_function_addr=0;
-				for (unordered_map <DWORD, DWORD>::iterator it = function_match_count.begin(); it != function_match_count.end(); it++)
+				va_t maximum_function_match_count=0;
+				va_t chosen_target_function_addr=0;
+				for (unordered_map <va_t, va_t>::iterator it = function_match_count.begin(); it != function_match_count.end(); it++)
 				{
 					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, it->first))
 						Logger.Log(10, LOG_DIFF_MACHINE, "%X:%X( %u )\n", source_function_addr, it->first, it->second);
@@ -1403,13 +1402,13 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 					//Remove match entries for specific target_function
 					for (block_addr_it = block_addresses.begin(); block_addr_it != block_addresses.end(); block_addr_it++)
 					{
-						DWORD source_address=*block_addr_it;
-						for (multimap <DWORD, MatchData>::iterator it = DiffResults->MatchMap.find(source_address);
+						va_t source_address=*block_addr_it;
+						for (multimap <va_t, MatchData>::iterator it = DiffResults->MatchMap.find(source_address);
 							it != DiffResults->MatchMap.end() && it->first == source_address;
 						)
 						{
-							DWORD source_function_address;
-							DWORD target_address = it->second.Addresses[1];
+							va_t source_function_address;
+							va_t target_address = it->second.Addresses[1];
 							BOOL function_matched=FALSE;
 							if (SourceController->GetFunctionAddress(source_address, source_function_address))
 							{
@@ -1460,35 +1459,35 @@ void DiffMachine::DoFunctionMatch(MATCHMAP *pTargetTemporaryMap)
 typedef struct _AddressesInfo_
 {
 	int Overflowed;
-	DWORD TheSourceAddress;
-	DWORD TheTargetAddress;
+	va_t TheSourceAddress;
+	va_t TheTargetAddress;
 } AddressesInfo;
 
-void DiffMachine::DoFingerPrintMatchInsideFunction(DWORD SourceFunctionAddress, list <DWORD> &SourceBlockAddresses, DWORD TargetFunctionAddress, list <DWORD> &TargetBlockAddresses)
+void DiffMachine::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAddress, list <va_t> &SourceBlockAddresses, va_t TargetFunctionAddress, list <va_t> &TargetBlockAddresses)
 {
 	//Fingerprint match on SourceBlockAddresses, TargetBlockAddresse
 	/*
-	list <DWORD>::iterator SourceBlockAddressIter;
+	list <va_t>::iterator SourceBlockAddressIter;
 	for( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
 	{
-		DWORD SourceAddress=*SourceBlockAddressIter;
-		multimap <DWORD, MatchData>:: MatchDataIterator;
+		va_t SourceAddress=*SourceBlockAddressIter;
+		multimap <va_t, MatchData>:: MatchDataIterator;
 		MatchDataIterator=pTemporaryMap->find( SourceAddress );
 		if( MatchDataIterator!=pTemporaryMap->end() )
 		{
-			DWORD TargetAddress=MatchDataIterator->second.Addresses[1];
+			va_t TargetAddress=MatchDataIterator->second.Addresses[1];
 			TargetBlockAddresse.erase( TargetAddress );
 		}
 	}*/
 	//Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Entry\n", __FUNCTION__ );
-	multimap <DWORD,  unsigned char *>::iterator address_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator address_fingerprint_map_Iter;
 	unordered_map <unsigned char *, AddressesInfo, hash_compare_fingerprint> fingerprint_map;
 	unordered_map <unsigned char *, AddressesInfo, hash_compare_fingerprint>::iterator fingerprint_map_iter;
 
-	list <DWORD>::iterator SourceBlockAddressIter;
+	list <va_t>::iterator SourceBlockAddressIter;
 	for( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
 	{
-		DWORD SourceAddress=*SourceBlockAddressIter;
+		va_t SourceAddress=*SourceBlockAddressIter;
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tSource=%X\n", SourceAddress );
 		address_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.find(SourceAddress);
 		if( address_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end() )
@@ -1509,10 +1508,10 @@ void DiffMachine::DoFingerPrintMatchInsideFunction(DWORD SourceFunctionAddress, 
 		}
 	}
 
-	list <DWORD>::iterator TargetBlockAddressIter;
+	list <va_t>::iterator TargetBlockAddressIter;
 	for( TargetBlockAddressIter=TargetBlockAddresses.begin();TargetBlockAddressIter!=TargetBlockAddresses.end();TargetBlockAddressIter++ )
 	{
-		DWORD TargetAddress=*TargetBlockAddressIter;
+		va_t TargetAddress=*TargetBlockAddressIter;
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tTarget=%X\n", TargetAddress );
 		address_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.find( TargetAddress );
 		if( address_fingerprint_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_map.end() )
@@ -1566,7 +1565,7 @@ void DiffMachine::DoFingerPrintMatchInsideFunction(DWORD SourceFunctionAddress, 
 
 void DiffMachine::PrintMatchMapInfo()
 {
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 	int unique_match_count=0;
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
@@ -1594,7 +1593,7 @@ void DiffMachine::PrintMatchMapInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: ** unidentified( 0 )\n", __FUNCTION__ );
 
 	int unpatched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator source_fingerprint_map_Iter;
 	for( source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.begin();
 		source_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end();
 		source_fingerprint_map_Iter++
@@ -1613,7 +1612,7 @@ void DiffMachine::PrintMatchMapInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: ** unidentified( 1 )\n", __FUNCTION__ );
 
 	int patched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator target_fingerprint_map_Iter;
 	for( target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.begin();
 		target_fingerprint_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_map.end();
 		target_fingerprint_map_Iter++
@@ -1631,13 +1630,13 @@ void DiffMachine::PrintMatchMapInfo()
 }
 
 
-void DiffMachine::ShowDiffMap( DWORD unpatched_address, DWORD patched_address )
+void DiffMachine::ShowDiffMap(va_t unpatched_address, va_t patched_address )
 {
-	DWORD *p_addresses;
+	va_t *p_addresses;
 
-	list <DWORD> address_list;
-	list <DWORD>::iterator address_list_iter;
-	unordered_set <DWORD> checked_addresses;
+	list <va_t> address_list;
+	list <va_t>::iterator address_list_iter;
+	unordered_set <va_t> checked_addresses;
 	address_list.push_back( unpatched_address );
 	checked_addresses.insert( unpatched_address );
 
@@ -1669,7 +1668,7 @@ void DiffMachine::ShowDiffMap( DWORD unpatched_address, DWORD patched_address )
 }
 
 void DiffMachine::GetMatchStatistics( 
-	DWORD address, 
+	va_t address,
 	int index, 
 	int &found_match_number,
 	int &found_match_with_difference_number,
@@ -1703,11 +1702,11 @@ void DiffMachine::GetMatchStatistics(
 		address_list_iter++
 	 )
 	{
-		vector<MatchData *> match_data_list = GetMatchData(index, (*address_list_iter).Start);
+		vector<MatchData *> *pMatchMapList = GetMatchData(index, (*address_list_iter).Start);
 
-		if (match_data_list.size()>0)
+		if (pMatchMapList->size()>0)
 		{
-			for (vector<MatchData *>::iterator it = match_data_list.begin(); it != match_data_list.end(); it++)
+			for (vector<MatchData *>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
 			{
 				if ((*it)->MatchRate == 100)
 				{
@@ -1734,7 +1733,7 @@ void DiffMachine::GetMatchStatistics(
 				}
 				total_match_rate += (*it)->MatchRate;
 			}
-			CleanUpMatchDataList(match_data_list);
+			FreeMatchMapList(pMatchMapList);
 		}else
 		{
 			PBasicBlock p_basic_block = ClientManager->GetBasicBlock((*address_list_iter).Start);
@@ -1765,7 +1764,7 @@ FunctionMatchInfo DiffMachine::GetFunctionMatchInfo( int i )
 	return FunctionMatchList.at( i );
 }
 
-BOOL DiffMachine::IsInUnidentifiedBlockHash( int index, DWORD address )
+BOOL DiffMachine::IsInUnidentifiedBlockHash( int index, va_t address )
 {
 	if( index==0 )
 		return TheSourceUnidentifedBlockHash.find( address ) != TheSourceUnidentifedBlockHash.end();
@@ -1795,10 +1794,10 @@ CodeBlock DiffMachine::GetUnidentifiedBlock( int index, int i )
 	return x;
 }
 
-void DiffMachine::RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address )
+void DiffMachine::RevokeTreeMatchMapIterInfo(va_t address, va_t match_address )
 {
 	return;
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 	for( match_map_iter=DiffResults->MatchMap.begin();
 		match_map_iter!=DiffResults->MatchMap.end();
 		match_map_iter++ )
@@ -1818,9 +1817,9 @@ void DiffMachine::RevokeTreeMatchMapIterInfo( DWORD address, DWORD match_address
 
 void DiffMachine::RemoveDuplicates()
 {
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
-	multimap <DWORD,  MatchData>::iterator found_match_map_iter;
-	multimap <DWORD,  MatchData>::iterator max_match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator found_match_map_iter;
+	multimap <va_t,  MatchData>::iterator max_match_map_iter;
 	if( !DiffResults ||! SourceController ||!TargetController)
 		return;
 
@@ -1866,7 +1865,7 @@ void DiffMachine::RemoveDuplicates()
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
 
-					unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( found_match_map_iter->second.Addresses[1] );
+					unordered_map <va_t, va_t>::iterator reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( found_match_map_iter->second.Addresses[1] );
 					if( reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end() && reverse_match_map_iterator->second.Address==found_match_map_iter->first )
 					{
 						iter->second.Status|=STATUS_MAPPING_DISABLED;
@@ -1878,7 +1877,7 @@ void DiffMachine::RemoveDuplicates()
 	}
 
 	/*CLEAN UP
-	unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
+	unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
 	for( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
 		reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end();
 		reverse_match_map_iterator++ )
@@ -1888,7 +1887,7 @@ void DiffMachine::RemoveDuplicates()
 		int found_duplicate=FALSE;
 		max_match_map_iter=match_map_iter;
 		int maximum_matchrate=match_map_iter->second.MatchRate;
-		unordered_map <DWORD, DWORD>::iterator found_reverse_match_map_iterator;
+		unordered_map <va_t, va_t>::iterator found_reverse_match_map_iterator;
 		for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 			found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 			match_map_iter->first==found_match_map_iter->first;
@@ -1910,7 +1909,7 @@ void DiffMachine::RemoveDuplicates()
 		{
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing( reverse ) %X %X match\n", __FUNCTION__, max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
 			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
-			unordered_map <DWORD, DWORD>::iterator reverse_match_map_iterator;
+			unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
 			for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 				match_map_iter->first==found_match_map_iter->first;
@@ -1923,7 +1922,7 @@ void DiffMachine::RemoveDuplicates()
 					DumpMatchMapIterInfo( __FUNCTION__, found_match_map_iter );
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->second.Addresses[1], found_match_map_iter->first );
-					multimap <DWORD,  MatchData>::iterator iter=DiffResults->MatchMap.find( found_match_map_iter->second.Addresses[1] );
+					multimap <va_t,  MatchData>::iterator iter=DiffResults->MatchMap.find( found_match_map_iter->second.Addresses[1] );
 					for( ;iter!=DiffResults->MatchMap.end() && iter->first==found_match_map_iter->second.Addresses[1];iter++ )
 					{
 						if( iter->second.Address==found_match_map_iter->first )
@@ -1943,9 +1942,9 @@ void DiffMachine::RemoveDuplicates()
 
 void DiffMachine::GenerateFunctionMatchInfo()
 {
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
-	DWORD last_unpatched_addr=0;
-	DWORD last_patched_addr=0;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
+	va_t last_unpatched_addr=0;
+	va_t last_patched_addr=0;
 	FunctionMatchInfo match_info;
 
 	if( !DiffResults ||! SourceController ||!TargetController)
@@ -1962,7 +1961,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 			continue;
 		}
 #ifdef USE_LEGACY_MAP
-		multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
+		multimap <va_t,  PBasicBlock>::iterator address_map_pIter;
 		address_map_pIter = SourceController->GetClientAnalysisInfo()->address_map.find( match_map_iter->first );
 		if( address_map_pIter != SourceController->GetClientAnalysisInfo()->address_map.end() )
 		{
@@ -2039,9 +2038,9 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: FunctionMatchList.size()=%u\n", __FUNCTION__, FunctionMatchList.size() );
 	//////////// Unidentifed Locations
 
-	multimap <DWORD,  PBasicBlock>::iterator address_map_pIter;
+	multimap <va_t,  PBasicBlock>::iterator address_map_pIter;
 	int unpatched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator source_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator source_fingerprint_map_Iter;
 	for( source_fingerprint_map_Iter = SourceController->GetClientAnalysisInfo()->address_fingerprint_map.begin();
 		source_fingerprint_map_Iter != SourceController->GetClientAnalysisInfo()->address_fingerprint_map.end();
 		source_fingerprint_map_Iter++
@@ -2091,7 +2090,7 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: unpatched_unidentified_number=%u\n", __FUNCTION__, TheSourceUnidentifedBlockHash.size() );
 
 	int patched_unidentified_number=0;
-	multimap <DWORD,  unsigned char *>::iterator target_fingerprint_map_Iter;
+	multimap <va_t,  unsigned char *>::iterator target_fingerprint_map_Iter;
 	for( target_fingerprint_map_Iter = TargetController->GetClientAnalysisInfo()->address_fingerprint_map.begin();
 		target_fingerprint_map_Iter != TargetController->GetClientAnalysisInfo()->address_fingerprint_map.end();
 		target_fingerprint_map_Iter++
@@ -2134,9 +2133,9 @@ void DiffMachine::GenerateFunctionMatchInfo()
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: patched_unidentified_number=%u\n", __FUNCTION__, patched_unidentified_number );
 }
 
-DWORD DiffMachine::DumpFunctionMatchInfo( int index, DWORD address )
+va_t DiffMachine::DumpFunctionMatchInfo( int index, va_t address )
 {
-	DWORD block_address=address;
+	va_t block_address=address;
 
 	/*
 	if( index==0 )
@@ -2145,7 +2144,7 @@ DWORD DiffMachine::DumpFunctionMatchInfo( int index, DWORD address )
 		block_address = TargetController->GetBlockAddress( address );
 	*/
 
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 	if( index==0 )
 	{
 		SourceController->DumpBlockInfo( block_address );
@@ -2161,7 +2160,7 @@ DWORD DiffMachine::DumpFunctionMatchInfo( int index, DWORD address )
 	else
 	{
 		TargetController->DumpBlockInfo( block_address );
-		multimap <DWORD, DWORD>::iterator reverse_match_map_iterator;
+		multimap <va_t, va_t>::iterator reverse_match_map_iterator;
 		reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( block_address );
 		if( reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end() )
 		{
@@ -2176,7 +2175,7 @@ DWORD DiffMachine::DumpFunctionMatchInfo( int index, DWORD address )
 
 int ReadOneMatchMapCallback( void *arg, int argc, char **argv, char **names )
 {
-	vector<MatchData *> *p_match_data_list = (vector<MatchData *> *)arg;
+	vector<MatchData *> *p_pMatchMapList = (vector<MatchData *> *)arg;
 	MatchData *match_data=new MatchData();
 	if( match_data )
 	{
@@ -2188,14 +2187,14 @@ int ReadOneMatchMapCallback( void *arg, int argc, char **argv, char **names )
 		match_data->MatchRate=atoi( argv[6] );
 		match_data->UnpatchedParentAddress=strtoul10( argv[7] );
 		match_data->PatchedParentAddress=strtoul10( argv[8] );
-		p_match_data_list->push_back(match_data);
+		p_pMatchMapList->push_back(match_data);
 	}
 	return 0;
 }
 
-void DiffMachine::RemoveMatchData(DWORD source_address, DWORD target_address)
+void DiffMachine::RemoveMatchData(va_t source_address, va_t target_address)
 {
-	 for (multimap <DWORD, MatchData>::iterator it = DiffResults->MatchMap.find(source_address);
+	 for (multimap <va_t, MatchData>::iterator it = DiffResults->MatchMap.find(source_address);
 		it != DiffResults->MatchMap.end() && it->first == source_address;
 		it++
 		)
@@ -2206,7 +2205,7 @@ void DiffMachine::RemoveMatchData(DWORD source_address, DWORD target_address)
 		it = DiffResults->MatchMap.erase(it);
 	}
 
-	for (multimap <DWORD, DWORD>::iterator it = DiffResults->ReverseAddressMap.find(target_address);
+	for (multimap <va_t, va_t>::iterator it = DiffResults->ReverseAddressMap.find(target_address);
 		it != DiffResults->ReverseAddressMap.end() && it->first == target_address;
 		it++)
 	{
@@ -2217,44 +2216,25 @@ void DiffMachine::RemoveMatchData(DWORD source_address, DWORD target_address)
 	}
 }
 
-vector<MatchData *> DiffMachine::GetMatchData(int index, DWORD address, BOOL erase)
+vector<MatchData *> *DiffMachine::GetMatchData(int index, va_t address, BOOL erase)
 {
-	vector<MatchData *> match_data_list;
+	vector<MatchData*> *pMatchMapList;
 
 	if( !DiffResults && m_diffDisassemblyStorage )
 	{
-		MatchData match_data;
-		memset( &match_data, 0, sizeof( match_data ) );
-
-		if( erase )
-		{
-			m_diffDisassemblyStorage->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
-		}
-		else
-		{
-			m_diffDisassemblyStorage->ExecuteStatement(ReadOneMatchMapCallback, &match_data_list, "SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", SourceID, TargetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
-			if( match_data.Addresses[0]!=0 )
-			for (vector<MatchData *>::iterator it = match_data_list.begin(); it!=match_data_list.end(); it++)
-			{
-				Logger.Log(20, LOG_DIFF_MACHINE, "%s: %u 0x%X returns %X-%X\r\n", __FUNCTION__, 
-																					index, 
-																					address,																					
-																					(*it)->Addresses[0],
-																					(*it)->Addresses[1]
-																				);
-			}
-		}
+		pMatchMapList = m_diffDisassemblyStorage.ReadMatchMap();
 	}else
 	{
-		multimap<DWORD,DWORD> address_pairs;
+		pMatchMapList = new vector<MatchData*>();
+		multimap<va_t, va_t> address_pairs;
 		
 		if( index==1 )
 		{
-			for (multimap <DWORD, DWORD>::iterator it = DiffResults->ReverseAddressMap.find(address);
+			for (multimap <va_t, va_t>::iterator it = DiffResults->ReverseAddressMap.find(address);
 				it != DiffResults->ReverseAddressMap.end() && it->first == address;
 				it++)
 			{
-				address_pairs.insert(pair<DWORD,DWORD>(it->second,address));
+				address_pairs.insert(pair<va_t, va_t>(it->second,address));
 
 				if( erase )
 				{
@@ -2264,15 +2244,15 @@ vector<MatchData *> DiffMachine::GetMatchData(int index, DWORD address, BOOL era
 		}
 		else
 		{
-			address_pairs.insert(pair<DWORD, DWORD>(address, 0));
+			address_pairs.insert(pair<va_t, va_t>(address, 0));
 		}
 		
-		for (multimap<DWORD, DWORD>::iterator it = address_pairs.begin(); it != address_pairs.end(); it++)
+		for (multimap<va_t, va_t>::iterator it = address_pairs.begin(); it != address_pairs.end(); it++)
 		{
-			DWORD source_address = it->first;
-			DWORD target_address = it->second;
+			va_t source_address = it->first;
+			va_t target_address = it->second;
 
-			multimap <DWORD,  MatchData>::iterator match_map_iter;
+			multimap <va_t,  MatchData>::iterator match_map_iter;
 			for(match_map_iter = DiffResults->MatchMap.find(source_address);
 				match_map_iter != DiffResults->MatchMap.end() && match_map_iter->first==source_address;
 				match_map_iter++
@@ -2288,10 +2268,10 @@ vector<MatchData *> DiffMachine::GetMatchData(int index, DWORD address, BOOL era
 					//Erase matching reverse address map entries
 					match_map_iter = DiffResults->MatchMap.erase(match_map_iter);
 
-					DWORD match_target_address = match_map_iter->second.Addresses[1];
-					DWORD match_source_address = match_map_iter->second.Addresses[0];
+					va_t match_target_address = match_map_iter->second.Addresses[1];
+					va_t match_source_address = match_map_iter->second.Addresses[0];
 
-					for (multimap <DWORD, DWORD>::iterator reverse_match_map_iter = DiffResults->ReverseAddressMap.find(match_target_address);
+					for (multimap <va_t, va_t>::iterator reverse_match_map_iter = DiffResults->ReverseAddressMap.find(match_target_address);
 						reverse_match_map_iter != DiffResults->ReverseAddressMap.end() && reverse_match_map_iter->first == match_target_address;
 						reverse_match_map_iter++
 					)
@@ -2304,36 +2284,36 @@ vector<MatchData *> DiffMachine::GetMatchData(int index, DWORD address, BOOL era
 				{
 					MatchData *new_match_data = new MatchData();
 					memcpy(new_match_data, &match_map_iter->second, sizeof(MatchData));
-					match_data_list.push_back(new_match_data);
+					pMatchMapList->push_back(new_match_data);
 				}
 			}
 		}
 	}
 
-	Logger.Log(20, LOG_DIFF_MACHINE, "%s: %u 0x%X Returns %d entries\r\n", __FUNCTION__, index, address, match_data_list.size());
-	return match_data_list;
+	Logger.Log(20, LOG_DIFF_MACHINE, "%s: %u 0x%X Returns %d entries\r\n", __FUNCTION__, index, address, pMatchMapList->size());
+	return pMatchMapList;
 }
 
-DWORD DiffMachine::GetMatchAddr( int index, DWORD address )
+va_t DiffMachine::GetMatchAddr( int index, va_t address )
 {
-	vector<MatchData *> match_data_list = GetMatchData( index, address );
-	for (vector<MatchData *>::iterator it = match_data_list.begin();
-		it != match_data_list.end();
+	vector<MatchData *> *pMatchMapList = GetMatchData( index, address );
+	for (vector<MatchData *>::iterator it = pMatchMapList->begin();
+		it != pMatchMapList->end();
 		it++
 	)
 	{
-		CleanUpMatchDataList(match_data_list);
+		FreeMatchMapList(pMatchMapList);
 		return (*it)->Addresses[index == 0 ? 1 : 0];
 	}
 	return 0L;
 }
 
-BOOL DiffMachine::Save(char *DataFile, BYTE Type, DWORD Offset, DWORD dwMoveMethod, unordered_set <DWORD> *pTheSourceSelectedAddresses, unordered_set <DWORD> *pTheTargetSelectedAddresses )
+BOOL DiffMachine::Save(char *DataFile, BYTE Type, va_t Offset, va_t dwMoveMethod, unordered_set <va_t> *pTheSourceSelectedAddresses, unordered_set <va_t> *pTheTargetSelectedAddresses )
 {
 	return FALSE;
 }
 
-BOOL DiffMachine::Save(SQLiteDisassemblyStorage& disassemblyStorage, unordered_set <DWORD> *pTheSourceSelectedAddresses, unordered_set <DWORD> *pTheTargetSelectedAddresses )
+BOOL DiffMachine::Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses, unordered_set <va_t> *pTheTargetSelectedAddresses )
 {
 	if( !SourceController || !TargetController)
 		return FALSE;
@@ -2355,7 +2335,7 @@ BOOL DiffMachine::Save(SQLiteDisassemblyStorage& disassemblyStorage, unordered_s
 	disassemblyStorage.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
 	disassemblyStorage.ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, "Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
 
-	multimap <DWORD,  MatchData>::iterator match_map_iter;
+	multimap <va_t,  MatchData>::iterator match_map_iter;
 
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
 	Logger.Log( 10, LOG_DIFF_MACHINE,  "DiffResults->MatchMap.size()=%u\n", DiffResults->MatchMap.size() );
@@ -2440,47 +2420,6 @@ BOOL DiffMachine::Save(SQLiteDisassemblyStorage& disassemblyStorage, unordered_s
 	return TRUE;
 }
 
-int ReadMatchMapCallback( void *arg, int argc, char **argv, char **names )
-{
-	AnalysisResult *DiffResults=( AnalysisResult * )arg;
-
-	MatchData match_data;
-	DWORD SourceAddress=strtoul10( argv[0] );
-	DWORD TargetAddress=strtoul10( argv[1] );
-	match_data.Type=atoi( argv[3] );
-	match_data.SubType=atoi( argv[4] );
-	match_data.Status=atoi( argv[5] );
-	match_data.MatchRate=atoi( argv[6] );
-	match_data.UnpatchedParentAddress=strtoul10( argv[7] );
-	match_data.PatchedParentAddress=strtoul10( argv[8] );
-	match_data.Addresses[0]=SourceAddress;
-	match_data.Addresses[1]=TargetAddress;
-	DiffResults->AddMatchData(match_data, __FUNCTION__);
-	return 0;
-}
-
-int ReadFunctionMatchListCallback( void *arg, int argc, char **argv, char **names )
-{
-	vector <FunctionMatchInfo> *pFunctionMatchList=( vector <FunctionMatchInfo> * )arg;
-	FunctionMatchInfo function_match_info;
-	function_match_info.TheSourceAddress=strtoul10( argv[0] );
-	function_match_info.EndAddress=strtoul10( argv[1] );
-	function_match_info.TheTargetAddress=strtoul10( argv[2] );
-	function_match_info.BlockType=atoi( argv[3] );
-	function_match_info.MatchRate=atoi( argv[4] );
-	function_match_info.TheSourceFunctionName=_strdup( argv[5] );
-	function_match_info.Type=atoi( argv[6] );
-	function_match_info.TheTargetFunctionName=_strdup( argv[7] );
-	function_match_info.MatchCountForTheSource=atoi( argv[8] );
-	function_match_info.NoneMatchCountForTheSource=atoi( argv[9] );
-	function_match_info.MatchCountWithModificationForTheSource=atoi( argv[10] );
-	function_match_info.MatchCountForTheTarget=atoi( argv[11] );
-	function_match_info.NoneMatchCountForTheTarget=atoi( argv[12] );
-	function_match_info.MatchCountWithModificationForTheTarget=atoi( argv[13] );
-	pFunctionMatchList->push_back( function_match_info );
-	return 0;
-}
-
 struct FileList
 {
 	string SourceFilename;
@@ -2498,23 +2437,6 @@ char *GetFilename(char *full_pathname)
 	}
 
 	return full_pathname;
-}
-
-int ReadFileListCallback(void *arg, int argc, char **argv, char **names)
-{
-	FileList *file_list = (FileList *)arg;
-	if (file_list)
-	{
-		if (!_stricmp(argv[0], "source"))
-		{
-			file_list->SourceFilename = GetFilename(argv[1]);
-		}
-		else if (!_stricmp(argv[0], "target"))
-		{
-			file_list->TargetFilename = GetFilename(argv[1]);
-		}
-	}
-	return 0;
 }
 
 // Use your own error codes here
@@ -2574,10 +2496,9 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 {
 	Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-	m_diffDisassemblyStorage = new SQLiteDisassemblyStorage(DiffDBFilename);
-	FileList DiffFileList;
-	m_diffDisassemblyStorage->ExecuteStatement(ReadFileListCallback, &DiffFileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
-
+	m_diffDisassemblyStorage = new DisassemblyStorage(DiffDBFilename);
+	FileList DiffFileList = m_diffDisassemblyStorage->ReadFileListCallback()
+		
 	if (DiffFileList.SourceFilename.size() > 0 && DiffFileList.TargetFilename.size() > 0)
 	{
 		char *DiffDBBasename = (char *)malloc(strlen(DiffDBFilename) + 1);
@@ -2612,12 +2533,12 @@ BOOL DiffMachine::Create(const char *DiffDBFilename)
 	if (SourceDBName.size()>0 && TargetDBName.size()>0)
 	{
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", SourceDBName.c_str());
-		m_sourceDisassemblyStorage = new SQLiteDisassemblyStorage();
+		m_sourceDisassemblyStorage = new DisassemblyStorage();
 		m_sourceDisassemblyStorage->CreateDatabase(SourceDBName.c_str());
 		SetSource(SourceDBName.c_str(), 1, SourceFunctionAddress);
 
 		Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
-		m_targetDisassemblyStorage = new SQLiteDisassemblyStorage();
+		m_targetDisassemblyStorage = new DisassemblyStorage();
 		m_targetDisassemblyStorage->CreateDatabase(TargetDBName.c_str());
 		SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
 	}
@@ -2633,7 +2554,7 @@ BOOL DiffMachine::Load(const char *DiffDBFilename)
 	return _Load();
 }
 
-BOOL DiffMachine::Load(SQLiteDisassemblyStorage* DiffDB)
+BOOL DiffMachine::Load(DisassemblyStorage* DiffDB)
 {
 	m_diffDisassemblyStorage = DiffDB;
 	m_sourceDisassemblyStorage = DiffDB;
@@ -2713,23 +2634,17 @@ BOOL DiffMachine::_Load()
 		}
 	}
 
-	m_diffDisassemblyStorage->ExecuteStatement( ReadFunctionMatchListCallback, &FunctionMatchList, query, SourceID, TargetID);
+	FunctionMatchList = m_diffDisassemblyStorage->ReadFunctionMatchList();
 
 	if (LoadDiffResults)
 	{
-		DiffResults = new AnalysisResult;
-
-		m_diffDisassemblyStorage->ExecuteStatement(
-			ReadMatchMapCallback,
-			DiffResults,
-			"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
-			SourceID, TargetID);
+		DiffResults = m_diffDisassemblyStorage->ReadMatchMap();
 	}
 
 	return TRUE;
 }
 
-BOOL DiffMachine::DeleteMatchInfo(SQLiteDisassemblyStorage& OutputDB )
+BOOL DiffMachine::DeleteMatchInfo(DisassemblyStorage& OutputDB )
 {
 	if( SourceFunctionAddress > 0 && TargetFunctionAddress > 0 )
 	{
@@ -2781,7 +2696,7 @@ BREAKPOINTS DiffMachine::ShowUnidentifiedAndModifiedBlocks()
 			list <BLOCK> source_blocks = SourceController->GetFunctionMemberBlocks((*iter).TheSourceAddress);
 			for (list <BLOCK>::iterator source_block = source_blocks.begin(); source_block != source_blocks.end(); source_block++)
 			{
-				multimap <DWORD, MatchData>::iterator match_map_iter = DiffResults->MatchMap.find((*source_block).Start);
+				multimap <va_t, MatchData>::iterator match_map_iter = DiffResults->MatchMap.find((*source_block).Start);
 
 				if (match_map_iter != DiffResults->MatchMap.end())
 				{
@@ -2822,7 +2737,7 @@ BREAKPOINTS DiffMachine::ShowUnidentifiedAndModifiedBlocks()
 			list <BLOCK> target_blocks = TargetController->GetFunctionMemberBlocks((*iter).TheTargetAddress);
 			for (list <BLOCK>::iterator target_block = target_blocks.begin(); target_block != target_blocks.end(); target_block++)
 			{
-				multimap <DWORD, DWORD>::iterator reverse_match_map_iter = DiffResults->ReverseAddressMap.find((*target_block).Start);
+				multimap <va_t, va_t>::iterator reverse_match_map_iter = DiffResults->ReverseAddressMap.find((*target_block).Start);
 
 				if (reverse_match_map_iter == DiffResults->ReverseAddressMap.end())
 				{
@@ -2837,7 +2752,7 @@ BREAKPOINTS DiffMachine::ShowUnidentifiedAndModifiedBlocks()
 				{
 					for (; reverse_match_map_iter != DiffResults->ReverseAddressMap.end() && reverse_match_map_iter->first == (*target_block).Start; reverse_match_map_iter++)
 					{
-						multimap <DWORD, MatchData>::iterator match_map_iter = DiffResults->MatchMap.find(reverse_match_map_iter->second);
+						multimap <va_t, MatchData>::iterator match_map_iter = DiffResults->MatchMap.find(reverse_match_map_iter->second);
 
 						while (match_map_iter != DiffResults->MatchMap.end() && (*match_map_iter).first != reverse_match_map_iter->second)
 						{

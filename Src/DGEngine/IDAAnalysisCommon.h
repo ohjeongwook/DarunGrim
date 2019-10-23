@@ -3,6 +3,8 @@
 
 #include "windows.h"
 
+typedef int va_t;
+
 #pragma pack(push)
 #pragma pack(1)
 enum { BASIC_BLOCK,MAP_INFO,FILE_INFO,END_OF_DATA, DISASM_LINES, INPUT_NAME};
@@ -14,9 +16,9 @@ enum {CALL,CREF_FROM,CREF_TO,DREF_FROM,DREF_TO,CALLED};
 
 typedef struct _MapInfo_ {
 	BYTE Type;
-	DWORD SrcBlock;
-	DWORD SrcBlockEnd;
-	DWORD Dst;
+	va_t SrcBlock;
+	va_t SrcBlockEnd;
+	va_t Dst;
 } MapInfo,*PMapInfo;
 
 #define MAP_INFO_TABLE "MapInfo"
@@ -35,11 +37,11 @@ typedef struct _MapInfo_ {
 //Pushing Basic Information on Address
 
 typedef struct _BasicBlock_ {
-	DWORD StartAddress; //ea_t
-	DWORD EndAddress;
+	va_t StartAddress; //ea_t
+	va_t EndAddress;
 	BYTE Flag; //Flag_t
 	//func_t get_func(current_addr)
-	DWORD FunctionAddress;
+	va_t FunctionAddress;
 	BYTE BlockType; // FUNCTION, UNKNOWN
 	int NameLen;
 	int DisasmLinesLen;

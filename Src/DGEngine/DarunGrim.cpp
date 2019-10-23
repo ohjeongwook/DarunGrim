@@ -6,7 +6,7 @@
 #include "LogOperation.h"
 
 #include "SocketOperation.h"
-#include "SQLiteDisassemblyStorage.h"
+#include "DisassemblyStorage.h"
 #include "ProcessUtils.h"
 #include "IDAAnalysisCommon.h"
 
@@ -182,7 +182,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 		if( m_disassemblyStorage )
 			delete m_disassemblyStorage;
 
-		m_disassemblyStorage = new SQLiteDisassemblyStorage( (char *) storage_filename );
+		m_disassemblyStorage = new DisassemblyStorage( storage_filename );
 	}
 
 	if( m_disassemblyStorage )
@@ -214,25 +214,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	return TRUE;
 }
 
-
-int ReadFileInfo(void *arg, int argc, char **argv, char **names)
-{
-	for(int i=0;i<argc;i++)
-	{
-		Logger.Log(0, LOG_DARUNGRIM, "%s: %s\n",names[i],argv[i]);
-	}
-	Logger.Log(0, LOG_DARUNGRIM,  "\n");
-	return 0;
-}
-
-
-void DarunGrim::ListDiffDatabase(const char *storage_filename)
-{
-    SQLiteDisassemblyStorage *disassemblyStorage = new SQLiteDisassemblyStorage((char *)storage_filename);
-    disassemblyStorage->ExecuteStatement(ReadFileInfo, NULL, "SELECT id,OriginalFilePath,ComputerName,UserName,CompanyName,FileVersion,FileDescription,InternalName,ProductName,ModifiedTime,MD5Sum From FileInfo");
-}
-
-bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
+bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
 {
 	Logger.Log(10, LOG_DARUNGRIM, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
 
@@ -254,7 +236,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, DWORD source_addre
 		delete m_disassemblyStorage;
 
 	Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-	m_disassemblyStorage = new SQLiteDisassemblyStorage((char *)output_storage_filename);
+	m_disassemblyStorage = new DisassemblyStorage((char *)output_storage_filename);
 	SetDatabase(m_disassemblyStorage);
 
 	pDiffMachine->Save(*m_disassemblyStorage);
@@ -269,13 +251,13 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 	if( m_disassemblyStorage )
 		delete m_disassemblyStorage;
 
-	m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
+	m_disassemblyStorage = new DisassemblyStorage(storage_filename);
 	return TRUE;
 }
 
 bool DarunGrim::Load( const char *storage_filename )
 {
-	m_disassemblyStorage = new SQLiteDisassemblyStorage( (char *) storage_filename );
+	m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
 	if( m_disassemblyStorage )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
@@ -322,7 +304,7 @@ bool DarunGrim::ShowOnIDA()
 	return TRUE;
 }
 
-void DarunGrim::SetDatabase(SQLiteDisassemblyStorage *OutputDB)
+void DarunGrim::SetDatabase(DisassemblyStorage *OutputDB)
 {
 	m_disassemblyStorage = OutputDB;
 }
@@ -651,7 +633,7 @@ DWORD DarunGrim::IDACommandProcessor()
 							Logger.Log(10, LOG_DARUNGRIM, "%s: Type: %d Length: %d data:%X\n", __FUNCTION__, type, length, data);
 							if (type == SHOW_MATCH_ADDR && length >= 4)
 							{
-								DWORD address = *(DWORD *)data;
+								va_t address = *(va_t*)data;
 								Logger.Log(10, LOG_DARUNGRIM, "%s: Showing address=%X\n", __FUNCTION__, address);
 								//Get Matching Address
 
@@ -732,7 +714,7 @@ bool SendMatchedAddrTLVData(FunctionMatchInfo &Data, PVOID Context)
 	return false;
 }
 
-bool SendAddrTypeTLVData(int Type, DWORD Start, DWORD End, PVOID Context)
+bool SendAddrTypeTLVData(int Type, va_t Start, va_t End, PVOID Context)
 {
 	IDAController *ClientManager = (IDAController *)Context;
 	if (ClientManager)
