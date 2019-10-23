@@ -3,11 +3,12 @@
 
 #include "windows.h"
 
+#pragma pack(push)
+#pragma pack(1)
+
 typedef int va_t;
 #define strtoul10(X) strtoul(X, NULL, 10)
 
-#pragma pack(push)
-#pragma pack(1)
 enum { BASIC_BLOCK,MAP_INFO,FILE_INFO,END_OF_DATA, DISASM_LINES, INPUT_NAME};
 //DISASM_LINES,FINGERPRINT_INFO,NAME_INFO
 enum {UNKNOWN_BLOCK,FUNCTION_BLOCK};

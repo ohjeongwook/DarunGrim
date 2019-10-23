@@ -3,13 +3,14 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#pragma pack(push)
-#pragma pack(1)
 #include "Common.h"
 #include "IDAAnalysisCommon.h"
 
 using namespace std;
 using namespace stdext;
+
+#pragma pack(push)
+#pragma pack(1)
 
 //FingerPrintInfo
 //Pushing Fingerprint Information

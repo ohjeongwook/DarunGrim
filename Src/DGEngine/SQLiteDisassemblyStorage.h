@@ -189,15 +189,16 @@ public:
 	list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
 
 	static int QueryFunctionMatchesCallback(void* arg, int argc, char** argv, char** names);
-	vector <FunctionMatchInfo> QueryFunctionMatches(char* query, int sourceID, int targetID);
+	vector <FunctionMatchInfo> QueryFunctionMatches(const char* query, int sourceID, int targetID);
 
 	static int ReadFileListCallback(void* arg, int argc, char** argv, char** names);
-	FileList ReadFileListCallback();
+	FileList ReadFileList();
 
 	void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
 
 	char* GetOriginalFilePath(int fileID);
 	void DeleteMatchInfo(int fileID, va_t functionAddress);
+	void DeleteMatches(int srcFileID, int dstFileID);
 
 	char* ReadDisasmLine(int fileID, va_t startAddress);
 
@@ -205,4 +206,7 @@ public:
 	PBasicBlock ReadBasicBlock(int fileID, va_t address);
 
 	void UpdateBasicBlock(int fileID, va_t address1, va_t address2);
+
+	void AddFileInfo(char* fileType, const char* dbName, int fileID, va_t functionAddress);
+	void AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo);
 };

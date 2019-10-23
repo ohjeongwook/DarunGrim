@@ -35,13 +35,19 @@ public:
 
 	virtual list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
 
-	virtual vector <FunctionMatchInfo> QueryFunctionMatches(char* query, int sourceID, int targetID);
+	virtual vector <FunctionMatchInfo> QueryFunctionMatches(const char* query, int sourceID, int targetID);
+	virtual FileList ReadFileList();
 
 	virtual void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
 	virtual char* GetOriginalFilePath(int fileID);
 	virtual void DeleteMatchInfo(int fileID, va_t functionAddress);
+	virtual void DeleteMatches(int srcFileID, int dstFileID);
 
 	virtual char* ReadDisasmLine(int fileID, va_t startAddress);
 	virtual PBasicBlock ReadBasicBlock(int fileID, va_t address);
 	virtual void UpdateBasicBlock(int fileID, va_t address1, va_t address2);
+
+	virtual void AddFileInfo(char* fileType, const char* dbName, int fileID, va_t functionAddress);
+
+	virtual void AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo);
 };

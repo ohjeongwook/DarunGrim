@@ -35,7 +35,15 @@ void SQLiteDisassemblyStorage::CreateTables()
 	ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_STATEMENT);
 	ExecuteStatement(NULL, NULL, CREATE_MAP_INFO_TABLE_SRCBLOCK_INDEX_STATEMENT);
 	ExecuteStatement(NULL, NULL, CREATE_FILE_INFO_TABLE_STATEMENT);
+
+	ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT);
+	ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
+	ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT);
+	ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT);
+	ExecuteStatement(NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_STATEMENT);
+	ExecuteStatement(NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT);
 }
+
 bool SQLiteDisassemblyStorage::Open(char* DatabaseName)
 {
 	m_DatabaseName = DatabaseName;
@@ -559,7 +567,7 @@ int SQLiteDisassemblyStorage::QueryFunctionMatchesCallback(void* arg, int argc, 
 	return 0;
 }
 
-vector <FunctionMatchInfo> SQLiteDisassemblyStorage::QueryFunctionMatches(char *query, int sourceID, int targetID)
+vector <FunctionMatchInfo> SQLiteDisassemblyStorage::QueryFunctionMatches(const char *query, int sourceID, int targetID)
 {
 	vector <FunctionMatchInfo> functionMatchList;
 	ExecuteStatement(QueryFunctionMatchesCallback, &functionMatchList, query, sourceID, targetID);
@@ -596,7 +604,7 @@ int SQLiteDisassemblyStorage::ReadFileListCallback(void* arg, int argc, char** a
 	return 0;
 }
 
-FileList SQLiteDisassemblyStorage::ReadFileListCallback()
+FileList SQLiteDisassemblyStorage::ReadFileList()
 {
 	FileList fileList;
 	ExecuteStatement(ReadFileListCallback, &fileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
@@ -649,10 +657,17 @@ void SQLiteDisassemblyStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
 		fileID, functionAddress);
 }
 
+void SQLiteDisassemblyStorage::DeleteMatches(int srcFileID, int dstFileID)
+{
+	ExecuteStatement(NULL, NULL, DELETE_MATCH_MAP_TABLE_STATEMENT, srcFileID, dstFileID);
+	ExecuteStatement(NULL, NULL, DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT, srcFileID, dstFileID);
+}
+
 char* SQLiteDisassemblyStorage::ReadDisasmLine(int fileID, va_t startAddress)
 {
 	char* disasmLines = NULL;
-	ExecuteStatement(>ReadRecordStringCallback, &disasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
+	ExecuteStatement(ReadRecordStringCallback, &disasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u",
+		fileID, startAddress);
 	return disasmLines;
 }
 
@@ -682,10 +697,40 @@ PBasicBlock SQLiteDisassemblyStorage::ReadBasicBlock(int fileID, va_t address)
 		"SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", 
 		fileID,
 		address);
+
+	return p_basic_block;
 }
 
 void SQLiteDisassemblyStorage::UpdateBasicBlock(int fileID, va_t address1, va_t address2)
 {
 	ExecuteStatement(NULL, NULL, UPDATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_STATEMENT,
 		address2, address2 == address1 ? FUNCTION_BLOCK : UNKNOWN_BLOCK, fileID, address1);
+}
+
+void SQLiteDisassemblyStorage::AddFileInfo(char* fileType, const char *dbName, int fileID, va_t functionAddress)
+{
+	ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT,
+		fileType, dbName, fileID, functionAddress);
+}
+
+void SQLiteDisassemblyStorage::AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo)
+{
+	ExecuteStatement(NULL, NULL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT,
+		srcFileID,
+		targetFileID,
+		functionMatchInfo.TheSourceAddress,
+		functionMatchInfo.EndAddress,
+		functionMatchInfo.TheTargetAddress,
+		functionMatchInfo.BlockType,
+		functionMatchInfo.MatchRate,
+		functionMatchInfo.TheSourceFunctionName,
+		functionMatchInfo.Type,
+		functionMatchInfo.TheTargetFunctionName,
+		functionMatchInfo.MatchCountForTheSource,
+		functionMatchInfo.NoneMatchCountForTheSource,
+		functionMatchInfo.MatchCountWithModificationForTheSource,
+		functionMatchInfo.MatchCountForTheTarget,
+		functionMatchInfo.NoneMatchCountForTheTarget,
+		functionMatchInfo.MatchCountWithModificationForTheTarget
+	);
 }

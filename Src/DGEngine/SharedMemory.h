@@ -2,13 +2,12 @@
 #pragma warning(disable:4200) 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include "TLV.h"
 
 #pragma pack(push)
 #pragma pack(4)
 
-#include "TLV.h"
 #define NULL_DATA 0xff
-
 
 typedef struct _MemoryHeader_ {
 	DWORD ReadPoint;

@@ -238,7 +238,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
 		delete m_disassemblyStorage;
 
 	Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-	m_disassemblyStorage = new DisassemblyStorage((char *)output_storage_filename);
+	m_disassemblyStorage = new SQLiteDisassemblyStorage(output_storage_filename);
 	SetDatabase(m_disassemblyStorage);
 
 	pDiffMachine->Save(*m_disassemblyStorage);
@@ -253,13 +253,13 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 	if( m_disassemblyStorage )
 		delete m_disassemblyStorage;
 
-	m_disassemblyStorage = new DisassemblyStorage(storage_filename);
+	m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
 	return TRUE;
 }
 
 bool DarunGrim::Load( const char *storage_filename )
 {
-	m_disassemblyStorage = new DisassemblyStorage( (char *) storage_filename );
+	m_disassemblyStorage = new SQLiteDisassemblyStorage( storage_filename );
 	if( m_disassemblyStorage )
 	{
 		pDiffMachine->SetRetrieveDataForAnalysis(TRUE);

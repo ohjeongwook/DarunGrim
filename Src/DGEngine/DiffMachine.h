@@ -114,9 +114,8 @@ public:
 	CodeBlock GetUnidentifiedBlock( int index, int i );
 	BOOL IsInUnidentifiedBlockHash( int index, va_t address );
 
-	BOOL Save( char *DataFile, BYTE Type=DiffMachineFileSQLiteFormat, DWORD Offset=0L, DWORD dwMoveMethod=FILE_BEGIN, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <DWORD> *pTheTargetSelectedAddresses=NULL );
-	
+	BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <va_t> *pTheTargetSelectedAddresses=NULL );
+
 private:
 	BOOL bRetrieveDataForAnalysis;
 
@@ -157,7 +156,7 @@ private:
 
 	IDAController *SourceController;
 	IDAController *TargetController;
-	MatchResults *MatchResults;
+	MatchResults *pMatchResults;
 
 	BOOL _Load();
 
