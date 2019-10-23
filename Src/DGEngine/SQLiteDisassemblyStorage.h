@@ -198,4 +198,11 @@ public:
 
 	char* GetOriginalFilePath(int fileID);
 	void DeleteMatchInfo(int fileID, va_t functionAddress);
+
+	char* ReadDisasmLine(int fileID, va_t startAddress);
+
+	static int ReadBasicBlockCallback(void* arg, int argc, char** argv, char** names);
+	PBasicBlock ReadBasicBlock(int fileID, va_t address);
+
+	void UpdateBasicBlock(int fileID, va_t address1, va_t address2);
 };

@@ -32,9 +32,16 @@ public:
 	virtual multimap <va_t, PMapInfo>* ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
 	virtual vector<MatchData*>* ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
 	virtual MatchResults *ReadMatchResults(int sourceID, int targetID);
+
+	virtual list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
+
 	virtual vector <FunctionMatchInfo> QueryFunctionMatches(char* query, int sourceID, int targetID);
 
 	virtual void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
 	virtual char* GetOriginalFilePath(int fileID);
 	virtual void DeleteMatchInfo(int fileID, va_t functionAddress);
+
+	virtual char* ReadDisasmLine(int fileID, va_t startAddress);
+	virtual PBasicBlock ReadBasicBlock(int fileID, va_t address);
+	virtual void UpdateBasicBlock(int fileID, va_t address1, va_t address2);
 };

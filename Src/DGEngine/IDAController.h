@@ -21,7 +21,7 @@ private:
 #ifndef USE_LEGACY_MAP
 	int m_FileID;
 #endif
-    DisassemblyStorage *m_disassemblyStorage;
+    DisassemblyStorage *m_pDisassemblyStorage;
 
 	char *m_OriginalFilePath;
 	va_t TargetFunctionAddress;

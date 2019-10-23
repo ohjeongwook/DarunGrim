@@ -649,3 +649,43 @@ void SQLiteDisassemblyStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
 		fileID, functionAddress);
 }
 
+char* SQLiteDisassemblyStorage::ReadDisasmLine(int fileID, va_t startAddress)
+{
+	char* disasmLines = NULL;
+	ExecuteStatement(>ReadRecordStringCallback, &disasmLines, "SELECT DisasmLines FROM BasicBlock WHERE FileID = %u and StartAddress = %u", m_FileID, StartAddress);
+	return disasmLines;
+}
+
+int SQLiteDisassemblyStorage::ReadBasicBlockCallback(void* arg, int argc, char** argv, char** names)
+{
+	PBasicBlock p_basic_block = (PBasicBlock)arg;
+	p_basic_block->StartAddress = strtoul10(argv[0]);
+	p_basic_block->EndAddress = strtoul10(argv[1]);
+	p_basic_block->Flag = strtoul10(argv[2]);
+	p_basic_block->FunctionAddress = strtoul10(argv[3]);
+	p_basic_block->BlockType = strtoul10(argv[4]);
+	p_basic_block->FingerprintLen = strlen(argv[5]);
+
+	LogMessage(0, __FUNCTION__, "%X Block Type: %d\n", p_basic_block->StartAddress, p_basic_block->BlockType);
+
+	if (p_basic_block->BlockType == FUNCTION_BLOCK)
+	{
+		LogMessage(0, __FUNCTION__, "Function Block: %X\n", p_basic_block->StartAddress);
+	}
+	return 0;
+}
+
+PBasicBlock SQLiteDisassemblyStorage::ReadBasicBlock(int fileID, va_t address)
+{
+	PBasicBlock p_basic_block = (PBasicBlock)malloc(sizeof(BasicBlock));
+	ExecuteStatement(ReadBasicBlockCallback, p_basic_block, 
+		"SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", 
+		fileID,
+		address);
+}
+
+void SQLiteDisassemblyStorage::UpdateBasicBlock(int fileID, va_t address1, va_t address2)
+{
+	ExecuteStatement(NULL, NULL, UPDATE_BASIC_BLOCK_TABLE_FUNCTION_ADDRESS_STATEMENT,
+		address2, address2 == address1 ? FUNCTION_BLOCK : UNKNOWN_BLOCK, fileID, address1);
+}

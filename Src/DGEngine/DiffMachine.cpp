@@ -502,7 +502,7 @@ bool DiffMachine::DoFunctionLevelMatchOptimizing()
 							*source_member_iter,
 							*target_member_iter,
 							FINGERPRINT_INSIDE_FUNCTION_MATCH,
-							current_match_rate,);
+							current_match_rate);
 					}
 				}
 			}
