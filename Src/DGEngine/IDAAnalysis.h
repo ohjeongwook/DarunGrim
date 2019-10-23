@@ -11,12 +11,13 @@
 #include <name.hpp>
 #include <allins.hpp>
 
-#include "DisassemblyStorage.h"
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
 #include <list>
+
+#include "SQLiteDisassemblyStorage.h"
 
 using namespace std;
 using namespace stdext;

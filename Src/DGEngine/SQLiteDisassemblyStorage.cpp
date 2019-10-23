@@ -431,7 +431,7 @@ multimap <va_t, PMapInfo>* SQLiteDisassemblyStorage::ReadMapInfo(int fileID, va_
 	return p_map_info_map;
 }
 
-int ReadOneMatchMapCallback(void* arg, int argc, char** argv, char** names)
+int SQLiteDisassemblyStorage::ReadOneMatchMapCallback(void* arg, int argc, char** argv, char** names)
 {
 	vector<MatchData*>* p_pMatchMapList = (vector<MatchData*>*)arg;
 	MatchData* match_data = new MatchData();
