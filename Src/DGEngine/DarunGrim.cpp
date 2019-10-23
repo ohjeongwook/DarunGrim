@@ -28,7 +28,7 @@ DarunGrim::DarunGrim() :
     LogOperation::InitLog();
     Logger.SetCategory("DarunGrim");
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
-    pDiffMachine = new DiffMachine();
+    pDiffMachine = new IDASessions();
     pDiffMachine->SetDumpAddressChecker(&aDumpAddress);
 
     IDAPath = _strdup(DEFAULT_IDA_PATH);

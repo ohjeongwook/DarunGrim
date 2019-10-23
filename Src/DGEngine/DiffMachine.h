@@ -28,7 +28,7 @@ typedef struct
     int IndexDiff;
 } MatchRateInfo;
 
-class DiffMachine
+class IDASessions
 {
 private:
     int DebugFlag;
@@ -64,8 +64,8 @@ private:
     void FreeMatchMapList(vector<MatchData*>* pMatchMapList);
 
 public:
-    DiffMachine(IDASession* the_source = NULL, IDASession* the_target = NULL);
-    ~DiffMachine();
+    IDASessions(IDASession* the_source = NULL, IDASession* the_target = NULL);
+    ~IDASessions();
     void ClearFunctionMatchList();
 
     void SetDumpAddressChecker(DumpAddressChecker* p_dump_address_checker)

@@ -21,7 +21,7 @@ private:
     IDASession* pTargetController;
 
     DisassemblyStorage* pDisassemblyStorage;
-    DiffMachine* pDiffMachine;
+    IDASessions* pDiffMachine;
     bool OpenDatabase(char* storage_filename);
     string SourceFilename;
     string SourceIDBFilename;
@@ -47,7 +47,7 @@ public:
     }
     void EnableLogType(int type);
 
-    DiffMachine* GetDiffMachine()
+    IDASessions* GetDiffMachine()
     {
         return pDiffMachine;
     }
@@ -184,7 +184,7 @@ public:
     bool StopIDAListener();
 
     IDASession* GetIDAControllerFromFile(char* DataFile);
-    DWORD SetMembers(DiffMachine* pArgDiffMachine);
+    DWORD SetMembers(IDASessions* pArgDiffMachine);
     DWORD IDACommandProcessor();
     BOOL CreateIDACommandProcessorThread();
     void SetIDAPath(const char* ParamIDAPath, bool is_64);
