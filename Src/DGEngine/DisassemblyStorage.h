@@ -19,18 +19,22 @@ public:
 	virtual int EndTransaction();
 	virtual void EndAnalysis();
 
+	virtual int ProcessTLV(BYTE Type, PBYTE Data, DWORD Length);
+
 	virtual void AddBasicBlock(PBasicBlock p_basic_block);
 	virtual void AddMapInfo(PMapInfo p_map_info);
 
 	virtual void ReadFunctionAddressMap(int fileID, unordered_set <va_t> &functionAddressMap);
-	char* ReadFingerPrint(int fileID, va_t address);
-	char* ReadName(int fileID, va_t address);
-	va_t ReadBlockStartAddress(int fileID, va_t address);
-	void ReadBasicBlockInfo(int fileID, char* conditionStr, AnalysisInfo* analysisInfo);
-	multimap <va_t, PMapInfo>* ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
-	vector<MatchData*>* ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
-	MatchResults *ReadMatchResults(int sourceID, int targetID);
-	vector <FunctionMatchInfo> QueryFunctionMatches(char* query, int sourceID, int targetID);
+	virtual char* ReadFingerPrint(int fileID, va_t address);
+	virtual char* ReadName(int fileID, va_t address);
+	virtual va_t ReadBlockStartAddress(int fileID, va_t address);
+	virtual void ReadBasicBlockInfo(int fileID, char* conditionStr, AnalysisInfo* analysisInfo);
+	virtual multimap <va_t, PMapInfo>* ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
+	virtual vector<MatchData*>* ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
+	virtual MatchResults *ReadMatchResults(int sourceID, int targetID);
+	virtual vector <FunctionMatchInfo> QueryFunctionMatches(char* query, int sourceID, int targetID);
 
-	void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
+	virtual void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
+	virtual char* GetOriginalFilePath(int fileID);
+	virtual void DeleteMatchInfo(int fileID, va_t functionAddress);
 };

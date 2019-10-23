@@ -195,4 +195,7 @@ public:
 	FileList ReadFileListCallback();
 
 	void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
+
+	char* GetOriginalFilePath(int fileID);
+	void DeleteMatchInfo(int fileID, va_t functionAddress);
 };

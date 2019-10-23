@@ -620,3 +620,32 @@ void SQLiteDisassemblyStorage::InsertMatchMap(int sourceFileID, int targetFileID
 		0);
 
 }
+
+char* SQLiteDisassemblyStorage::GetOriginalFilePath(int fileID)
+{
+	char* originalFilePath;
+	ExecuteStatement(ReadRecordStringCallback, &originalFilePath, 
+		"SELECT OriginalFilePath FROM FileInfo WHERE id = %u", fileID);
+
+	return originalFilePath;
+}
+
+void SQLiteDisassemblyStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
+{
+	ExecuteStatement(NULL, NULL,
+		"DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')",
+		fileID, fileID, functionAddress);
+
+	ExecuteStatement(NULL, NULL,
+		"DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'",
+		fileID, functionAddress);
+
+	ExecuteStatement(NULL, NULL,
+		"DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')",
+		fileID, fileID, functionAddress);
+
+	ExecuteStatement(NULL, NULL,
+		"DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'",
+		fileID, functionAddress);
+}
+

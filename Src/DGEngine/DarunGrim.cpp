@@ -216,7 +216,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 	return TRUE;
 }
 
-bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, DWORD target_address, const char *output_storage_filename)
+bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, va_t target_address, const char *output_storage_filename)
 {
 	Logger.Log(10, LOG_DARUNGRIM, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
 

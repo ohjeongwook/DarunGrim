@@ -464,7 +464,7 @@ void IDAController::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 
 BOOL IDAController::Load()
 {
-	m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
+	m_OriginalFilePath = m_disassemblyStorage->GetOriginalFilePath(m_FileID);
 
 	LoadBasicBlock();
 	LoadMapInfo(&(ClientAnalysisInfo->map_info_map), TargetFunctionAddress, true);
@@ -474,14 +474,7 @@ BOOL IDAController::Load()
 
 void IDAController::DeleteMatchInfo(DisassemblyStorage *InputDB, int FileID, va_t FunctionAddress )
 {
-	if( m_disassemblyStorage )
-	{
-		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND TheSourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
-		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheSourceFileID='%d' AND TheSourceAddress ='%d'", FileID, FunctionAddress );
-
-		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  MatchMap WHERE TheTargetFileID='%d' AND TheTargetAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')", FileID, FileID, FunctionAddress );
-		m_disassemblyStorage->ExecuteStatement( NULL, (void *)ClientAnalysisInfo, "DELETE FROM  FunctionMatchInfo WHERE TheTargetFileID='%d' AND TheTargetAddress ='%d'", FileID, FunctionAddress );
-	}
+	m_disassemblyStorage->DeleteMatchInfo(FileID, FunctionAddress);
 }
 
 void IDAController::AddAnalysisTargetFunction(va_t FunctionAddress )
