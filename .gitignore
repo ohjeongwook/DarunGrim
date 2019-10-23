@@ -21,3 +21,4 @@
 /Tmp.txt
 /Src/Scripts/x64/Debug-x64
 /Src/Scripts/PythonExt.vcxproj.user
+/Src/Scripts/DiffEngine_wrap.cxx
