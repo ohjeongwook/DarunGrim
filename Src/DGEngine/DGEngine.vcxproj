@@ -163,9 +163,8 @@
     <ClInclude Include="SQLiteDisassemblyStorage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="fileinfo.h" />
-    <ClInclude Include="IDAAnalysis.h" />
+    <ClInclude Include="IDAAnalyzer.h" />
     <ClInclude Include="IDASession.h" />
-    <ClInclude Include="IDAVerifier.h" />
     <ClInclude Include="LogOperation.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="ProcessUtils.h" />
@@ -189,7 +188,6 @@
     <ClCompile Include="fileinfo.cpp" />
     <ClCompile Include="IDAAnalyzer.cpp" />
     <ClCompile Include="IDASession.cpp" />
-    <ClCompile Include="IDAVerifier.cpp" />
     <ClCompile Include="LogOperation.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="ProcessUtils.cpp" />

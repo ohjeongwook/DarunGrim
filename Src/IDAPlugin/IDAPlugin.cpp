@@ -22,14 +22,12 @@
 #include "IDAAnalyzer.h"
 #include "SQLiteDisassemblyStorage.h"
 #include "DisassemblyStorage.h"
+#include "fileinfo.h"
+#include "Log.h"
 
 using namespace std;
 
 void SaveIDAAnalysis(bool ask_file_path);
-
-#include "fileinfo.h"
-#include "IDAVerifier.h"
-#include "Log.h"
 
 #define DREF 0
 #define CREF 1
@@ -664,9 +662,6 @@ void SaveIDAAnalysis(bool ask_file_path)
 {
     long start_tick = GetTickCount();
 
-    FixFunctionChunks();
-    //FixExceptionHandlers();
-
     char orignal_file_path[1024] = { 0, };
     char root_file_path[1024] = { 0, };
     char* input_file_path = NULL;
@@ -688,7 +683,7 @@ void SaveIDAAnalysis(bool ask_file_path)
     if (input_file_path)
     {
         SQLiteDisassemblyStorage disassemblyStorage(input_file_path);
-        IDAAnalyzer idaAnalysis = IDAAnalyzer((DisassemblyStorage)disassemblyStorage);
+        IDAAnalyzer idaAnalysis = IDAAnalyzer((DisassemblyStorage) disassemblyStorage);
         idaAnalysis.Analyze(StartEA, EndEA, false);
     }
 
@@ -711,8 +706,7 @@ bool idaapi run(size_t arg)
         "STARTITEM 0\n"
         "DarunGrim4\n\n"
         "<##Select operation##Save to DGF:r>\n"
-        "<Connect to DarunGrim GUI:R>\n"
-        "<Find multiple function membership:R>>\n";
+        "<Connect to DarunGrim GUI:R>\n";
 
     ushort radio = 0;
 
@@ -734,10 +728,6 @@ bool idaapi run(size_t arg)
             {
                 ConnectToDarunGrim(port);
             }
-        }
-        else if (radio == 2)
-        {
-            FixFunctionChunks();
         }
     }
 

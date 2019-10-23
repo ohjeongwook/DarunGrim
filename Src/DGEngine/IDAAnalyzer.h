@@ -22,8 +22,6 @@
 using namespace std;
 using namespace stdext;
 
-// Location Info && AddrMapHash structures and routines
-
 typedef struct _LocationInfo_ {
     ea_t address;
 #define UNKNOWN 0
@@ -73,7 +71,6 @@ typedef struct _AddrMapHash_ {
     LocationInfo* p_location_info;
     struct _AddrMapHash_* branch;
 } AddrMapHash;
-
 
 bool StartProcess(LPTSTR szCmdline);
 
@@ -276,8 +273,14 @@ private:
     ea_t AnalyzeBlock(ea_t StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags);
     void AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray);
     void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
+
+	bool IsValidFunctionStart(ea_t address);
+	ea_t GetBlockEnd(ea_t address);
+	int ConnectFunctionChunks(ea_t address);
+	void FixFunctionChunks();
+	void MakeCode(ea_t start_addr, ea_t end_addr);
+	void FixExceptionHandlers();
 public:
     IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
-
     void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);
 };
