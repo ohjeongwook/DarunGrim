@@ -15,7 +15,7 @@
 using namespace std;
 using namespace stdext;
 
-class IDAController
+class IDASession
 {
 private:
 #ifndef USE_LEGACY_MAP
@@ -46,8 +46,8 @@ public:
     {
         return &ClientAnalysisInfo->file_info;
     }
-    IDAController(DisassemblyStorage* disassemblyStorage = NULL);
-    ~IDAController();
+    IDASession(DisassemblyStorage* disassemblyStorage = NULL);
+    ~IDASession();
     BOOL LoadIDARawDataFromFile(const char* Filename);
     void SetSocket(SOCKET socket);
     BOOL LoadIDARawDataFromSocket(SOCKET socket);

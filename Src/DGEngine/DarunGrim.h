@@ -17,8 +17,8 @@ enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 class DarunGrim
 {
 private:
-    IDAController* pSourceController;
-    IDAController* pTargetController;
+    IDASession* pSourceController;
+    IDASession* pTargetController;
 
     DisassemblyStorage* pDisassemblyStorage;
     DiffMachine* pDiffMachine;
@@ -52,12 +52,12 @@ public:
         return pDiffMachine;
     }
 
-    IDAController* GetSourceClientManager()
+    IDASession* GetSourceClientManager()
     {
         return pSourceController;
     }
 
-    IDAController* GetTargetClientManager()
+    IDASession* GetTargetClientManager()
     {
         return pTargetController;
     }
@@ -154,7 +154,7 @@ private:
     DisassemblyStorage* m_disassemblyStorage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
-    IDAController* IDAControllers[2];
+    IDASession* IDAControllers[2];
 
     char* IDAPath;
     char* IDA64Path;
@@ -165,7 +165,7 @@ private:
     char* EscapeFilename(char* filename);
     char* LogFilename;
     PSLIST_HEADER pIDAClientListHead;
-    vector<IDAController*> IDAControllerList;
+    vector<IDASession*> IDAControllerList;
     void UpdateIDAControllers();
 
     bool SetController(int type, const char* identity);
@@ -176,14 +176,14 @@ public:
     void SetDatabase(DisassemblyStorage* disassemblyStorage);
     unsigned short StartIDAListenerThread(unsigned short port);
     void ListIDAControllers();
-    IDAController* FindIDAController(const char* identity);
+    IDASession* FindIDAController(const char* identity);
     bool SetSourceController(const char* identity);
     bool SetTargetController(const char* identity);
 
     bool StartIDAListener(unsigned short port);
     bool StopIDAListener();
 
-    IDAController* GetIDAControllerFromFile(char* DataFile);
+    IDASession* GetIDAControllerFromFile(char* DataFile);
     DWORD SetMembers(DiffMachine* pArgDiffMachine);
     DWORD IDACommandProcessor();
     BOOL CreateIDACommandProcessorThread();
@@ -198,7 +198,7 @@ public:
     void ConnectToDarunGrim(const char* ida_filename);
     void SetIDALogFilename(const char* ida_log_filename);
     const char* GetIDALogFilename();
-    BOOL AcceptIDAClient(IDAController* p_ida_controller, bool retrieve_Data);
+    BOOL AcceptIDAClient(IDASession* p_ida_controller, bool retrieve_Data);
     void SetAutoMode(bool mode)
     {
         IDAAutoMode = mode;

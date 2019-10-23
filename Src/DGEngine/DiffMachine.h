@@ -4,7 +4,7 @@
 #include <list>
 
 #include "Common.h"
-#include "IDAController.h"
+#include "IDASession.h"
 #include "DataStructure.h"
 #include "LogOperation.h"
 #include "MatchResults.h"
@@ -65,7 +65,7 @@ private:
     void FreeMatchMapList(vector<MatchData*>* pMatchMapList);
 
 public:
-    DiffMachine(IDAController* the_source = NULL, IDAController* the_target = NULL);
+    DiffMachine(IDASession* the_source = NULL, IDASession* the_target = NULL);
     ~DiffMachine();
     void ClearFunctionMatchList();
 
@@ -74,18 +74,18 @@ public:
         pDumpAddressChecker = p_dump_address_checker;
     }
 
-    void SetSource(IDAController* NewSource)
+    void SetSource(IDASession* NewSource)
     {
         SourceController = NewSource;
     }
 
-    void SetTarget(IDAController* NewTarget)
+    void SetTarget(IDASession* NewTarget)
     {
         TargetController = NewTarget;
     }
 
-    IDAController* GetSourceController();
-    IDAController* GetTargetController();
+    IDASession* GetSourceController();
+    IDASession* GetTargetController();
     void DumpMatchMapIterInfo(const char* prefix, multimap <va_t, MatchData>::iterator match_map_iter);
     va_t DumpFunctionMatchInfo(int index, va_t address);
     void GetMatchStatistics(va_t address, int index, int& found_match_number, int& found_match_with_difference_number, int& not_found_match_number, float& matchrate);
@@ -154,8 +154,8 @@ private:
     DisassemblyStorage* m_sourceDisassemblyStorage;
     DisassemblyStorage* m_targetDisassemblyStorage;
 
-    IDAController* SourceController;
-    IDAController* TargetController;
+    IDASession* SourceController;
+    IDASession* TargetController;
     MatchResults* pMatchResults;
 
     BOOL _Load();

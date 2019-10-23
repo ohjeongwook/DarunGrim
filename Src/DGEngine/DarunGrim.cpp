@@ -193,8 +193,8 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char* storage_filename)
     }
     StartIDAListener(DARUNGRIM_PORT);
 
-    pSourceController = new IDAController(m_disassemblyStorage);
-    pTargetController = new IDAController(m_disassemblyStorage);
+    pSourceController = new IDASession(m_disassemblyStorage);
+    pTargetController = new IDASession(m_disassemblyStorage);
 
     //Create a thread that will call ConnectToDarunGrim one by one
     DWORD dwThreadId;
@@ -321,7 +321,7 @@ typedef struct _IDA_LISTENER_PARAM_
 typedef struct _IDA_CONTROLLER_
 {
     SLIST_ENTRY ItemEntry;
-    IDAController* pIDAController;
+    IDASession* pIDAController;
 } IDA_CONTROLLER, * PIDA_CONTROLLER;
 
 DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
@@ -346,7 +346,7 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
             if (p_ida_controller_item == NULL)
                 return -1;
             Logger.Log(10, LOG_DARUNGRIM, "New connection: %d", s);
-            p_ida_controller_item->pIDAController = new IDAController();
+            p_ida_controller_item->pIDAController = new IDASession();
             p_ida_controller_item->pIDAController->SetSocket(s);
             p_ida_controller_item->pIDAController->RetrieveIdentity();
 
@@ -418,7 +418,7 @@ void DarunGrim::ListIDAControllers()
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDAController*>::iterator it = IDAControllerList.begin();
+    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
         it != IDAControllerList.end();
         it++)
     {
@@ -426,11 +426,11 @@ void DarunGrim::ListIDAControllers()
     }
 }
 
-IDAController* DarunGrim::FindIDAController(const char* identity)
+IDASession* DarunGrim::FindIDAController(const char* identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDAController*>::iterator it = IDAControllerList.begin();
+    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
         it != IDAControllerList.end();
         it++)
     {
@@ -447,7 +447,7 @@ bool DarunGrim::SetController(int type, const char* identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDAController*>::iterator it = IDAControllerList.begin();
+    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
         it != IDAControllerList.end();
         it++)
     {
@@ -531,14 +531,14 @@ bool DarunGrim::StopIDAListener()
     return FALSE;
 }
 
-IDAController* DarunGrim::GetIDAControllerFromFile(char* DataFile)
+IDASession* DarunGrim::GetIDAControllerFromFile(char* DataFile)
 {
-    IDAController* p_ida_controller = new IDAController(m_disassemblyStorage);
+    IDASession* p_ida_controller = new IDASession(m_disassemblyStorage);
     p_ida_controller->Retrieve(DataFile);
     return p_ida_controller;
 }
 
-BOOL DarunGrim::AcceptIDAClient(IDAController* p_ida_controller, bool retrieve_Data)
+BOOL DarunGrim::AcceptIDAClient(IDASession* p_ida_controller, bool retrieve_Data)
 {
     SOCKET s = accept(ListeningSocket, NULL, NULL);
     Logger.Log(10, LOG_DARUNGRIM, "%s: accepting=%d\n", __FUNCTION__, s);
@@ -707,7 +707,7 @@ BOOL DarunGrim::CreateIDACommandProcessorThread()
 
 bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 {
-    IDAController* ClientManager = (IDAController*)Context;
+    IDASession* ClientManager = (IDASession*)Context;
 
     if (ClientManager)
     {
@@ -718,7 +718,7 @@ bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 
 bool SendAddrTypeTLVData(int Type, va_t Start, va_t End, PVOID Context)
 {
-    IDAController* ClientManager = (IDAController*)Context;
+    IDASession* ClientManager = (IDASession*)Context;
     if (ClientManager)
     {
         return ClientManager->SendAddrTypeTLVData(Type, Start, End);

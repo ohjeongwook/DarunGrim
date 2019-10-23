@@ -20,7 +20,7 @@ const char* MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint
 
 extern LogOperation Logger;
 
-DiffMachine::DiffMachine(IDAController* the_source, IDAController* the_target) :
+DiffMachine::DiffMachine(IDASession* the_source, IDASession* the_target) :
     DebugFlag(0),
     SourceController(NULL),
     TargetController(NULL),
@@ -68,12 +68,12 @@ DiffMachine::~DiffMachine()
         delete TargetController;
 }
 
-IDAController* DiffMachine::GetSourceController()
+IDASession* DiffMachine::GetSourceController()
 {
     return SourceController;
 }
 
-IDAController* DiffMachine::GetTargetController()
+IDASession* DiffMachine::GetTargetController()
 {
     return TargetController;
 }
@@ -258,7 +258,7 @@ void DiffMachine::FreeMatchMapList(vector<MatchData*> * pMatchMapList)
 
 void DiffMachine::TestFunctionMatchRate(int index, va_t Address)
 {
-    IDAController* ClientManager = index == 0 ? SourceController : TargetController;
+    IDASession* ClientManager = index == 0 ? SourceController : TargetController;
     list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(Address);
     list <BLOCK>::iterator address_list_iter;
 
@@ -287,7 +287,7 @@ void DiffMachine::TestFunctionMatchRate(int index, va_t Address)
 
 void DiffMachine::RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t> & Members)
 {
-    IDAController* ClientManager = index == 0 ? SourceController : TargetController;
+    IDASession* ClientManager = index == 0 ? SourceController : TargetController;
     list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(FunctionAddress);
 
     for (list <BLOCK>::iterator address_list_iter = address_list.begin();
@@ -1491,7 +1491,7 @@ void DiffMachine::GetMatchStatistics(
         )
         debug = true;
 
-    IDAController* ClientManager = SourceController;
+    IDASession* ClientManager = SourceController;
 
     if (index == 1)
         ClientManager = TargetController;
@@ -2287,7 +2287,7 @@ BOOL DiffMachine::_Load()
         SourceController = NULL;
     }
 
-    SourceController = new IDAController(m_sourceDisassemblyStorage);
+    SourceController = new IDASession(m_sourceDisassemblyStorage);
 
     Logger.Log(10, LOG_DIFF_MACHINE, "SourceFunctionAddress: %X\n", SourceFunctionAddress);
     SourceController->AddAnalysisTargetFunction(SourceFunctionAddress);
@@ -2305,7 +2305,7 @@ BOOL DiffMachine::_Load()
         TargetController = NULL;
     }
 
-    TargetController = new IDAController(m_targetDisassemblyStorage);
+    TargetController = new IDASession(m_targetDisassemblyStorage);
     TargetController->AddAnalysisTargetFunction(TargetFunctionAddress);
     TargetController->SetFileID(TargetID);
 

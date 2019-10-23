@@ -7,7 +7,7 @@
 #include "DataStructure.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "IDAController.h"
+#include "IDASession.h"
 #include "DarunGrim.h"
 %}
 %inline %{

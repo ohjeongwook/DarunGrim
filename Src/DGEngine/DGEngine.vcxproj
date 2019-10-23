@@ -165,7 +165,7 @@
     <ClInclude Include="fileinfo.h" />
     <ClInclude Include="IDAAnalysis.h" />
     <ClInclude Include="IDAAnalysisCommon.h" />
-    <ClInclude Include="IDAController.h" />
+    <ClInclude Include="IDASession.h" />
     <ClInclude Include="IDAVerifier.h" />
     <ClInclude Include="LogOperation.h" />
     <ClInclude Include="md5.h" />
@@ -189,7 +189,7 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="fileinfo.cpp" />
     <ClCompile Include="IDAAnalysis.cpp" />
-    <ClCompile Include="IDAController.cpp" />
+    <ClCompile Include="IDASession.cpp" />
     <ClCompile Include="IDAVerifier.cpp" />
     <ClCompile Include="LogOperation.cpp" />
     <ClCompile Include="md5.cpp" />
