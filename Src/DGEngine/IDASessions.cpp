@@ -7,7 +7,7 @@
 #include <malloc.h>
 
 #include "Diff.h"
-#include "DiffMachine.h"
+#include "IDASessions.h"
 #include "SQLiteDisassemblyStorage.h"
 
 using namespace std;

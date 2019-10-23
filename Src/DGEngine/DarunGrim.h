@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "Configuration.h"
-#include "DiffMachine.h"
+#include "IDASessions.h"
 #include "DisassemblyStorage.h"
 
 #include <string>

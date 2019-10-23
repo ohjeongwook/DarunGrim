@@ -6,7 +6,7 @@
 #include <windows.h>
 #include "Common.h"
 #include "Configuration.h"
-#include "DiffMachine.h"
+#include "IDASessions.h"
 #include "IDASession.h"
 #include "DarunGrim.h"
 %}
