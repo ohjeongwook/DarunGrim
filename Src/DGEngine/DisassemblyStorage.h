@@ -5,7 +5,7 @@
 using namespace std;
 using namespace stdext;
 
-#include "DataStructure.h"
+#include "Common.h"
 #include "MatchResults.h"
 using namespace std;
 

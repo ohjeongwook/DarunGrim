@@ -4,7 +4,7 @@
 
 %{
 #include <windows.h>
-#include "DataStructure.h"
+#include "Common.h"
 #include "Configuration.h"
 #include "DiffMachine.h"
 #include "IDASession.h"

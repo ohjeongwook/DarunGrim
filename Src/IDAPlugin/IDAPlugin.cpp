@@ -13,9 +13,9 @@
 #include <expr.hpp>
 #include <loader.hpp>
 
+#include "Common.h"
 #include "SharedSocket.h"
 #include "SharedMemory.h"
-#include "DataStructure.h"
 #include "Configuration.h"
 #include "SocketOperation.h"
 

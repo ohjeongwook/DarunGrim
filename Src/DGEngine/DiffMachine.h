@@ -5,7 +5,6 @@
 
 #include "Common.h"
 #include "IDASession.h"
-#include "DataStructure.h"
 #include "LogOperation.h"
 #include "MatchResults.h"
 

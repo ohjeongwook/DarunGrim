@@ -4,7 +4,6 @@
 #include <list>
 
 #include "Common.h"
-#include "DataStructure.h"
 
 const enum { DiffMachineFileSQLiteFormat };
 

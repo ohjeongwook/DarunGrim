@@ -8,7 +8,7 @@
 #include <list>
 #include <string>
 
-#include "DataStructure.h"
+#include "Common.h"
 #include "IDAAnalysis.h"
 #include "DisassemblyStorage.h"
 

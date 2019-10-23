@@ -3,7 +3,7 @@
 #include "sqlite3.h"
 #include <string>
 
-#include "DataStructure.h"
+#include "Common.h"
 #include "DisassemblyStorage.h"
 
 using namespace std;
