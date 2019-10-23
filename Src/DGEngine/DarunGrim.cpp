@@ -17,7 +17,7 @@ DarunGrim::DarunGrim() :
     m_disassemblyStorage(NULL),
     pSourceController(NULL),
     pTargetController(NULL),
-    pDiffMachine(NULL),
+    pIDASessions(NULL),
     LogFilename(NULL),
     IsLoadedSourceFile(false),
     ListeningSocket(INVALID_SOCKET),
@@ -28,8 +28,8 @@ DarunGrim::DarunGrim() :
     LogOperation::InitLog();
     Logger.SetCategory("DarunGrim");
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
-    pDiffMachine = new IDASessions();
-    pDiffMachine->SetDumpAddressChecker(&aDumpAddress);
+    pIDASessions = new IDASessions();
+    pIDASessions->SetDumpAddressChecker(&aDumpAddress);
 
     IDAPath = _strdup(DEFAULT_IDA_PATH);
     IDA64Path = _strdup(DEFAULT_IDA64_PATH);
@@ -46,10 +46,10 @@ DarunGrim::~DarunGrim()
         m_disassemblyStorage = NULL;
     }
 
-    if (pDiffMachine)
+    if (pIDASessions)
     {
-        delete pDiffMachine;
-        pDiffMachine = NULL;
+        delete pIDASessions;
+        pIDASessions = NULL;
     }
 
     StopIDAListener();
@@ -198,13 +198,13 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char* storage_filename)
     //Create a thread that will call ConnectToDarunGrim one by one
     DWORD dwThreadId;
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pSourceController, pDiffMachine ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(pSourceController, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
     SetLoadedSourceFile(TRUE);
 
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pTargetController, pDiffMachine ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(pTargetController, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
 
-    if (!pDiffMachine)
+    if (!pIDASessions)
     {
         PerformDiff();
     }
@@ -222,16 +222,16 @@ bool DarunGrim::PerformDiff(const char* src_storage_filename, va_t source_addres
     Logger.Log(10, LOG_DARUNGRIM, "	source_address: %X\n", source_address);
     Logger.Log(10, LOG_DARUNGRIM, "	target_address: %X\n", target_address);
 
-    pDiffMachine->SetSource((char*)src_storage_filename, 1, source_address);
-    pDiffMachine->SetTarget((char*)target_storage_filename, 1, target_address);
+    pIDASessions->SetSource((char*)src_storage_filename, 1, source_address);
+    pIDASessions->SetTarget((char*)target_storage_filename, 1, target_address);
 
-    pDiffMachine->SetLoadIDAController(true);
-    pDiffMachine->Load((char*)output_storage_filename);
-    pSourceController = pDiffMachine->GetSourceController();
-    pTargetController = pDiffMachine->GetTargetController();
+    pIDASessions->SetLoadIDAController(true);
+    pIDASessions->Load((char*)output_storage_filename);
+    pSourceController = pIDASessions->GetSourceController();
+    pTargetController = pIDASessions->GetTargetController();
 
     Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
-    pDiffMachine->Analyze();
+    pIDASessions->Analyze();
 
     if (m_disassemblyStorage)
         delete m_disassemblyStorage;
@@ -240,7 +240,7 @@ bool DarunGrim::PerformDiff(const char* src_storage_filename, va_t source_addres
     m_disassemblyStorage = new SQLiteDisassemblyStorage(output_storage_filename);
     SetDatabase(m_disassemblyStorage);
 
-    pDiffMachine->Save(*m_disassemblyStorage);
+    pIDASessions->Save(*m_disassemblyStorage);
 
     return TRUE;
 }
@@ -261,10 +261,10 @@ bool DarunGrim::Load(const char* storage_filename)
     m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
     if (m_disassemblyStorage)
     {
-        pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-        pDiffMachine->Load(storage_filename);
-        pSourceController = pDiffMachine->GetSourceController();
-        pTargetController = pDiffMachine->GetTargetController();
+        pIDASessions->SetRetrieveDataForAnalysis(TRUE);
+        pIDASessions->Load(storage_filename);
+        pSourceController = pIDASessions->GetSourceController();
+        pTargetController = pIDASessions->GetTargetController();
     }
     return FALSE;
 }
@@ -277,23 +277,23 @@ bool DarunGrim::PerformDiff()
 
     if (m_disassemblyStorage)
     {
-        pDiffMachine->SetRetrieveDataForAnalysis(TRUE);
-        pDiffMachine->SetSource(m_disassemblyStorage, source_file_id);
-        pDiffMachine->SetSource(m_disassemblyStorage, target_file_id);
-        pDiffMachine->Load(m_disassemblyStorage);
-        pSourceController = pDiffMachine->GetSourceController();
-        pTargetController = pDiffMachine->GetTargetController();
+        pIDASessions->SetRetrieveDataForAnalysis(TRUE);
+        pIDASessions->SetSource(m_disassemblyStorage, source_file_id);
+        pIDASessions->SetSource(m_disassemblyStorage, target_file_id);
+        pIDASessions->Load(m_disassemblyStorage);
+        pSourceController = pIDASessions->GetSourceController();
+        pTargetController = pIDASessions->GetTargetController();
     }
     else if (pSourceController && pTargetController)
     {
-        pDiffMachine->SetSource(pSourceController);
-        pDiffMachine->SetTarget(pTargetController);
+        pIDASessions->SetSource(pSourceController);
+        pIDASessions->SetTarget(pTargetController);
     }
 
-    if (pDiffMachine)
+    if (pIDASessions)
     {
-        pDiffMachine->Analyze();
-        pDiffMachine->Save(*m_disassemblyStorage);
+        pIDASessions->Analyze();
+        pIDASessions->Save(*m_disassemblyStorage);
     }
     return TRUE;
 }
@@ -639,9 +639,9 @@ DWORD DarunGrim::IDACommandProcessor()
                                 //Get Matching Address
 
                                 DWORD MatchingAddress = 0;
-                                if (pDiffMachine)
+                                if (pIDASessions)
                                 {
-                                    MatchingAddress = pDiffMachine->GetMatchAddr(i, address);
+                                    MatchingAddress = pIDASessions->GetMatchAddr(i, address);
                                 }
                                 if (MatchingAddress != 0)
                                 {

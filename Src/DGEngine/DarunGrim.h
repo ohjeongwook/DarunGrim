@@ -21,7 +21,7 @@ private:
     IDASession* pTargetController;
 
     DisassemblyStorage* pDisassemblyStorage;
-    IDASessions* pDiffMachine;
+    IDASessions* pIDASessions;
     bool OpenDatabase(char* storage_filename);
     string SourceFilename;
     string SourceIDBFilename;
@@ -49,7 +49,7 @@ public:
 
     IDASessions* GetDiffMachine()
     {
-        return pDiffMachine;
+        return pIDASessions;
     }
 
     IDASession* GetSourceClientManager()
