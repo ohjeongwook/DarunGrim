@@ -162,7 +162,7 @@
     <ClInclude Include="MatchResults.h" />
     <ClInclude Include="SQLiteDisassemblyStorage.h" />
     <ClInclude Include="Log.h" />
-    <ClInclude Include="fileinfo.h" />
+    <ClInclude Include="FileVersion.h" />
     <ClInclude Include="IDAAnalyzer.h" />
     <ClInclude Include="IDASession.h" />
     <ClInclude Include="LogOperation.h" />
@@ -185,7 +185,7 @@
     <ClCompile Include="MatchResults.cpp" />
     <ClCompile Include="SQLiteDisassemblyStorage.cpp" />
     <ClCompile Include="Log.cpp" />
-    <ClCompile Include="fileinfo.cpp" />
+    <ClCompile Include="FileVersion.cpp" />
     <ClCompile Include="IDAAnalyzer.cpp" />
     <ClCompile Include="IDASession.cpp" />
     <ClCompile Include="LogOperation.cpp" />
