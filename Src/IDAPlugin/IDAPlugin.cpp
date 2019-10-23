@@ -42,8 +42,8 @@ void SaveIDAAnalysis(bool ask_file_path);
 extern HANDLE gLogFile;
 
 static error_t idaapi idc_set_log_file(
-    idc_value_t *argv,
-    idc_value_t *res)
+    idc_value_t* argv,
+    idc_value_t* res)
 {
     gLogFile = OpenLogFile(argv[0].c_str());
     res->num = 1;
@@ -63,19 +63,19 @@ static const ext_idcfunc_t idc_set_log_file_desc =
 };
 
 
-char *OutputFilename = NULL;
+char* OutputFilename = NULL;
 
 ea_t StartEA = 0;
 ea_t EndEA = 0;
 
 static const char idc_save_analysis_data_args[] = { VT_STR, VT_LONG, VT_LONG, 0 };
-static error_t idaapi idc_save_analysis_data(idc_value_t *argv, idc_value_t *res)
+static error_t idaapi idc_save_analysis_data(idc_value_t* argv, idc_value_t* res)
 {
     OutputFilename = strdup(argv[0].c_str());
     StartEA = argv[1].num;
     EndEA = argv[2].num;
 
-	SaveIDAAnalysis(false);
+    SaveIDAAnalysis(false);
     res->num = 1;
     return eOk;
 }
@@ -93,8 +93,8 @@ static const ext_idcfunc_t idc_save_analysis_data_desc =
 BOOL ConnectToDarunGrim(unsigned short port);
 
 static error_t idaapi idc_connect_to_darungrim(
-    idc_value_t *argv,
-    idc_value_t *res)
+    idc_value_t* argv,
+    idc_value_t* res)
 {
     LogMessage(1, __FUNCTION__, "%s\n", __FUNCTION__);
     OutputFilename = NULL;
@@ -132,7 +132,7 @@ void idaapi term(void)
     del_idc_func(idc_set_log_file_desc.name);
 }
 
-bool IsNumber(char *data)
+bool IsNumber(char* data)
 {
     bool is_number = TRUE;
     //hex
@@ -172,14 +172,14 @@ bool IsNumber(char *data)
     return is_number;
 }
 
-typedef list<FunctionMatchInfo *> RangeList;
+typedef list<FunctionMatchInfo*> RangeList;
 typedef struct _ChooseListObj_ {
     SOCKET socket;
     RangeList range_list;
-} ChooseListObj, *PChooseListObj;
+} ChooseListObj, * PChooseListObj;
 
 const int column_widths[] = { 16, 32, 5, 5, 16, 32, 5, 5 };
-const char *column_header[] =
+const char* column_header[] =
 {
     "Address",
     "Name",
@@ -191,13 +191,13 @@ const char *column_header[] =
     "Unmatched"
 };
 
-static DWORD idaapi size_callback(void *obj)
+static DWORD idaapi size_callback(void* obj)
 {
     RangeList range_list = ((PChooseListObj)obj)->range_list;
     return range_list.size();
 }
 
-static void idaapi line_callback(void *obj, DWORD n, char * const *arrptr)
+static void idaapi line_callback(void* obj, DWORD n, char* const* arrptr)
 {
     RangeList range_list = ((PChooseListObj)obj)->range_list;
     RangeList::iterator range_list_itr;
@@ -239,7 +239,7 @@ static void idaapi line_callback(void *obj, DWORD n, char * const *arrptr)
     }
 }
 
-static void idaapi enter_callback(void *obj, DWORD n)
+static void idaapi enter_callback(void* obj, DWORD n)
 {
     RangeList range_list = ((PChooseListObj)obj)->range_list;
     RangeList::iterator range_list_itr;
@@ -256,14 +256,14 @@ static void idaapi enter_callback(void *obj, DWORD n)
             SendTLVData(
                 ((PChooseListObj)obj)->socket,
                 SHOW_MATCH_ADDR,
-                (PBYTE)&(*range_list_itr)->TheSourceAddress,
+                (PBYTE) & (*range_list_itr)->TheSourceAddress,
                 sizeof(DWORD));
             break;
         }
     }
 }
 
-static int idaapi graph_callback(void *obj, int code, va_list va)
+static int idaapi graph_callback(void* obj, int code, va_list va)
 {
     int result = 0;
     if (!obj)
@@ -275,8 +275,8 @@ static int idaapi graph_callback(void *obj, int code, va_list va)
         //			selection_item_t *current_item
         // out: 0-ok, 1-ignore click
     {
-        graph_viewer_t *v = va_arg(va, graph_viewer_t *);
-        selection_item_t *s = va_arg(va, selection_item_t *);
+        graph_viewer_t* v = va_arg(va, graph_viewer_t*);
+        selection_item_t* s = va_arg(va, selection_item_t*);
         //LogMessage( "%X: %sclicked on ", v, code == grcode_clicked ? "" : "dbl" );
         if (s && s->is_node)
         {
@@ -303,24 +303,24 @@ typedef struct _EARange_ {
 
 typedef list<EARange> EARangeList;
 const int column_widths_for_unidentified_block_choose_list[] = { 16, 16 };
-const char *column_header_for_unidentified_block_choose_list[] =
+const char* column_header_for_unidentified_block_choose_list[] =
 {
     "Start",
     "End"
 };
 
-static DWORD idaapi size_callback_for_unidentified_block_choose_list(void *obj)
+static DWORD idaapi size_callback_for_unidentified_block_choose_list(void* obj)
 {
-    return ((EARangeList *)obj)->size();
+    return ((EARangeList*)obj)->size();
 }
 
-static void idaapi enter_callback_for_unidentified_block_choose_list(void *obj, DWORD n)
+static void idaapi enter_callback_for_unidentified_block_choose_list(void* obj, DWORD n)
 {
     EARangeList::iterator range_list_itr;
     DWORD i;
 
-    for (range_list_itr = ((EARangeList *)obj)->begin(), i = 0;
-        range_list_itr != ((EARangeList *)obj)->end();
+    for (range_list_itr = ((EARangeList*)obj)->begin(), i = 0;
+        range_list_itr != ((EARangeList*)obj)->end();
         range_list_itr++, i++)
     {
         if (i == n - 1)
@@ -332,7 +332,7 @@ static void idaapi enter_callback_for_unidentified_block_choose_list(void *obj, 
     }
 }
 
-static void idaapi line_callback_for_unidentified_block_choose_list(void *obj, DWORD n, char * const *arrptr)
+static void idaapi line_callback_for_unidentified_block_choose_list(void* obj, DWORD n, char* const* arrptr)
 {
     EARangeList::iterator range_list_itr;
     DWORD i;
@@ -347,8 +347,8 @@ static void idaapi line_callback_for_unidentified_block_choose_list(void *obj, D
             qsnprintf(arrptr[i], MAXSTR, column_header_for_unidentified_block_choose_list[i]);
         return;
     }
-    for (range_list_itr = ((EARangeList *)obj)->begin(), i = 0;
-        range_list_itr != ((EARangeList *)obj)->end();
+    for (range_list_itr = ((EARangeList*)obj)->begin(), i = 0;
+        range_list_itr != ((EARangeList*)obj)->end();
         range_list_itr++, i++)
     {
         if (i == n - 1)
@@ -360,7 +360,7 @@ static void idaapi line_callback_for_unidentified_block_choose_list(void *obj, D
     }
 }
 
-int idaapi graph_viewer_callback(void *user_data, int notification_code, va_list va)
+int idaapi graph_viewer_callback(void* user_data, int notification_code, va_list va)
 {
     LogMessage(1, __FUNCTION__, "graph_viewer_callback called with notification_code=%d\n", notification_code);
     if (notification_code == grcode_dblclicked)
@@ -393,7 +393,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
         DWORD size = 0;
         memcpy(&size, data, sizeof(DWORD));
         if (!InitDataSharer(&data_sharer,
-            (char *)data + sizeof(DWORD),
+            (char*)data + sizeof(DWORD),
             size,
             FALSE))
         {
@@ -418,8 +418,8 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
 
         for (DWORD i = 0; i < length / (sizeof(DWORD) * 2); i++)
         {
-            ea_range.start = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[i * 2];
-            ea_range.end = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[i * 2 + 1];
+            ea_range.start = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD*)data)[i * 2];
+            ea_range.end = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD*)data)[i * 2 + 1];
             unidentified_block_choose_list.push_back(ea_range);
 
             for (
@@ -434,7 +434,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
     }
     else if (type == MATCHED_ADDR && sizeof(FunctionMatchInfo) <= length)
     {
-        FunctionMatchInfo *p_match_info = (FunctionMatchInfo *)data;
+        FunctionMatchInfo* p_match_info = (FunctionMatchInfo*)data;
         if (p_match_info->BlockType == FUNCTION_BLOCK)
         {
             matched_block_choose_list_obj.range_list.push_back(p_match_info);
@@ -459,19 +459,19 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
     {
         if (sizeof(ea_t) > sizeof(DWORD))
         {
-            ea_t orig_addr = (get_imagebase() & 0xFFFFFFFF00000000) + *(DWORD *)data;
+            ea_t orig_addr = (get_imagebase() & 0xFFFFFFFF00000000) + *(DWORD*)data;
             jumpto(orig_addr);
         }
         else
         {
-            jumpto(*(DWORD *)data);
+            jumpto(*(DWORD*)data);
         }
     }
     else if (type == COLOR_ADDRESS && length >= sizeof(unsigned long) * 3)
     {
-        ea_t start_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[0];
-        ea_t end_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD *)data)[1];
-        unsigned long color = ((DWORD *)data)[2];
+        ea_t start_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD*)data)[0];
+        ea_t end_address = (get_imagebase() & 0xFFFFFFFF00000000) + ((DWORD*)data)[1];
+        unsigned long color = ((DWORD*)data)[2];
 
         for (
             ea_t ea = start_address;
@@ -505,8 +505,8 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
     else if (type == GET_DISASM_LINES && length >= sizeof(CodeBlock))
     {
         //dump disasmline
-        char *disasm_buffer = NULL;
-        CodeBlock *p_code_block = (CodeBlock *)data;
+        char* disasm_buffer = NULL;
+        CodeBlock* p_code_block = (CodeBlock*)data;
         qstring op_buffer;
         int current_buffer_offset = 0;
         int new_buffer_offset = 0;
@@ -517,7 +517,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
             op_buffer += "\n";
 
             new_buffer_offset = current_buffer_offset + op_buffer.length();
-            disasm_buffer = (char *)realloc(disasm_buffer, new_buffer_offset + 1);
+            disasm_buffer = (char*)realloc(disasm_buffer, new_buffer_offset + 1);
             memcpy(disasm_buffer + current_buffer_offset, op_buffer.c_str(), op_buffer.length() + 1);
             current_buffer_offset = new_buffer_offset;
         }
@@ -575,7 +575,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
             NULL,
             NULL );*/
 #ifdef HT_GRAPH
-        hook_to_notification_point(HT_GRAPH, graph_callback, (void *)&matched_block_choose_list_obj);
+        hook_to_notification_point(HT_GRAPH, graph_callback, (void*)&matched_block_choose_list_obj);
 #endif
     }
     else if (type == GET_INPUT_NAME)
@@ -669,27 +669,27 @@ void SaveIDAAnalysis(bool ask_file_path)
 
     char orignal_file_path[1024] = { 0, };
     char root_file_path[1024] = { 0, };
-    char *input_file_path = NULL;
+    char* input_file_path = NULL;
     get_input_file_path(orignal_file_path, sizeof(orignal_file_path) - 1);
     get_root_filename(root_file_path, sizeof(root_file_path) - 1);
 
     if (ask_file_path)
     {
-		input_file_path = ask_file(true, "*.db", "Select DB File to Output");
-		if (input_file_path == NULL)
-		{
-			LogMessage(1, __FUNCTION__, "input_file_path == NULL\n");
-			return;
-		}
+        input_file_path = ask_file(true, "*.db", "Select DB File to Output");
+        if (input_file_path == NULL)
+        {
+            LogMessage(1, __FUNCTION__, "input_file_path == NULL\n");
+            return;
+        }
     }
 
-	LogMessage(1, __FUNCTION__, "input_file_path = [%s]\n", input_file_path);
+    LogMessage(1, __FUNCTION__, "input_file_path = [%s]\n", input_file_path);
 
     if (input_file_path)
     {
         SQLiteDisassemblyStorage disassemblyStorage(input_file_path);
-		IDAAnalysis idaAnalysis = IDAAnalysis((DisassemblyStorage) disassemblyStorage);
-		idaAnalysis.Analyze(StartEA, EndEA, false);
+        IDAAnalysis idaAnalysis = IDAAnalysis((DisassemblyStorage)disassemblyStorage);
+        idaAnalysis.Analyze(StartEA, EndEA, false);
     }
 
     long end_tick = GetTickCount();
@@ -698,7 +698,7 @@ void SaveIDAAnalysis(bool ask_file_path)
 
 bool idaapi run(size_t arg)
 {
-	SetLogLevel(1);
+    SetLogLevel(1);
     LogMessage(1, __FUNCTION__, "DarunGrim plugin started...\n");
 
     if (arg == 1)
@@ -707,7 +707,7 @@ bool idaapi run(size_t arg)
     }
 
     // Display a dialog box
-    char * ask_message =
+    char* ask_message =
         "STARTITEM 0\n"
         "DarunGrim4\n\n"
         "<##Select operation##Save to DGF:r>\n"
@@ -724,7 +724,7 @@ bool idaapi run(size_t arg)
         }
         else if (radio == 1)
         {
-            char *dialog =
+            char* dialog =
                 "DarunGrim4\n\n"
                 "Check Options->Server menu\n"
                 "from DarunGrim4 GUI to get the port information\n"

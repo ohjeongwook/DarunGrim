@@ -3,4 +3,4 @@
 #pragma warning (disable : 4786)
 #pragma once
 
-char *GetFileVersionInfoStr(LPTSTR szFilename,char *InfoStr);
+char* GetFileVersionInfoStr(LPTSTR szFilename, char* InfoStr);
