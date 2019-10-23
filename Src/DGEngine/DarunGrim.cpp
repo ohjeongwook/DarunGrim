@@ -8,7 +8,7 @@
 #include "SocketOperation.h"
 #include "DisassemblyStorage.h"
 #include "ProcessUtils.h"
-#include "IDAAnalysisCommon.h"
+#include "DataStructure.h"
 
 #include "SQLiteDisassemblyStorage.h"
 

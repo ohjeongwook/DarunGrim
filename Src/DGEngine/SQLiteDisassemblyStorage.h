@@ -1,9 +1,11 @@
 #pragma once
 #include <stdio.h>
 #include "sqlite3.h"
-#include "IDAAnalysisCommon.h"
-#include "DisassemblyStorage.h"
 #include <string>
+
+#include "DataStructure.h"
+#include "DisassemblyStorage.h"
+
 using namespace std;
 
 typedef unsigned char BYTE;

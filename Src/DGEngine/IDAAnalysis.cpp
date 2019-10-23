@@ -2,17 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include "IDAAnalysisCommon.h"
-#include "IDAAnalysis.h"
 
-#include "DisassemblyStorage.h"
 #include <vector>
 #include <unordered_set>
 #include <list>
 #include <string>
 
+#include "DataStructure.h"
+#include "IDAAnalysis.h"
+#include "DisassemblyStorage.h"
+
 using namespace std;
 using namespace stdext;
+
 int Debug = 1;
 #include "Log.h"
 

@@ -164,7 +164,6 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="fileinfo.h" />
     <ClInclude Include="IDAAnalysis.h" />
-    <ClInclude Include="IDAAnalysisCommon.h" />
     <ClInclude Include="IDASession.h" />
     <ClInclude Include="IDAVerifier.h" />
     <ClInclude Include="LogOperation.h" />
