@@ -10,6 +10,8 @@
 #include "ProcessUtils.h"
 #include "IDAAnalysisCommon.h"
 
+#include "SQLiteDisassemblyStorage.h"
+
 LogOperation Logger;
 
 DarunGrim::DarunGrim(): 
@@ -40,7 +42,7 @@ DarunGrim::~DarunGrim()
 	Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__ );
 	if( m_disassemblyStorage )
 	{
-		m_disassemblyStorage->CloseDatabase();
+		m_disassemblyStorage->EndAnalysis();
 		delete m_disassemblyStorage;
 		m_disassemblyStorage = NULL;
 	}
@@ -182,7 +184,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket( const char *storage_filename )
 		if( m_disassemblyStorage )
 			delete m_disassemblyStorage;
 
-		m_disassemblyStorage = new DisassemblyStorage( storage_filename );
+		m_disassemblyStorage = new SQLiteDisassemblyStorage( storage_filename );
 	}
 
 	if( m_disassemblyStorage )

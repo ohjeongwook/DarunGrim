@@ -4,8 +4,6 @@
 #include <string>
 #include "LogOperation.h"
 
-#define strtoul10(X) strtoul(X, NULL, 10)
-
 //DB Related
 #include "sqlite3.h"
 #include "DisassemblyStorage.h"
@@ -230,7 +228,7 @@ list <va_t> *IDAController::GetFunctionAddresses()
 	}
 	else
 	{
-		function_address_hash = m_disassemblyStorage->ReadFunctionAddressMap(m_FileID);
+		m_disassemblyStorage->ReadFunctionAddressMap(m_FileID, function_address_hash);
 	}
 
 	if (DoCallCheck && ClientAnalysisInfo)
@@ -413,13 +411,13 @@ BOOL IDAController::LoadBasicBlock()
 {
 	if (ClientAnalysisInfo->fingerprint_map.size() == 0)
 	{
-		char FunctionAddressConditionBuffer[50] = { 0, };
+		char conditionStr[50] = { 0, };
 		if (TargetFunctionAddress)
 		{
-			_snprintf(FunctionAddressConditionBuffer, sizeof(FunctionAddressConditionBuffer)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
+			_snprintf(conditionStr, sizeof(conditionStr)-1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
 		}
 
-		ClientAnalysisInfo = m_disassemblyStorage->ReadBasicBlockInfo(ClientAnalysisInfo);
+		m_disassemblyStorage->ReadBasicBlockInfo(m_FileID, conditionStr, ClientAnalysisInfo);
 		GenerateFingerprintHashMap();
 	}
 	return TRUE;
@@ -466,8 +464,6 @@ void IDAController::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 
 BOOL IDAController::Load()
 {
-	Logger.Log(10, LOG_IDA_CONTROLLER, "%s: %s\n", __FUNCTION__, m_disassemblyStorage->GetDatabaseName());
-
 	m_disassemblyStorage->ExecuteStatement(m_disassemblyStorage->ReadRecordStringCallback, &m_OriginalFilePath, "SELECT OriginalFilePath FROM FileInfo WHERE id = %u", m_FileID);
 
 	LoadBasicBlock();
@@ -513,6 +509,7 @@ void IDAController::LoadIDARawData(PBYTE (*RetrieveCallback)(PVOID Context, BYTE
 
 	if( m_disassemblyStorage )
 		m_disassemblyStorage->BeginTransaction();
+
 	while(1)
 	{	
 		PBYTE data = RetrieveCallback(Context, &type, &length);
@@ -1010,10 +1007,7 @@ list <BLOCK> IDAController::GetFunctionMemberBlocks(unsigned long function_addre
 	}
 	else
 	{
-		m_disassemblyStorage->ExecuteStatement(ReadFunctionMemberAddressesCallback, (void *)&block_list,
-			"SELECT StartAddress, EndAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d'"
-			"ORDER BY ID ASC",
-			m_FileID, function_address);
+		block_list = m_disassemblyStorage->ReadFunctionMemberAddresses(m_FileID, function_address);
 	}
 
 	return block_list;

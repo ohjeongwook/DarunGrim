@@ -15,12 +15,6 @@
 using namespace std;
 using namespace stdext;
 
-typedef struct
-{
-	va_t Start;
-	va_t End;
-} BLOCK;
-
 class IDAController
 {
 private:
@@ -28,6 +22,7 @@ private:
 	int m_FileID;
 #endif
     DisassemblyStorage *m_disassemblyStorage;
+
 	char *m_OriginalFilePath;
 	va_t TargetFunctionAddress;
 

@@ -1,13 +1,15 @@
 #pragma once
 #include <stdio.h>
 #include <string>
+#include <unordered_set>
+
+using namespace std;
+using namespace stdext;
 
 #include "sqlite3.h"
 
 #include "SQLiteDisassemblyStorage.h"
 #include "Log.h"
-
-using namespace std;
 
 SQLiteDisassemblyStorage::SQLiteDisassemblyStorage(const char *DatabaseName)
 {
@@ -216,6 +218,7 @@ void SQLiteDisassemblyStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
 
 void SQLiteDisassemblyStorage::EndAnalysis()
 {
+	CloseDatabase();
 }
 
 int SQLiteDisassemblyStorage::ProcessTLV(BYTE Type, PBYTE Data, DWORD Length)
@@ -289,4 +292,331 @@ int SQLiteDisassemblyStorage::ReadRecordStringCallback(void *arg,int argc,char *
 	return 0;
 }
 
+int SQLiteDisassemblyStorage::ReadFunctionAddressesCallback(void* arg, int argc, char** argv, char** names)
+{
+	unordered_set <va_t>* FunctionAddressHash = (unordered_set <va_t>*)arg;
+	if (FunctionAddressHash)
+	{
+#if DEBUG_LEVEL > 1
+		if (DebugLevel & 1) Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d strtoul10(%s) = 0x%X\n", __FUNCTION__, fileID, argv[0], strtoul10(argv[0]));
+#endif
+		FunctionAddressHash->insert(strtoul10(argv[0]));
+	}
+	return 0;
+}
 
+void SQLiteDisassemblyStorage::ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap)
+{
+	ExecuteStatement(ReadFunctionAddressesCallback, &functionAddressMap, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", fileID, FUNCTION_BLOCK);
+}
+
+char* SQLiteDisassemblyStorage::ReadFingerPrint(int fileID, va_t address)
+{
+	char* fingerPrintString = NULL;
+
+	ExecuteStatement(ReadRecordStringCallback, &fingerPrintString, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", fileID, address);
+	return fingerPrintString;
+}
+
+char* SQLiteDisassemblyStorage::ReadName(int fileID, va_t address)
+{
+	char* name = NULL;
+	ExecuteStatement(ReadRecordStringCallback, &name, 
+		"SELECT Name FROM BasicBlock WHERE FileID = %u and StartAddress = %u", fileID, address);
+	return name;
+}
+
+va_t SQLiteDisassemblyStorage::ReadBlockStartAddress(int fileID, va_t address)
+{
+	va_t blockAddress;
+	ExecuteStatement(ReadRecordIntegerCallback, &blockAddress, 
+		"SELECT StartAddress FROM BasicBlock WHERE FileID = %u and StartAddress <=  %u  and %u <=  EndAddress LIMIT 1", 
+		fileID, address, address);
+	return blockAddress;
+}
+
+
+unsigned char* HexToBytesWithLengthAmble(char* HexBytes);
+
+int SQLiteDisassemblyStorage::ReadBasicBlockDataCallback(void* arg, int argc, char** argv, char** names)
+{
+	AnalysisInfo* ClientAnalysisInfo = (AnalysisInfo*)arg;
+	if (argv[1] && argv[1][0] != NULL)
+	{
+		va_t Address = strtoul10(argv[0]);
+		unsigned char* FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
+		if (FingerprintStr)
+		{
+			ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
+		}
+
+		if (strtoul10(argv[3]) == 1 && strlen(argv[2]) > 0)
+		{
+			char* name = argv[2];
+			ClientAnalysisInfo->name_map.insert(NameAddress_Pair(name, Address));
+		}
+	}
+	return 0;
+}
+
+void SQLiteDisassemblyStorage::ReadBasicBlockInfo(int fileID, char* conditionStr, AnalysisInfo *analysisInfo)
+{
+	ExecuteStatement(ReadBasicBlockDataCallback,
+		(void*) analysisInfo,
+		"SELECT StartAddress, Fingerprint, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
+		fileID,
+		conditionStr);
+}
+
+int SQLiteDisassemblyStorage::ReadMapInfoCallback(void* arg, int argc, char** argv, char** names)
+{
+	multimap <va_t, PMapInfo>* p_map_info_map = (multimap <va_t, PMapInfo>*)arg;
+
+	PMapInfo p_map_info = new MapInfo;
+	p_map_info->Type = strtoul10(argv[0]);
+	p_map_info->SrcBlock = strtoul10(argv[1]);
+	p_map_info->SrcBlockEnd = strtoul10(argv[2]);
+	p_map_info->Dst = strtoul10(argv[3]);
+#if DEBUG_LEVEL > 1
+	Logger.Log(10, "%s: ID = %d strtoul10(%s) = 0x%X, strtoul10(%s) = 0x%X, strtoul10(%s) = 0x%X, strtoul10(%s) = 0x%X\n", __FUNCTION__, fileID,
+		argv[0], strtoul10(argv[0]),
+		argv[1], strtoul10(argv[1]),
+		argv[2], strtoul10(argv[2]),
+		argv[3], strtoul10(argv[3])
+	);
+#endif
+	p_map_info_map->insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+	return 0;
+}
+
+multimap <va_t, PMapInfo>* SQLiteDisassemblyStorage::ReadMapInfo(int fileID, va_t address, bool isFunction)
+{
+	multimap <va_t, PMapInfo>* p_map_info_map = new multimap <va_t, PMapInfo>();
+	if (address == 0)
+	{	
+		ExecuteStatement(ReadMapInfoCallback, (void*)p_map_info_map,
+			"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo WHERE FileID = %u",
+			fileID);
+	}
+	else
+	{
+		if (isFunction)
+		{
+			p_map_info_map = ReadMapInfo(fileID, address, isFunction);
+
+			ExecuteStatement(ReadMapInfoCallback, (void*)p_map_info_map,
+				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
+				"WHERE FileID = %u "
+				"AND ( SrcBlock IN ( SELECT StartAddress FROM BasicBlock WHERE FunctionAddress='%d') )",
+				fileID, address);
+		}
+		else
+		{
+			ExecuteStatement(ReadMapInfoCallback, (void*)p_map_info_map,
+				"SELECT Type, SrcBlock, SrcBlockEnd, Dst From MapInfo "
+				"WHERE FileID = %u "
+				"AND SrcBlock  = '%d'",
+				fileID, address);
+		}
+	}
+
+	return p_map_info_map;
+}
+
+int ReadOneMatchMapCallback(void* arg, int argc, char** argv, char** names)
+{
+	vector<MatchData*>* p_pMatchMapList = (vector<MatchData*>*)arg;
+	MatchData* match_data = new MatchData();
+	if (match_data)
+	{
+		match_data->Addresses[0] = strtoul10(argv[0]);
+		match_data->Addresses[1] = strtoul10(argv[1]);
+		match_data->Type = atoi(argv[3]);
+		match_data->SubType = atoi(argv[4]);
+		match_data->Status = atoi(argv[5]);
+		match_data->MatchRate = atoi(argv[6]);
+		match_data->UnpatchedParentAddress = strtoul10(argv[7]);
+		match_data->PatchedParentAddress = strtoul10(argv[8]);
+		p_pMatchMapList->push_back(match_data);
+	}
+	return 0;
+}
+
+vector<MatchData*>* SQLiteDisassemblyStorage::ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase)
+{
+	vector<MatchData*>* pMatchMapList = new vector<MatchData*>();
+	MatchData match_data;
+	memset(&match_data, 0, sizeof(match_data));
+
+	if (erase)
+	{
+		ExecuteStatement(ReadOneMatchMapCallback, &pMatchMapList, 
+			"DELETE FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", 
+			sourceID, targetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
+	}
+	else if(address > 0)
+	{
+		ExecuteStatement(ReadOneMatchMapCallback, &pMatchMapList, 
+			"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress FROM MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND %s=%u", 
+			sourceID, targetID, index == 0 ? "TheSourceAddress" : "TheTargetAddress", address);
+
+		if (match_data.Addresses[0] != 0)
+		{
+			for (vector<MatchData*>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
+			{
+				LogMessage(1, __FUNCTION__, "%u 0x%X returns %X-%X\r\n",
+					index,
+					address,
+					(*it)->Addresses[0],
+					(*it)->Addresses[1]
+				);
+			}
+		}
+	}
+
+	return pMatchMapList;
+}
+
+int SQLiteDisassemblyStorage::ReadMatchMapCallback(void* arg, int argc, char** argv, char** names)
+{
+	MatchResults* DiffResults = (MatchResults*) arg;
+
+	MatchData match_data;
+	DWORD SourceAddress = strtoul10(argv[0]);
+	DWORD TargetAddress = strtoul10(argv[1]);
+	match_data.Type = atoi(argv[3]);
+	match_data.SubType = atoi(argv[4]);
+	match_data.Status = atoi(argv[5]);
+	match_data.MatchRate = atoi(argv[6]);
+	match_data.UnpatchedParentAddress = strtoul10(argv[7]);
+	match_data.PatchedParentAddress = strtoul10(argv[8]);
+	match_data.Addresses[0] = SourceAddress;
+	match_data.Addresses[1] = TargetAddress;
+	DiffResults->AddMatchData(match_data, __FUNCTION__);
+	return 0;
+}
+
+MatchResults *SQLiteDisassemblyStorage::ReadMatchResults(int sourceID, int targetID)
+{
+	MatchResults* DiffResults = new MatchResults();
+
+	ExecuteStatement(
+		ReadMatchMapCallback,
+		DiffResults,
+		"SELECT TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
+		sourceID, targetID);
+
+	return DiffResults;
+}
+
+int SQLiteDisassemblyStorage::ReadFunctionMemberAddressesCallback(void* arg, int argc, char** argv, char** names)
+{
+	list <BLOCK>* p_address_list = (list <BLOCK>*)arg;
+	if (p_address_list)
+	{
+#if DEBUG_LEVEL > 1
+		if (DebugLevel & 1) Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d strtoul10(%s) = 0x%X\n", __FUNCTION__, fileID, argv[0], strtoul10(argv[0]));
+#endif
+		BLOCK block;
+		block.Start = strtoul10(argv[0]);
+		block.End = strtoul10(argv[1]);
+		p_address_list->push_back(block);
+	}
+	return 0;
+}
+
+list<BLOCK> SQLiteDisassemblyStorage::ReadFunctionMemberAddresses(int fileID, va_t function_address)
+{
+	list<BLOCK> block_list;
+
+	ExecuteStatement(ReadFunctionMemberAddressesCallback, (void*)&block_list,
+		"SELECT StartAddress, EndAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d'"
+		"ORDER BY ID ASC",
+		fileID, function_address);
+
+	return block_list;
+}
+
+int SQLiteDisassemblyStorage::QueryFunctionMatchesCallback(void* arg, int argc, char** argv, char** names)
+{
+	vector <FunctionMatchInfo>* pFunctionMatchList = (vector <FunctionMatchInfo>*)arg;
+	FunctionMatchInfo function_match_info;
+	function_match_info.TheSourceAddress = strtoul10(argv[0]);
+	function_match_info.EndAddress = strtoul10(argv[1]);
+	function_match_info.TheTargetAddress = strtoul10(argv[2]);
+	function_match_info.BlockType = atoi(argv[3]);
+	function_match_info.MatchRate = atoi(argv[4]);
+	function_match_info.TheSourceFunctionName = _strdup(argv[5]);
+	function_match_info.Type = atoi(argv[6]);
+	function_match_info.TheTargetFunctionName = _strdup(argv[7]);
+	function_match_info.MatchCountForTheSource = atoi(argv[8]);
+	function_match_info.NoneMatchCountForTheSource = atoi(argv[9]);
+	function_match_info.MatchCountWithModificationForTheSource = atoi(argv[10]);
+	function_match_info.MatchCountForTheTarget = atoi(argv[11]);
+	function_match_info.NoneMatchCountForTheTarget = atoi(argv[12]);
+	function_match_info.MatchCountWithModificationForTheTarget = atoi(argv[13]);
+	pFunctionMatchList->push_back(function_match_info);
+	return 0;
+}
+
+vector <FunctionMatchInfo> SQLiteDisassemblyStorage::QueryFunctionMatches(char *query, int sourceID, int targetID)
+{
+	vector <FunctionMatchInfo> functionMatchList;
+	ExecuteStatement(QueryFunctionMatchesCallback, &functionMatchList, query, sourceID, targetID);
+	return functionMatchList;
+}
+
+char* GetFilename(char* full_pathname)
+{
+	for (int i = strlen(full_pathname) - 1; i > 0; i--)
+	{
+		if (full_pathname[i] == '\\')
+		{
+			return full_pathname + i + 1;
+		}
+	}
+
+	return full_pathname;
+}
+
+int SQLiteDisassemblyStorage::ReadFileListCallback(void* arg, int argc, char** argv, char** names)
+{
+	FileList* file_list = (FileList*)arg;
+	if (file_list)
+	{
+		if (!_stricmp(argv[0], "source"))
+		{
+			file_list->SourceFilename = GetFilename(argv[1]);
+		}
+		else if (!_stricmp(argv[0], "target"))
+		{
+			file_list->TargetFilename = GetFilename(argv[1]);
+		}
+	}
+	return 0;
+}
+
+FileList SQLiteDisassemblyStorage::ReadFileListCallback()
+{
+	FileList fileList;
+	ExecuteStatement(ReadFileListCallback, &fileList, "SELECT Type, Filename FROM " FILE_LIST_TABLE);
+	return fileList;
+}
+
+void SQLiteDisassemblyStorage::InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate)
+{
+	ExecuteStatement(NULL, NULL,
+		INSERT_MATCH_MAP_TABLE_STATEMENT,
+		sourceFileID,
+		targetFileID,
+		sourceAddress,
+		targetAddress,
+		TYPE_MATCH,
+		FINGERPRINT_INSIDE_FUNCTION_MATCH,
+		0,
+		0,
+		matchRate,
+		0,
+		0);
+
+}

@@ -127,4 +127,16 @@ typedef pair <unsigned char *,unsigned char *> Fingerprint_Pair;
 #define STATUS_TREE_CHECKED 0x00000001
 #define STATUS_MAPPING_DISABLED 0x2
 
+typedef struct
+{
+	va_t Start;
+	va_t End;
+} BLOCK;
+
+struct FileList
+{
+	string SourceFilename;
+	string TargetFilename;
+};
+
 #pragma pack(pop)
