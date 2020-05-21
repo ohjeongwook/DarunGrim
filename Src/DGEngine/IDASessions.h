@@ -39,7 +39,7 @@ private:
     SOCKET SocketForeTheTarget;
 	DiffAlgorithms *pDiffAlgorithms;
 	BOOL bRetrieveDataForAnalysis;
-    MatchResults *pMatchResults;
+    MatchResults *m_pMatchResults;
     DumpAddressChecker *pDumpAddressChecker;
     FunctionMatchInfoList *m_pFunctionMatchInfoList;
 
