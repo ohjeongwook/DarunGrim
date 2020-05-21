@@ -42,7 +42,7 @@ IDASession::~IDASession()
     {
         ClientAnalysisInfo->name_map.clear();
 
-        for(auto& val : ClientAnalysisInfo->map_info_map)
+        for (auto& val : ClientAnalysisInfo->map_info_map)
         {
             if (val.second)
                 delete val.second;
@@ -184,7 +184,7 @@ list <va_t> *IDASession::GetFunctionAddresses()
     {
         Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
 
-        for(auto& val: ClientAnalysisInfo->map_info_map)
+        for (auto& val: ClientAnalysisInfo->map_info_map)
         {
             Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", val.first, val.second->Dst, MapInfoTypesStr[val.second->Type]);
             if (val.second->Type == CREF_FROM)
@@ -198,13 +198,13 @@ list <va_t> *IDASession::GetFunctionAddresses()
         }
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
 
-        for(auto& val : ClientAnalysisInfo->address_fingerprint_map)
+        for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
         {
             addresses.insert(pair<va_t, short>(val.first, DoCrefFromCheck ? TRUE : FALSE));
         }
 
         Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
-        for(auto& val : addresses)
+        for (auto& val : addresses)
         {
             if (val.second)
             {
@@ -430,7 +430,7 @@ void IDASession::LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Add
 
 void IDASession::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 {
-    for(auto& val : *p_map_info_map)
+    for (auto& val : *p_map_info_map)
     {
         if (val.second->Type == CREF_FROM)
         {
@@ -575,7 +575,7 @@ void IDASession::GenerateFingerprintHashMap()
     multimap <va_t, PBasicBlock>::iterator address_map_pIter;
     list <AddressPair> AddressPairs;
 
-    for(auto& val : ClientAnalysisInfo->address_map)
+    for (auto& val : ClientAnalysisInfo->address_map)
     {
         va_t address = val.first;
         multimap <va_t, PMapInfo>::iterator map_info_map_iter;
@@ -629,7 +629,7 @@ void IDASession::GenerateFingerprintHashMap()
         }
     }
 
-    for(AddressPair addressPair : AddressPairs)
+    for (AddressPair addressPair : AddressPairs)
     {
         va_t address = addressPair.address;
         va_t child_address = addressPair.child_address;
@@ -709,7 +709,7 @@ void IDASession::GenerateTwoLevelFingerPrint()
 {
     /*
     multimap <unsigned char *, va_t, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
-    for(fingerprint_map_pIter = ClientAnalysisInfo->fingerprint_map.begin();
+    for (fingerprint_map_pIter = ClientAnalysisInfo->fingerprint_map.begin();
         fingerprint_map_pIter != ClientAnalysisInfo->fingerprint_map.end();
         fingerprint_map_pIter++)
 
@@ -725,7 +725,7 @@ void IDASession::GenerateTwoLevelFingerPrint()
                 int TwoLevelFingerprintLength = 0;
                 TwoLevelFingerprintLength += *(unsigned short *)fingerprint_map_pIter->first; //+
                 multimap <va_t,  unsigned char *>::iterator address_fingerprint_map_Iter;
-                for(int i = 0;i<addresses_number;i++)
+                for (int i = 0;i<addresses_number;i++)
                 {
                     address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
                     if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())
@@ -744,7 +744,7 @@ void IDASession::GenerateTwoLevelFingerPrint()
                         int Offset = sizeof(short);
                         memcpy(TwoLevelFingerprint+Offset, fingerprint_map_pIter->first+sizeof(short), *(unsigned short *)fingerprint_map_pIter->first);
                         Offset += *(unsigned short *)fingerprint_map_pIter->first;
-                        for(int i = 0;i<addresses_number;i++)
+                        for (int i = 0;i<addresses_number;i++)
                         {
                             address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
                             if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())

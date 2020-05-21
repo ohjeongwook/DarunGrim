@@ -100,7 +100,6 @@ public:
     {
         bRetrieveDataForAnalysis = newRetrieveDataForAnalysis;
     }
-    const char *GetMatchTypeStr(int Type);
     void SetLoadDiffResults(bool NewLoadDiffResults)
     {
         LoadDiffResults = NewLoadDiffResults;

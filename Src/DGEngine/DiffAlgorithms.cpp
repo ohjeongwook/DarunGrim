@@ -54,26 +54,6 @@ int DiffAlgorithms::GetFingerPrintMatchRate(unsigned char *unpatched_finger_prin
 	return rate;
 }
 
-int DiffAlgorithms::GetMatchRate(va_t unpatched_address, va_t patched_address)
-{
-    multimap <va_t, unsigned char*>::iterator source_fingerprint_map_Iter;
-    multimap <va_t, unsigned char*>::iterator target_fingerprint_map_Iter;
-
-    source_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(unpatched_address);
-    target_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(patched_address);
-
-    if (
-        source_fingerprint_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end() &&
-        target_fingerprint_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end()
-        )
-    {
-        return GetFingerPrintMatchRate(
-            source_fingerprint_map_Iter->second,
-            target_fingerprint_map_Iter->second);
-    }
-    return 0;
-}
-
 void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 {
 	multimap <va_t, MatchData>::iterator match_map_iter;
@@ -997,6 +977,8 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
     return pMatchMap;
 }
 
+const char* MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function" };
+
 void DiffAlgorithms::DumpMatchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter)
 {
 	const char *SubTypeStr[] = { "Cref From", "Cref To", "Call", "Dref From", "Dref To" };
@@ -1013,3 +995,11 @@ void DiffAlgorithms::DumpMatchMapIterInfo(const char *prefix, multimap <va_t, Ma
 		match_map_iter->second.Status);
 }
 
+const char* DiffAlgorithms::GetMatchTypeStr(int Type)
+{
+	if (Type < sizeof(MatchDataTypeStr) / sizeof(MatchDataTypeStr[0]))
+	{
+		return MatchDataTypeStr[Type];
+	}
+	return "Unknown";
+}

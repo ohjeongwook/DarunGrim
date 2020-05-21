@@ -312,6 +312,5 @@ public:
 	unordered_set<va_t> TargetAddressMap;
 };
 
-const char *MatchDataTypeStr[] = { "Name", "Fingerprint", "Two Level Fingerprint", "IsoMorphic Match", "Fingerprint Inside Function", "Function" };
 
 #pragma pack(pop)

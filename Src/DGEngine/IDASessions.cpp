@@ -592,7 +592,7 @@ void IDASessions::ShowDiffMap(va_t unpatched_address, va_t patched_address)
     address_list.push_back(unpatched_address);
     checked_addresses.insert(unpatched_address);
 
-    for(va_t address : address_list)
+    for (va_t address : address_list)
     {
         int addresses_number;
         Logger.Log(10, LOG_DIFF_MACHINE, "%s:  address=%X\n", __FUNCTION__, address);
@@ -614,6 +614,26 @@ void IDASessions::ShowDiffMap(va_t unpatched_address, va_t patched_address)
             free(p_addresses);
         }
     }
+}
+
+int IDASessions::GetMatchRate(va_t unpatched_address, va_t patched_address)
+{
+    multimap <va_t, unsigned char*>::iterator source_fingerprint_map_Iter;
+    multimap <va_t, unsigned char*>::iterator target_fingerprint_map_Iter;
+
+    source_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(unpatched_address);
+    target_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(patched_address);
+
+    if (
+        source_fingerprint_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end() &&
+        target_fingerprint_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end()
+        )
+    {
+        return pDiffAlgorithms->GetFingerPrintMatchRate(
+            source_fingerprint_map_Iter->second,
+            target_fingerprint_map_Iter->second);
+    }
+    return 0;
 }
 
 void IDASessions::GetMatchStatistics(
@@ -646,7 +666,7 @@ void IDASessions::GetMatchStatistics(
     found_match_with_difference_number = 0;
     float total_match_rate = 0;
 
-    for(BLOCK block : address_list)
+    for (BLOCK block : address_list)
     {
         MatchMapList *pMatchMapList = GetMatchData(index, block.Start);
 
@@ -1146,15 +1166,6 @@ BOOL IDASessions::_Load()
     return TRUE;
 }
 
-const char *IDASessions::GetMatchTypeStr(int Type)
-{
-    if (Type < sizeof(MatchDataTypeStr) / sizeof(MatchDataTypeStr[0]))
-    {
-        return MatchDataTypeStr[Type];
-    }
-    return "Unknown";
-}
-
 BREAKPOINTS IDASessions::ShowUnidentifiedAndModifiedBlocks()
 {
     BREAKPOINTS breakpoints;
@@ -1279,7 +1290,7 @@ void IDASessions::PrintMatchMapInfo()
 
     for (auto& val : pMatchResults->MatchMap)
 	{
-		LogMessage(0, __FUNCTION__, "%X-%X ( %s )\n", val.first, val.second.Addresses[1], MatchDataTypeStr[val.second.Type]);
+		LogMessage(0, __FUNCTION__, "%X-%X ( %s )\n", val.first, val.second.Addresses[1], pDiffAlgorithms->GetMatchTypeStr(val.second.Type));
 	}
 
 	LogMessage(0, __FUNCTION__, "* *unidentified( 0 )\n");

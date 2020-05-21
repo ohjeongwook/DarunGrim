@@ -31,7 +31,6 @@ public:
 	void RemoveDuplicates(MATCHMAP* pMatchMap);
 	vector <FunctionMatchInfo>* GenerateFunctionMatchInfo(MATCHMAP* pMatchMap, multimap <va_t, va_t>* pReverseAddressMap);
 	int GetFingerPrintMatchRate(unsigned char *unpatched_finger_print, unsigned char *patched_finger_print);
-    int GetMatchRate(va_t unpatched_address, va_t patched_address);
 
 	MATCHMAP *DoFingerPrintMatchInsideFunction(va_t SourceFunctionAddress, list <va_t>& SourceBlockAddresses, va_t TargetFunctionAddress, list <va_t>& TargetBlockAddresses);
 	MATCHMAP *DoFingerPrintMatch();
@@ -42,5 +41,6 @@ public:
 
 	MatchRateInfo *GetMatchRateInfoArray(va_t source_address, va_t target_address, int type, int& MatchRateInfoCount);
 	void DumpMatchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter);
+	const char* GetMatchTypeStr(int Type);
 };
 
