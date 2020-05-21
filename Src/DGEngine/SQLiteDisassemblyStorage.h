@@ -9,7 +9,7 @@
 using namespace std;
 
 typedef unsigned char BYTE;
-typedef unsigned char* PBYTE;
+typedef unsigned char *PBYTE;
 
 #define FILE_INFO_TABLE "FileInfo"
 #define CREATE_FILE_INFO_TABLE_STATEMENT "CREATE TABLE " FILE_INFO_TABLE" (\n\
@@ -74,8 +74,8 @@ typedef unsigned char* PBYTE;
             id INTEGER PRIMARY KEY AUTOINCREMENT, \n\
             TheSourceFileID INTEGER, \n\
             TheTargetFileID INTEGER, \n\
-            TheSourceAddress INTEGER, \n\
-            TheTargetAddress INTEGER, \n\
+            SourceAddress INTEGER, \n\
+            TargetAddress INTEGER, \n\
             MatchType INTEGER, \n\
             Type INTEGER, \n\
             SubType INTEGER, \n\
@@ -85,10 +85,10 @@ typedef unsigned char* PBYTE;
             PatchedParentAddress INTEGER\n\
          );"
 
-#define INSERT_MATCH_MAP_TABLE_STATEMENT "INSERT INTO  "MATCH_MAP_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, TheTargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u' );"
+#define INSERT_MATCH_MAP_TABLE_STATEMENT "INSERT INTO  "MATCH_MAP_TABLE" ( TheSourceFileID, TheTargetFileID, SourceAddress, TargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u' );"
 #define DELETE_MATCH_MAP_TABLE_STATEMENT "DELETE FROM "MATCH_MAP_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
-#define CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"TheSourceAddressIndex ON "MATCH_MAP_TABLE" ( TheSourceAddress )"
-#define CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"TheTargetAddressIndex ON "MATCH_MAP_TABLE" ( TheTargetAddress )"
+#define CREATE_MATCH_MAP_TABLE_SOURCE_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"SourceAddressIndex ON "MATCH_MAP_TABLE" ( SourceAddress )"
+#define CREATE_MATCH_MAP_TABLE_TARGET_ADDRESS_INDEX_STATEMENT "CREATE INDEX "MATCH_MAP_TABLE"TargetAddressIndex ON "MATCH_MAP_TABLE" ( TargetAddress )"
 
 #define FILE_LIST_TABLE "FileList"
 #define CREATE_FILE_LIST_TABLE_STATEMENT "CREATE TABLE " FILE_LIST_TABLE " ( \n\
@@ -116,14 +116,14 @@ typedef unsigned char* PBYTE;
             id INTEGER PRIMARY KEY AUTOINCREMENT, \n\
             TheSourceFileID INTEGER, \n\
             TheTargetFileID INTEGER, \n\
-            TheSourceAddress INTEGER, \n\
+            SourceAddress INTEGER, \n\
             EndAddress INTEGER, \n\
-            TheTargetAddress INTEGER, \n\
+            TargetAddress INTEGER, \n\
             BlockType INTEGER, \n\
             MatchRate INTEGER, \n\
-            TheSourceFunctionName TEXT, \n\
+            SourceFunctionName TEXT, \n\
             Type INTEGER, \n\
-            TheTargetFunctionName TEXT, \n\
+            TargetFunctionName TEXT, \n\
             MatchCountForTheSource INTEGER, \n\
             NoneMatchCountForTheSource INTEGER, \n\
             MatchCountWithModificationForTheSource INTEGER, \n\
@@ -132,22 +132,22 @@ typedef unsigned char* PBYTE;
             MatchCountWithModificationForTheTarget INTEGER, \n\
             SecurityImplicationsScore INTEGER \n\
          );"
-#define INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT "INSERT INTO  " FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, EndAddress, TheTargetAddress, BlockType, MatchRate, TheSourceFunctionName, Type, TheTargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%s', '%u', '%s', '%u', '%u', '%u', '%u', '%u', '%u' );"
+#define INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT "INSERT INTO  " FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, SourceAddress, EndAddress, TargetAddress, BlockType, MatchRate, SourceFunctionName, Type, TargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget ) values ( '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%s', '%u', '%s', '%u', '%u', '%u', '%u', '%u', '%u' );"
 #define DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT "DELETE FROM "FUNCTION_MATCH_INFO_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
-#define CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT "CREATE INDEX "FUNCTION_MATCH_INFO_TABLE"Index ON "FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, TheSourceAddress, TheTargetAddress )"
+#define CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT "CREATE INDEX "FUNCTION_MATCH_INFO_TABLE"Index ON "FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, SourceAddress, TargetAddress )"
 
 class SQLiteDisassemblyStorage : public DisassemblyStorage
 {
 private:
-    sqlite3* db;
+    sqlite3 *db;
     string m_DatabaseName;
 
 public:
-    SQLiteDisassemblyStorage(const char* DatabaseName = NULL);
+    SQLiteDisassemblyStorage(const char *DatabaseName = NULL);
     ~SQLiteDisassemblyStorage();
 
 public:
-    void SetFileInfo(FileInfo* p_file_info);
+    void SetFileInfo(FileInfo *p_file_info);
     int BeginTransaction();
     int EndTransaction();
     void EndAnalysis();
@@ -157,58 +157,58 @@ public:
     int ProcessTLV(BYTE Type, PBYTE Data, DWORD Length);
 
     void CreateTables();
-    bool Open(char* DatabaseName);
-    const char* GetDatabaseName();
+    bool Open(char *DatabaseName);
+    const char *GetDatabaseName();
     void CloseDatabase();
-    bool CreateDatabase(const char* DatabaseName);
+    bool CreateDatabase(const char *DatabaseName);
 
     int GetLastInsertRowID();
-    int ExecuteStatement(sqlite3_callback callback, void* context, const char* format, ...);
-    static int display_callback(void* NotUsed, int argc, char** argv, char** azColName);
-    static int ReadRecordIntegerCallback(void* arg, int argc, char** argv, char** names);
-    static int ReadRecordStringCallback(void* arg, int argc, char** argv, char** names);
+    int ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...);
+    static int display_callback(void *NotUsed, int argc, char* *argv, char* *azColName);
+    static int ReadRecordIntegerCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadRecordStringCallback(void *arg, int argc, char* *argv, char* *names);
 
-    static int ReadFunctionAddressesCallback(void* arg, int argc, char** argv, char** names);
+    static int ReadFunctionAddressesCallback(void *arg, int argc, char* *argv, char* *names);
     void ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap);
 
-    char* ReadFingerPrint(int fileID, va_t address);
-    char* ReadName(int fileID, va_t address);
+    char *ReadFingerPrint(int fileID, va_t address);
+    char *ReadName(int fileID, va_t address);
     va_t ReadBlockStartAddress(int fileID, va_t address);
 
-    static int ReadBasicBlockDataCallback(void* arg, int argc, char** argv, char** names);
-    void ReadBasicBlockInfo(int fileID, char* conditionStr, AnalysisInfo* analysisInfo);
+    static int ReadBasicBlockDataCallback(void *arg, int argc, char* *argv, char* *names);
+    void ReadBasicBlockInfo(int fileID, char *conditionStr, AnalysisInfo *analysisInfo);
 
-    static int ReadMapInfoCallback(void* arg, int argc, char** argv, char** names);
-    multimap <va_t, PMapInfo>* ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
+    static int ReadMapInfoCallback(void *arg, int argc, char* *argv, char* *names);
+    multimap <va_t, PMapInfo> *ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
 
-    static int ReadOneMatchMapCallback(void* arg, int argc, char** argv, char** names);
-    vector<MatchData*>* ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
+    static int ReadOneMatchMapCallback(void *arg, int argc, char* *argv, char* *names);
+    MatchMapList*ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
 
-    static int ReadMatchMapCallback(void* arg, int argc, char** argv, char** names);
-    MatchResults* ReadMatchResults(int sourceID, int targetID);
+    static int ReadMatchMapCallback(void *arg, int argc, char* *argv, char* *names);
+    MatchResults *ReadMatchResults(int sourceID, int targetID);
 
-    static int ReadFunctionMemberAddressesCallback(void* arg, int argc, char** argv, char** names);
+    static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char* *argv, char* *names);
     list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
 
-    static int QueryFunctionMatchesCallback(void* arg, int argc, char** argv, char** names);
-    vector <FunctionMatchInfo> QueryFunctionMatches(const char* query, int sourceID, int targetID);
+    static int QueryFunctionMatchesCallback(void *arg, int argc, char* *argv, char* *names);
+    vector <FunctionMatchInfo> QueryFunctionMatches(const char *query, int sourceID, int targetID);
 
-    static int ReadFileListCallback(void* arg, int argc, char** argv, char** names);
+    static int ReadFileListCallback(void *arg, int argc, char* *argv, char* *names);
     FileList ReadFileList();
 
     void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
 
-    char* GetOriginalFilePath(int fileID);
+    char *GetOriginalFilePath(int fileID);
     void DeleteMatchInfo(int fileID, va_t functionAddress);
     void DeleteMatches(int srcFileID, int dstFileID);
 
-    char* ReadDisasmLine(int fileID, va_t startAddress);
+    char *ReadDisasmLine(int fileID, va_t startAddress);
 
-    static int ReadBasicBlockCallback(void* arg, int argc, char** argv, char** names);
+    static int ReadBasicBlockCallback(void *arg, int argc, char* *argv, char* *names);
     PBasicBlock ReadBasicBlock(int fileID, va_t address);
 
     void UpdateBasicBlock(int fileID, va_t address1, va_t address2);
 
-    void AddFileInfo(char* fileType, const char* dbName, int fileID, va_t functionAddress);
+    void AddFileInfo(char *fileType, const char *dbName, int fileID, va_t functionAddress);
     void AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo);
 };
