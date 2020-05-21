@@ -44,12 +44,12 @@ IDASessions::IDASessions(IDASession *the_source, IDASession *the_target) :
 void IDASessions::ClearFunctionMatchList()
 {
     vector <FunctionMatchInfo>::iterator iter;
-    for (iter = pFunctionMatchInfoList->begin(); iter != pFunctionMatchInfoList->end(); iter++)
+    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
     {
         free((*iter).SourceFunctionName);
         free((*iter).TargetFunctionName);
     }
-    pFunctionMatchInfoList->clear();
+    m_pFunctionMatchInfoList->clear();
 }
 
 IDASessions::~IDASessions()
@@ -568,7 +568,7 @@ bool IDASessions::Analyze()
     }
     */
 
-    pFunctionMatchInfoList = pDiffAlgorithms->GenerateFunctionMatchInfo(&pMatchResults->MatchMap, &pMatchResults->ReverseAddressMap);
+    m_pFunctionMatchInfoList = pDiffAlgorithms->GenerateFunctionMatchInfo(&pMatchResults->MatchMap, &pMatchResults->ReverseAddressMap);
     return true;
 }
 
@@ -714,7 +714,7 @@ void IDASessions::GetMatchStatistics(
 
 int IDASessions::GetFunctionMatchInfoCount()
 {
-    DWORD size_to_return = pFunctionMatchInfoList->size();
+    DWORD size_to_return = m_pFunctionMatchInfoList->size();
 
     Logger.Log(10, LOG_DIFF_MACHINE, "%s: size_to_return=%u\n", __FUNCTION__, size_to_return);
 
@@ -723,7 +723,7 @@ int IDASessions::GetFunctionMatchInfoCount()
 
 FunctionMatchInfo IDASessions::GetFunctionMatchInfo(int i)
 {
-    return pFunctionMatchInfoList->at(i);
+    return m_pFunctionMatchInfoList->at(i);
 }
 
 BOOL IDASessions::IsInUnidentifiedBlockHash(int index, va_t address)
@@ -950,10 +950,10 @@ BOOL IDASessions::Save(DisassemblyStorage & disassemblyStorage, unordered_set <v
         // val.second.PatchedParentAddress);
     }
 
-    Logger.Log(10, LOG_DIFF_MACHINE, "pFunctionMatchInfoList->size()=%u\n", pFunctionMatchInfoList->size());
+    Logger.Log(10, LOG_DIFF_MACHINE, "m_pFunctionMatchInfoList->size()=%u\n", m_pFunctionMatchInfoList->size());
 
     vector <FunctionMatchInfo>::iterator iter;
-    for (iter = pFunctionMatchInfoList->begin(); iter != pFunctionMatchInfoList->end(); iter++)
+    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
     {
         disassemblyStorage.AddFunctionMatchInfo(SourceIDASession->GetFileID(),
             TargetIDASession->GetFileID(),
@@ -1171,7 +1171,7 @@ BREAKPOINTS IDASessions::ShowUnidentifiedAndModifiedBlocks()
     BREAKPOINTS breakpoints;
     vector <FunctionMatchInfo>::iterator iter;
 
-    for (iter = pFunctionMatchInfoList->begin(); iter != pFunctionMatchInfoList->end(); iter++)
+    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
     {
         if (
             (
