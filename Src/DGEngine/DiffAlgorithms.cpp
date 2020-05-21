@@ -293,19 +293,13 @@ vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *
 	}
 
 	LogMessage(0, __FUNCTION__, "pFunctionMatchInfoList->size()=%u\n", pFunctionMatchInfoList->size());
-	//////////// Unidentifed Locations
 
-	multimap <va_t, PBasicBlock>::iterator address_map_pIter;
 	int unpatched_unidentified_number = 0;
-	multimap <va_t, unsigned char*>::iterator source_fingerprint_map_Iter;
-	for (source_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.begin();
-		source_fingerprint_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end();
-		source_fingerprint_map_Iter++
-		)
+	for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
 	{
-		if (pMatchMap->find(source_fingerprint_map_Iter->first) == pMatchMap->end())
+		if (pMatchMap->find(val.first) == pMatchMap->end())
 		{
-			PBasicBlock p_basic_block = SourceIDASession->GetBasicBlock(source_fingerprint_map_Iter->first);
+			PBasicBlock p_basic_block = SourceIDASession->GetBasicBlock(val.first);
 			if (p_basic_block)
 			{
 				if (p_basic_block->BlockType == FUNCTION_BLOCK)
@@ -337,15 +331,11 @@ vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *
 	//TODO: LogMessage(0, __FUNCTION__, "unpatched_unidentified_number=%u\n", SourceUnidentifedBlockHash.size());
 
 	int patched_unidentified_number = 0;
-	multimap <va_t, unsigned char*>::iterator target_fingerprint_map_Iter;
-	for (target_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.begin();
-		target_fingerprint_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end();
-		target_fingerprint_map_Iter++
-		)
+	for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
 	{
-		if (pReverseAddressMap->find(target_fingerprint_map_Iter->first) == pReverseAddressMap->end())
+		if (pReverseAddressMap->find(val.first) == pReverseAddressMap->end())
 		{
-			PBasicBlock p_basic_block = TargetIDASession->GetBasicBlock(target_fingerprint_map_Iter->first);
+			PBasicBlock p_basic_block = TargetIDASession->GetBasicBlock(val.first);
 			if (p_basic_block)
 			{
 				if (p_basic_block->BlockType == FUNCTION_BLOCK)
@@ -447,10 +437,8 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_fingerprint> fingerprint_map;
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_fingerprint>::iterator fingerprint_map_iter;
 
-	list <va_t>::iterator SourceBlockAddressIter;
-	for (SourceBlockAddressIter = SourceBlockAddresses.begin(); SourceBlockAddressIter != SourceBlockAddresses.end(); SourceBlockAddressIter++)
+	for(va_t SourceAddress : SourceBlockAddresses)
 	{
-		va_t SourceAddress = *SourceBlockAddressIter;
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tSource=%X\n", SourceAddress );
 		address_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(SourceAddress);
 		if (address_fingerprint_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end())
@@ -472,12 +460,10 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 		}
 	}
 
-	list <va_t>::iterator TargetBlockAddressIter;
-	for (TargetBlockAddressIter = TargetBlockAddresses.begin(); TargetBlockAddressIter != TargetBlockAddresses.end(); TargetBlockAddressIter++)
+	for(va_t targetAddress: TargetBlockAddresses)
 	{
-		va_t TargetAddress = *TargetBlockAddressIter;
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tTarget=%X\n", TargetAddress );
-		address_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(TargetAddress);
+		address_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(targetAddress);
 		if (address_fingerprint_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end())
 		{
 			unsigned char *FingerPrint = address_fingerprint_map_Iter->second;
@@ -487,33 +473,33 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 				if (fingerprint_map_iter->second.TargetAddress != 0L)
 					fingerprint_map_iter->second.Overflowed = TRUE;
 				else
-					fingerprint_map_iter->second.TargetAddress = TargetAddress;
+					fingerprint_map_iter->second.TargetAddress = targetAddress;
 			}
 			else
 			{
 				AddressesInfo OneAddressesInfo;
 				OneAddressesInfo.Overflowed = FALSE;
 				OneAddressesInfo.SourceAddress = 0L;
-				OneAddressesInfo.TargetAddress = TargetAddress;
+				OneAddressesInfo.TargetAddress = targetAddress;
 				fingerprint_map.insert(pair<unsigned char*, AddressesInfo>(FingerPrint, OneAddressesInfo));
 			}
 		}
 	}
 
-	for (fingerprint_map_iter = fingerprint_map.begin(); fingerprint_map_iter != fingerprint_map.end(); fingerprint_map_iter++)
+	for (auto& val : fingerprint_map)
 	{
-		if (!fingerprint_map_iter->second.Overflowed &&
-			fingerprint_map_iter->second.SourceAddress != 0L &&
-			fingerprint_map_iter->second.TargetAddress != 0L)
+		if (!val.second.Overflowed &&
+			val.second.SourceAddress != 0L &&
+			val.second.TargetAddress != 0L)
 		{
-			//Logger.Log( 10, LOG_DIFF_MACHINE,  "%X %X\n", fingerprint_map_iter->second.SourceAddress, fingerprint_map_iter->second.TargetAddress );
+			//Logger.Log( 10, LOG_DIFF_MACHINE,  "%X %X\n", val.second.SourceAddress, val.second.TargetAddress );
 			//We found matching blocks
-			//fingerprint_map_iter->second.SourceAddress, fingerprint_map_iter->second.TargetAddress
+			//val.second.SourceAddress, val.second.TargetAddress
 			MatchData match_data;
 			memset(&match_data, 0, sizeof(MatchData));
 			match_data.Type = FINGERPRINT_INSIDE_FUNCTION_MATCH;
-			match_data.Addresses[0] = fingerprint_map_iter->second.SourceAddress;
-			match_data.Addresses[1] = fingerprint_map_iter->second.TargetAddress;
+			match_data.Addresses[0] = val.second.SourceAddress;
+			match_data.Addresses[1] = val.second.TargetAddress;
 
 			match_data.UnpatchedParentAddress = SourceFunctionAddress;
 			match_data.PatchedParentAddress = targetFunctionAddress;
@@ -535,16 +521,14 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatch()
 	multimap <unsigned char*, va_t, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
 	multimap <unsigned char*, va_t, hash_compare_fingerprint>::iterator patched_fingerprint_map_pIter;
 
-	for (fingerprint_map_pIter = SourceIDASession->GetClientAnalysisInfo()->fingerprint_map.begin();
-		fingerprint_map_pIter != SourceIDASession->GetClientAnalysisInfo()->fingerprint_map.end();
-		fingerprint_map_pIter++)
+	for (auto& val : SourceIDASession->GetClientAnalysisInfo()->fingerprint_map)
 	{
-		if (SourceIDASession->GetClientAnalysisInfo()->fingerprint_map.count(fingerprint_map_pIter->first) == 1)
+		if (SourceIDASession->GetClientAnalysisInfo()->fingerprint_map.count(val.first) == 1)
 		{
 			//unique key
-			if (TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.count(fingerprint_map_pIter->first) == 1)
+			if (TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.count(val.first) == 1)
 			{
-				patched_fingerprint_map_pIter = TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.find(fingerprint_map_pIter->first);
+				patched_fingerprint_map_pIter = TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.find(val.first);
 				if (patched_fingerprint_map_pIter != TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.end())
 				{
 					MatchData match_data;
@@ -921,11 +905,8 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 			unordered_map <va_t, va_t> function_match_count;
 			if (source_function_addr != 0)
 			{
-				list <va_t>::iterator block_addr_it;
-				for (block_addr_it = block_addresses.begin(); block_addr_it != block_addresses.end(); block_addr_it++)
+				for (va_t block_address : block_addresses)
 				{
-					va_t block_address = *block_addr_it;
-
 					if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, 0) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 						LogMessage(0, __FUNCTION__, "Function: %X Block: %X\r\n", source_function_addr, block_address);
 
@@ -960,16 +941,17 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 				//Get Maximum value in function_match_count
 				va_t maximum_function_match_count = 0;
 				va_t chosen_target_function_addr = 0;
-				for (unordered_map <va_t, va_t>::iterator it = function_match_count.begin(); it != function_match_count.end(); it++)
-				{
-					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, it->first))
-						LogMessage(0, __FUNCTION__, "%X:%X( %u )\n", source_function_addr, it->first, it->second);
 
-					if (maximum_function_match_count < it->second)
+				for (auto& val : function_match_count)
+				{
+					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, val.first))
+						LogMessage(0, __FUNCTION__, "%X:%X( %u )\n", source_function_addr, val.first, val.second);
+
+					if (maximum_function_match_count < val.second)
 					{
-						LogMessage(0, __FUNCTION__, " New maximum function match count: %d over %d\n", it->second, maximum_function_match_count);
-						chosen_target_function_addr = it->first;
-						maximum_function_match_count = it->second;
+						LogMessage(0, __FUNCTION__, " New maximum function match count: %d over %d\n", val.second, maximum_function_match_count);
+						chosen_target_function_addr = val.first;
+						maximum_function_match_count = val.second;
 					}
 				}
 

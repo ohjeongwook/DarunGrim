@@ -417,11 +417,9 @@ void DarunGrim::ListIDAControllers()
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
-        it != IDAControllerList.end();
-        it++)
+    for(IDASession *pIDASession: IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "%s\n", (*it)->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pIDASession->GetIdentity());
     }
 }
 
@@ -429,14 +427,12 @@ IDASession *DarunGrim::FindIDAController(const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
-        it != IDAControllerList.end();
-        it++)
+    for (IDASession *pIDASession : IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "%s\n", (*it)->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pIDASession->GetIdentity());
 
-        if ((*it)->GetIdentity() == identity)
-            return (*it);
+        if (pIDASession->GetIdentity() == identity)
+            return pIDASession;
     }
 
     return NULL;
@@ -446,19 +442,17 @@ bool DarunGrim::SetController(int type, const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (vector<IDASession*>::iterator it = IDAControllerList.begin();
-        it != IDAControllerList.end();
-        it++)
+    for (IDASession *pIDASession : IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "IDAController: %s\n", (*it)->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "IDAController: %s\n", pIDASession->GetIdentity());
 
-        if ((*it)->GetIdentity() == identity)
+        if (pIDASession->GetIdentity() == identity)
         {
-            Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", (*it)->GetIdentity());
+            Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", pIDASession->GetIdentity());
             if (type == SOURCE_CONTROLLER)
-                pSourceIDASession = (*it);
+                pSourceIDASession = pIDASession;
             else if (type == TARGET_CONTROLLER)
-                pTargetIDASession = (*it);
+                pTargetIDASession = pIDASession;
 
             return TRUE;
         }
