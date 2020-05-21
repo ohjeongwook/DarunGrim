@@ -42,25 +42,19 @@ IDASession::~IDASession()
     {
         ClientAnalysisInfo->name_map.clear();
 
-        multimap <va_t, PMapInfo>::iterator map_info_map_iter;
-        for (map_info_map_iter = ClientAnalysisInfo->map_info_map.begin();
-            map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
-            map_info_map_iter++)
+        for(auto& val : ClientAnalysisInfo->map_info_map)
         {
-            if (map_info_map_iter->second)
-                delete map_info_map_iter->second;
+            if (val.second)
+                delete val.second;
         }
 
         ClientAnalysisInfo->map_info_map.clear();
 
-        multimap <va_t, unsigned char*>::iterator address_fingerprint_map_Iter;
-        for (address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.begin();
-            address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end();
-            address_fingerprint_map_Iter++)
+        for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
         {
-            if (address_fingerprint_map_Iter->second)
+            if (val.second)
             {
-                free(address_fingerprint_map_Iter->second);
+                free(val.second);
             }
         }
         ClientAnalysisInfo->address_fingerprint_map.clear();
@@ -189,15 +183,13 @@ list <va_t> *IDASession::GetFunctionAddresses()
     if (DoCrefFromCheck)
     {
         Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
-        for (multimap <va_t, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_map.begin();
-            it != ClientAnalysisInfo->map_info_map.end();
-            it++
-            )
+
+        for(auto& val: ClientAnalysisInfo->map_info_map)
         {
-            Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", it->first, it->second->Dst, MapInfoTypesStr[it->second->Type]);
-            if (it->second->Type == CREF_FROM)
+            Logger.Log(10, LOG_IDA_CONTROLLER, "%X-%X(%s) ", val.first, val.second->Dst, MapInfoTypesStr[val.second->Type]);
+            if (val.second->Type == CREF_FROM)
             {
-                unordered_map <va_t, short>::iterator iter = addresses.find(it->second->Dst);
+                unordered_map <va_t, short>::iterator iter = addresses.find(val.second->Dst);
                 if (iter != addresses.end())
                 {
                     iter->second = FALSE;
@@ -205,21 +197,19 @@ list <va_t> *IDASession::GetFunctionAddresses()
             }
         }
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
-        multimap <va_t, unsigned char*>::iterator address_fingerprint_map_iter;
-        for (address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.begin();
-            address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end();
-            address_fingerprint_map_iter++)
+
+        for(auto& val : ClientAnalysisInfo->address_fingerprint_map)
         {
-            addresses.insert(pair<va_t, short>(address_fingerprint_map_iter->first, DoCrefFromCheck ? TRUE : FALSE));
+            addresses.insert(pair<va_t, short>(val.first, DoCrefFromCheck ? TRUE : FALSE));
         }
 
         Logger.Log(10, LOG_IDA_CONTROLLER, "addresses.size() = %u\n", addresses.size());
-        for (unordered_map <va_t, short>::iterator it = addresses.begin(); it != addresses.end(); it++)
+        for(auto& val : addresses)
         {
-            if (it->second)
+            if (val.second)
             {
-                Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, it->first);
-                function_address_hash.insert(it->first);
+                Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, val.first);
+                function_address_hash.insert(val.first);
             }
         }
     }
@@ -230,17 +220,14 @@ list <va_t> *IDASession::GetFunctionAddresses()
 
     if (DoCallCheck && ClientAnalysisInfo)
     {
-        for (multimap <va_t, PMapInfo>::iterator it = ClientAnalysisInfo->map_info_map.begin();
-            it != ClientAnalysisInfo->map_info_map.end();
-            it++
-            )
+        for (auto& val : ClientAnalysisInfo->map_info_map)
         {
-            if (it->second->Type == CALL)
+            if (val.second->Type == CALL)
             {
-                if (function_address_hash.find(it->second->Dst) == function_address_hash.end())
+                if (function_address_hash.find(val.second->Dst) == function_address_hash.end())
                 {
-                    Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, it->second->Dst);
-                    function_address_hash.insert(it->second->Dst);
+                    Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X (by Call Recognition)\n", __FUNCTION__, m_FileID, val.second->Dst);
+                    function_address_hash.insert(val.second->Dst);
                 }
             }
         }
@@ -249,12 +236,10 @@ list <va_t> *IDASession::GetFunctionAddresses()
     list <va_t> *function_addresses = new list<va_t>;
     if (function_addresses)
     {
-        for (unordered_set <va_t>::iterator it = function_address_hash.begin();
-            it != function_address_hash.end();
-            it++)
+        for (auto& val : function_address_hash)
         {
-            function_addresses->push_back(*it);
-            Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, *it);
+            function_addresses->push_back(val);
+            Logger.Log(11, LOG_IDA_CONTROLLER, "%s: ID = %d Function %X\n", __FUNCTION__, m_FileID, val);
         }
 
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Returns(%u entries)\n", __FUNCTION__, m_FileID, function_addresses->size());
@@ -445,14 +430,11 @@ void IDASession::LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Add
 
 void IDASession::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 {
-    for (multimap <va_t, PMapInfo>::iterator it = p_map_info_map->begin();
-        it != p_map_info_map->end();
-        it++
-        )
+    for(auto& val : *p_map_info_map)
     {
-        if (it->second->Type == CREF_FROM)
+        if (val.second->Type == CREF_FROM)
         {
-            CrefToMap.insert(pair<va_t, va_t>(it->second->Dst, it->first));
+            CrefToMap.insert(pair<va_t, va_t>(val.second->Dst, val.first));
         }
     }
 }
@@ -592,12 +574,10 @@ void IDASession::GenerateFingerprintHashMap()
 {
     multimap <va_t, PBasicBlock>::iterator address_map_pIter;
     list <AddressPair> AddressPairs;
-    multimap <va_t, PBasicBlock>::iterator iter;
-    for (iter = ClientAnalysisInfo->address_map.begin();
-        iter != ClientAnalysisInfo->address_map.end();
-        iter++)
+
+    for(auto& val : ClientAnalysisInfo->address_map)
     {
-        va_t address = iter->first;
+        va_t address = val.first;
         multimap <va_t, PMapInfo>::iterator map_info_map_iter;
         int matched_children_count = 0;
         va_t matched_child_addr = 0L;
@@ -649,13 +629,10 @@ void IDASession::GenerateFingerprintHashMap()
         }
     }
 
-    list <AddressPair>::iterator AddressPairsIter;
-    for (AddressPairsIter = AddressPairs.begin();
-        AddressPairsIter != AddressPairs.end();
-        AddressPairsIter++)
+    for(AddressPair addressPair : AddressPairs)
     {
-        va_t address = (*AddressPairsIter).address;
-        va_t child_address = (*AddressPairsIter).child_address;
+        va_t address = addressPair.address;
+        va_t child_address = addressPair.child_address;
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Joining 0x%X-0x%X\n", __FUNCTION__, m_FileID, address, child_address);
 
         va_t matched_child_addr = 0L;
@@ -713,20 +690,17 @@ void IDASession::GenerateFingerprintHashMap()
                 //TODO: address_fingerprint_map_iter->second += child_address_fingerprint_map_iter->second;
             }
         }
-        ClientAnalysisInfo->address_map.erase((*AddressPairsIter).child_address);
-        ClientAnalysisInfo->address_name_map.erase((*AddressPairsIter).child_address);
-        ClientAnalysisInfo->map_info_map.erase((*AddressPairsIter).child_address);
-        ClientAnalysisInfo->address_disassembly_map.erase((*AddressPairsIter).child_address);
-        ClientAnalysisInfo->address_fingerprint_map.erase((*AddressPairsIter).child_address);
+        ClientAnalysisInfo->address_map.erase(addressPair.child_address);
+        ClientAnalysisInfo->address_name_map.erase(addressPair.child_address);
+        ClientAnalysisInfo->map_info_map.erase(addressPair.child_address);
+        ClientAnalysisInfo->address_disassembly_map.erase(addressPair.child_address);
+        ClientAnalysisInfo->address_fingerprint_map.erase(addressPair.child_address);
     }
     AddressPairs.clear();
 
-    multimap <va_t, unsigned char*>::iterator address_fingerprint_map_Iter;
-    for (address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.begin();
-        address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end();
-        address_fingerprint_map_Iter++)
+    for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
     {
-        ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(address_fingerprint_map_Iter->second, address_fingerprint_map_Iter->first));
+        ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(val.second, val.first));
     }
     GenerateTwoLevelFingerPrint();
 }
@@ -927,7 +901,6 @@ list <BLOCK> IDASession::GetFunctionMemberBlocks(unsigned long function_address)
     if (ClientAnalysisInfo)
     {
         list <va_t> address_list;
-        list <va_t>::iterator blockIterator;
         unordered_set <va_t> checked_addresses;
         address_list.push_back(function_address);
 
@@ -939,13 +912,10 @@ list <BLOCK> IDASession::GetFunctionMemberBlocks(unsigned long function_address)
 
         checked_addresses.insert(function_address);
 
-        for (blockIterator = address_list.begin();
-            blockIterator != address_list.end();
-            blockIterator++
-            )
+        for (va_t currentAddress: address_list)
         {
             int addresses_number;
-            va_t *p_addresses = GetMappedAddresses(*blockIterator, CREF_FROM, &addresses_number);
+            va_t *p_addresses = GetMappedAddresses(currentAddress, CREF_FROM, &addresses_number);
             if (p_addresses && addresses_number > 0)
             {
                 for (int i = 0; i < addresses_number; i++)
@@ -1082,17 +1052,15 @@ void IDASession::LoadBlockToFunction()
 
         unordered_map<va_t, va_t> addresses;
         unordered_map<va_t, va_t> membership_hash;
-        for (list <va_t>::iterator it = function_addresses->begin(); it != function_addresses->end(); it++)
-        {
-            list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(*it);
 
-            for (list <BLOCK>::iterator it2 = function_member_blocks.begin();
-                it2 != function_member_blocks.end();
-                it2++
-                )
+        for (va_t address : *function_addresses)
+        {
+            list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(address);
+
+            for (auto& val : function_member_blocks)
             {
-                va_t addr = (*it2).Start;
-                BlockToFunction.insert(pair <va_t, va_t>(addr, *it));
+                va_t addr = val.Start;
+                BlockToFunction.insert(pair <va_t, va_t>(addr, address));
 
                 if (addresses.find(addr) == addresses.end())
                 {
@@ -1105,30 +1073,28 @@ void IDASession::LoadBlockToFunction()
 
                 if (membership_hash.find(addr) == membership_hash.end())
                 {
-                    membership_hash.insert(pair<va_t, va_t>(addr, *it));
+                    membership_hash.insert(pair<va_t, va_t>(addr, address));
                 }
                 else
                 {
-                    membership_hash[addr] += *it;
+                    membership_hash[addr] += address;
                 }
             }
         }
 
-        for (unordered_map<va_t, va_t>::iterator it = addresses.begin();
-            it != addresses.end();
-            it++)
+        for (auto& val : addresses)
         {
-            if (it->second > 1)
+            if (val.second > 1)
             {
                 bool function_start = true;
-                for (multimap<va_t, va_t>::iterator it2 = CrefToMap.find(it->first);
-                    it2 != CrefToMap.end() && it2->first == it->first;
+                for (multimap<va_t, va_t>::iterator it2 = CrefToMap.find(val.first);
+                    it2 != CrefToMap.end() && it2->first == val.first;
                     it2++
                     )
                 {
-                    unordered_map<va_t, va_t>::iterator current_membership_it = membership_hash.find(it->first);
+                    unordered_map<va_t, va_t>::iterator current_membership_it = membership_hash.find(val.first);
                     va_t parent = it2->second;
-                    Logger.Log(10, LOG_IDA_CONTROLLER, "Found parent for %X -> %X\n", it->first, parent);
+                    Logger.Log(10, LOG_IDA_CONTROLLER, "Found parent for %X -> %X\n", val.first, parent);
                     unordered_map<va_t, va_t>::iterator parent_membership_it = membership_hash.find(parent);
                     if (current_membership_it != membership_hash.end() && parent_membership_it != membership_hash.end())
                     {
@@ -1140,11 +1106,11 @@ void IDASession::LoadBlockToFunction()
                     }
                 }
 
-                Logger.Log(10, LOG_IDA_CONTROLLER, "Multiple function membership: %X (%d) %s\n", it->first, it->second, function_start ? "Possible Head" : "Member");
+                Logger.Log(10, LOG_IDA_CONTROLLER, "Multiple function membership: %X (%d) %s\n", val.first, val.second, function_start ? "Possible Head" : "Member");
 
                 if (function_start)
                 {
-                    va_t function_start_addr = it->first;
+                    va_t function_start_addr = val.first;
                     FunctionHeads.insert(function_start_addr);
                     list <BLOCK> function_member_blocks = GetFunctionMemberBlocks(function_start_addr);
                     unordered_map<va_t, va_t>::iterator function_start_membership_it = membership_hash.find(function_start_addr);
@@ -1178,9 +1144,9 @@ void IDASession::LoadBlockToFunction()
         function_addresses->clear();
         delete function_addresses;
 
-        for (multimap <va_t, va_t>::iterator a2f_it = BlockToFunction.begin(); a2f_it != BlockToFunction.end(); a2f_it++)
+        for (auto& val : BlockToFunction)
         {
-            FunctionToBlock.insert(pair<va_t, va_t>(a2f_it->second, a2f_it->first));
+            FunctionToBlock.insert(pair<va_t, va_t>(val.second, val.first));
         }
 
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d BlockToFunction %u entries\n", __FUNCTION__, m_FileID, BlockToFunction.size());
@@ -1196,18 +1162,13 @@ BOOL IDASession::FixFunctionAddresses()
     if (m_pDisassemblyStorage)
         m_pDisassemblyStorage->BeginTransaction();
 
-    for (multimap <va_t, va_t>::iterator it = BlockToFunction.begin();
-        it != BlockToFunction.end();
-        it++
-        )
+    for (auto& val : BlockToFunction)
     {
-        //StartAddress: it->first
-        //FunctionAddress: it->second
-        Logger.Log(10, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n",
-            it->second,
-            it->first);
+        //StartAddress: val.first
+        //FunctionAddress: val.second
+        Logger.Log(10, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n", val.second, val.first);
 
-        m_pDisassemblyStorage->UpdateBasicBlock(m_FileID, it->first, it->second);
+        m_pDisassemblyStorage->UpdateBasicBlock(m_FileID, val.first, val.second);
         is_fixed = TRUE;
     }
 

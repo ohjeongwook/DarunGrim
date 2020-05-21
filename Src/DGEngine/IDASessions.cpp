@@ -832,10 +832,10 @@ MatchMapList *IDASessions::GetMatchData(int index, va_t address, BOOL erase)
             addressPairs.insert(pair<va_t, va_t>(address, 0));
         }
 
-        for (multimap<va_t, va_t>::iterator it = addressPairs.begin(); it != addressPairs.end(); it++)
+        for (auto& val : addressPairs)
         {
-            va_t source_address = it->first;
-            va_t target_address = it->second;
+            va_t source_address = val.first;
+            va_t target_address = val.second;
 
             multimap <va_t, MatchData>::iterator match_map_iter;
             for (match_map_iter = pMatchResults->MatchMap.find(source_address);
