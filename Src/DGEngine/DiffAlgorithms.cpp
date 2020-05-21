@@ -195,9 +195,9 @@ void DiffAlgorithms::RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t addres
 	}
 }
 
-vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatchMap, multimap <va_t, va_t> *pReverseAddressMap)
+FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatchMap, multimap <va_t, va_t> *pReverseAddressMap)
 {
-    vector <FunctionMatchInfo> *pFunctionMatchInfoList = new vector <FunctionMatchInfo>();
+    FunctionMatchInfoList *pFunctionMatchInfoList = new FunctionMatchInfoList();
 	multimap <va_t, MatchData>::iterator match_map_iter;
 	va_t last_unpatched_addr = 0;
 	va_t last_patched_addr = 0;
@@ -265,14 +265,14 @@ vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *
 					match_info.MatchRate = 99;
 				}
 
-				pFunctionMatchInfoList->push_back(match_info);
+				pFunctionMatchInfoList->Add(match_info);
 			}
 			last_unpatched_addr = match_info.SourceAddress;
 			last_patched_addr = match_info.TargetAddress;
 		}
 	}
 
-	LogMessage(0, __FUNCTION__, "pFunctionMatchInfoList->size()=%u\n", pFunctionMatchInfoList->size());
+	LogMessage(0, __FUNCTION__, "pFunctionMatchInfoList->Size()=%u\n", pFunctionMatchInfoList->Size());
 
 	int unpatched_unidentified_number = 0;
 	for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
@@ -300,7 +300,7 @@ vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *
 					match_info.MatchCountWithModificationForTheTarget = 0;
 					match_info.NoneMatchCountForTheTarget = 0;
 
-					pFunctionMatchInfoList->push_back(match_info);
+					pFunctionMatchInfoList->Add(match_info);
 				}
 				//TODO: SourceUnidentifedBlockHash.insert(p_basic_block->StartAddress);
 			}
@@ -336,7 +336,7 @@ vector <FunctionMatchInfo> *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *
 					match_info.MatchCountWithModificationForTheTarget = 0;
 					match_info.NoneMatchCountForTheTarget = 0;
 
-					pFunctionMatchInfoList->push_back(match_info);
+					pFunctionMatchInfoList->Add(match_info);
 				}
 
 				//TODO: TargetUnidentifedBlockHash.insert(p_basic_block->StartAddress);

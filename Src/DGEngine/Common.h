@@ -111,6 +111,53 @@ typedef struct _FunctionMatchInfo_
 	int MatchCountWithModificationForTheTarget;
 } FunctionMatchInfo;
 
+class FunctionMatchInfoList
+{
+private:
+    vector <FunctionMatchInfo> m_functionMatchInfoList;
+
+public:
+	template<typename T>
+	struct Iterator {
+		T* p;
+		T& operator*() { return *p; }
+		bool operator != (const Iterator& rhs) {
+			return p != rhs.p;
+		}
+		void operator ++() { ++p; }
+	};
+	
+	auto begin() const
+    {
+		return m_functionMatchInfoList.begin();
+	}
+
+	auto end() const
+    {
+		return m_functionMatchInfoList.end();
+	}
+
+    void Add(FunctionMatchInfo functionMatchInfo)
+    {
+        m_functionMatchInfoList.push_back(functionMatchInfo);
+    }
+
+	int Size()
+	{
+		return m_functionMatchInfoList.size();
+	}
+
+    void ClearFunctionMatchList()
+    {
+        for (auto& val : m_functionMatchInfoList)
+        {
+            free(val.SourceFunctionName);
+            free(val.TargetFunctionName);
+        }
+        m_functionMatchInfoList.clear();
+    }    
+};
+
 typedef struct _CodeBlock_
 {
 	va_t StartAddress;
@@ -194,11 +241,6 @@ public:
 		}
 		void operator ++() { ++p; }
 	};
-
-    // iterator begin() { return m_pMatchDataVector->begin(); }
-    // const_iterator begin() const { return m_pMatchDataVector->begin(); }
-	// iterator end() { return m_pMatchDataVector->end(); }
-    // const_iterator end() const { return m_pMatchDataVector->end(); }
 	
 	auto begin() const { // const version
 		return m_pMatchDataVector->begin();
@@ -206,15 +248,6 @@ public:
 	auto end() const { // const version
 		return m_pMatchDataVector->end();
 	}
-
-    /*MatchData *operator[](int index) 
-    { 
-        if (index >= pMatcDataVector->size()) { 
-            cout << "Array index out of bound, exiting"; 
-            exit(0); 
-        } 
-        return m_pMatchDataVector->at(index); 
-    }*/
 
 	int Size()
 	{

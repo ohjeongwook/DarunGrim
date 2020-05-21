@@ -191,7 +191,7 @@ public:
     list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
 
     static int QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names);
-    vector <FunctionMatchInfo> QueryFunctionMatches(const char *query, int sourceID, int targetID);
+    FunctionMatchInfoList QueryFunctionMatches(const char *query, int sourceID, int targetID);
 
     static int ReadFileListCallback(void *arg, int argc, char **argv, char **names);
     FileList ReadFileList();

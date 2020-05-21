@@ -41,20 +41,9 @@ IDASessions::IDASessions(IDASession *the_source, IDASession *the_target) :
 	pDiffAlgorithms = new DiffAlgorithms();
 }
 
-void IDASessions::ClearFunctionMatchList()
-{
-    vector <FunctionMatchInfo>::iterator iter;
-    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
-    {
-        free((*iter).SourceFunctionName);
-        free((*iter).TargetFunctionName);
-    }
-    m_pFunctionMatchInfoList->clear();
-}
-
 IDASessions::~IDASessions()
 {
-    ClearFunctionMatchList();
+    m_pFunctionMatchInfoList->ClearFunctionMatchList();
 
     if (SourceIDASession)
         delete SourceIDASession;
@@ -228,14 +217,14 @@ void DumpAddressChecker::DumpMatchInfo(va_t src, va_t target, int match_rate, co
 }
 
 
-MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(vector <FunctionMatchInfo> *pFunctionMatchInfoList)
+MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFunctionMatchInfoList)
 {
     MATCHMAP *pMatchMap = new MATCHMAP;
 
 	if (DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING)
 		LogMessage(0, __FUNCTION__, "%s: DoFunctionLevelMatchOptimizing\n", __FUNCTION__);
 
-	for (vector <FunctionMatchInfo>::iterator functionMatchInfoIterator = pFunctionMatchInfoList->begin(); functionMatchInfoIterator != pFunctionMatchInfoList->end(); functionMatchInfoIterator++)
+    for (auto& val : *pFunctionMatchInfoList)
 	{
 		Logger.Log(11, LOG_DIFF_MACHINE,
 			"Source FileID: 0x%.8x\n"
@@ -257,35 +246,35 @@ MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(vector <FunctionMatchInfo>
 			"\r\n",
 			SourceIDASession->GetFileID(),
 			TargetIDASession->GetFileID(),
-			functionMatchInfoIterator->SourceAddress,
-			functionMatchInfoIterator->EndAddress,
-			functionMatchInfoIterator->TargetAddress,
-			functionMatchInfoIterator->BlockType,
-			functionMatchInfoIterator->MatchRate,
-			functionMatchInfoIterator->SourceFunctionName,
-			functionMatchInfoIterator->Type,
-			functionMatchInfoIterator->TargetFunctionName,
-			functionMatchInfoIterator->MatchCountForTheSource,
-			functionMatchInfoIterator->NoneMatchCountForTheSource,
-			functionMatchInfoIterator->MatchCountWithModificationForTheSource,
-			functionMatchInfoIterator->MatchCountForTheTarget,
-			functionMatchInfoIterator->NoneMatchCountForTheTarget,
-			functionMatchInfoIterator->MatchCountWithModificationForTheTarget
+			val.SourceAddress,
+			val.EndAddress,
+			val.TargetAddress,
+			val.BlockType,
+			val.MatchRate,
+			val.SourceFunctionName,
+			val.Type,
+			val.TargetFunctionName,
+			val.MatchCountForTheSource,
+			val.NoneMatchCountForTheSource,
+			val.MatchCountWithModificationForTheSource,
+			val.MatchCountForTheTarget,
+			val.NoneMatchCountForTheTarget,
+			val.MatchCountWithModificationForTheTarget
 		);
 		if (DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING)
 		{
 			LogMessage(0, __FUNCTION__, "* *Unpatched:\n");
-			TestFunctionMatchRate(0, functionMatchInfoIterator->SourceAddress);
+			TestFunctionMatchRate(0, val.SourceAddress);
 
 			LogMessage(0, __FUNCTION__, "* *Patched:\n");
-			TestFunctionMatchRate(1, functionMatchInfoIterator->TargetAddress);
+			TestFunctionMatchRate(1, val.TargetAddress);
 		}
 
 		list <va_t> sourceMembers;
-		RetrieveNonMatchingMembers(0, functionMatchInfoIterator->SourceAddress, sourceMembers);
+		RetrieveNonMatchingMembers(0, val.SourceAddress, sourceMembers);
 
 		list <va_t> targetMembers;
-		RetrieveNonMatchingMembers(1, functionMatchInfoIterator->TargetAddress, targetMembers);
+		RetrieveNonMatchingMembers(1, val.TargetAddress, targetMembers);
 
 		if (DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING)
 		{
@@ -507,9 +496,9 @@ bool IDASessions::Analyze()
     pDiffAlgorithms->RemoveDuplicates(&pMatchResults->MatchMap);
 	pMatchResults->CleanUp();
 
-    ClearFunctionMatchList();
+    m_pFunctionMatchInfoList->ClearFunctionMatchList();
     //AnalyzeFunctionSanity();
-    vector <FunctionMatchInfo> *pFunctionMatchInfo = pDiffAlgorithms->GenerateFunctionMatchInfo(&pMatchResults->MatchMap, &pMatchResults->ReverseAddressMap);
+    FunctionMatchInfoList *pFunctionMatchInfo = pDiffAlgorithms->GenerateFunctionMatchInfo(&pMatchResults->MatchMap, &pMatchResults->ReverseAddressMap);
     MATCHMAP *pFunctionLevelOptionmizedMap = DoFunctionLevelMatchOptimizing(pFunctionMatchInfo);
 
     /* TODO: Iterate MATCHMAP and add to the main map
@@ -710,20 +699,6 @@ void IDASessions::GetMatchStatistics(
     }
 
     match_rate = total_match_rate / (found_match_number + found_match_with_difference_number + not_found_match_number);
-}
-
-int IDASessions::GetFunctionMatchInfoCount()
-{
-    DWORD size_to_return = m_pFunctionMatchInfoList->size();
-
-    Logger.Log(10, LOG_DIFF_MACHINE, "%s: size_to_return=%u\n", __FUNCTION__, size_to_return);
-
-    return size_to_return;
-}
-
-FunctionMatchInfo IDASessions::GetFunctionMatchInfo(int i)
-{
-    return m_pFunctionMatchInfoList->at(i);
 }
 
 BOOL IDASessions::IsInUnidentifiedBlockHash(int index, va_t address)
@@ -950,14 +925,11 @@ BOOL IDASessions::Save(DisassemblyStorage & disassemblyStorage, unordered_set <v
         // val.second.PatchedParentAddress);
     }
 
-    Logger.Log(10, LOG_DIFF_MACHINE, "m_pFunctionMatchInfoList->size()=%u\n", m_pFunctionMatchInfoList->size());
+    Logger.Log(10, LOG_DIFF_MACHINE, "m_pFunctionMatchInfoList->Size()=%u\n", m_pFunctionMatchInfoList->Size());
 
-    vector <FunctionMatchInfo>::iterator iter;
-    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
+    for (FunctionMatchInfo functionMatchInfo : (FunctionMatchInfoList)(*m_pFunctionMatchInfoList))
     {
-        disassemblyStorage.AddFunctionMatchInfo(SourceIDASession->GetFileID(),
-            TargetIDASession->GetFileID(),
-            *iter);
+        disassemblyStorage.AddFunctionMatchInfo(SourceIDASession->GetFileID(), TargetIDASession->GetFileID(), functionMatchInfo);
     }
 
     disassemblyStorage.EndTransaction();
@@ -1169,24 +1141,24 @@ BOOL IDASessions::_Load()
 BREAKPOINTS IDASessions::ShowUnidentifiedAndModifiedBlocks()
 {
     BREAKPOINTS breakpoints;
-    vector <FunctionMatchInfo>::iterator iter;
 
-    for (iter = m_pFunctionMatchInfoList->begin(); iter != m_pFunctionMatchInfoList->end(); iter++)
+    for (auto& val : (FunctionMatchInfoList)(*m_pFunctionMatchInfoList))
     {
         if (
             (
-            (*iter).MatchCountWithModificationForTheSource > 0 ||
-                (*iter).MatchCountWithModificationForTheTarget > 0 ||
-                (*iter).MatchRate < 100 ||
-                (*iter).NoneMatchCountForTheSource > 0 ||
-                (*iter).NoneMatchCountForTheTarget > 0
-                ) &&
-                (*iter).MatchRate > 0)
+                val.MatchCountWithModificationForTheSource > 0 ||
+                val.MatchCountWithModificationForTheTarget > 0 ||
+                val.MatchRate < 100 ||
+                val.NoneMatchCountForTheSource > 0 ||
+                val.NoneMatchCountForTheTarget > 0
+            ) &&
+            val.MatchRate > 0
+        )
         {
 
             bool found_source_blocks = false;
 
-            for (auto& val : SourceIDASession->GetFunctionMemberBlocks((*iter).SourceAddress))
+            for (auto& val : SourceIDASession->GetFunctionMemberBlocks(val.SourceAddress))
             {
                 multimap <va_t, MatchData>::iterator match_map_iter = pMatchResults->MatchMap.find(val.Start);
 
@@ -1219,14 +1191,14 @@ BREAKPOINTS IDASessions::ShowUnidentifiedAndModifiedBlocks()
 
             if (found_source_blocks)
             {
-                if (breakpoints.SourceFunctionMap.find((*iter).TargetAddress) == breakpoints.SourceFunctionMap.end())
-                    breakpoints.SourceFunctionMap.insert((*iter).TargetAddress);
+                if (breakpoints.SourceFunctionMap.find(val.TargetAddress) == breakpoints.SourceFunctionMap.end())
+                    breakpoints.SourceFunctionMap.insert(val.TargetAddress);
             }
 
             //Target
             bool found_target_blocks = false;
 
-            for (auto& val : TargetIDASession->GetFunctionMemberBlocks((*iter).TargetAddress))
+            for (auto& val : TargetIDASession->GetFunctionMemberBlocks(val.TargetAddress))
             {
                 multimap <va_t, va_t>::iterator reverse_match_map_iter = pMatchResults->ReverseAddressMap.find(val.Start);
 
@@ -1263,8 +1235,8 @@ BREAKPOINTS IDASessions::ShowUnidentifiedAndModifiedBlocks()
 
             if (found_target_blocks)
             {
-                if (breakpoints.TargetFunctionMap.find((*iter).TargetAddress) == breakpoints.TargetFunctionMap.end())
-                    breakpoints.TargetFunctionMap.insert((*iter).TargetAddress);
+                if (breakpoints.TargetFunctionMap.find(val.TargetAddress) == breakpoints.TargetFunctionMap.end())
+                    breakpoints.TargetFunctionMap.insert(val.TargetAddress);
             }
         }
     }

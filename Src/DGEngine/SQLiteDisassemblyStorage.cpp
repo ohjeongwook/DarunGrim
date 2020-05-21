@@ -547,7 +547,7 @@ list<BLOCK> SQLiteDisassemblyStorage::ReadFunctionMemberAddresses(int fileID, va
 
 int SQLiteDisassemblyStorage::QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names)
 {
-    vector <FunctionMatchInfo> *pFunctionMatchList = (vector <FunctionMatchInfo>*)arg;
+    FunctionMatchInfoList *pFunctionMatchList = (FunctionMatchInfoList*)arg;
     FunctionMatchInfo function_match_info;
     function_match_info.SourceAddress = strtoul10(argv[0]);
     function_match_info.EndAddress = strtoul10(argv[1]);
@@ -563,13 +563,13 @@ int SQLiteDisassemblyStorage::QueryFunctionMatchesCallback(void *arg, int argc, 
     function_match_info.MatchCountForTheTarget = atoi(argv[11]);
     function_match_info.NoneMatchCountForTheTarget = atoi(argv[12]);
     function_match_info.MatchCountWithModificationForTheTarget = atoi(argv[13]);
-    pFunctionMatchList->push_back(function_match_info);
+    pFunctionMatchList->Add(function_match_info);
     return 0;
 }
 
-vector <FunctionMatchInfo> SQLiteDisassemblyStorage::QueryFunctionMatches(const char *query, int sourceID, int targetID)
+FunctionMatchInfoList SQLiteDisassemblyStorage::QueryFunctionMatches(const char *query, int sourceID, int targetID)
 {
-    vector <FunctionMatchInfo> functionMatchList;
+    FunctionMatchInfoList functionMatchList;
     ExecuteStatement(QueryFunctionMatchesCallback, &functionMatchList, query, sourceID, targetID);
     return functionMatchList;
 }

@@ -29,7 +29,7 @@ public:
 	~DiffAlgorithms();
 
 	void RemoveDuplicates(MATCHMAP* pMatchMap);
-	vector <FunctionMatchInfo>* GenerateFunctionMatchInfo(MATCHMAP* pMatchMap, multimap <va_t, va_t>* pReverseAddressMap);
+	FunctionMatchInfoList* GenerateFunctionMatchInfo(MATCHMAP* pMatchMap, multimap <va_t, va_t>* pReverseAddressMap);
 	int GetFingerPrintMatchRate(unsigned char *unpatched_finger_print, unsigned char *patched_finger_print);
 
 	MATCHMAP *DoFingerPrintMatchInsideFunction(va_t SourceFunctionAddress, list <va_t>& SourceBlockAddresses, va_t TargetFunctionAddress, list <va_t>& TargetBlockAddresses);

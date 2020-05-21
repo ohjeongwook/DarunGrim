@@ -87,9 +87,9 @@ public:
         return ret;
     }
 
-    virtual vector <FunctionMatchInfo> QueryFunctionMatches(const char *query, int sourceID, int targetID)
+    virtual FunctionMatchInfoList QueryFunctionMatches(const char *query, int sourceID, int targetID)
     {
-        vector <FunctionMatchInfo> ret;
+        FunctionMatchInfoList ret;
         return ret;
     }
 

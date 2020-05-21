@@ -41,7 +41,7 @@ private:
 	BOOL bRetrieveDataForAnalysis;
     MatchResults *pMatchResults;
     DumpAddressChecker *pDumpAddressChecker;
-    vector <FunctionMatchInfo> *m_pFunctionMatchInfoList;
+    FunctionMatchInfoList *m_pFunctionMatchInfoList;
 
     unordered_set <va_t> SourceUnidentifedBlockHash;
     unordered_set <va_t> TargetUnidentifedBlockHash;
@@ -129,10 +129,7 @@ public:
     void RemoveMatchData(va_t source_address, va_t target_address);
     void PrintMatchMapInfo();
 
-    int GetFunctionMatchInfoCount();
-    FunctionMatchInfo GetFunctionMatchInfo(int i);
     va_t DumpFunctionMatchInfo(int index, va_t address);
-    void ClearFunctionMatchList();
 
     void GetMatchStatistics(va_t address, int index, int& found_match_number, int& found_match_with_difference_number, int& not_found_match_number, float& matchrate);
     void CleanUpMatchDataList(vector<MatchData*> match_data_list);
@@ -141,7 +138,7 @@ public:
     void TestFunctionMatchRate(int index, va_t Address);
     void RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t>& Members);
     bool TestAnalysis();
-    MATCHMAP* DoFunctionLevelMatchOptimizing(vector <FunctionMatchInfo>* pFunctionMatchInfoList);
+    MATCHMAP* DoFunctionLevelMatchOptimizing(FunctionMatchInfoList* pFunctionMatchInfoList);
     bool Analyze();
     void AnalyzeFunctionSanity();
 
