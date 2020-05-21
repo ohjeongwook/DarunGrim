@@ -15,14 +15,14 @@ void SetLogLevel(int thresholdLevel)
     ThresholdLevel = thresholdLevel;
 }
 
-void LogMessage(int level, const char* function_name, const TCHAR* format, ...)
+void LogMessage(int level, const char *function_name, const TCHAR *format, ...)
 {
     if (level < ThresholdLevel)
     {
         return;
     }
 
-    TCHAR statement_buffer[1024 * 4] = { 0, };
+    TCHAR statement_buffer[1024*4] = { 0, };
 
     va_list args;
     va_start(args, format);
@@ -35,7 +35,7 @@ void LogMessage(int level, const char* function_name, const TCHAR* format, ...)
     msg("[%02d:%02d:%02d] %s: %s", lt.wHour, lt.wMinute, lt.wSecond, function_name, statement_buffer);
 }
 
-HANDLE OpenLogFile(const char* szTempName)
+HANDLE OpenLogFile(const char *szTempName)
 {
 #define BUFSIZE 512
 
@@ -58,7 +58,7 @@ HANDLE OpenLogFile(const char* szTempName)
     return hFile;
 }
 
-void WriteToLogFile(HANDLE hFile, const char* format, ...)
+void WriteToLogFile(HANDLE hFile, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -95,7 +95,7 @@ void CloseLogFile(HANDLE hFile)
     CloseHandle(hFile);
 }
 
-void PrintToDbg(const TCHAR* format, ...)
+void PrintToDbg(const TCHAR *format, ...)
 {
     TCHAR statement_buffer[1024] = { 0, };
 

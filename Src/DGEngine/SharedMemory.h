@@ -14,7 +14,7 @@ typedef struct _MemoryHeader_ {
     DWORD WritePoint;
     DWORD BufferSize;
     BYTE Data[];
-}  MemoryHeader, * PMemoryHeader;
+}  MemoryHeader,  *PMemoryHeader;
 
 
 typedef struct _DataSharer_ {
@@ -25,11 +25,11 @@ typedef struct _DataSharer_ {
     HANDLE EventHandleForWriting;
     HANDLE MapFileHandle;
     PMemoryHeader MemoryHeaderPtr;
-} DataSharer, * PDataSharer;
+} DataSharer,  *PDataSharer;
 
-BOOL InitDataSharer(PDataSharer p_data_sharer, char* shared_memory_name, int shared_memory_size, BOOL is_server);
+BOOL InitDataSharer(PDataSharer p_data_sharer, char *shared_memory_name, int shared_memory_size, BOOL is_server);
 BOOL PutData(PDataSharer p_data_sharer, BYTE type, PBYTE data, DWORD length);
-PBYTE GetData(PDataSharer p_data_sharer, BYTE* p_type, DWORD* p_length);
-int CheckForData(DataSharer* DataSharerPtr, int NumberOfDataSharer);
+PBYTE GetData(PDataSharer p_data_sharer, BYTE *p_type, DWORD *p_length);
+int CheckForData(DataSharer *DataSharerPtr, int NumberOfDataSharer);
 
 #pragma pack(pop)

@@ -5,7 +5,7 @@
 
 typedef int socklen_t;
 
-SOCKET CreateListener(DWORD(CALLBACK* worker_thread)(LPVOID lpParam), unsigned short& port)
+SOCKET CreateListener(DWORD(CALLBACK *worker_thread)(LPVOID lpParam), unsigned short& port)
 {
     //unsigned short listening_port=(unsigned short)lpParam;
 
@@ -101,7 +101,7 @@ SOCKET CreateListener(DWORD(CALLBACK* worker_thread)(LPVOID lpParam), unsigned s
     }
 }
 
-SOCKET ConnectToServer(char* hostname, unsigned short port)
+SOCKET ConnectToServer(char *hostname, unsigned short port)
 {
     // Create a SOCKET for connecting to server
     SOCKET s = INVALID_SOCKET;
@@ -144,7 +144,7 @@ SOCKET ConnectToServer(char* hostname, unsigned short port)
 }
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-HWND PutSocketToWSAAsyncSelect(SOCKET s, LRESULT(CALLBACK* SocketMessageWndProc)(HWND wnd, UINT message, WPARAM wp, LPARAM lp), unsigned int wMsg)
+HWND PutSocketToWSAAsyncSelect(SOCKET s, LRESULT(CALLBACK *SocketMessageWndProc)(HWND wnd, UINT message, WPARAM wp, LPARAM lp), unsigned int wMsg)
 {
     WNDCLASS wc;
     char ClassName[100];

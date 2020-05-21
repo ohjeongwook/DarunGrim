@@ -78,7 +78,7 @@ void *realloc(void *memblock,size_t old_size,size_t size)
     }
 }*/
 
-char* WriteToTemporaryFile(const char* format, ...)
+char *WriteToTemporaryFile(const char *format, ...)
 {
     HANDLE temporary_file_handle;
     char temporary_filename[MAX_PATH + 1];
@@ -135,7 +135,7 @@ char* WriteToTemporaryFile(const char* format, ...)
     return NULL;
 }
 
-void Execute(bool Wait, const char* format, ...)
+void Execute(bool Wait, const char *format, ...)
 {
     STARTUPINFOA StartupInfo;
     PROCESS_INFORMATION ProcessInformation;

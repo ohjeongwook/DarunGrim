@@ -1,6 +1,6 @@
 #include "RegistryUtil.h"
 
-char* GetRegValue(const char* key_name, const char* value_name, DWORD& type, DWORD& data_length)
+char *GetRegValue(const char *key_name, const char *value_name, DWORD& type, DWORD& data_length)
 {
     HKEY root_key = HKEY_LOCAL_MACHINE;
 
@@ -25,12 +25,12 @@ char* GetRegValue(const char* key_name, const char* value_name, DWORD& type, DWO
         root_key = HKEY_CURRENT_CONFIG;
     }
 
-    char* subkey_name = (char*)strstr(key_name, "\\");
+    char *subkey_name = (char*)strstr(key_name, "\\");
     subkey_name++;
     HKEY hk_result;
     if (RegOpenKeyA(root_key, subkey_name, &hk_result) == ERROR_SUCCESS)
     {
-        BYTE* data;
+        BYTE *data;
         data_length = 1;
 
         data = (BYTE*)malloc(data_length);
@@ -57,11 +57,11 @@ char* GetRegValue(const char* key_name, const char* value_name, DWORD& type, DWO
 }
 
 
-char* GetRegValueString(const char* key_name, const char* value_name)
+char *GetRegValueString(const char *key_name, const char *value_name)
 {
     DWORD type;
     DWORD data_length;
-    char* data = GetRegValue(key_name, value_name, type, data_length);
+    char *data = GetRegValue(key_name, value_name, type, data_length);
 
     if (data)
     {
@@ -74,12 +74,12 @@ char* GetRegValueString(const char* key_name, const char* value_name)
     return NULL;
 }
 
-bool GetRegValueInteger(const char* key_name, const char* value_name, DWORD& value)
+bool GetRegValueInteger(const char *key_name, const char *value_name, DWORD& value)
 {
     DWORD type;
     DWORD data_length;
 
-    char* data = GetRegValue(key_name, value_name, type, data_length);
+    char *data = GetRegValue(key_name, value_name, type, data_length);
 
     if (data)
     {

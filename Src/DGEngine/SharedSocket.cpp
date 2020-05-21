@@ -25,7 +25,7 @@ BOOL SendTLVData(SOCKET client_socket, char type, PBYTE data, DWORD data_length)
     return TRUE;
 }
 
-int recv_data(SOCKET sock, char* buffer, int len, int flags)
+int recv_data(SOCKET sock, char *buffer, int len, int flags)
 {
     int current_pos = 0;
     while (1)
@@ -39,7 +39,7 @@ int recv_data(SOCKET sock, char* buffer, int len, int flags)
     }
 }
 
-PBYTE RecvTLVData(SOCKET client_socket, char* p_type, DWORD* p_length)
+PBYTE RecvTLVData(SOCKET client_socket, char *p_type, DWORD *p_length)
 {
     //Must be in blocking mode
     TLV d_tlv;
@@ -49,7 +49,7 @@ PBYTE RecvTLVData(SOCKET client_socket, char* p_type, DWORD* p_length)
     {
         if (d_tlv.Length < MAXIMUM_TLV_SIZE)
         {
-            char* data_buffer = (char*)malloc(d_tlv.Length);
+            char *data_buffer = (char*)malloc(d_tlv.Length);
             if (data_buffer)
             {
                 result = recv_data(client_socket, data_buffer, d_tlv.Length, 0);

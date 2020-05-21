@@ -7,6 +7,6 @@ typedef struct _TLV_ {
     char Type;
     DWORD Length;
     char Data[];
-} TLV, * PTLV;
+} TLV,  *PTLV;
 
 #pragma pack(pop)
