@@ -181,3 +181,74 @@ void MatchResults::CleanUp()
         it++;
     }
 }
+
+MatchMapList* MatchResults::GetMatchData(int index, va_t address, BOOL erase)
+{
+    MatchMapList* pMatchMapList = NULL;
+
+    pMatchMapList = new MatchMapList();
+    multimap<va_t, va_t> addressPairs;
+
+    if (index == 1)
+    {
+        for (multimap <va_t, va_t>::iterator it = ReverseAddressMap.find(address);
+            it != ReverseAddressMap.end() && it->first == address;
+            it++)
+        {
+            addressPairs.insert(pair<va_t, va_t>(it->second, address));
+
+            if (erase)
+            {
+                it = ReverseAddressMap.erase(it);
+            }
+        }
+    }
+    else
+    {
+        addressPairs.insert(pair<va_t, va_t>(address, 0));
+    }
+
+    for (auto& val : addressPairs)
+    {
+        va_t sourceAddress = val.first;
+        va_t targetAddress = val.second;
+
+        multimap <va_t, MatchData>::iterator matchMapIterator;
+        for (matchMapIterator = MatchMap.find(sourceAddress);
+            matchMapIterator != MatchMap.end() && matchMapIterator->first == sourceAddress;
+            matchMapIterator++
+            )
+        {
+            if (targetAddress != 0 && matchMapIterator->second.Addresses[1] != targetAddress)
+                continue;
+
+            // LogMessage(20, LOG_DIFF_MACHINE, "%s: %u 0x%X returns %X-%X\r\n", __FUNCTION__, index, sourceAddress, matchMapIterator->second.Addresses[0], matchMapIterator->second.Addresses[1]);
+
+            if (erase)
+            {
+                //Erase matching reverse address map entries
+                matchMapIterator = MatchMap.erase(matchMapIterator);
+
+                va_t match_targetAddress = matchMapIterator->second.Addresses[1];
+                va_t match_sourceAddress = matchMapIterator->second.Addresses[0];
+
+                for (multimap <va_t, va_t>::iterator reverse_matchMapIterator = ReverseAddressMap.find(match_targetAddress);
+                    reverse_matchMapIterator != ReverseAddressMap.end() && reverse_matchMapIterator->first == match_targetAddress;
+                    reverse_matchMapIterator++
+                    )
+                {
+                    if (reverse_matchMapIterator->second == match_sourceAddress)
+                        reverse_matchMapIterator = ReverseAddressMap.erase(reverse_matchMapIterator);
+                }
+            }
+            else
+            {
+                MatchData* new_match_data = new MatchData();
+                memcpy(new_match_data, &matchMapIterator->second, sizeof(MatchData));
+                pMatchMapList->Add(new_match_data);
+            }
+        }
+    }
+
+    return pMatchMapList;
+}

@@ -92,6 +92,7 @@ public:
     void AddMatchData(MatchData& match_data, const char *debug_str);
     void Append(MATCHMAP *pTemporaryMap);
     void CleanUp();
+    MatchMapList* GetMatchData(int index, va_t address, BOOL erase);
 };
 
 
