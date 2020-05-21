@@ -487,7 +487,7 @@ MatchMapList *SQLiteStorage::ReadMatchMap(int sourceID, int targetID, int index,
 
 int SQLiteStorage::ReadMatchMapCallback(void *arg, int argc, char **argv, char **names)
 {
-    MatchResults *DiffResults = (MatchResults*)arg;
+    MatchResults *p_matchResults = (MatchResults*)arg;
 
     MatchData match_data;
     DWORD SourceAddress = strtoul10(argv[0]);
@@ -500,7 +500,7 @@ int SQLiteStorage::ReadMatchMapCallback(void *arg, int argc, char **argv, char *
     match_data.PatchedParentAddress = strtoul10(argv[8]);
     match_data.Addresses[0] = SourceAddress;
     match_data.Addresses[1] = TargetAddress;
-    DiffResults->AddMatchData(match_data, __FUNCTION__);
+    p_matchResults->AddMatchData(match_data, __FUNCTION__);
     return 0;
 }
 
