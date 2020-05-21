@@ -506,15 +506,15 @@ int SQLiteDisassemblyStorage::ReadMatchMapCallback(void *arg, int argc, char **a
 
 MatchResults *SQLiteDisassemblyStorage::ReadMatchResults(int sourceID, int targetID)
 {
-    MatchResults *DiffResults = new MatchResults();
+    MatchResults *p_matchResults = new MatchResults();
 
     ExecuteStatement(
         ReadMatchMapCallback,
-        DiffResults,
+        p_matchResults,
         "SELECT SourceAddress, TargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
         sourceID, targetID);
 
-    return DiffResults;
+    return p_matchResults;
 }
 
 int SQLiteDisassemblyStorage::ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv, char **names)
