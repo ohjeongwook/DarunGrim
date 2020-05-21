@@ -6,10 +6,10 @@
 #include "LogOperation.h"
 
 #include "SocketOperation.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 #include "ProcessUtils.h"
 
-#include "SQLiteDisassemblyStorage.h"
+#include "SQLiteStorage.h"
 
 LogOperation Logger;
 
@@ -183,7 +183,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char *storage_filename)
         if (m_disassemblyStorage)
             delete m_disassemblyStorage;
 
-        m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
+        m_disassemblyStorage = new SQLiteStorage(storage_filename);
     }
 
     if (m_disassemblyStorage)
@@ -237,7 +237,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
         delete m_disassemblyStorage;
 
     Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-    m_disassemblyStorage = new SQLiteDisassemblyStorage(output_storage_filename);
+    m_disassemblyStorage = new SQLiteStorage(output_storage_filename);
     SetDatabase(m_disassemblyStorage);
 
     pIDASessions->Save(*m_disassemblyStorage);
@@ -252,13 +252,13 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
     if (m_disassemblyStorage)
         delete m_disassemblyStorage;
 
-    m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
+    m_disassemblyStorage = new SQLiteStorage(storage_filename);
     return TRUE;
 }
 
 bool DarunGrim::Load(const char *storage_filename)
 {
-    m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
+    m_disassemblyStorage = new SQLiteStorage(storage_filename);
     if (m_disassemblyStorage)
     {
         pIDASessions->SetRetrieveDataForAnalysis(TRUE);
@@ -305,7 +305,7 @@ bool DarunGrim::ShowOnIDA()
     return TRUE;
 }
 
-void DarunGrim::SetDatabase(DisassemblyStorage *OutputDB)
+void DarunGrim::SetDatabase(Storage *OutputDB)
 {
     m_disassemblyStorage = OutputDB;
 }

@@ -159,9 +159,9 @@
     <ClInclude Include="Diff.h" />
     <ClInclude Include="DiffAlgorithms.h" />
     <ClInclude Include="IDASessions.h" />
-    <ClInclude Include="DisassemblyStorage.h" />
+    <ClInclude Include="Storage.h" />
     <ClInclude Include="MatchResults.h" />
-    <ClInclude Include="SQLiteDisassemblyStorage.h" />
+    <ClInclude Include="SQLiteStorage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="FileVersion.h" />
     <ClInclude Include="IDAAnalyzer.h" />
@@ -186,7 +186,7 @@
     <ClCompile Include="DiffAlgorithms.cpp" />
     <ClCompile Include="IDASessions.cpp" />
     <ClCompile Include="MatchResults.cpp" />
-    <ClCompile Include="SQLiteDisassemblyStorage.cpp" />
+    <ClCompile Include="SQLiteStorage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="FileVersion.cpp" />
     <ClCompile Include="IDAAnalyzer.cpp" />

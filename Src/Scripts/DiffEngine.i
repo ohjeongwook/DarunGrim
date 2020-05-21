@@ -16,16 +16,16 @@
 	}
 %}
 
-class DisassemblyStorage
+class Storage
 {
 public:
-	DisassemblyStorage( char *DatabaseName = NULL );
+	Storage( char *DatabaseName = NULL );
 };
 
 class IDAController
 {
 public:
-	IDAController(DisassemblyStorage *StorageDB=NULL);
+	IDAController(Storage *StorageDB=NULL);
 	AnalysisInfo *GetClientAnalysisInfo();
 	FileInfo *GetClientFileInfo();
 	void DumpAnalysisInfo();
@@ -49,8 +49,8 @@ public:
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
-	BOOL Load( DisassemblyStorage *InputDB);
-	BOOL Save( DisassemblyStorage& OutputDB, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <va_t> *pTheTargetSelectedAddresses=NULL );
+	BOOL Load( Storage *InputDB);
+	BOOL Save( Storage& OutputDB, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <va_t> *pTheTargetSelectedAddresses=NULL );
 };
 
 class DarunGrim
@@ -73,7 +73,7 @@ public:
 	void JumpToAddresses( unsigned long source_address, unsigned long target_address );
 	void ColorAddress( int index, unsigned long start_address, unsigned long end_address, unsigned long color );
 
-	void SetDatabase( DisassemblyStorage *OutputDB );
+	void SetDatabase( Storage *OutputDB );
 	unsigned short StartIDAListenerThread(unsigned short port);
 	bool StartIDAListener( unsigned short port );
 	bool SetSourceIDASession(const char *identity);

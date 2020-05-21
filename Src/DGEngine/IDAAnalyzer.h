@@ -17,7 +17,7 @@
 #include <queue>
 #include <list>
 
-#include "SQLiteDisassemblyStorage.h"
+#include "SQLiteStorage.h"
 
 using namespace std;
 using namespace stdext;
@@ -257,7 +257,7 @@ void DumpDOT(
 class IDAAnalyzer
 {
 private:
-    DisassemblyStorage m_disassemblyStorage;
+    Storage m_disassemblyStorage;
     unordered_map <ea_t, ea_t> NewFoundBlocks;
 
     void UpdateInstructionMap(
@@ -281,6 +281,6 @@ private:
 	void MakeCode(ea_t start_addr, ea_t end_addr);
 	void FixExceptionHandlers();
 public:
-    IDAAnalyzer(DisassemblyStorage& disassemblyStorage);
+    IDAAnalyzer(Storage& disassemblyStorage);
     void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);
 };

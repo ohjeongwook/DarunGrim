@@ -28,9 +28,9 @@ private:
     string TargetDBName;
     va_t TargetFunctionAddress;
 
-    DisassemblyStorage* m_diffDisassemblyStorage;
-    DisassemblyStorage* m_sourceDisassemblyStorage;
-    DisassemblyStorage* m_targetDisassemblyStorage;
+    Storage* m_diffStorage;
+    Storage* m_sourceStorage;
+    Storage* m_targetStorage;
 
     IDASession* SourceIDASession;
     IDASession* TargetIDASession;
@@ -95,16 +95,16 @@ public:
         TargetFunctionAddress = function_address;
     }
 
-    void SetSource(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
+    void SetSource(Storage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
-        m_sourceDisassemblyStorage = disassemblyStorage;
+        m_sourceStorage = disassemblyStorage;
         SourceID = id;
         SourceFunctionAddress = function_address;
     }
 
-    void SetTarget(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
+    void SetTarget(Storage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
-        m_targetDisassemblyStorage = disassemblyStorage;
+        m_targetStorage = disassemblyStorage;
         TargetID = id;
         TargetFunctionAddress = function_address;
     }
@@ -117,7 +117,7 @@ public:
 
     BOOL Create(const char* DiffDBFilename);
     BOOL Load(const char* DiffDBFilename);
-    BOOL Load(DisassemblyStorage* disassemblyStorage);
+    BOOL Load(Storage* disassemblyStorage);
 
     IDASession *GetSourceIDASession();
     IDASession *GetTargetIDASession();
@@ -144,6 +144,6 @@ public:
     int GetUnidentifiedBlockCount(int index);
     CodeBlock GetUnidentifiedBlock(int index, int i);
     BOOL IsInUnidentifiedBlockHash(int index, va_t address);
-    BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses = NULL, unordered_set <va_t> *pTheTargetSelectedAddresses = NULL);
+    BOOL Save(Storage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses = NULL, unordered_set <va_t> *pTheTargetSelectedAddresses = NULL);
     BREAKPOINTS ShowUnidentifiedAndModifiedBlocks();
 };

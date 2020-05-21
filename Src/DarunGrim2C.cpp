@@ -7,7 +7,7 @@
 
 #include "Configuration.h"
 #include "DiffMachine.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 #include "XGetopt.h"
 #include "ProcessUtils.h"
 #include "Log.h"

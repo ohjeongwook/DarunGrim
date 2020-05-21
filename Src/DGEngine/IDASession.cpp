@@ -6,7 +6,7 @@
 
 //DB Related
 #include "sqlite3.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 
 #include <unordered_set>
 using namespace std;
@@ -21,7 +21,7 @@ extern LogOperation Logger;
 char *MapInfoTypesStr[] = { "Call", "Cref From", "Cref To", "Dref From", "Dref To" };
 int types[] = { CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED };
 
-IDASession::IDASession(DisassemblyStorage *disassemblyStorage) :
+IDASession::IDASession(Storage *disassemblyStorage) :
     ClientAnalysisInfo(NULL),
     TargetFunctionAddress(0),
     m_OriginalFilePath(NULL),
@@ -30,7 +30,7 @@ IDASession::IDASession(DisassemblyStorage *disassemblyStorage) :
     m_FileID(0)
 {
     ClientAnalysisInfo = new AnalysisInfo;
-    m_pDisassemblyStorage = disassemblyStorage;
+    m_pStorage = disassemblyStorage;
 }
 
 IDASession::~IDASession()
@@ -215,7 +215,7 @@ list <va_t> *IDASession::GetFunctionAddresses()
     }
     else
     {
-        m_pDisassemblyStorage->ReadFunctionAddressMap(m_FileID, function_address_hash);
+        m_pStorage->ReadFunctionAddressMap(m_FileID, function_address_hash);
     }
 
     if (DoCallCheck && ClientAnalysisInfo)
@@ -252,7 +252,7 @@ void IDASession::RemoveFromFingerprintHash(va_t address)
 {
     unsigned char *Fingerprint = NULL;
 
-    char *FingerprintStr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
+    char *FingerprintStr = m_pStorage->ReadFingerPrint(m_FileID, address);
 
     if (FingerprintStr)
     {
@@ -291,7 +291,7 @@ char *IDASession::GetFingerPrintStr(va_t address)
     }
     else
     {
-        char *FingerprintPtr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
+        char *FingerprintPtr = m_pStorage->ReadFingerPrint(m_FileID, address);
         return FingerprintPtr;
     }
     return NULL;
@@ -309,7 +309,7 @@ char *IDASession::GetName(va_t address)
     }
     return NULL;
 #else
-    char *Name = m_pDisassemblyStorage->ReadName(m_FileID, address);
+    char *Name = m_pStorage->ReadName(m_FileID, address);
     return Name;
 #endif
 }
@@ -325,7 +325,7 @@ va_t IDASession::GetBlockAddress(va_t address)
     }
     return address;
 #else
-    return m_pDisassemblyStorage->ReadBlockStartAddress(m_FileID, address);
+    return m_pStorage->ReadBlockStartAddress(m_FileID, address);
 #endif
 }
 
@@ -397,7 +397,7 @@ BOOL IDASession::LoadBasicBlock()
             _snprintf(conditionStr, sizeof(conditionStr) - 1, "AND FunctionAddress = '%d'", TargetFunctionAddress);
         }
 
-        m_pDisassemblyStorage->ReadBasicBlockInfo(m_FileID, conditionStr, ClientAnalysisInfo);
+        m_pStorage->ReadBasicBlockInfo(m_FileID, conditionStr, ClientAnalysisInfo);
         GenerateFingerprintHashMap();
     }
     return TRUE;
@@ -417,11 +417,11 @@ void IDASession::LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Add
 {
     if (Address == 0)
     {
-        p_map_info_map = m_pDisassemblyStorage->ReadMapInfo(m_FileID);
+        p_map_info_map = m_pStorage->ReadMapInfo(m_FileID);
     }
     else
     {
-        p_map_info_map = m_pDisassemblyStorage->ReadMapInfo(m_FileID, Address, IsFunction);
+        p_map_info_map = m_pStorage->ReadMapInfo(m_FileID, Address, IsFunction);
     }
 
     BuildCrefToMap(p_map_info_map);
@@ -441,7 +441,7 @@ void IDASession::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 
 BOOL IDASession::Load()
 {
-    m_OriginalFilePath = m_pDisassemblyStorage->GetOriginalFilePath(m_FileID);
+    m_OriginalFilePath = m_pStorage->GetOriginalFilePath(m_FileID);
 
     LoadBasicBlock();
     LoadMapInfo(&(ClientAnalysisInfo->map_info_map), TargetFunctionAddress, true);
@@ -449,9 +449,9 @@ BOOL IDASession::Load()
     return TRUE;
 }
 
-void IDASession::DeleteMatchInfo(DisassemblyStorage *InputDB, int FileID, va_t FunctionAddress)
+void IDASession::DeleteMatchInfo(Storage *InputDB, int FileID, va_t FunctionAddress)
 {
-    m_pDisassemblyStorage->DeleteMatchInfo(FileID, FunctionAddress);
+    m_pStorage->DeleteMatchInfo(FileID, FunctionAddress);
 }
 
 void IDASession::AddAnalysisTargetFunction(va_t FunctionAddress)
@@ -477,8 +477,8 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Ty
 
     va_t current_addr = 0L;
 
-    if (m_pDisassemblyStorage)
-        m_pDisassemblyStorage->BeginTransaction();
+    if (m_pStorage)
+        m_pStorage->BeginTransaction();
 
     while (1)
     {
@@ -507,8 +507,8 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Ty
         if (!data)
             continue;
 
-        if (m_pDisassemblyStorage)
-            m_FileID = m_pDisassemblyStorage->ProcessTLV(type, data, length);
+        if (m_pStorage)
+            m_FileID = m_pStorage->ProcessTLV(type, data, length);
 
         if (type == BASIC_BLOCK && sizeof(BasicBlock) <= length)
         {
@@ -564,8 +564,8 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Ty
         }
     }
 
-    if (m_pDisassemblyStorage)
-        m_pDisassemblyStorage->EndTransaction();
+    if (m_pStorage)
+        m_pStorage->EndTransaction();
     FixFunctionAddresses();
     GenerateFingerprintHashMap();
 }
@@ -833,7 +833,7 @@ char *IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAd
     }
     return strdup("");
 #else
-    char *DisasmLines = m_pDisassemblyStorage->ReadDisasmLine(m_FileID, StartAddress);
+    char *DisasmLines = m_pStorage->ReadDisasmLine(m_FileID, StartAddress);
 
     if (DisasmLines)
     {
@@ -871,7 +871,7 @@ string IDASession::GetIdentity()
 
 PBasicBlock IDASession::GetBasicBlock(va_t address)
 {
-    return m_pDisassemblyStorage->ReadBasicBlock(m_FileID, address);
+    return m_pStorage->ReadBasicBlock(m_FileID, address);
 }
 
 void IDASession::FreeDisasmLines()
@@ -944,7 +944,7 @@ list <BLOCK> IDASession::GetFunctionMemberBlocks(unsigned long function_address)
     }
     else
     {
-        block_list = m_pDisassemblyStorage->ReadFunctionMemberAddresses(m_FileID, function_address);
+        block_list = m_pStorage->ReadFunctionMemberAddresses(m_FileID, function_address);
     }
 
     return block_list;
@@ -1159,8 +1159,8 @@ BOOL IDASession::FixFunctionAddresses()
     Logger.Log(10, LOG_IDA_CONTROLLER, "%s", __FUNCTION__);
     LoadBlockToFunction();
 
-    if (m_pDisassemblyStorage)
-        m_pDisassemblyStorage->BeginTransaction();
+    if (m_pStorage)
+        m_pStorage->BeginTransaction();
 
     for (auto& val : BlockToFunction)
     {
@@ -1168,12 +1168,12 @@ BOOL IDASession::FixFunctionAddresses()
         //FunctionAddress: val.second
         Logger.Log(10, LOG_IDA_CONTROLLER, "Updating BasicBlockTable Address = %X Function = %X\n", val.second, val.first);
 
-        m_pDisassemblyStorage->UpdateBasicBlock(m_FileID, val.first, val.second);
+        m_pStorage->UpdateBasicBlock(m_FileID, val.first, val.second);
         is_fixed = TRUE;
     }
 
-    if (m_pDisassemblyStorage)
-        m_pDisassemblyStorage->EndTransaction();
+    if (m_pStorage)
+        m_pStorage->EndTransaction();
 
     ClearBlockToFunction();
 

@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "Configuration.h"
 #include "IDASessions.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 
 #include <string>
 using namespace std;
@@ -20,7 +20,7 @@ private:
     IDASession *pSourceIDASession;
     IDASession *pTargetIDASession;
 
-    DisassemblyStorage *pDisassemblyStorage;
+    Storage *pStorage;
     IDASessions *pIDASessions;
     bool OpenDatabase(char *storage_filename);
     string SourceFilename;
@@ -151,7 +151,7 @@ public:
     void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-    DisassemblyStorage *m_disassemblyStorage;
+    Storage *m_disassemblyStorage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
     IDASession *IDAControllers[2];
@@ -173,7 +173,7 @@ private:
     string TargetIdentity;
 public:
 
-    void SetDatabase(DisassemblyStorage *disassemblyStorage);
+    void SetDatabase(Storage *disassemblyStorage);
     unsigned short StartIDAListenerThread(unsigned short port);
     void ListIDAControllers();
     IDASession *FindIDAController(const char *identity);

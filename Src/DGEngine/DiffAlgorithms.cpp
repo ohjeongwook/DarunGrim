@@ -8,7 +8,7 @@
 
 #include "Utility.h"
 #include "Diff.h"
-#include "SQLiteDisassemblyStorage.h"
+#include "SQLiteStorage.h"
 #include "DiffAlgorithms.h"
 #include "Log.h"
 #include "LogOperation.h"
@@ -353,7 +353,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 }
 
 /*REMOVE:
-BOOL DiffAlgorithms::DeleteMatchInfo(DisassemblyStorage & disassemblyStorage)
+BOOL DiffAlgorithms::DeleteMatchInfo(Storage & disassemblyStorage)
 {
 	if (SourceFunctionAddress > 0 && targetFunctionAddress > 0)
 	{

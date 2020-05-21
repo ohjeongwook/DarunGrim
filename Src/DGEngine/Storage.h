@@ -9,7 +9,7 @@ using namespace stdext;
 #include "MatchResults.h"
 using namespace std;
 
-class DisassemblyStorage
+class Storage
 {
 public:
     virtual void SetFileInfo(FileInfo *p_file_info)

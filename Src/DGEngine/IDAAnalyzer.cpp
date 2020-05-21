@@ -10,7 +10,7 @@
 
 #include "Common.h"
 #include "IDAAnalyzer.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 
 using namespace std;
 using namespace stdext;
@@ -1358,7 +1358,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
     return current_addr;
 }
 
-IDAAnalyzer::IDAAnalyzer(DisassemblyStorage& disassemblyStorage)
+IDAAnalyzer::IDAAnalyzer(Storage& disassemblyStorage)
 {
     m_disassemblyStorage = disassemblyStorage;
 }

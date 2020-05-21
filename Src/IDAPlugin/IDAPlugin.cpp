@@ -20,8 +20,8 @@
 #include "SocketOperation.h"
 
 #include "IDAAnalyzer.h"
-#include "SQLiteDisassemblyStorage.h"
-#include "DisassemblyStorage.h"
+#include "SQLiteStorage.h"
+#include "Storage.h"
 #include "FileVersion.h"
 #include "Log.h"
 
@@ -682,8 +682,8 @@ void SaveIDAAnalysis(bool ask_file_path)
 
     if (input_file_path)
     {
-        SQLiteDisassemblyStorage disassemblyStorage(input_file_path);
-        IDAAnalyzer idaAnalysis = IDAAnalyzer((DisassemblyStorage) disassemblyStorage);
+        SQLiteStorage disassemblyStorage(input_file_path);
+        IDAAnalyzer idaAnalysis = IDAAnalyzer((Storage) disassemblyStorage);
         idaAnalysis.Analyze(StartEA, EndEA, false);
     }
 

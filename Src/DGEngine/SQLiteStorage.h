@@ -4,7 +4,7 @@
 #include <string>
 
 #include "Common.h"
-#include "DisassemblyStorage.h"
+#include "Storage.h"
 
 using namespace std;
 
@@ -136,15 +136,15 @@ typedef unsigned char *PBYTE;
 #define DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT "DELETE FROM "FUNCTION_MATCH_INFO_TABLE" WHERE TheSourceFileID=%u and TheTargetFileID=%u"
 #define CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT "CREATE INDEX "FUNCTION_MATCH_INFO_TABLE"Index ON "FUNCTION_MATCH_INFO_TABLE" ( TheSourceFileID, TheTargetFileID, SourceAddress, TargetAddress )"
 
-class SQLiteDisassemblyStorage : public DisassemblyStorage
+class SQLiteStorage : public Storage
 {
 private:
     sqlite3 *db;
     string m_DatabaseName;
 
 public:
-    SQLiteDisassemblyStorage(const char *DatabaseName = NULL);
-    ~SQLiteDisassemblyStorage();
+    SQLiteStorage(const char *DatabaseName = NULL);
+    ~SQLiteStorage();
 
 public:
     void SetFileInfo(FileInfo *p_file_info);
