@@ -43,14 +43,13 @@ class DiffMachine
 public:
 	DiffMachine( IDAController *the_source=NULL, IDAController *the_target=NULL );
 	void ShowDiffMap(unsigned long unpatched_address,unsigned long patched_address);
-	void PrintMatchMapInfo();
 	bool Analyze();
 	void AnalyzeFunctionSanity();
 	unsigned long GetMatchAddr(int index,unsigned long address);
 	int GetUnidentifiedBlockCount(int index);
 	CodeBlock GetUnidentifiedBlock(int index,int i);
 	
-	BOOL Load( DisassemblyStorage* InputDB);
+	BOOL Load( DisassemblyStorage *InputDB);
 	BOOL Save( DisassemblyStorage& OutputDB, unordered_set <va_t> *pTheSourceSelectedAddresses=NULL, unordered_set <va_t> *pTheTargetSelectedAddresses=NULL );
 };
 
@@ -77,8 +76,8 @@ public:
 	void SetDatabase( DisassemblyStorage *OutputDB );
 	unsigned short StartIDAListenerThread(unsigned short port);
 	bool StartIDAListener( unsigned short port );
-	bool SetSourceController(const char *identity);
-	bool SetTargetController(const char *identity);
+	bool SetSourceIDASession(const char *identity);
+	bool SetTargetIDASession(const char *identity);
 
 	void SetLogFilename(char *LogFilename);
 	void GenerateSourceDGFFromIDA(char *output_filename, char *log_filename, bool is_64);

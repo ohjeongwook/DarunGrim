@@ -160,9 +160,9 @@ print 'Count',darungrim.GetMatchedFunctionList( Options, None, None, True )
 matched_function_list = darungrim.GetMatchedFunctionList( Options, 1, 100 )
 
 for match_function_info in matched_function_list:
-	print match_function_info["TheSourceFunctionName"],hex(match_function_info["TheSourceAddress"]),match_function_info["TheTargetFunctionName"],hex(match_function_info["TheTargetAddress"]),match_function_info["MatchRate"]
-	TheSourceAddress = match_function_info["TheSourceAddress"]
-	TheTargetAddress = match_function_info["TheTargetAddress"]
-	#WriteSVG( ( TheSourceAddress, TheTargetAddress ) , hex(TheSourceAddress) + '-' + hex(TheTargetAddress) )
-	DumpComparisionTextTable( ( TheSourceAddress, TheTargetAddress ) , "Output/" + hex(TheSourceAddress) + '-' + hex(TheTargetAddress) + ".txt" )
+	print match_function_info["SourceFunctionName"],hex(match_function_info["SourceAddress"]),match_function_info["TargetFunctionName"],hex(match_function_info["TargetAddress"]),match_function_info["MatchRate"]
+	SourceAddress = match_function_info["SourceAddress"]
+	TargetAddress = match_function_info["TargetAddress"]
+	#WriteSVG( ( SourceAddress, TargetAddress ) , hex(SourceAddress) + '-' + hex(TargetAddress) )
+	DumpComparisionTextTable( ( SourceAddress, TargetAddress ) , "Output/" + hex(SourceAddress) + '-' + hex(TargetAddress) + ".txt" )
 

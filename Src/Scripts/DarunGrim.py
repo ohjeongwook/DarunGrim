@@ -1070,8 +1070,8 @@ class MainWindow(QMainWindow):
 			database = DarunGrimDatabase.Database(self.DatabaseName)
 			[src_filename,target_filename]=database.GetFilesLocation()
 		
-			self.DarunGrimEngine.SetSourceController(src_filename)
-			self.DarunGrimEngine.SetTargetController(target_filename)
+			self.DarunGrimEngine.SetSourceIDASession(src_filename)
+			self.DarunGrimEngine.SetTargetIDASession(target_filename)
 			self.OpenIDA(src_filename)
 			self.OpenIDA(target_filename)
 

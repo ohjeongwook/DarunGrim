@@ -15,8 +15,8 @@ LogOperation Logger;
 
 DarunGrim::DarunGrim() :
     m_disassemblyStorage(NULL),
-    pSourceController(NULL),
-    pTargetController(NULL),
+    pSourceIDASession(NULL),
+    pTargetIDASession(NULL),
     pIDASessions(NULL),
     LogFilename(NULL),
     IsLoadedSourceFile(false),
@@ -69,7 +69,7 @@ void DarunGrim::EnableLogType(int type)
     Logger.EnableLogType(type);
 }
 
-void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char* newLogFile)
+void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const char *newLogFile)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
     Logger.Log(10, LOG_DARUNGRIM, "SetLogParameters: %d %d %s\n", newLogOutputType, newDebugLevel, newLogFile);
@@ -80,7 +80,7 @@ void DarunGrim::SetLogParameters(int newLogOutputType, int newDebugLevel, const 
     Logger.SetDebugLevel(newDebugLevel);
 }
 
-void DarunGrim::SetIDAPath(const char* ida_path, bool is_64)
+void DarunGrim::SetIDAPath(const char *ida_path, bool is_64)
 {
     if (!is_64)
     {
@@ -98,11 +98,11 @@ void DarunGrim::SetIDAPath(const char* ida_path, bool is_64)
 
 DWORD WINAPI ConnectToDarunGrimThread(LPVOID lpParameter)
 {
-    DarunGrim* pDarunGrim = (DarunGrim*)lpParameter;
+    DarunGrim *pDarunGrim = (DarunGrim*)lpParameter;
 
     if (pDarunGrim)
     {
-        const char* filename = NULL;
+        const char *filename = NULL;
         if (!pDarunGrim->LoadedSourceFile())
         {
             filename = pDarunGrim->GetSourceIDBFilename();
@@ -126,38 +126,38 @@ DWORD WINAPI ConnectToDarunGrimThread(LPVOID lpParameter)
     return 1;
 }
 
-const char* DarunGrim::GetSourceFilename()
+const char *DarunGrim::GetSourceFilename()
 {
     return SourceFilename.c_str();
 }
 
-const char* DarunGrim::GetSourceIDBFilename()
+const char *DarunGrim::GetSourceIDBFilename()
 {
     if (GetFileAttributesA(SourceIDBFilename.c_str()) == INVALID_FILE_ATTRIBUTES)
         return NULL;
     return SourceIDBFilename.c_str();
 }
 
-void DarunGrim::SetSourceFilename(char* source_filename)
+void DarunGrim::SetSourceFilename(char *source_filename)
 {
     SourceFilename = source_filename;
     SourceIDBFilename = SourceFilename;
     SourceIDBFilename = SourceIDBFilename.replace(SourceIDBFilename.length() - 4, SourceIDBFilename.length() - 1, ".idb");
 }
 
-const char* DarunGrim::GetTargetFilename()
+const char *DarunGrim::GetTargetFilename()
 {
     return TargetFilename.c_str();
 }
 
-const char* DarunGrim::GetTargetIDBFilename()
+const char *DarunGrim::GetTargetIDBFilename()
 {
     if (GetFileAttributesA(TargetIDBFilename.c_str()) == INVALID_FILE_ATTRIBUTES)
         return NULL;
     return TargetIDBFilename.c_str();
 }
 
-void DarunGrim::SetTargetFilename(char* target_filename)
+void DarunGrim::SetTargetFilename(char *target_filename)
 {
     TargetFilename = target_filename;
     TargetIDBFilename = TargetFilename;
@@ -174,7 +174,7 @@ void DarunGrim::SetLoadedSourceFile(bool is_loaded)
     IsLoadedSourceFile = is_loaded;
 }
 
-bool DarunGrim::AcceptIDAClientsFromSocket(const char* storage_filename)
+bool DarunGrim::AcceptIDAClientsFromSocket(const char *storage_filename)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
 
@@ -192,17 +192,17 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char* storage_filename)
     }
     StartIDAListener(DARUNGRIM_PORT);
 
-    pSourceController = new IDASession(m_disassemblyStorage);
-    pTargetController = new IDASession(m_disassemblyStorage);
+    pSourceIDASession = new IDASession(m_disassemblyStorage);
+    pTargetIDASession = new IDASession(m_disassemblyStorage);
 
     //Create a thread that will call ConnectToDarunGrim one by one
     DWORD dwThreadId;
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pSourceController, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(pSourceIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
     SetLoadedSourceFile(TRUE);
 
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pTargetController, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(pTargetIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
 
     if (!pIDASessions)
     {
@@ -215,7 +215,7 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char* storage_filename)
     return TRUE;
 }
 
-bool DarunGrim::PerformDiff(const char* src_storage_filename, va_t source_address, const char* target_storage_filename, va_t target_address, const char* output_storage_filename)
+bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, va_t target_address, const char *output_storage_filename)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
 
@@ -227,8 +227,8 @@ bool DarunGrim::PerformDiff(const char* src_storage_filename, va_t source_addres
 
     pIDASessions->SetLoadIDAController(true);
     pIDASessions->Load((char*)output_storage_filename);
-    pSourceController = pIDASessions->GetSourceController();
-    pTargetController = pIDASessions->GetTargetController();
+    pSourceIDASession = pIDASessions->GetSourceIDASession();
+    pTargetIDASession = pIDASessions->GetTargetIDASession();
 
     Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
     pIDASessions->Analyze();
@@ -245,7 +245,7 @@ bool DarunGrim::PerformDiff(const char* src_storage_filename, va_t source_addres
     return TRUE;
 }
 
-bool DarunGrim::OpenDatabase(char* storage_filename)
+bool DarunGrim::OpenDatabase(char *storage_filename)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
 
@@ -256,15 +256,15 @@ bool DarunGrim::OpenDatabase(char* storage_filename)
     return TRUE;
 }
 
-bool DarunGrim::Load(const char* storage_filename)
+bool DarunGrim::Load(const char *storage_filename)
 {
     m_disassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
     if (m_disassemblyStorage)
     {
         pIDASessions->SetRetrieveDataForAnalysis(TRUE);
         pIDASessions->Load(storage_filename);
-        pSourceController = pIDASessions->GetSourceController();
-        pTargetController = pIDASessions->GetTargetController();
+        pSourceIDASession = pIDASessions->GetSourceIDASession();
+        pTargetIDASession = pIDASessions->GetTargetIDASession();
     }
     return FALSE;
 }
@@ -281,13 +281,13 @@ bool DarunGrim::PerformDiff()
         pIDASessions->SetSource(m_disassemblyStorage, source_file_id);
         pIDASessions->SetSource(m_disassemblyStorage, target_file_id);
         pIDASessions->Load(m_disassemblyStorage);
-        pSourceController = pIDASessions->GetSourceController();
-        pTargetController = pIDASessions->GetTargetController();
+        pSourceIDASession = pIDASessions->GetSourceIDASession();
+        pTargetIDASession = pIDASessions->GetTargetIDASession();
     }
-    else if (pSourceController && pTargetController)
+    else if (pSourceIDASession && pTargetIDASession)
     {
-        pIDASessions->SetSource(pSourceController);
-        pIDASessions->SetTarget(pTargetController);
+        pIDASessions->SetSource(pSourceIDASession);
+        pIDASessions->SetTarget(pTargetIDASession);
     }
 
     if (pIDASessions)
@@ -305,7 +305,7 @@ bool DarunGrim::ShowOnIDA()
     return TRUE;
 }
 
-void DarunGrim::SetDatabase(DisassemblyStorage* OutputDB)
+void DarunGrim::SetDatabase(DisassemblyStorage *OutputDB)
 {
     m_disassemblyStorage = OutputDB;
 }
@@ -320,12 +320,12 @@ typedef struct _IDA_LISTENER_PARAM_
 typedef struct _IDA_CONTROLLER_
 {
     SLIST_ENTRY ItemEntry;
-    IDASession* pIDAController;
-} IDA_CONTROLLER, * PIDA_CONTROLLER;
+    IDASession *pIDAController;
+} IDA_CONTROLLER,  *PIDA_CONTROLLER;
 
 DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
 {
-    IDA_LISTENER_PARAM* param = (IDA_LISTENER_PARAM*)lpParameter;
+    IDA_LISTENER_PARAM *param = (IDA_LISTENER_PARAM*)lpParameter;
     PSLIST_HEADER pListHead = param->pListEntry;
     SOCKET listen_s = param->socket;
 
@@ -372,7 +372,7 @@ unsigned short DarunGrim::StartIDAListenerThread(unsigned short port)
     SOCKET s = CreateListener(NULL, port);
     Logger.Log(10, LOG_DARUNGRIM, "%s: listening socket: %d (port: %d)\n", __FUNCTION__, s, port);
 
-    IDA_LISTENER_PARAM* param = new IDA_LISTENER_PARAM();
+    IDA_LISTENER_PARAM *param = new IDA_LISTENER_PARAM();
     param->pListEntry = pIDAClientListHead;
     param->port = port;
     param->socket = s;
@@ -403,12 +403,12 @@ void DarunGrim::UpdateIDAControllers()
         if (identity == SourceIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", identity.c_str());
-            pSourceController = p_ida_controller_item->pIDAController;
+            pSourceIDASession = p_ida_controller_item->pIDAController;
         }
         else if (identity == TargetIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting target controller: %s\n", identity.c_str());
-            pTargetController = p_ida_controller_item->pIDAController;
+            pTargetIDASession = p_ida_controller_item->pIDAController;
         }
     }
 }
@@ -425,7 +425,7 @@ void DarunGrim::ListIDAControllers()
     }
 }
 
-IDASession* DarunGrim::FindIDAController(const char* identity)
+IDASession *DarunGrim::FindIDAController(const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
@@ -442,7 +442,7 @@ IDASession* DarunGrim::FindIDAController(const char* identity)
     return NULL;
 }
 
-bool DarunGrim::SetController(int type, const char* identity)
+bool DarunGrim::SetController(int type, const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
@@ -456,9 +456,9 @@ bool DarunGrim::SetController(int type, const char* identity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", (*it)->GetIdentity());
             if (type == SOURCE_CONTROLLER)
-                pSourceController = (*it);
+                pSourceIDASession = (*it);
             else if (type == TARGET_CONTROLLER)
-                pTargetController = (*it);
+                pTargetIDASession = (*it);
 
             return TRUE;
         }
@@ -467,13 +467,13 @@ bool DarunGrim::SetController(int type, const char* identity)
     return FALSE;
 }
 
-bool DarunGrim::SetSourceController(const char* identity)
+bool DarunGrim::SetSourceIDASession(const char *identity)
 {
     SourceIdentity = identity;
     return SetController(SOURCE_CONTROLLER, identity);
 }
 
-bool DarunGrim::SetTargetController(const char* identity)
+bool DarunGrim::SetTargetIDASession(const char *identity)
 {
     TargetIdentity = identity;
     return SetController(TARGET_CONTROLLER, identity);
@@ -484,11 +484,11 @@ void DarunGrim::JumpToAddresses(unsigned long source_address, unsigned long targ
 {
     UpdateIDAControllers();
 
-    if (pSourceController)
-        pSourceController->JumpToAddress(source_address);
+    if (pSourceIDASession)
+        pSourceIDASession->JumpToAddress(source_address);
 
-    if (pTargetController)
-        pTargetController->JumpToAddress(target_address);
+    if (pTargetIDASession)
+        pTargetIDASession->JumpToAddress(target_address);
 }
 
 void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color)
@@ -497,13 +497,13 @@ void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned lon
 
     if (type == SOURCE_CONTROLLER)
     {
-        if (pSourceController)
-            pSourceController->ColorAddress(start_address, end_address, color);
+        if (pSourceIDASession)
+            pSourceIDASession->ColorAddress(start_address, end_address, color);
     }
     else
     {
-        if (pTargetController)
-            pTargetController->ColorAddress(start_address, end_address, color);
+        if (pTargetIDASession)
+            pTargetIDASession->ColorAddress(start_address, end_address, color);
     }
 }
 
@@ -530,14 +530,14 @@ bool DarunGrim::StopIDAListener()
     return FALSE;
 }
 
-IDASession* DarunGrim::GetIDAControllerFromFile(char* DataFile)
+IDASession *DarunGrim::GetIDAControllerFromFile(char *DataFile)
 {
-    IDASession* p_ida_controller = new IDASession(m_disassemblyStorage);
+    IDASession *p_ida_controller = new IDASession(m_disassemblyStorage);
     p_ida_controller->Retrieve(DataFile);
     return p_ida_controller;
 }
 
-BOOL DarunGrim::AcceptIDAClient(IDASession* p_ida_controller, bool retrieve_Data)
+BOOL DarunGrim::AcceptIDAClient(IDASession *p_ida_controller, bool retrieve_Data)
 {
     SOCKET s = accept(ListeningSocket, NULL, NULL);
     Logger.Log(10, LOG_DARUNGRIM, "%s: accepting=%d\n", __FUNCTION__, s);
@@ -571,8 +571,8 @@ DWORD DarunGrim::IDACommandProcessor()
     WSANETWORKEVENTS NetworkEvents;
     DWORD EventTotal = 0, index;
 
-    SocketArray[0] = pSourceController->GetSocket();
-    SocketArray[1] = pTargetController->GetSocket();
+    SocketArray[0] = pSourceIDASession->GetSocket();
+    SocketArray[1] = pTargetIDASession->GetSocket();
     for (int i = 0; i < 2; i++)
     {
         WSAEVENT NewEvent = WSACreateEvent();
@@ -648,11 +648,11 @@ DWORD DarunGrim::IDACommandProcessor()
                                     //Show using JUMP_TO_ADDR
                                     if (i == 0)
                                     {
-                                        pTargetController->JumpToAddress(MatchingAddress);
+                                        pTargetIDASession->JumpToAddress(MatchingAddress);
                                     }
                                     else
                                     {
-                                        pSourceController->JumpToAddress(MatchingAddress);
+                                        pSourceIDASession->JumpToAddress(MatchingAddress);
                                     }
                                 }
                             }
@@ -676,7 +676,7 @@ DWORD DarunGrim::IDACommandProcessor()
 
 DWORD WINAPI IDACommandProcessorThread(LPVOID lpParameter)
 {
-    DarunGrim* pDarunGrim = (DarunGrim*)lpParameter;
+    DarunGrim *pDarunGrim = (DarunGrim*)lpParameter;
     pDarunGrim->IDACommandProcessor();
     return 1;
 }
@@ -706,7 +706,7 @@ BOOL DarunGrim::CreateIDACommandProcessorThread()
 
 bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 {
-    IDASession* ClientManager = (IDASession*)Context;
+    IDASession *ClientManager = (IDASession*)Context;
 
     if (ClientManager)
     {
@@ -717,7 +717,7 @@ bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 
 bool SendAddrTypeTLVData(int Type, va_t Start, va_t End, PVOID Context)
 {
-    IDASession* ClientManager = (IDASession*)Context;
+    IDASession *ClientManager = (IDASession*)Context;
     if (ClientManager)
     {
         return ClientManager->SendAddrTypeTLVData(Type, Start, End);
@@ -744,10 +744,10 @@ bool SendAddrTypeTLVData(int Type, va_t Start, va_t End, PVOID Context)
 }"
 
 
-char* DarunGrim::EscapeFilename(char* filename)
+char *DarunGrim::EscapeFilename(char *filename)
 {
     //Create IDC file
-    char* escaped_filename = (char*)malloc(strlen(filename) * 2 + 1);
+    char *escaped_filename = (char*)malloc(strlen(filename)  *2 + 1);
 
     if (escaped_filename)
     {
@@ -767,28 +767,28 @@ char* DarunGrim::EscapeFilename(char* filename)
     return escaped_filename;
 }
 
-void DarunGrim::GenerateSourceDGFFromIDA(char* output_filename, char* log_filename, bool is_64)
+void DarunGrim::GenerateSourceDGFFromIDA(char *output_filename, char *log_filename, bool is_64)
 {
     GenerateDGFFromIDA(SourceFilename.c_str(), 0, 0, output_filename, log_filename, is_64);
 }
 
-void DarunGrim::GenerateTargetDGFFromIDA(char* output_filename, char* log_filename, bool is_64)
+void DarunGrim::GenerateTargetDGFFromIDA(char *output_filename, char *log_filename, bool is_64)
 {
     GenerateDGFFromIDA(TargetFilename.c_str(), 0, 0, output_filename, log_filename, is_64);
 }
 
-void DarunGrim::GenerateDGFFromIDA(const char* ida_filename, unsigned long StartAddress, unsigned long EndAddress, char* output_filename, char* log_filename, bool is_64)
+void DarunGrim::GenerateDGFFromIDA(const char *ida_filename, unsigned long StartAddress, unsigned long EndAddress, char *output_filename, char *log_filename, bool is_64)
 {
     output_filename = EscapeFilename(output_filename);
     log_filename = EscapeFilename(log_filename);
-    char* idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
+    char *idc_filename = WriteToTemporaryFile(RUN_DARUNGRIM_PLUGIN_STR,
         log_filename ? log_filename : "",
         output_filename ? output_filename : "",
         StartAddress,
         EndAddress);
     free(output_filename);
 
-    const char* options = IDAAutoMode ? "-A" : "";
+    const char *options = IDAAutoMode ? "-A" : "";
     if (idc_filename)
     {
         if (LogFilename)
@@ -806,9 +806,9 @@ void DarunGrim::GenerateDGFFromIDA(const char* ida_filename, unsigned long Start
 }
 
 
-void DarunGrim::ConnectToDarunGrim(const char* ida_filename)
+void DarunGrim::ConnectToDarunGrim(const char *ida_filename)
 {
-    char* idc_filename = WriteToTemporaryFile(CONNECT_TO_DARUNGRIM_STR, LogFilename ? LogFilename : "");
+    char *idc_filename = WriteToTemporaryFile(CONNECT_TO_DARUNGRIM_STR, LogFilename ? LogFilename : "");
 
     if (idc_filename)
     {
@@ -849,7 +849,7 @@ bool DarunGrim::GenerateIDALogFilename()
     return false;
 }
 
-void DarunGrim::SetIDALogFilename(const char* ida_log_filename)
+void DarunGrim::SetIDALogFilename(const char *ida_log_filename)
 {
     if (ida_log_filename)
     {
@@ -862,7 +862,7 @@ void DarunGrim::SetIDALogFilename(const char* ida_log_filename)
     }
 }
 
-const char* DarunGrim::GetIDALogFilename()
+const char *DarunGrim::GetIDALogFilename()
 {
     return IDALogFilename;
 }

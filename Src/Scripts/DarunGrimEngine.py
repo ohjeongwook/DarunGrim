@@ -185,11 +185,11 @@ class DarunGrim:
 
 		return missing_plugins
 
-	def SetSourceController(self,identity):
-		self.DarunGrim.SetSourceController(str(identity))
+	def SetSourceIDASession(self,identity):
+		self.DarunGrim.SetSourceIDASession(str(identity))
 
-	def SetTargetController(self,identity):
-		self.DarunGrim.SetTargetController(str(identity))
+	def SetTargetIDASession(self,identity):
+		self.DarunGrim.SetTargetIDASession(str(identity))
 
 	def SetSourceFilename(self,src_filename, is_dgf=False):
 		self.SrcFilename = str(src_filename)

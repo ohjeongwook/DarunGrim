@@ -32,10 +32,10 @@ class DGFAnalyzer:
 	def GetNames(self,FileID):
 		if FileID==1:
 			FileIDColumnName="TheSourceFileID"
-			AddressColumnName="TheSourceAddress"
+			AddressColumnName="SourceAddress"
 		else:
 			FileIDColumnName="TheTargetFileID"
-			AddressColumnName="TheTargetAddress"
+			AddressColumnName="TargetAddress"
 		return (FileIDColumnName,AddressColumnName)
 	
 	def GetIdentifiedBlocksCount(self,FileID):
@@ -107,27 +107,27 @@ class DGFAnalyzer:
 		return Types[Type]
 
 """
-c.execute("SELECT COUNT(DISTINCT(TheSourceAddress)) FROM MatchMap WHERE MatchRate!=100")
+c.execute("SELECT COUNT(DISTINCT(SourceAddress)) FROM MatchMap WHERE MatchRate!=100")
 for row in c:
 	print 'Modified Blocks',row,sqrt(row[0])
 
 Matches={}
 IdentifiedFunctions={}
-c.execute("SELECT TheSourceFileID,TheTargetFileID,TheSourceAddress,TheTargetAddress,Type,MatchRate,UnpatchedParentAddress,PatchedParentAddress FROM MatchMap")
+c.execute("SELECT TheSourceFileID,TheTargetFileID,SourceAddress,TargetAddress,Type,MatchRate,UnpatchedParentAddress,PatchedParentAddress FROM MatchMap")
 for row in c:
 	TheSourceFileID=int(row[0])
 	TheTargetFileID=int(row[1])
 
-	TheSourceAddress=int(row[2])
-	TheTargetAddress=int(row[3])
+	SourceAddress=int(row[2])
+	TargetAddress=int(row[3])
 
 	TheSourceFunctionAddress=0
-	if self.Address2Function[TheSourceFileID].has_key(TheSourceAddress):
-		TheSourceFunctionAddress=self.Address2Function[TheSourceFileID][TheSourceAddress]
+	if self.Address2Function[TheSourceFileID].has_key(SourceAddress):
+		TheSourceFunctionAddress=self.Address2Function[TheSourceFileID][SourceAddress]
 
 	TheTargetFunctionAddress=0
-	if self.Address2Function[TheTargetFileID].has_key(TheTargetAddress):
-		TheTargetFunctionAddress=self.Address2Function[TheTargetFileID][TheTargetAddress]
+	if self.Address2Function[TheTargetFileID].has_key(TargetAddress):
+		TheTargetFunctionAddress=self.Address2Function[TheTargetFileID][TargetAddress]
 
 	if not IdentifiedFunctions.has_key(TheSourceFileID):
 		IdentifiedFunctions[TheSourceFileID]={}
@@ -140,26 +140,26 @@ for row in c:
 		IdentifiedFunctions[TheTargetFileID][TheTargetFunctionAddress]=[]
 	if not Matches.has_key(TheSourceFunctionAddress):
 		Matches[TheSourceFunctionAddress]=[]
-	Matches[TheSourceFunctionAddress].append((TheSourceAddress,TheTargetFunctionAddress,TheTargetAddress,row[4],row[5],row[6],row[7]))
+	Matches[TheSourceFunctionAddress].append((SourceAddress,TheTargetFunctionAddress,TargetAddress,row[4],row[5],row[6],row[7]))
 
 TheSourceFileID=1
 TheTargetFileID=2
 DoPrintAll=False
 for TheSourceFunctionAddress in Matches.keys():
-	TheSourceFunctionName=''
-	TheSourceFunctionName=hex(TheSourceFunctionAddress)
+	SourceFunctionName=''
+	SourceFunctionName=hex(TheSourceFunctionAddress)
 	if self.FunctionNames[TheSourceFileID].has_key(TheSourceFunctionAddress):
-		TheSourceFunctionName=self.FunctionNames[TheSourceFileID][TheSourceFunctionAddress]
+		SourceFunctionName=self.FunctionNames[TheSourceFileID][TheSourceFunctionAddress]
 	TheLastTargetFunctionAddress=0
-	for (TheSourceAddress,TheTargetFunctionAddress,TheTargetAddress,Type,MatchRate,TheParentSourceAddress,TheParentTargetAddress) in Matches[TheSourceFunctionAddress]:
+	for (SourceAddress,TheTargetFunctionAddress,TargetAddress,Type,MatchRate,TheParentSourceAddress,TheParentTargetAddress) in Matches[TheSourceFunctionAddress]:
 		if TheLastTargetFunctionAddress!=TheTargetFunctionAddress:
-			TheTargetFunctionName=hex(TheTargetFunctionAddress)
+			TargetFunctionName=hex(TheTargetFunctionAddress)
 			if self.FunctionNames[TheTargetFileID].has_key(TheTargetFunctionAddress):
-				TheTargetFunctionName=self.FunctionNames[TheTargetFileID][TheTargetFunctionAddress]
-			print TheSourceFunctionName,TheTargetFunctionName
+				TargetFunctionName=self.FunctionNames[TheTargetFileID][TheTargetFunctionAddress]
+			print SourceFunctionName,TargetFunctionName
 			TheLastTargetFunctionAddress=TheTargetFunctionAddress
 		if MatchRate!=100 or DoPrintAll:
-			print '\t',hex(TheSourceAddress),hex(TheTargetAddress),GetTypeStr(Type),MatchRate,hex(TheParentSourceAddress),hex(TheParentTargetAddress)
+			print '\t',hex(SourceAddress),hex(TargetAddress),GetTypeStr(Type),MatchRate,hex(TheParentSourceAddress),hex(TheParentTargetAddress)
 
 IdentifiedFunctions[TheTargetFileID][TheTargetFunctionAddress]=[]
 for FileID in self.FunctionNames.keys():
