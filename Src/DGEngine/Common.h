@@ -229,7 +229,7 @@ typedef struct _MatchData_ {
 class MatchMapList
 {
 private:
-    vector<MatchData*> *m_pMatchDataVector = new vector<MatchData *>();
+    vector<MatchData*> m_matchDataList;
 
 public:
 	template<typename T>
@@ -243,25 +243,25 @@ public:
 	};
 	
 	auto begin() const { // const version
-		return m_pMatchDataVector->begin();
+		return m_matchDataList.begin();
 	}
 	auto end() const { // const version
-		return m_pMatchDataVector->end();
+		return m_matchDataList.end();
 	}
 
 	int Size()
 	{
-		return m_pMatchDataVector->size();
+		return m_matchDataList.size();
 	}
 
     void Add(MatchData *new_match_data)
     {
-        m_pMatchDataVector->push_back(new_match_data);
+        m_matchDataList.push_back(new_match_data);
     }
   
     void FreeMatchMapList()
     {
-        for (vector<MatchData*>::iterator it = m_pMatchDataVector->begin(); it != m_pMatchDataVector->end(); it++)
+        for (vector<MatchData*>::iterator it = m_matchDataList.begin(); it != m_matchDataList.end(); it++)
         {
             if (*it)
             {
@@ -272,7 +272,7 @@ public:
 
     va_t GetAddress(int index)
     {
-        for (vector<MatchData*>::iterator it = m_pMatchDataVector->begin(); it != m_pMatchDataVector->end(); it++)
+        for (vector<MatchData*>::iterator it = m_matchDataList.begin(); it != m_matchDataList.end(); it++)
         {            
             return (*it)->Addresses[index];
         }
@@ -281,9 +281,9 @@ public:
     int GetMaxMatchRate()
     {
         int maxMatchRate = 0;
-        if (m_pMatchDataVector->size() > 0)
+        if (m_matchDataList.size() > 0)
         {
-            for (vector<MatchData*>::iterator it = m_pMatchDataVector->begin(); it != m_pMatchDataVector->end(); it++)
+            for (vector<MatchData*>::iterator it = m_matchDataList.begin(); it != m_matchDataList.end(); it++)
             {
                 if ((*it)->MatchRate > maxMatchRate)
                 {
@@ -297,9 +297,9 @@ public:
 
     void Print()
     {
-        if (m_pMatchDataVector->size() > 0)
+        if (m_matchDataList.size() > 0)
         {
-            for (vector<MatchData*>::iterator it = m_pMatchDataVector->begin(); it != m_pMatchDataVector->end(); it++)
+            for (vector<MatchData*>::iterator it = m_matchDataList.begin(); it != m_matchDataList.end(); it++)
             {
                 //TODO: Logger.Log(10, LOG_DIFF_MACHINE, "Basic Block: %X Match Rate: %d%%\n", (*blockIterator).Start, (*it)->MatchRate);
             }

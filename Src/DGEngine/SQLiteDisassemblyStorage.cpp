@@ -470,13 +470,13 @@ MatchMapList *SQLiteDisassemblyStorage::ReadMatchMap(int sourceID, int targetID,
 
         if (match_data.Addresses[0] != 0)
         {
-            for (vector<MatchData*>::iterator it = pMatchMapList->begin(); it != pMatchMapList->end(); it++)
+            for(MatchData *p_matchData : *pMatchMapList)
             {
                 LogMessage(1, __FUNCTION__, "%u 0x%X returns %X-%X\r\n",
                     index,
                     address,
-                    (*it)->Addresses[0],
-                    (*it)->Addresses[1]
+                    p_matchData->Addresses[0],
+                    p_matchData->Addresses[1]
                 );
             }
         }
