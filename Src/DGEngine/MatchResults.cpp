@@ -57,38 +57,38 @@ void MatchResults::Erase(va_t source, va_t target)
 
     while (sources.size() > 0)
     {
-        for (vector<va_t>::iterator it = sources.begin(); it != sources.end(); it++)
+        for(va_t address : sources)
         {
-            EraseSource(targets, *it, source, target);
+            EraseSource(targets, address, source, target);
         }
         sources.clear();
 
-        for (vector <va_t>::iterator it = targets.begin(); it != targets.end(); it++)
+        for (va_t address : targets)
         {
-            EraseTarget(sources, *it, source, target);
+            EraseTarget(sources, address, source, target);
         }
         targets.clear();
     }
 }
 
-multimap <va_t, MatchData>::iterator MatchResults::Erase(multimap <va_t, MatchData>::iterator match_map_iter)
+multimap <va_t, MatchData>::iterator MatchResults::Erase(multimap <va_t, MatchData>::iterator matchMapIterator)
 {
-    if (match_map_iter != MatchMap.end())
+    if (matchMapIterator != MatchMap.end())
     {
-        if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_map_iter->second.Addresses[0], match_map_iter->second.Addresses[1]))
-            LogMessage(0, __FUNCTION__, "%s %X-%X\n", __FUNCTION__, match_map_iter->second.Addresses[0], match_map_iter->second.Addresses[1]);
+        if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(matchMapIterator->second.Addresses[0], matchMapIterator->second.Addresses[1]))
+            LogMessage(0, __FUNCTION__, "%s %X-%X\n", __FUNCTION__, matchMapIterator->second.Addresses[0], matchMapIterator->second.Addresses[1]);
 
         for (
-            multimap <va_t, va_t>::iterator it = ReverseAddressMap.find(match_map_iter->second.Addresses[1]);
-            it != ReverseAddressMap.end() && it->first == match_map_iter->second.Addresses[1];
+            multimap <va_t, va_t>::iterator it = ReverseAddressMap.find(matchMapIterator->second.Addresses[1]);
+            it != ReverseAddressMap.end() && it->first == matchMapIterator->second.Addresses[1];
             it++)
         {
-            if (it->second == match_map_iter->first)
+            if (it->second == matchMapIterator->first)
                 it = ReverseAddressMap.erase(it);
         }
-        match_map_iter = MatchMap.erase(match_map_iter);
+        matchMapIterator = MatchMap.erase(matchMapIterator);
     }
-    return match_map_iter;
+    return matchMapIterator;
 }
 
 void MatchResults::AddMatchData(MatchData& match_data, const char *debug_str)
@@ -148,39 +148,36 @@ void MatchResults::AddMatchData(MatchData& match_data, const char *debug_str)
 
 void MatchResults::Append(MATCHMAP *pTemporaryMap)
 {
-    multimap <va_t, MatchData>::iterator match_map_iter;
-    for (match_map_iter = pTemporaryMap->begin(); match_map_iter != pTemporaryMap->end(); match_map_iter++)
+    multimap <va_t, MatchData>::iterator matchMapIterator;
+    for (matchMapIterator = pTemporaryMap->begin(); matchMapIterator != pTemporaryMap->end(); matchMapIterator++)
     {
-        AddMatchData(match_map_iter->second, __FUNCTION__);
+        AddMatchData(matchMapIterator->second, __FUNCTION__);
     }
 }
 
 void MatchResults::CleanUp()
 {
-    multimap <va_t, MatchData>::iterator match_map_iter;
-    for (match_map_iter = MatchMap.begin();
-        match_map_iter != MatchMap.end();
-        )
+    for (multimap <va_t, MatchData>::iterator it = MatchMap.begin(); it != MatchMap.end();)
     {
-        if (match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
+        if (it->second.Status & STATUS_MAPPING_DISABLED)
         {
-            multimap <va_t, MatchData>::iterator current_map_iter = match_map_iter;
-            match_map_iter++;
+            multimap <va_t, MatchData>::iterator current_map_iter = it;
+            it++;
 
             if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(current_map_iter->second.Addresses[0], current_map_iter->second.Addresses[1]))
                 LogMessage(0, __FUNCTION__, "%s Erase (CleanUp) %X-%X\n", __FUNCTION__, current_map_iter->second.Addresses[0], current_map_iter->second.Addresses[1]);
 
-            for (multimap <va_t, va_t>::iterator reverse_match_map_iter = ReverseAddressMap.find(current_map_iter->second.Addresses[1]);
-                reverse_match_map_iter != ReverseAddressMap.end() && reverse_match_map_iter->first == current_map_iter->second.Addresses[1];
-                reverse_match_map_iter++)
+            for (multimap <va_t, va_t>::iterator reverse_matchMapIterator = ReverseAddressMap.find(current_map_iter->second.Addresses[1]);
+                reverse_matchMapIterator != ReverseAddressMap.end() && reverse_matchMapIterator->first == current_map_iter->second.Addresses[1];
+                reverse_matchMapIterator++)
             {
-                reverse_match_map_iter = ReverseAddressMap.erase(reverse_match_map_iter);
+                reverse_matchMapIterator = ReverseAddressMap.erase(reverse_matchMapIterator);
             }
 
             MatchMap.erase(current_map_iter);
 
             continue;
         }
-        match_map_iter++;
+        it++;
     }
 }

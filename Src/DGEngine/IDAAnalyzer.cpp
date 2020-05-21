@@ -261,8 +261,7 @@ void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <
     unordered_map <ea_t, insn_t>::iterator InstructionHashIter = InstructionHash.find(Address);
 
     bool IsInserted = FALSE;
-    list <ea_t>::iterator AddressesIter;
-    for (AddressesIter = Addresses.begin(); AddressesIter != Addresses.end(); AddressesIter++)
+    for (list <ea_t>::iterator AddressesIter = Addresses.begin(); AddressesIter != Addresses.end(); AddressesIter++)
     {
         unordered_map <ea_t, insn_t>::iterator CurrentInstructionHashIter = InstructionHash.find(*AddressesIter);
         if (GetInstructionWeight(CurrentInstructionHashIter->second) < GetInstructionWeight(InstructionHashIter->second))
@@ -300,14 +299,13 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, Op
 
     list <ea_t> OrderedAddresses;
     list <string> Signatures;
-    unordered_set <ea_t>::iterator RootAddressesIter;
-    for (RootAddressesIter = RootAddresses.begin(); RootAddressesIter != RootAddresses.end(); RootAddressesIter++)
+    for(ea_t address : RootAddresses)
     {
         list <ea_t> TargetAddresses;
         list <ea_t>::iterator TargetAddressesIter;
-        TargetAddresses.push_back(*RootAddressesIter);
+        TargetAddresses.push_back(address);
         list <insn_t> Signature;
-        LogMessage(0, __FUNCTION__, "RootAddressesIter=%X ", *RootAddressesIter);
+        LogMessage(0, __FUNCTION__, "RootAddressesIter=%X ", address);
         for (TargetAddressesIter = TargetAddresses.begin(); TargetAddressesIter != TargetAddresses.end(); TargetAddressesIter++)
         {
             for (int Index = 0; Index < UA_MAXOP; Index++)
