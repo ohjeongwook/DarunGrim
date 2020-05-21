@@ -57,7 +57,6 @@ public:
         return MatchMap.clear();
     }
 };
-
 #else
 typedef multimap <va_t, MatchData> MATCHMAP;
 #endif
@@ -72,7 +71,7 @@ public:
     void AddSrcDumpAddress(va_t address);
     void AddTargetDumpAddress(va_t address);
     bool IsDumpPair(va_t src, va_t target);
-    void DumpMatchInfo(va_t src, va_t target, int match_rate, const char* format, ...);
+    void DumpMatchInfo(va_t src, va_t target, int match_rate, const char *format, ...);
 };
 
 class MatchResults
@@ -80,18 +79,26 @@ class MatchResults
 public:
     MATCHMAP MatchMap;
     multimap <va_t, va_t> ReverseAddressMap;
-    DumpAddressChecker* pDumpAddressChecker;
+    DumpAddressChecker *pDumpAddressChecker;
 
 public:
     MatchResults();
-    void SetDumpAddressChecker(DumpAddressChecker* p_dump_address_checker);
+    void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker);
     void Clear();
     void EraseSource(vector <va_t>& addresses, va_t address, va_t source, va_t target);
     void EraseTarget(vector <va_t>& addresses, va_t address, va_t source, va_t target);
     void Erase(va_t source, va_t target);
     multimap <va_t, MatchData>::iterator Erase(multimap <va_t, MatchData>::iterator match_map_iter);
-    void AddMatchData(MatchData& match_data, const char* debug_str);
-    void Append(MATCHMAP* pTemporaryMap);
+    void AddMatchData(MatchData& match_data, const char *debug_str);
+    void Append(MATCHMAP *pTemporaryMap);
     void CleanUp();
 };
 
+
+typedef struct
+{
+	va_t Source;
+	va_t Target;
+	int MatchRate;
+	int IndexDiff;
+} MatchRateInfo;
