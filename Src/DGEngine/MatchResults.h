@@ -79,7 +79,7 @@ class MatchResults
 public:
     MATCHMAP MatchMap;
     multimap <va_t, va_t> ReverseAddressMap;
-    DumpAddressChecker *pDumpAddressChecker;
+    DumpAddressChecker *m_pdumpAddressChecker;
 
 public:
     MatchResults();

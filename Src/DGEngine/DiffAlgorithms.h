@@ -16,7 +16,7 @@ class DiffAlgorithms
 {
 private:
 	int DebugFlag;
-	DumpAddressChecker *pDumpAddressChecker;
+	DumpAddressChecker *m_pdumpAddressChecker;
 
 	IDASession *SourceIDASession;
 	IDASession *TargetIDASession;    

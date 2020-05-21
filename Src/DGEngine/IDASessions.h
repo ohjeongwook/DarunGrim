@@ -35,16 +35,15 @@ private:
     IDASession* SourceIDASession;
     IDASession* TargetIDASession;
 
-    SOCKET SocketForTheSource;
-    SOCKET SocketForeTheTarget;
-	DiffAlgorithms *pDiffAlgorithms;
-	BOOL bRetrieveDataForAnalysis;
-    MatchResults *m_pMatchResults;
-    DumpAddressChecker *pDumpAddressChecker;
-    FunctionMatchInfoList *m_pFunctionMatchInfoList;
+    MatchResults* m_pMatchResults;
+    FunctionMatchInfoList* m_pFunctionMatchInfoList;
 
-    unordered_set <va_t> SourceUnidentifedBlockHash;
-    unordered_set <va_t> TargetUnidentifedBlockHash;
+    DiffAlgorithms* m_pdiffAlgorithms;
+
+    unordered_set <va_t> m_sourceUnidentifedBlockHash;
+    unordered_set <va_t> m_targetUnidentifedBlockHash;
+
+    DumpAddressChecker* m_pdumpAddressChecker;
 
 	BOOL _Load();
 
@@ -54,7 +53,7 @@ public:
 
     void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
     {
-        pDumpAddressChecker = p_dump_address_checker;
+        m_pdumpAddressChecker = p_dump_address_checker;
     }
 
     void SetSource(IDASession *NewSource)
@@ -65,11 +64,6 @@ public:
     void SetTarget(IDASession *NewTarget)
     {
         TargetIDASession = NewTarget;
-    }
-
-    void SetRetrieveDataForAnalysis(BOOL newRetrieveDataForAnalysis)
-    {
-        bRetrieveDataForAnalysis = newRetrieveDataForAnalysis;
     }
 
     void SetLoadMatchResults(bool NewLoadMatchResults)

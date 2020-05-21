@@ -212,7 +212,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 		}
 		PBasicBlock p_basic_block = SourceIDASession->GetBasicBlock(match_map_iter->first);
 
-		if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_map_iter->first, 0))
+		if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_map_iter->first, 0))
 		{
 			Logger.Log(11, LOG_DIFF_MACHINE, "%X Block Type: %d\n", match_map_iter->first,
 				p_basic_block ? p_basic_block->BlockType : -1);
@@ -302,13 +302,13 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 
 					pFunctionMatchInfoList->Add(match_info);
 				}
-				//TODO: SourceUnidentifedBlockHash.insert(p_basic_block->StartAddress);
+				//TODO: m_sourceUnidentifedBlockHash.insert(p_basic_block->StartAddress);
 			}
 			unpatched_unidentified_number++;
 		}
 	}
 
-	//TODO: LogMessage(0, __FUNCTION__, "unpatched_unidentified_number=%u\n", SourceUnidentifedBlockHash.size());
+	//TODO: LogMessage(0, __FUNCTION__, "unpatched_unidentified_number=%u\n", m_sourceUnidentifedBlockHash.size());
 
 	int patched_unidentified_number = 0;
 	for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
@@ -339,7 +339,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 					pFunctionMatchInfoList->Add(match_info);
 				}
 
-				//TODO: TargetUnidentifedBlockHash.insert(p_basic_block->StartAddress);
+				//TODO: m_targetUnidentifedBlockHash.insert(p_basic_block->StartAddress);
 				free(p_basic_block);
 			}
 
@@ -485,8 +485,8 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 			match_data.PatchedParentAddress = targetFunctionAddress;
 			match_data.MatchRate = 100;
 
-			if (pDumpAddressChecker)
-				pDumpAddressChecker->DumpMatchInfo(match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate, "%s Add fingerprint match:\n", __FUNCTION__);
+			if (m_pdumpAddressChecker)
+				m_pdumpAddressChecker->DumpMatchInfo(match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate, "%s Add fingerprint match:\n", __FUNCTION__);
             pMatchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
 		}
 	}
@@ -518,7 +518,7 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatch()
 					match_data.Addresses[1] = patched_fingerprint_map_pIter->second;
 					match_data.MatchRate = 100;
 
-					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 						LogMessage(0, __FUNCTION__, "%X-%X: %d%%\n", match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
 
 					p_match_map->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
@@ -539,7 +539,7 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 	match_rate_info_count = 0;
 	bool debug = false;
 
-	if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_address, target_address))
+	if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(source_address, target_address))
 	{
 		debug = true;
 		LogMessage(0, __FUNCTION__, "%X-%X %d\n", source_address, target_address, type);
@@ -736,7 +736,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 					{
 						if (it->second.Addresses[1] == p_match_rate_info_array[selected_index].Target)
 						{
-							if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(p_match_rate_info_array[selected_index].Source, p_match_rate_info_array[selected_index].Target))
+							if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(p_match_rate_info_array[selected_index].Source, p_match_rate_info_array[selected_index].Target))
 							{
 								LogMessage(0, __FUNCTION__, "Trying to add %X-%X: %d%%\n",
 									p_match_rate_info_array[selected_index].Source,
@@ -753,7 +753,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 						}
 						else if (p_match_rate_info_array[selected_index].MatchRate <= it->second.MatchRate)
 						{
-							if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(p_match_rate_info_array[selected_index].Source, it->second.Addresses[1]))
+							if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(p_match_rate_info_array[selected_index].Source, it->second.Addresses[1]))
 							{
 								LogMessage(0, __FUNCTION__, "Trying to add %X-%X: %d%%\n",
 									p_match_rate_info_array[selected_index].Source,
@@ -786,7 +786,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 					match_data.UnpatchedParentAddress = match_map_iter->first;
 					match_data.PatchedParentAddress = match_map_iter->second.Addresses[1];
 
-					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 					{
 						LogMessage(0, __FUNCTION__, "%X-%X: %d%%\n", match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
 						LogMessage(0, __FUNCTION__, "\tParent %X-%X (link type: %d, match_rate_info_count:%d)\n", match_map_iter->first, match_map_iter->second.Addresses[1], link_types[i], match_rate_info_count);
@@ -887,7 +887,7 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 			{
 				for (va_t block_address : block_addresses)
 				{
-					if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, 0) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
+					if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, 0) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 						LogMessage(0, __FUNCTION__, "Function: %X Block: %X\r\n", source_function_addr, block_address);
 
 					for (multimap <va_t, MatchData>::iterator match_map_it = pCurrentMatchMap->find(block_address);
@@ -895,13 +895,13 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 						match_map_it++)
 					{
 						va_t target_addr = match_map_it->second.Addresses[1];
-						if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, 0)))
+						if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 							LogMessage(0, __FUNCTION__, "Function: %X Block: %X:%X\r\n", source_function_addr, match_map_it->second.Addresses[0], target_addr);
 
 						va_t target_function_address;
 						if (TargetIDASession->GetFunctionAddress(target_addr, target_function_address))
 						{
-							if (pDumpAddressChecker && (pDumpAddressChecker->IsDumpPair(block_address, target_addr) || pDumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
+							if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
 								LogMessage(0, __FUNCTION__, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_address, block_address, target_addr);
 
 							unordered_map <va_t, va_t>::iterator function_match_count_it = function_match_count.find(target_function_address);
@@ -924,7 +924,7 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 
 				for (auto& val : function_match_count)
 				{
-					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, val.first))
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(source_function_addr, val.first))
 						LogMessage(0, __FUNCTION__, "%X:%X( %u )\n", source_function_addr, val.first, val.second);
 
 					if (maximum_function_match_count < val.second)
@@ -938,7 +938,7 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 				if (chosen_target_function_addr)
 				{
 					//Remove Except chosen_target_function_addr from match_map
-					if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(source_function_addr, chosen_target_function_addr))
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(source_function_addr, chosen_target_function_addr))
 						LogMessage(0, __FUNCTION__, "Choosing ( %X:%X )\n", source_function_addr, chosen_target_function_addr);
 
 					if (pCurrentMatchMap->find(source_function_addr) == pCurrentMatchMap->end())
@@ -950,7 +950,7 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 						match_data.Addresses[1] = chosen_target_function_addr;
 						match_data.MatchRate = 100;
 
-						if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
+						if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 							LogMessage(0, __FUNCTION__, "%s adding to temporary map %X-%X: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
 
 						pMatchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));

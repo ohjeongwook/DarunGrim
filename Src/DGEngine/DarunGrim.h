@@ -17,8 +17,8 @@ enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 class DarunGrim
 {
 private:
-    IDASession *pSourceIDASession;
-    IDASession *pTargetIDASession;
+    IDASession *m_psourceIDASession;
+    IDASession *m_ptargetIDASession;
 
     Storage *pStorage;
     IDASessions *pIDASessions;
@@ -54,28 +54,28 @@ public:
 
     IDASession *GetSourceClientManager()
     {
-        return pSourceIDASession;
+        return m_psourceIDASession;
     }
 
     IDASession *GetTargetClientManager()
     {
-        return pTargetIDASession;
+        return m_ptargetIDASession;
     }
 
     void JumpToAddress(va_t address, DWORD type)
     {
         if (type == SOURCE_CONTROLLER)
         {
-            if (pSourceIDASession)
+            if (m_psourceIDASession)
             {
-                pSourceIDASession->JumpToAddress(address);
+                m_psourceIDASession->JumpToAddress(address);
             }
         }
         else
         {
-            if (pTargetIDASession)
+            if (m_ptargetIDASession)
             {
-                pTargetIDASession->JumpToAddress(address);
+                m_ptargetIDASession->JumpToAddress(address);
             }
         }
     }
@@ -84,46 +84,46 @@ public:
     {
         if (type == TARGET_CONTROLLER)
         {
-            if (pSourceIDASession)
+            if (m_psourceIDASession)
             {
-                pSourceIDASession->JumpToAddress(address);
+                m_psourceIDASession->JumpToAddress(address);
             }
         }
         else
         {
-            if (pTargetIDASession)
+            if (m_ptargetIDASession)
             {
-                pTargetIDASession->JumpToAddress(address);
+                m_ptargetIDASession->JumpToAddress(address);
             }
         }
     }
 
     char *GetSourceOrigFilename()
     {
-        if (pSourceIDASession)
+        if (m_psourceIDASession)
         {
-            char *filename = pSourceIDASession->GetOriginalFilePath();
+            char *filename = m_psourceIDASession->GetOriginalFilePath();
         }
         return NULL;
     }
 
     char *GetTargetOrigFilename()
     {
-        if (pTargetIDASession)
+        if (m_ptargetIDASession)
         {
-            return pTargetIDASession->GetOriginalFilePath();
+            return m_ptargetIDASession->GetOriginalFilePath();
         }
         return NULL;
     }
 
     list <BLOCK> GetSourceAddresses(va_t address)
     {
-        return pSourceIDASession->GetFunctionMemberBlocks(address);
+        return m_psourceIDASession->GetFunctionMemberBlocks(address);
     }
 
     list <BLOCK> GetTargetAddresses(va_t address)
     {
-        return pTargetIDASession->GetFunctionMemberBlocks(address);
+        return m_ptargetIDASession->GetFunctionMemberBlocks(address);
     }
 
     void SetLogParameters(int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL);

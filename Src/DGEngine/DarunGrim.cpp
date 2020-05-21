@@ -15,8 +15,8 @@ LogOperation Logger;
 
 DarunGrim::DarunGrim() :
     m_disassemblyStorage(NULL),
-    pSourceIDASession(NULL),
-    pTargetIDASession(NULL),
+    m_psourceIDASession(NULL),
+    m_ptargetIDASession(NULL),
     pIDASessions(NULL),
     LogFilename(NULL),
     IsLoadedSourceFile(false),
@@ -192,17 +192,17 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char *storage_filename)
     }
     StartIDAListener(DARUNGRIM_PORT);
 
-    pSourceIDASession = new IDASession(m_disassemblyStorage);
-    pTargetIDASession = new IDASession(m_disassemblyStorage);
+    m_psourceIDASession = new IDASession(m_disassemblyStorage);
+    m_ptargetIDASession = new IDASession(m_disassemblyStorage);
 
     //Create a thread that will call ConnectToDarunGrim one by one
     DWORD dwThreadId;
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pSourceIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(m_psourceIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
     SetLoadedSourceFile(TRUE);
 
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(pTargetIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
+    AcceptIDAClient(m_ptargetIDASession, pIDASessions ? FALSE : m_disassemblyStorage ? TRUE : FALSE);
 
     if (!pIDASessions)
     {
@@ -227,8 +227,8 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
 
     pIDASessions->SetLoadIDAController(true);
     pIDASessions->Load((char*)output_storage_filename);
-    pSourceIDASession = pIDASessions->GetSourceIDASession();
-    pTargetIDASession = pIDASessions->GetTargetIDASession();
+    m_psourceIDASession = pIDASessions->GetSourceIDASession();
+    m_ptargetIDASession = pIDASessions->GetTargetIDASession();
 
     Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
     pIDASessions->Analyze();
@@ -261,10 +261,9 @@ bool DarunGrim::Load(const char *storage_filename)
     m_disassemblyStorage = new SQLiteStorage(storage_filename);
     if (m_disassemblyStorage)
     {
-        pIDASessions->SetRetrieveDataForAnalysis(TRUE);
         pIDASessions->Load(storage_filename);
-        pSourceIDASession = pIDASessions->GetSourceIDASession();
-        pTargetIDASession = pIDASessions->GetTargetIDASession();
+        m_psourceIDASession = pIDASessions->GetSourceIDASession();
+        m_ptargetIDASession = pIDASessions->GetTargetIDASession();
     }
     return FALSE;
 }
@@ -277,17 +276,16 @@ bool DarunGrim::PerformDiff()
 
     if (m_disassemblyStorage)
     {
-        pIDASessions->SetRetrieveDataForAnalysis(TRUE);
         pIDASessions->SetSource(m_disassemblyStorage, source_file_id);
         pIDASessions->SetSource(m_disassemblyStorage, target_file_id);
         pIDASessions->Load(m_disassemblyStorage);
-        pSourceIDASession = pIDASessions->GetSourceIDASession();
-        pTargetIDASession = pIDASessions->GetTargetIDASession();
+        m_psourceIDASession = pIDASessions->GetSourceIDASession();
+        m_ptargetIDASession = pIDASessions->GetTargetIDASession();
     }
-    else if (pSourceIDASession && pTargetIDASession)
+    else if (m_psourceIDASession && m_ptargetIDASession)
     {
-        pIDASessions->SetSource(pSourceIDASession);
-        pIDASessions->SetTarget(pTargetIDASession);
+        pIDASessions->SetSource(m_psourceIDASession);
+        pIDASessions->SetTarget(m_ptargetIDASession);
     }
 
     if (pIDASessions)
@@ -403,12 +401,12 @@ void DarunGrim::UpdateIDAControllers()
         if (identity == SourceIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", identity.c_str());
-            pSourceIDASession = p_ida_controller_item->pIDAController;
+            m_psourceIDASession = p_ida_controller_item->pIDAController;
         }
         else if (identity == TargetIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting target controller: %s\n", identity.c_str());
-            pTargetIDASession = p_ida_controller_item->pIDAController;
+            m_ptargetIDASession = p_ida_controller_item->pIDAController;
         }
     }
 }
@@ -450,9 +448,9 @@ bool DarunGrim::SetController(int type, const char *identity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", pIDASession->GetIdentity());
             if (type == SOURCE_CONTROLLER)
-                pSourceIDASession = pIDASession;
+                m_psourceIDASession = pIDASession;
             else if (type == TARGET_CONTROLLER)
-                pTargetIDASession = pIDASession;
+                m_ptargetIDASession = pIDASession;
 
             return TRUE;
         }
@@ -478,11 +476,11 @@ void DarunGrim::JumpToAddresses(unsigned long source_address, unsigned long targ
 {
     UpdateIDAControllers();
 
-    if (pSourceIDASession)
-        pSourceIDASession->JumpToAddress(source_address);
+    if (m_psourceIDASession)
+        m_psourceIDASession->JumpToAddress(source_address);
 
-    if (pTargetIDASession)
-        pTargetIDASession->JumpToAddress(target_address);
+    if (m_ptargetIDASession)
+        m_ptargetIDASession->JumpToAddress(target_address);
 }
 
 void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color)
@@ -491,13 +489,13 @@ void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned lon
 
     if (type == SOURCE_CONTROLLER)
     {
-        if (pSourceIDASession)
-            pSourceIDASession->ColorAddress(start_address, end_address, color);
+        if (m_psourceIDASession)
+            m_psourceIDASession->ColorAddress(start_address, end_address, color);
     }
     else
     {
-        if (pTargetIDASession)
-            pTargetIDASession->ColorAddress(start_address, end_address, color);
+        if (m_ptargetIDASession)
+            m_ptargetIDASession->ColorAddress(start_address, end_address, color);
     }
 }
 
@@ -565,8 +563,8 @@ DWORD DarunGrim::IDACommandProcessor()
     WSANETWORKEVENTS NetworkEvents;
     DWORD EventTotal = 0, index;
 
-    SocketArray[0] = pSourceIDASession->GetSocket();
-    SocketArray[1] = pTargetIDASession->GetSocket();
+    SocketArray[0] = m_psourceIDASession->GetSocket();
+    SocketArray[1] = m_ptargetIDASession->GetSocket();
     for (int i = 0; i < 2; i++)
     {
         WSAEVENT NewEvent = WSACreateEvent();
@@ -642,11 +640,11 @@ DWORD DarunGrim::IDACommandProcessor()
                                     //Show using JUMP_TO_ADDR
                                     if (i == 0)
                                     {
-                                        pTargetIDASession->JumpToAddress(MatchingAddress);
+                                        m_ptargetIDASession->JumpToAddress(MatchingAddress);
                                     }
                                     else
                                     {
-                                        pSourceIDASession->JumpToAddress(MatchingAddress);
+                                        m_psourceIDASession->JumpToAddress(MatchingAddress);
                                     }
                                 }
                             }

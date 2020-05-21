@@ -76,7 +76,7 @@ public:
         return NULL;
     }
 
-    virtual MatchResults *ReadMatchResults(int sourceID, int targetID)
+    virtual MatchResults* ReadMatchResults(int sourceID, int targetID)
     {
         return NULL;
     }

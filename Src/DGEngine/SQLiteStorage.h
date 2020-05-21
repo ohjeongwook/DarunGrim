@@ -185,7 +185,7 @@ public:
     MatchMapList*ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
 
     static int ReadMatchMapCallback(void *arg, int argc, char **argv, char **names);
-    MatchResults *ReadMatchResults(int sourceID, int targetID);
+    MatchResults* ReadMatchResults(int sourceID, int targetID);
 
     static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv, char **names);
     list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
