@@ -132,7 +132,6 @@ public:
     va_t DumpFunctionMatchInfo(int index, va_t address);
 
     void GetMatchStatistics(va_t address, int index, int& found_match_number, int& found_match_with_difference_number, int& not_found_match_number, float& matchrate);
-    void CleanUpMatchDataList(vector<MatchData*> match_data_list);
 
     void ShowDiffMap(va_t unpatched_address, va_t patched_address);
     void TestFunctionMatchRate(int index, va_t Address);
