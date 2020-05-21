@@ -1024,41 +1024,6 @@ BOOL IDASessions::_Load()
         TargetIDASession->Load();
     }
 
-    const char *query = "";
-
-    if (ShowFullMatched)
-    {
-        if (ShowNonMatched)
-        {
-            query = "SELECT SourceAddress, EndAddress, TargetAddress, BlockType, MatchRate, SourceFunctionName, Type, TargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
-                FUNCTION_MATCH_INFO_TABLE
-                " WHERE TheSourceFileID=%u AND TheTargetFileID=%u";
-        }
-        else
-        {
-            query = "SELECT SourceAddress, EndAddress, TargetAddress, BlockType, MatchRate, SourceFunctionName, Type, TargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
-                FUNCTION_MATCH_INFO_TABLE
-                " WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND MatchRate != 0";
-        }
-    }
-    else
-    {
-        if (ShowNonMatched)
-        {
-            query = "SELECT SourceAddress, EndAddress, TargetAddress, BlockType, MatchRate, SourceFunctionName, Type, TargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
-                FUNCTION_MATCH_INFO_TABLE
-                " WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND (NoneMatchCountForTheSource != 0 OR NoneMatchCountForTheTarget != 0 OR MatchCountWithModificationForTheSource!=0 OR MatchCountWithModificationForTheTarget !=0 )";
-        }
-        else
-        {
-            query = "SELECT SourceAddress, EndAddress, TargetAddress, BlockType, MatchRate, SourceFunctionName, Type, TargetFunctionName, MatchCountForTheSource, NoneMatchCountForTheSource, MatchCountWithModificationForTheSource, MatchCountForTheTarget, NoneMatchCountForTheTarget, MatchCountWithModificationForTheTarget From "
-                FUNCTION_MATCH_INFO_TABLE
-                " WHERE TheSourceFileID=%u AND TheTargetFileID=%u AND (NoneMatchCountForTheSource != 0 OR NoneMatchCountForTheTarget != 0 OR MatchCountWithModificationForTheSource!=0 OR MatchCountWithModificationForTheTarget !=0 ) AND MatchRate != 0";
-        }
-    }
-
-    //TODO: FunctionMatchList = m_diffStorage->QueryFunctionMatches(query, SourceID, TargetID);
-
     if (LoadMatchResults)
     {
         m_pMatchResults = m_diffStorage->ReadMatchResults(SourceID, TargetID);
