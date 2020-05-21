@@ -57,7 +57,7 @@ void MatchResults::Erase(va_t source, va_t target)
 
     while (sources.size() > 0)
     {
-        for(va_t address : sources)
+        for (va_t address : sources)
         {
             EraseSource(targets, address, source, target);
         }

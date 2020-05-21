@@ -109,7 +109,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 		{
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing %X %X match\n", , max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
 			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
-			for( found_match_map_iter=DiffResults->MatchMap.find( match_map_iter->first );
+			for ( found_match_map_iter=DiffResults->MatchMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->MatchMap.end() &&
 				match_map_iter->first==found_match_map_iter->first;
 				found_match_map_iter++ )
@@ -134,7 +134,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 
 	/*CLEAN UP
 	unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
-	for( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
+	for ( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
 		reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end();
 		reverse_match_map_iterator++ )
 	{
@@ -144,7 +144,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 		max_match_map_iter=match_map_iter;
 		int maximum_matchrate=match_map_iter->second.MatchRate;
 		unordered_map <va_t, va_t>::iterator found_reverse_match_map_iterator;
-		for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
+		for ( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 			found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 			match_map_iter->first==found_match_map_iter->first;
 			found_match_map_iter++ )
@@ -166,7 +166,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing( reverse ) %X %X match\n", __FUNCTION__, max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
 			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
 			unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
-			for( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
+			for ( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
 				match_map_iter->first==found_match_map_iter->first;
 				found_match_map_iter++ )
@@ -179,7 +179,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->second.Addresses[1], found_match_map_iter->first );
 					multimap <va_t,  MatchData>::iterator iter=DiffResults->MatchMap.find( found_match_map_iter->second.Addresses[1] );
-					for( ;iter!=DiffResults->MatchMap.end() && iter->first==found_match_map_iter->second.Addresses[1];iter++ )
+					for ( ;iter!=DiffResults->MatchMap.end() && iter->first==found_match_map_iter->second.Addresses[1];iter++ )
 					{
 						if( iter->second.Address==found_match_map_iter->first )
 						{
@@ -421,7 +421,7 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 	//Fingerprint match on SourceBlockAddresses, TargetBlockAddresse
 	/*
 	list <va_t>::iterator SourceBlockAddressIter;
-	for( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
+	for ( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
 	{
 		va_t SourceAddress=*SourceBlockAddressIter;
 		multimap <va_t, MatchData>:: MatchDataIterator;
@@ -437,7 +437,7 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_fingerprint> fingerprint_map;
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_fingerprint>::iterator fingerprint_map_iter;
 
-	for(va_t SourceAddress : SourceBlockAddresses)
+	for (va_t SourceAddress : SourceBlockAddresses)
 	{
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tSource=%X\n", SourceAddress );
 		address_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(SourceAddress);
@@ -460,7 +460,7 @@ MATCHMAP *DiffAlgorithms::DoFingerPrintMatchInsideFunction(va_t SourceFunctionAd
 		}
 	}
 
-	for(va_t targetAddress: TargetBlockAddresses)
+	for (va_t targetAddress: TargetBlockAddresses)
 	{
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tTarget=%X\n", TargetAddress );
 		address_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(targetAddress);

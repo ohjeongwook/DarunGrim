@@ -299,7 +299,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, Op
 
     list <ea_t> OrderedAddresses;
     list <string> Signatures;
-    for(ea_t address : RootAddresses)
+    for (ea_t address : RootAddresses)
     {
         list <ea_t> TargetAddresses;
         list <ea_t>::iterator TargetAddressesIter;
@@ -961,7 +961,7 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
 
     /*
     list <AddressRegion>::iterator regionsIter;
-    for(regionsIter=regions.begin();regionsIter!=regions.end();regionsIter++)
+    for (regionsIter=regions.begin();regionsIter!=regions.end();regionsIter++)
     {
         LogMessage(0, __FUNCTION__, "Collected Addresses %X - %X\n",(*regionsIter).startEA,(*regionsIter).endEA);
     }
