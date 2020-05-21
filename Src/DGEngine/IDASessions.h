@@ -17,7 +17,7 @@ private:
     bool ShowFullMatched;
     bool ShowNonMatched;
 
-    bool LoadDiffResults;
+    bool LoadMatchResults;
     bool LoadIDAController;
 
     int SourceID;
@@ -72,9 +72,9 @@ public:
         bRetrieveDataForAnalysis = newRetrieveDataForAnalysis;
     }
 
-    void SetLoadDiffResults(bool NewLoadDiffResults)
+    void SetLoadMatchResults(bool NewLoadMatchResults)
     {
-        LoadDiffResults = NewLoadDiffResults;
+        LoadMatchResults = NewLoadMatchResults;
     }
     void SetLoadIDAController(bool NewLoadIDAController)
     {
