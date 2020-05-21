@@ -18,10 +18,10 @@ extern LogOperation Logger;
 
 #define DEBUG_LEVEL 0
 
-char* MapInfoTypesStr[] = { "Call", "Cref From", "Cref To", "Dref From", "Dref To" };
+char *MapInfoTypesStr[] = { "Call", "Cref From", "Cref To", "Dref From", "Dref To" };
 int types[] = { CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED };
 
-IDASession::IDASession(DisassemblyStorage* disassemblyStorage) :
+IDASession::IDASession(DisassemblyStorage *disassemblyStorage) :
     ClientAnalysisInfo(NULL),
     TargetFunctionAddress(0),
     m_OriginalFilePath(NULL),
@@ -104,21 +104,21 @@ BOOL IDASession::LoadIDARawDataFromSocket(SOCKET socket)
     if (SendTLVData(SEND_ANALYSIS_DATA, (PBYTE)data, sizeof(DWORD) + strlen(shared_memory_name) + 1))
     {
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d LoadIDARawData\n", __FUNCTION__);
-        LoadIDARawData((PBYTE(*)(PVOID Context, BYTE * Type, DWORD * Length))GetData, (PVOID)&IDADataSharer);
+        LoadIDARawData((PBYTE(*)(PVOID Context, BYTE  *Type, DWORD  *Length))GetData, (PVOID)&IDADataSharer);
         return TRUE;
     }
     return FALSE;
 }
 
-va_t* IDASession::GetMappedAddresses(va_t address, int type, int* p_length)
+va_t *IDASession::GetMappedAddresses(va_t address, int type, int *p_length)
 {
-    va_t* addresses = NULL;
+    va_t *addresses = NULL;
     int current_size = 50;
 
-    addresses = (va_t*)malloc(sizeof(va_t) * current_size);
+    addresses = (va_t*)malloc(sizeof(va_t)  *current_size);
     int addresses_i = 0;
 
-    multimap <va_t, PMapInfo>* p_map_info_map;
+    multimap <va_t, PMapInfo> *p_map_info_map;
 
     if (ClientAnalysisInfo && ClientAnalysisInfo->map_info_map.size() > 0)
     {
@@ -132,10 +132,7 @@ va_t* IDASession::GetMappedAddresses(va_t address, int type, int* p_length)
 
     multimap <va_t, PMapInfo>::iterator map_info_map_pIter;
 
-    for (map_info_map_pIter = p_map_info_map->find(address);
-        map_info_map_pIter != p_map_info_map->end();
-        map_info_map_pIter++
-        )
+    for (map_info_map_pIter = p_map_info_map->find(address); map_info_map_pIter != p_map_info_map->end(); map_info_map_pIter++)
     {
         if (map_info_map_pIter->first != address)
             break;
@@ -146,7 +143,7 @@ va_t* IDASession::GetMappedAddresses(va_t address, int type, int* p_length)
             if (current_size < addresses_i + 2)
             {
                 current_size += 50;
-                addresses = (va_t*)realloc(addresses, sizeof(va_t) * (current_size));
+                addresses = (va_t*)realloc(addresses, sizeof(va_t)  *(current_size));
             }
             addresses[addresses_i] = map_info_map_pIter->second->Dst;
             addresses_i++;
@@ -171,11 +168,11 @@ va_t* IDASession::GetMappedAddresses(va_t address, int type, int* p_length)
 }
 
 
-list <va_t>* IDASession::GetFunctionAddresses()
+list <va_t> *IDASession::GetFunctionAddresses()
 {
     if (TargetFunctionAddress != 0)
     {
-        list <va_t>* function_addresses = new list<va_t>;
+        list <va_t> *function_addresses = new list<va_t>;
         if (function_addresses)
         {
             function_addresses->push_back(TargetFunctionAddress);
@@ -249,7 +246,7 @@ list <va_t>* IDASession::GetFunctionAddresses()
         }
     }
 
-    list <va_t>* function_addresses = new list<va_t>;
+    list <va_t> *function_addresses = new list<va_t>;
     if (function_addresses)
     {
         for (unordered_set <va_t>::iterator it = function_address_hash.begin();
@@ -268,9 +265,9 @@ list <va_t>* IDASession::GetFunctionAddresses()
 #undef USE_LEGACY_MAP_FOR_ADDRESS_unordered_map
 void IDASession::RemoveFromFingerprintHash(va_t address)
 {
-    unsigned char* Fingerprint = NULL;
+    unsigned char *Fingerprint = NULL;
 
-    char* FingerprintStr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
+    char *FingerprintStr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
 
     if (FingerprintStr)
     {
@@ -297,7 +294,7 @@ void IDASession::RemoveFromFingerprintHash(va_t address)
     }
 }
 
-char* IDASession::GetFingerPrintStr(va_t address)
+char *IDASession::GetFingerPrintStr(va_t address)
 {
     if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_map.size() > 0)
     {
@@ -309,13 +306,13 @@ char* IDASession::GetFingerPrintStr(va_t address)
     }
     else
     {
-        char* FingerprintPtr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
+        char *FingerprintPtr = m_pDisassemblyStorage->ReadFingerPrint(m_FileID, address);
         return FingerprintPtr;
     }
     return NULL;
 }
 
-char* IDASession::GetName(va_t address)
+char *IDASession::GetName(va_t address)
 {
 #ifdef USE_LEGACY_MAP
     multimap <va_t, string>::iterator address_name_map_iter;
@@ -327,7 +324,7 @@ char* IDASession::GetName(va_t address)
     }
     return NULL;
 #else
-    char* Name = m_pDisassemblyStorage->ReadName(m_FileID, address);
+    char *Name = m_pDisassemblyStorage->ReadName(m_FileID, address);
     return Name;
 #endif
 }
@@ -350,13 +347,10 @@ va_t IDASession::GetBlockAddress(va_t address)
 void IDASession::DumpBlockInfo(va_t block_address)
 {
     int addresses_number;
-    char* type_descriptions[] = { "Cref From", "Cref To", "Call", "Dref From", "Dref To" };
+    char *type_descriptions[] = { "Cref From", "Cref To", "Call", "Dref From", "Dref To" };
     for (int i = 0; i < sizeof(types) / sizeof(int); i++)
     {
-        va_t* addresses = GetMappedAddresses(
-            block_address,
-            types[i],
-            &addresses_number);
+        va_t *addresses = GetMappedAddresses(block_address, types[i], &addresses_number);
         if (addresses)
         {
             Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d %s: ", __FUNCTION__, m_FileID, type_descriptions[i]);
@@ -367,7 +361,7 @@ void IDASession::DumpBlockInfo(va_t block_address)
             Logger.Log(10, LOG_IDA_CONTROLLER, "\n");
         }
     }
-    char* hex_str = GetFingerPrintStr(block_address);
+    char *hex_str = GetFingerPrintStr(block_address);
     if (hex_str)
     {
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
@@ -375,9 +369,9 @@ void IDASession::DumpBlockInfo(va_t block_address)
     }
 }
 
-const char* GetAnalysisDataTypeStr(int type)
+const char *GetAnalysisDataTypeStr(int type)
 {
-    static const char* Types[] = { "BASIC_BLOCK", "MAP_INFO", "FILE_INFO", "END_OF_DATA" };
+    static const char *Types[] = { "BASIC_BLOCK", "MAP_INFO", "FILE_INFO", "END_OF_DATA" };
     if (type < sizeof(Types) / sizeof(Types[0]))
         return Types[type];
     return "Unknown";
@@ -385,25 +379,25 @@ const char* GetAnalysisDataTypeStr(int type)
 
 enum { TYPE_FILE_INFO, TYPE_ADDRESS_unordered_map, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_FINGERPRINT_unordered_map, TYPE_TWO_LEVEL_FINGERPRINT_unordered_map, TYPE_ADDRESS_FINGERPRINT_unordered_map, TYPE_NAME_unordered_map, TYPE_ADDRESS_NAME_unordered_map, TYPE_MAP_INFO_unordered_map };
 
-const char* GetFileDataTypeStr(int type)
+const char *GetFileDataTypeStr(int type)
 {
-    static const char* Types[] = { "FILE_INFO", "ADDRESS_unordered_map", "ADDRESS_DISASSEMBLY_MAP", "FINGERPRINT_unordered_map", "TWO_LEVEL_FINGERPRINT_unordered_map", "ADDRESS_FINGERPRINT_unordered_map", "NAME_unordered_map", "ADDRESS_NAME_unordered_map", "MAP_INFO_unordered_map" };
+    static const char *Types[] = { "FILE_INFO", "ADDRESS_unordered_map", "ADDRESS_DISASSEMBLY_MAP", "FINGERPRINT_unordered_map", "TWO_LEVEL_FINGERPRINT_unordered_map", "ADDRESS_FINGERPRINT_unordered_map", "NAME_unordered_map", "ADDRESS_NAME_unordered_map", "MAP_INFO_unordered_map" };
     if (type < sizeof(Types) / sizeof(Types[0]))
         return Types[type];
     return "Unknown";
 }
 
-BOOL IDASession::Save(char* DataFile, DWORD Offset, DWORD dwMoveMethod, unordered_set <va_t>* pSelectedAddresses)
+BOOL IDASession::Save(char *DataFile, DWORD Offset, DWORD dwMoveMethod, unordered_set <va_t> *pSelectedAddresses)
 {
     return TRUE;
 }
 
-BOOL IDASession::Retrieve(char* DataFile, DWORD Offset, DWORD Length)
+BOOL IDASession::Retrieve(char *DataFile, DWORD Offset, DWORD Length)
 {
     return TRUE;
 }
 
-char* IDASession::GetOriginalFilePath()
+char *IDASession::GetOriginalFilePath()
 {
     return m_OriginalFilePath;
 }
@@ -434,7 +428,7 @@ void IDASession::SetFileID(int FileID)
     m_FileID = FileID;
 }
 
-void IDASession::LoadMapInfo(multimap <va_t, PMapInfo>* p_map_info_map, va_t Address, bool IsFunction)
+void IDASession::LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Address, bool IsFunction)
 {
     if (Address == 0)
     {
@@ -449,7 +443,7 @@ void IDASession::LoadMapInfo(multimap <va_t, PMapInfo>* p_map_info_map, va_t Add
 }
 
 
-void IDASession::BuildCrefToMap(multimap <va_t, PMapInfo>* p_map_info_map)
+void IDASession::BuildCrefToMap(multimap <va_t, PMapInfo> *p_map_info_map)
 {
     for (multimap <va_t, PMapInfo>::iterator it = p_map_info_map->begin();
         it != p_map_info_map->end();
@@ -473,7 +467,7 @@ BOOL IDASession::Load()
     return TRUE;
 }
 
-void IDASession::DeleteMatchInfo(DisassemblyStorage* InputDB, int FileID, va_t FunctionAddress)
+void IDASession::DeleteMatchInfo(DisassemblyStorage *InputDB, int FileID, va_t FunctionAddress)
 {
     m_pDisassemblyStorage->DeleteMatchInfo(FileID, FunctionAddress);
 }
@@ -489,7 +483,7 @@ typedef struct {
     va_t child_address;
 } AddressPair;
 
-void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE* Type, DWORD* Length), PVOID Context)
+void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context)
 {
     BYTE type;
     DWORD length;
@@ -549,7 +543,7 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE* Ty
             ClientAnalysisInfo->name_map.insert(NameAddress_Pair(pBasicBlock->Data, pBasicBlock->StartAddress));
             if (pBasicBlock->FingerprintLen > 0)
             {
-                unsigned char* FingerprintBuffer = (unsigned char*)malloc(pBasicBlock->FingerprintLen + sizeof(short));
+                unsigned char *FingerprintBuffer = (unsigned char*)malloc(pBasicBlock->FingerprintLen + sizeof(short));
                 *(unsigned short*)FingerprintBuffer = pBasicBlock->FingerprintLen;
                 memcpy(FingerprintBuffer + sizeof(short), pBasicBlock->Data + pBasicBlock->NameLen + pBasicBlock->DisasmLinesLen, *(unsigned short*)FingerprintBuffer);
                 ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(pBasicBlock->StartAddress, FingerprintBuffer));
@@ -827,7 +821,7 @@ BOOL IDASession::SendTLVData(char type, PBYTE data, DWORD data_length)
     return FALSE;
 }
 
-char* IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
+char *IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
 {
 #ifdef USE_LEGACY_MAP
     //Look for p_analysis_info->address_disassembly_map first
@@ -865,7 +859,7 @@ char* IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAd
     }
     return strdup("");
 #else
-    char* DisasmLines = m_pDisassemblyStorage->ReadDisasmLine(m_FileID, StartAddress);
+    char *DisasmLines = m_pDisassemblyStorage->ReadDisasmLine(m_FileID, StartAddress);
 
     if (DisasmLines)
     {
@@ -933,7 +927,7 @@ list <BLOCK> IDASession::GetFunctionMemberBlocks(unsigned long function_address)
     if (ClientAnalysisInfo)
     {
         list <va_t> address_list;
-        list <va_t>::iterator address_list_iter;
+        list <va_t>::iterator blockIterator;
         unordered_set <va_t> checked_addresses;
         address_list.push_back(function_address);
 
@@ -945,13 +939,13 @@ list <BLOCK> IDASession::GetFunctionMemberBlocks(unsigned long function_address)
 
         checked_addresses.insert(function_address);
 
-        for (address_list_iter = address_list.begin();
-            address_list_iter != address_list.end();
-            address_list_iter++
+        for (blockIterator = address_list.begin();
+            blockIterator != address_list.end();
+            blockIterator++
             )
         {
             int addresses_number;
-            va_t* p_addresses = GetMappedAddresses(*address_list_iter, CREF_FROM, &addresses_number);
+            va_t *p_addresses = GetMappedAddresses(*blockIterator, CREF_FROM, &addresses_number);
             if (p_addresses && addresses_number > 0)
             {
                 for (int i = 0; i < addresses_number; i++)
@@ -1057,94 +1051,15 @@ int IDASession::GetFileID()
     return m_FileID;
 }
 
-unsigned char HexToChar(char* Hex)
-{
-    int ReturnValue = 0;
-    for (int i = 0; Hex[i] && i < 2; i++)
-    {
-        int CurrentInt = -1;
-        char c = Hex[i];
-        if ('0' <= c && c <= '9')
-        {
-            CurrentInt = c - '0';
-        }
-        else if ('a' <= c && c <= 'f')
-        {
-            CurrentInt = c - 'a' + 10;
-        }
-        else if ('A' <= c && c <= 'F')
-        {
-            CurrentInt = c - 'A' + 10;
-        }
-        if (CurrentInt >= 0)
-            ReturnValue = ReturnValue * 16 + CurrentInt;
-    }
-    return ReturnValue;
-}
-
-unsigned char* HexToBytes(char* HexBytes, int* pLen)
-{
-    int StrLen = strlen(HexBytes);
-    *pLen = StrLen / 2;
-    unsigned char* Bytes = (unsigned char*)malloc(*pLen);
-    if (Bytes)
-    {
-        for (int i = 0; i < StrLen; i += 2)
-        {
-            Bytes[i / 2] = HexToChar(HexBytes + i);
-        }
-    }
-    return Bytes;
-}
-
-unsigned char* HexToBytesWithLengthAmble(char* HexBytes)
-{
-    int StrLen = strlen(HexBytes);
-    unsigned char* Bytes = (unsigned char*)malloc(StrLen / 2 + sizeof(short));
-    *(unsigned short*)Bytes = StrLen / 2;
-    if (Bytes)
-    {
-        for (int i = 0; i < StrLen; i += 2)
-        {
-            Bytes[sizeof(short) + i / 2] = HexToChar(HexBytes + i);
-        }
-    }
-    return Bytes;
-}
-
-char* BytesWithLengthAmbleToHex(unsigned char* Bytes)
-{
-    int Len = *(unsigned short*)Bytes;
-
-    char* Hex = (char*)malloc(Len * 2 + 1);
-    Hex[0] = NULL;
-    for (int i = 0; i < Len; i++)
-    {
-        char tmp_buffer[10] = { 0, };
-        _snprintf(tmp_buffer, sizeof(tmp_buffer) - 1, "%.2x", Bytes[sizeof(short) + i]);
-        strcat(Hex, tmp_buffer);
-    }
-    return Hex;
-}
-
-int IsEqualByteWithLengthAmble(unsigned char* Bytes01, unsigned char* Bytes02)
-{
-    if (*(unsigned short*)Bytes01 == *(unsigned short*)Bytes02)
-    {
-        return (memcmp(Bytes01 + sizeof(unsigned short), Bytes02 + sizeof(unsigned short), *(unsigned short*)Bytes01) == 0);
-    }
-    return FALSE;
-}
-
-multimap <va_t, va_t>* IDASession::GetFunctionToBlock()
+multimap <va_t, va_t> *IDASession::GetFunctionToBlock()
 {
     Logger.Log(10, LOG_IDA_CONTROLLER, "LoadFunctionMembersMap\n");
     return &FunctionToBlock;
 }
 
-static int ReadAddressToFunctionMapResultsCallback(void* arg, int argc, char** argv, char** names)
+static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char* *argv, char* *names)
 {
-    unordered_map <va_t, va_t>* AddressToFunctionMap = (unordered_map <va_t, va_t>*)arg;
+    unordered_map <va_t, va_t> *AddressToFunctionMap = (unordered_map <va_t, va_t>*)arg;
     if (AddressToFunctionMap)
     {
 #if DEBUG_LEVEL > 1
@@ -1160,7 +1075,7 @@ void IDASession::LoadBlockToFunction()
     int Count = 0;
 
     Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d GetFunctionAddresses\n", __FUNCTION__);
-    list <va_t>* function_addresses = GetFunctionAddresses();
+    list <va_t> *function_addresses = GetFunctionAddresses();
     if (function_addresses)
     {
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Function %u entries\n", __FUNCTION__, m_FileID, function_addresses->size());
@@ -1263,10 +1178,7 @@ void IDASession::LoadBlockToFunction()
         function_addresses->clear();
         delete function_addresses;
 
-        for (multimap <va_t, va_t>::iterator a2f_it = BlockToFunction.begin();
-            a2f_it != BlockToFunction.end();
-            a2f_it++
-            )
+        for (multimap <va_t, va_t>::iterator a2f_it = BlockToFunction.begin(); a2f_it != BlockToFunction.end(); a2f_it++)
         {
             FunctionToBlock.insert(pair<va_t, va_t>(a2f_it->second, a2f_it->first));
         }
