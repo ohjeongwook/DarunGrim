@@ -63,7 +63,7 @@ string GetFeatureStr(DWORD features)
 #define CF_USE 1
 #define CF_CHG 2
 
-void GetFeatureBits(int itype, char* FeatureMap, int Size, insn_t insn)
+void GetFeatureBits(int itype, char *FeatureMap, int Size, insn_t insn)
 {
     memset(FeatureMap, 0, Size);
     if (Size < sizeof(char) * 6)
@@ -107,7 +107,7 @@ void GetFeatureBits(int itype, char* FeatureMap, int Size, insn_t insn)
     }
 }
 
-char* OpTypeStr[] = {
+char *OpTypeStr[] = {
     "o_void",
     "o_reg",
     "o_mem",
@@ -234,10 +234,10 @@ int GetInstructionWeight(insn_t instruction)
     return Weight;
 }
 
-char* EscapeString(qstring& input_string)
+char *EscapeString(qstring& input_string)
 {
     //<>{}|
-    char* buffer = (char*)malloc(input_string.length() * 2 + 1);
+    char *buffer = (char*)malloc(input_string.length() * 2 + 1);
     int j = 0;
     for (int i = 0; i < input_string.length() + 1; i++, j++)
     {
@@ -276,9 +276,9 @@ void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <
         Addresses.push_back(Address);
 }
 
-list <insn_t>* ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash)
+list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash)
 {
-    list <insn_t>* CmdArray = new list <insn_t>;
+    list <insn_t> *CmdArray = new list <insn_t>;
     unordered_set <ea_t> ChildAddresses;
     multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>::iterator InstructionMapIter;
 
@@ -376,7 +376,7 @@ list <insn_t>* ReoderInstructions(multimap <OperandPosition, OperandPosition, Op
 }
 
 void DumpDOT(
-    char* Filename,
+    char *Filename,
     multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap,
     unordered_map <ea_t, insn_t>& InstructionHash
 )
@@ -414,7 +414,7 @@ void DumpDOT(
 
                 print_operand(&operand_str, address, i);
                 tag_remove(&operand_str, operand_str, 0);
-                char* escaped_operand_str = EscapeString(operand_str);
+                char *escaped_operand_str = EscapeString(operand_str);
                 if (escaped_operand_str)
                 {
                     WriteToLogFile(hFile, "|<f%u>%s", i, escaped_operand_str);
@@ -574,7 +574,7 @@ void IDAAnalyzer::UpdateInstructionMap
     //Operand Tracing
     for (int i = UA_MAXOP - 1; i >= 0; i--)
     {
-        op_t* pOperand = &instruction.ops[i];
+        op_t *pOperand = &instruction.ops[i];
         if (pOperand->type > 0)
         {
             //o_mem,o_displ,o_far,o_near -> addr
@@ -639,7 +639,7 @@ void IDAAnalyzer::UpdateInstructionMap
     }
 }
 
-void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t flags, bool gatherCmdArray)
+void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool gatherCmdArray)
 {
     string disasm_buffer;
 
@@ -655,7 +655,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArra
 
     if (is_code(flags))
     {
-        func_t* p_func = get_func(src_block_address);
+        func_t *p_func = get_func(src_block_address);
         if (p_func)
         {
             basic_block.FunctionAddress = p_func->start_ea;
@@ -817,7 +817,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArra
             ((unsigned char*)p_basic_block->Data)[basic_block.NameLen + basic_block.DisasmLinesLen + fi] = FingerPrint.at(fi);
         }
 
-        insn_t* CmdsPtr = (insn_t*)(p_basic_block->Data + basic_block.NameLen + basic_block.DisasmLinesLen + basic_block.FingerprintLen);
+        insn_t *CmdsPtr = (insn_t*)(p_basic_block->Data + basic_block.NameLen + basic_block.DisasmLinesLen + basic_block.FingerprintLen);
 
         if (gatherCmdArray)
         {
@@ -972,7 +972,7 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
 }
 
 
-ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags)
+ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArray, flags_t *p_flags)
 {
     while (1)
     {
@@ -1387,7 +1387,7 @@ void IDAAnalyzer::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
                 UpdateInstructionMap(OperandsHash, FlagsHash, InstructionMap, InstructionHash, *CmdArrayIter);
             }
 
-            list <insn_t>* NewCmdArray = ReoderInstructions(InstructionMap, InstructionHash);
+            list <insn_t> *NewCmdArray = ReoderInstructions(InstructionMap, InstructionHash);
             if (NewCmdArray)
             {
                 DumpBasicBlock(current_address, NewCmdArray, Flag, gatherCmdArray);
@@ -1426,7 +1426,7 @@ void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 
     m_disassemblyStorage.BeginTransaction();
 
-    char* input_file_path = NULL;
+    char *input_file_path = NULL;
     get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
     m_disassemblyStorage.SetFileInfo(&file_info);
 
@@ -1436,7 +1436,7 @@ void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
     {
         for (int i = 0; i < get_segm_qty(); i++)
         {
-            segment_t* seg_p = getnseg(i);
+            segment_t *seg_p = getnseg(i);
             LogMessage(1, __FUNCTION__, "Segment: %d (%llu ~ %llu)\n", i, seg_p->start_ea, seg_p->end_ea);
 
             AddressRegion address_region;
@@ -1448,7 +1448,7 @@ void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
     else
     {
         //TODO: Porting selected= read_range_selection(&saddr,&eaddr);
-        func_t* cur_func_t = get_func(startEA);
+        func_t *cur_func_t = get_func(startEA);
         if (cur_func_t->start_ea == startEA)
         {
             //Collect all member addresses
@@ -1512,7 +1512,7 @@ ea_t IDAAnalyzer::GetBlockEnd(ea_t address)
 int IDAAnalyzer::ConnectFunctionChunks(ea_t address)
 {
 	int connected_links_count = 0;
-	func_t* func = get_func(address);
+	func_t *func = get_func(address);
 	qstring function_name;
 	get_short_name(&function_name, address);
 
@@ -1522,7 +1522,7 @@ int IDAAnalyzer::ConnectFunctionChunks(ea_t address)
 	ea_t cref = get_first_cref_to(address);
 	while (cref != BADADDR)
 	{
-		func_t* cref_func = get_func(cref);
+		func_t *cref_func = get_func(cref);
 		if (cref_func != func)
 		{
 			insn_t insn;
@@ -1545,7 +1545,7 @@ int IDAAnalyzer::ConnectFunctionChunks(ea_t address)
 		cref = get_first_cref_to(address);
 		while (cref != BADADDR)
 		{
-			func_t* cref_func = get_func(cref);
+			func_t *cref_func = get_func(cref);
 			if (cref_func)
 			{
 				qstring cref_function_name;
@@ -1575,7 +1575,7 @@ int IDAAnalyzer::ConnectFunctionChunks(ea_t address)
 			decode_insn(&insn, cref);
 			if (!(insn.itype == NN_call || insn.itype == NN_callfi || insn.itype == NN_callni))
 			{
-				func_t* cref_func = get_func(cref);
+				func_t *cref_func = get_func(cref);
 				if (cref_func)
 				{
 					qstring cref_function_name;
@@ -1605,7 +1605,7 @@ void IDAAnalyzer::FixFunctionChunks()
 		connected_links_count = 0;
 		for (size_t i = 0; i < get_func_qty(); i++)
 		{
-			func_t* f = getn_func(i);
+			func_t *f = getn_func(i);
 			if (!IsValidFunctionStart(f->start_ea))
 			{
 				qstring function_name;
@@ -1648,7 +1648,7 @@ void IDAAnalyzer::FixExceptionHandlers()
 
 	for (int n = 0; n < get_segm_qty(); n++)
 	{
-		segment_t* seg_p = getnseg(n);
+		segment_t *seg_p = getnseg(n);
 		if (seg_p->type == SEG_XTRN)
 		{
 			asize_t current_item_size;

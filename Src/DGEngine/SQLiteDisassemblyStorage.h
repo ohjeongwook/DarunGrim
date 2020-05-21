@@ -164,36 +164,36 @@ public:
 
     int GetLastInsertRowID();
     int ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...);
-    static int display_callback(void *NotUsed, int argc, char* *argv, char* *azColName);
-    static int ReadRecordIntegerCallback(void *arg, int argc, char* *argv, char* *names);
-    static int ReadRecordStringCallback(void *arg, int argc, char* *argv, char* *names);
+    static int display_callback(void *NotUsed, int argc, char **argv, char **azColName);
+    static int ReadRecordIntegerCallback(void *arg, int argc, char **argv, char **names);
+    static int ReadRecordStringCallback(void *arg, int argc, char **argv, char **names);
 
-    static int ReadFunctionAddressesCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char **names);
     void ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap);
 
     char *ReadFingerPrint(int fileID, va_t address);
     char *ReadName(int fileID, va_t address);
     va_t ReadBlockStartAddress(int fileID, va_t address);
 
-    static int ReadBasicBlockDataCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadBasicBlockDataCallback(void *arg, int argc, char **argv, char **names);
     void ReadBasicBlockInfo(int fileID, char *conditionStr, AnalysisInfo *analysisInfo);
 
-    static int ReadMapInfoCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadMapInfoCallback(void *arg, int argc, char **argv, char **names);
     multimap <va_t, PMapInfo> *ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false);
 
-    static int ReadOneMatchMapCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadOneMatchMapCallback(void *arg, int argc, char **argv, char **names);
     MatchMapList*ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
 
-    static int ReadMatchMapCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadMatchMapCallback(void *arg, int argc, char **argv, char **names);
     MatchResults *ReadMatchResults(int sourceID, int targetID);
 
-    static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadFunctionMemberAddressesCallback(void *arg, int argc, char **argv, char **names);
     list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address);
 
-    static int QueryFunctionMatchesCallback(void *arg, int argc, char* *argv, char* *names);
+    static int QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names);
     vector <FunctionMatchInfo> QueryFunctionMatches(const char *query, int sourceID, int targetID);
 
-    static int ReadFileListCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadFileListCallback(void *arg, int argc, char **argv, char **names);
     FileList ReadFileList();
 
     void InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate);
@@ -204,7 +204,7 @@ public:
 
     char *ReadDisasmLine(int fileID, va_t startAddress);
 
-    static int ReadBasicBlockCallback(void *arg, int argc, char* *argv, char* *names);
+    static int ReadBasicBlockCallback(void *arg, int argc, char **argv, char **names);
     PBasicBlock ReadBasicBlock(int fileID, va_t address);
 
     void UpdateBasicBlock(int fileID, va_t address1, va_t address2);

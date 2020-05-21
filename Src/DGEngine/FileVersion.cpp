@@ -6,11 +6,11 @@
 #include "md5.h"
 #include "FileVersion.h"
 
-char* GetVersionData(LPVOID pVersionBlock, char* EntryName)
+char *GetVersionData(LPVOID pVersionBlock, char *EntryName)
 {
     UINT cbTranslate = 0;
     HRESULT hr;
-    char* Result = NULL;
+    char *Result = NULL;
 
     struct LANGANDCODEPAGE {
         WORD wLanguage;
@@ -37,7 +37,7 @@ char* GetVersionData(LPVOID pVersionBlock, char* EntryName)
             // TODO: write error handler.
         }
 
-        char* lpBuffer;
+        char *lpBuffer;
         UINT dwBytes = sizeof(lpBuffer);
         // Retrieve file description for language and code page "i". 
         VerQueryValue(pVersionBlock,
@@ -55,7 +55,7 @@ char* GetVersionData(LPVOID pVersionBlock, char* EntryName)
     return Result;
 }
 
-char* GetFileVersionInfoStr(LPTSTR szFilename, char* InfoStr)
+char *GetFileVersionInfoStr(LPTSTR szFilename, char *InfoStr)
 {
     DWORD dwSize = 0;
     DWORD dwHandle = 0;
@@ -63,9 +63,9 @@ char* GetFileVersionInfoStr(LPTSTR szFilename, char* InfoStr)
     BOOL bVerQuery = false;
     LPVOID pVersionBlock;
     UINT cbTranslate = 0;
-    char* RetStr = NULL;
+    char *RetStr = NULL;
 
-    VS_FIXEDFILEINFO* vsInfo;
+    VS_FIXEDFILEINFO *vsInfo;
     dwSize = GetFileVersionInfoSize(szFilename, &dwHandle);
     if (dwSize > 0)
     {

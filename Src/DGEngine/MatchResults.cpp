@@ -5,7 +5,7 @@ MatchResults::MatchResults() :pDumpAddressChecker(NULL)
 {
 }
 
-void MatchResults::SetDumpAddressChecker(DumpAddressChecker* p_dump_address_checker)
+void MatchResults::SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
 {
     pDumpAddressChecker = p_dump_address_checker;
 }
@@ -91,7 +91,7 @@ multimap <va_t, MatchData>::iterator MatchResults::Erase(multimap <va_t, MatchDa
     return match_map_iter;
 }
 
-void MatchResults::AddMatchData(MatchData& match_data, const char* debug_str)
+void MatchResults::AddMatchData(MatchData& match_data, const char *debug_str)
 {
     if (pDumpAddressChecker && pDumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
         LogMessage(0, __FUNCTION__, "%s %s [%d] %X-%X: %d%%\n", __FUNCTION__, debug_str, match_data.Type, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
@@ -146,12 +146,10 @@ void MatchResults::AddMatchData(MatchData& match_data, const char* debug_str)
     }
 }
 
-void MatchResults::Append(MATCHMAP* pTemporaryMap)
+void MatchResults::Append(MATCHMAP *pTemporaryMap)
 {
     multimap <va_t, MatchData>::iterator match_map_iter;
-    for (match_map_iter = pTemporaryMap->begin();
-        match_map_iter != pTemporaryMap->end();
-        match_map_iter++)
+    for (match_map_iter = pTemporaryMap->begin(); match_map_iter != pTemporaryMap->end(); match_map_iter++)
     {
         AddMatchData(match_map_iter->second, __FUNCTION__);
     }

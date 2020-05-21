@@ -40,36 +40,36 @@ typedef struct _LocationInfo_ {
     size_t block_size;
     int instruction_count;
     DWORD block_reference_count;
-    func_t* p_func_t;
+    func_t *p_func_t;
 
     int prev_drefs_size;
-    ea_t* prev_drefs;
+    ea_t *prev_drefs;
 
     int prev_crefs_size;
-    ea_t* prev_crefs;
+    ea_t *prev_crefs;
 
     int next_crefs_size;
-    ea_t* next_crefs;
+    ea_t *next_crefs;
 
     int call_addrs_size;
-    ea_t* call_addrs;
+    ea_t *call_addrs;
 
     int next_drefs_size;
-    ea_t* next_drefs;
+    ea_t *next_drefs;
 
     ea_t checked_function_consistency;
     int FunctionAddressSize;
-    ea_t* FunctionAddresses;
+    ea_t *FunctionAddresses;
 
     bool saved;
-    struct _LocationInfo_* linked_node;
-    struct _LocationInfo_* next;
+    struct _LocationInfo_ *linked_node;
+    struct _LocationInfo_ *next;
 } LocationInfo;
 
 typedef struct _AddrMapHash_ {
     ea_t address;
-    LocationInfo* p_location_info;
-    struct _AddrMapHash_* branch;
+    LocationInfo *p_location_info;
+    struct _AddrMapHash_ *branch;
 } AddrMapHash;
 
 bool StartProcess(LPTSTR szCmdline);
@@ -239,17 +239,17 @@ typedef struct {
     ea_t endEA;
 } AddressRegion;
 
-extern char* OpTypeStr[];
+extern char *OpTypeStr[];
 
 string GetFeatureStr(DWORD features);
-void GetFeatureBits(int itype, char* FeatureMap, int Size);
+void GetFeatureBits(int itype, char *FeatureMap, int Size);
 void DumpOperand(HANDLE hFile, op_t operand);
 void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <ea_t>& Addresses, ea_t Address);
-list <insn_t>* ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash);
+list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash);
 list <int> GetRelatedFlags(int itype, bool IsModifying);
 
 void DumpDOT(
-    char* Filename,
+    char *Filename,
     multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap,
     unordered_map <ea_t, insn_t>& InstructionHash
 );
@@ -267,10 +267,10 @@ private:
         unordered_map <ea_t, insn_t>& InstructionHash,
         insn_t& instruction
     );
-    void DumpBasicBlock(ea_t src_block_address, list <insn_t>* pCmdArray, flags_t Flag, bool gatherCmdArray = false);
+    void DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t Flag, bool gatherCmdArray = false);
     list <AddressRegion> GetFunctionBlocks(ea_t address);
 
-    ea_t AnalyzeBlock(ea_t StartEA, ea_t endEA, list <insn_t>* pCmdArray, flags_t* p_flags);
+    ea_t AnalyzeBlock(ea_t StartEA, ea_t endEA, list <insn_t> *pCmdArray, flags_t *p_flags);
     void AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray);
     void AnalyzeRegion(AddressRegion& region, bool gatherCmdArray = false);
 

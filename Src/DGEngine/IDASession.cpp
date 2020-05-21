@@ -1057,7 +1057,7 @@ multimap <va_t, va_t> *IDASession::GetFunctionToBlock()
     return &FunctionToBlock;
 }
 
-static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char* *argv, char* *names)
+static int ReadAddressToFunctionMapResultsCallback(void *arg, int argc, char **argv, char **names)
 {
     unordered_map <va_t, va_t> *AddressToFunctionMap = (unordered_map <va_t, va_t>*)arg;
     if (AddressToFunctionMap)

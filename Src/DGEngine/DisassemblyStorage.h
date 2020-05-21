@@ -12,7 +12,7 @@ using namespace std;
 class DisassemblyStorage
 {
 public:
-    virtual void SetFileInfo(FileInfo* p_file_info)
+    virtual void SetFileInfo(FileInfo *p_file_info)
     {
     }
 
@@ -47,12 +47,12 @@ public:
     {
     }
 
-    virtual char* ReadFingerPrint(int fileID, va_t address)
+    virtual char *ReadFingerPrint(int fileID, va_t address)
     {
         return NULL;
     }
 
-    virtual char* ReadName(int fileID, va_t address)
+    virtual char *ReadName(int fileID, va_t address)
     {
         return NULL;
     }
@@ -62,21 +62,21 @@ public:
         return 0;
     }
 
-    virtual void ReadBasicBlockInfo(int fileID, char* conditionStr, AnalysisInfo* analysisInfo)
+    virtual void ReadBasicBlockInfo(int fileID, char *conditionStr, AnalysisInfo *analysisInfo)
     {
     }
 
-    virtual multimap <va_t, PMapInfo>* ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false)
-    {
-        return NULL;
-    }
-
-    virtual vector<MatchData*>* ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase)
+    virtual multimap <va_t, PMapInfo> *ReadMapInfo(int fileID, va_t address = 0, bool isFunction = false)
     {
         return NULL;
     }
 
-    virtual MatchResults* ReadMatchResults(int sourceID, int targetID)
+    virtual MatchMapList *ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase)
+    {
+        return NULL;
+    }
+
+    virtual MatchResults *ReadMatchResults(int sourceID, int targetID)
     {
         return NULL;
     }
@@ -87,7 +87,7 @@ public:
         return ret;
     }
 
-    virtual vector <FunctionMatchInfo> QueryFunctionMatches(const char* query, int sourceID, int targetID)
+    virtual vector <FunctionMatchInfo> QueryFunctionMatches(const char *query, int sourceID, int targetID)
     {
         vector <FunctionMatchInfo> ret;
         return ret;
@@ -103,7 +103,7 @@ public:
     {
     }
 
-    virtual char* GetOriginalFilePath(int fileID)
+    virtual char *GetOriginalFilePath(int fileID)
     {
         return NULL;
     }
@@ -117,12 +117,12 @@ public:
     }
 
 
-    virtual char* ReadDisasmLine(int fileID, va_t startAddress)
+    virtual char *ReadDisasmLine(int fileID, va_t startAddress)
     {
         return NULL;
     }
 
-    virtual BasicBlock* ReadBasicBlock(int fileID, va_t address)
+    virtual BasicBlock *ReadBasicBlock(int fileID, va_t address)
     {
         return NULL;
     }
@@ -131,7 +131,7 @@ public:
     {
     }
 
-    virtual void AddFileInfo(char* fileType, const char* dbName, int fileID, va_t functionAddress)
+    virtual void AddFileInfo(char *fileType, const char *dbName, int fileID, va_t functionAddress)
     {
     }
 

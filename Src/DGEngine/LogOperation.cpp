@@ -45,7 +45,7 @@ void LogOperation::CloseLogFile()
     LeaveCriticalSection(&LogFileCS);
 }
 
-void LogOperation::_Log(const CHAR* log_message)
+void LogOperation::_Log(const CHAR *log_message)
 {
     std::string full_log_message;
     if (OutputType & LogToFile)
@@ -111,7 +111,7 @@ void LogOperation::_Log(const CHAR* log_message)
         printf("%s", full_log_message.c_str());
 }
 
-void LogOperation::_Log(const WCHAR* log_message)
+void LogOperation::_Log(const WCHAR *log_message)
 {
     CHAR log_message_a[1024];
     _snprintf(log_message_a, sizeof(log_message_a) - 1, "%ws", log_message);
@@ -124,7 +124,7 @@ LogOperation::LogOperation(int output_type) : OutputType(output_type), DebugLeve
         OutputType = LogToDbgview;
 }
 
-LogOperation::LogOperation(const char* category_name) : OutputType(LogToFile)
+LogOperation::LogOperation(const char *category_name) : OutputType(LogToFile)
 {
     SetCategory(category_name);
 }
@@ -156,7 +156,7 @@ void LogOperation::RetrieveLogInfoFromRegistry()
     std::string category_key_name = key_name;
     category_key_name += CategoryName;
 
-    char* type = GetRegValueString(category_key_name.c_str(), "Type");
+    char *type = GetRegValueString(category_key_name.c_str(), "Type");
     if (type)
     {
         if (!_stricmp(type, "stdout"))
@@ -182,13 +182,13 @@ void LogOperation::RetrieveLogInfoFromRegistry()
 
     if (OutputType == LogToFile && hLogFile == INVALID_HANDLE_VALUE)
     {
-        char* log_filename_str = GetRegValueString(key_name.c_str(), "LogFileName");
+        char *log_filename_str = GetRegValueString(key_name.c_str(), "LogFileName");
         if (log_filename_str)
         {
             std::string log_filename = log_filename_str;
             free(log_filename_str);
 
-            char* image_filename;
+            char *image_filename;
             char image_full_filename[MAX_PATH + 1];
             GetModuleFileNameA(NULL, image_full_filename, MAX_PATH);
             image_filename = image_full_filename;
@@ -219,17 +219,17 @@ void LogOperation::RetrieveLogInfoFromRegistry()
     GetRegValueInteger(key_name.c_str(), "Level", DebugLevel);
 }
 
-void LogOperation::SetCompanyName(const char* company_name)
+void LogOperation::SetCompanyName(const char *company_name)
 {
     CompanyName = company_name;
 }
 
-void LogOperation::SetProductName(const char* product_name)
+void LogOperation::SetProductName(const char *product_name)
 {
     ProductName = product_name;
 }
 
-void LogOperation::SetCategory(const char* category_name)
+void LogOperation::SetCategory(const char *category_name)
 {
     CategoryName = category_name;
     DebugLevel = 0;
@@ -372,7 +372,7 @@ void LogOperation::SetDebugLevel(DWORD newDebugLevel)
     DebugLevel = newDebugLevel;
 }
 
-void LogOperation::SetLogFilename(const char* filename)
+void LogOperation::SetLogFilename(const char *filename)
 {
     LogFilename = filename;
 
@@ -380,7 +380,7 @@ void LogOperation::SetLogFilename(const char* filename)
     OpenLogFile(LogFilename);
 }
 
-void LogOperation::Log(DWORD debug_level, int type, const CHAR* format, ...)
+void LogOperation::Log(DWORD debug_level, int type, const CHAR *format, ...)
 {
     if (debug_level <= DebugLevel && EnabledLogTypes.find(type) != EnabledLogTypes.end())
     {
@@ -394,7 +394,7 @@ void LogOperation::Log(DWORD debug_level, int type, const CHAR* format, ...)
     }
 }
 
-void LogOperation::Log(const CHAR* format, ...)
+void LogOperation::Log(const CHAR *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -410,7 +410,7 @@ void LogOperation::EnableLogType(int log_level)
     EnabledLogTypes.insert(log_level);
 }
 
-void LogOperation::Log(DWORD debug_level, int type, const WCHAR* format, ...)
+void LogOperation::Log(DWORD debug_level, int type, const WCHAR *format, ...)
 {
     if (debug_level <= DebugLevel && EnabledLogTypes.find(type) != EnabledLogTypes.end())
     {
@@ -424,7 +424,7 @@ void LogOperation::Log(DWORD debug_level, int type, const WCHAR* format, ...)
     }
 }
 
-void LogOperation::Log(const WCHAR* format, ...)
+void LogOperation::Log(const WCHAR *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -434,7 +434,7 @@ void LogOperation::Log(const WCHAR* format, ...)
     _Log(log_message);
 }
 
-void LogOperation::DumpHex(TCHAR* Prefix, unsigned char* Buffer, int BufferLen)
+void LogOperation::DumpHex(TCHAR *Prefix, unsigned char *Buffer, int BufferLen)
 {
     TCHAR LineBuffer[256];
     memset(LineBuffer, ' ', 50);
@@ -447,7 +447,7 @@ void LogOperation::DumpHex(TCHAR* Prefix, unsigned char* Buffer, int BufferLen)
 
     for (i = 0; i < BufferLen; i++)
     {
-        _tprintf(LineBuffer + (i % 16) * 3, "%0.2X ", Buffer[i]);
+        _tprintf(LineBuffer + (i % 16)  *3, "%0.2X ", Buffer[i]);
         if (isprint(Buffer[i]))
             ascii[i % 16] = Buffer[i];
         else
@@ -463,14 +463,14 @@ void LogOperation::DumpHex(TCHAR* Prefix, unsigned char* Buffer, int BufferLen)
 
     if (i % 16 != 0)
     {
-        memset(LineBuffer + (i % 16) * 3, ' ', (16 - (i % 16)) * 3);
+        memset(LineBuffer + (i % 16)  *3, ' ', (16 - (i % 16))  *3);
         ascii[i % 16] = 0;
         _tprintf(LineBuffer + 48, TEXT("  %s"), ascii);
         Log(TEXT("%s%.8x: %s\r\n"), Prefix, start_i, LineBuffer);
     }
 }
 
-void LogOperation::DumpHex(DWORD MessageDebugLevel, TCHAR* Prefix, unsigned char* Buffer, int BufferLen)
+void LogOperation::DumpHex(DWORD MessageDebugLevel, TCHAR *Prefix, unsigned char *Buffer, int BufferLen)
 {
     if (MessageDebugLevel < DebugLevel)
     {
