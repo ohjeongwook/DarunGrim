@@ -1062,7 +1062,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                     map_info.Type = CALL;
                     map_info.Dst = targetAddress;
 
-                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
                     m_pStorage->AddMapInfo(&map_info);
                 }
                 else {
@@ -1183,7 +1182,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
             //PUSH THIS: dref
             map_info.Type = DREF_TO;
             map_info.Dst = dref;
-            LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
             m_pStorage->AddMapInfo(&map_info);
             dref = get_next_dref_to(currentAddress, dref);
         }
@@ -1196,7 +1194,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
 
             map_info.Type = DREF_FROM;
             map_info.Dst = dref;
-            LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
             m_pStorage->AddMapInfo(&map_info);
             dref = get_next_dref_from(currentAddress, dref);
         }
@@ -1326,7 +1323,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
                     map_info.Type = CREF_FROM;
                     map_info.Dst = *cref_list_iter;
-                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
                     m_pStorage->AddMapInfo(&map_info);
                 }
             }
@@ -1339,7 +1335,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
                     map_info.Type = CREF_FROM;
                     map_info.Dst = *cref_list_iter;
-                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
                     m_pStorage->AddMapInfo(&map_info);
                 }
             }

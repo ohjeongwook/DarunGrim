@@ -134,8 +134,6 @@ int SQLiteStorage::ExecuteStatement(sqlite3_callback callback, void *context, co
         {
             LogMessage(1, __FUNCTION__, TEXT("Executing [%s]\n"), statement_buffer);
         }
-        
-        LogMessage(1, __FUNCTION__, TEXT("Executing [%s]\n"), statement_buffer);
 
         if (statement_buffer)
         {
@@ -217,7 +215,6 @@ void SQLiteStorage::AddBasicBlock(PBasicBlock pBasicBlock, int fileID)
 
 void SQLiteStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
 {
-    LogMessage(1, __FUNCTION__, "PMapInfo\n");
     ExecuteStatement(NULL, NULL, INSERT_MAP_INFO_TABLE_STATEMENT,
         fileID,
         pMapInfo->Type,

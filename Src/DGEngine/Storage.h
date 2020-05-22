@@ -42,7 +42,6 @@ public:
 
     virtual void AddMapInfo(PMapInfo p_map_info, int fileID = 0)
     {
-        LogMessage(1, __FUNCTION__, "PMapInfo\n");
     }
 
     virtual void ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap)
