@@ -52,12 +52,12 @@ static const char idc_set_log_file_args[] = { VT_STR, 0 };
 
 static const ext_idcfunc_t idc_set_log_file_desc =
 {
-  "SetLogFile",
-  idc_set_log_file,
-  idc_set_log_file_args,
-  NULL,
-  0,
-  0
+    "SetLogFile",
+    idc_set_log_file,
+    idc_set_log_file_args,
+    NULL,
+    0,
+    0
 };
 
 
@@ -67,6 +67,7 @@ ea_t StartEA = 0;
 ea_t EndEA = 0;
 
 static const char idc_save_analysis_data_args[] = { VT_STR, VT_LONG, VT_LONG, 0 };
+
 static error_t idaapi idc_save_analysis_data(idc_value_t *argv, idc_value_t *res)
 {
     OutputFilename = strdup(argv[0].c_str());
@@ -80,19 +81,17 @@ static error_t idaapi idc_save_analysis_data(idc_value_t *argv, idc_value_t *res
 
 static const ext_idcfunc_t idc_save_analysis_data_desc =
 {
-  "SaveAnalysisData",
-  idc_save_analysis_data,
-  idc_save_analysis_data_args,
-  NULL,
-  0,
-  0
+    "SaveAnalysisData",
+    idc_save_analysis_data,
+    idc_save_analysis_data_args,
+    NULL,
+    0,
+    0
 };
 
 BOOL ConnectToDarunGrim(unsigned short port);
 
-static error_t idaapi idc_connect_to_darungrim(
-    idc_value_t *argv,
-    idc_value_t *res)
+static error_t idaapi idc_connect_to_darungrim(idc_value_t *argv, idc_value_t *res)
 {
     LogMessage(1, __FUNCTION__, "%s\n", __FUNCTION__);
     OutputFilename = NULL;
@@ -107,20 +106,20 @@ static const char idc_connect_to_darungrim_args[] = { VT_LONG, 0 };
 
 static const ext_idcfunc_t idc_connect_to_darungrim_desc =
 {
-  "ConnectToDarunGrim",
-  idc_connect_to_darungrim,
-  idc_connect_to_darungrim_args,
-  NULL,
-  0,
-  0
+    "ConnectToDarunGrim",
+    idc_connect_to_darungrim,
+    idc_connect_to_darungrim_args,
+    NULL,
+    0,
+    0
 };
 
 int idaapi init(void)
 {
-    add_idc_func(idc_save_analysis_data_desc);
-    add_idc_func(idc_connect_to_darungrim_desc);
-    add_idc_func(idc_set_log_file_desc);
-    return PLUGIN_KEEP;
+    // add_idc_func(idc_save_analysis_data_desc);
+    // add_idc_func(idc_connect_to_darungrim_desc);
+    // add_idc_func(idc_set_log_file_desc);
+    return PLUGIN_OK;
 }
 
 void idaapi term(void)
@@ -683,8 +682,9 @@ void SaveIDAAnalysis(bool ask_file_path)
     if (input_file_path)
     {
         SQLiteStorage disassemblyStorage(input_file_path);
-        IDAAnalyzer idaAnalysis = IDAAnalyzer((Storage) disassemblyStorage);
-        idaAnalysis.Analyze(StartEA, EndEA, false);
+        IDAAnalyzer idaAnalyzer = IDAAnalyzer(&disassemblyStorage);
+        idaAnalyzer.Analyze(StartEA, EndEA, false);
+        disassemblyStorage.Close();
     }
 
     long end_tick = GetTickCount();
@@ -701,6 +701,9 @@ bool idaapi run(size_t arg)
         return false;
     }
 
+    SaveIDAAnalysis(true);
+
+    /*
     // Display a dialog box
     char *ask_message =
         "STARTITEM 0\n"
@@ -729,7 +732,7 @@ bool idaapi run(size_t arg)
                 ConnectToDarunGrim(port);
             }
         }
-    }
+    }*/
 
     return true;
 }
@@ -740,12 +743,12 @@ char help[] =
 "This module let you analyze differences in two binaries.\n";
 
 char wanted_name[] = "DarunGrim";
-char wanted_hotkey[] = "Alt-7";
+char wanted_hotkey[] = "Alt-8";
 
 plugin_t PLUGIN =
 {
     IDP_INTERFACE_VERSION,
-    0,
+    PLUGIN_MOD,
     init,
     term,
     run,
