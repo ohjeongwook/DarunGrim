@@ -33,3 +33,4 @@ Src/Scripts/x64/IDA64-Release/
 Debug/
 Release/
 x64/
+Lib/swigwin/
