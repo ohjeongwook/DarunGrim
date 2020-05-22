@@ -11,12 +11,10 @@
 #include <name.hpp>
 #include <allins.hpp>
 
-#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
 #include <list>
-
 #include "SQLiteStorage.h"
 
 using namespace std;
@@ -244,7 +242,7 @@ extern char *OpTypeStr[];
 string GetFeatureStr(DWORD features);
 void GetFeatureBits(int itype, char *FeatureMap, int Size);
 void DumpOperand(HANDLE hFile, op_t operand);
-void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <ea_t>& Addresses, ea_t Address);
+void AddInstructionByOrder(map <ea_t, insn_t>& InstructionHash, list <ea_t>& Addresses, ea_t Address);
 list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash);
 list <int> GetRelatedFlags(int itype, bool IsModifying);
 
@@ -258,13 +256,13 @@ class IDAAnalyzer
 {
 private:
     Storage *m_pStorage;
-    unordered_map <ea_t, ea_t> NewFoundBlocks;
+    unordered_map <ea_t, ea_t> m_newBlocks;
 
     void UpdateInstructionMap(
         unordered_map < op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn >& OperandsHash,
         unordered_map <int, ea_t>& FlagsHash,
         multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, //Instruction Hash and Map
-        unordered_map <ea_t, insn_t>& InstructionHash,
+        map <ea_t, insn_t>& InstructionHash,
         insn_t& instruction
     );
     void DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t Flag, bool gatherCmdArray = false);

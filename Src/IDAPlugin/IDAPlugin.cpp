@@ -7,22 +7,19 @@
 #include <time.h>
 #include <iostream>
 #include <list>
-#include <winsock.h>
+//#include <winsock.h>
 
 #include <graph.hpp>
 #include <expr.hpp>
 #include <loader.hpp>
 
 #include "Common.h"
-#include "SharedSocket.h"
-#include "SharedMemory.h"
 #include "Configuration.h"
-#include "SocketOperation.h"
 
 #include "IDAAnalyzer.h"
 #include "SQLiteStorage.h"
 #include "Storage.h"
-#include "FileVersion.h"
+//#include "FileVersion.h"
 #include "Log.h"
 
 using namespace std;
@@ -39,9 +36,7 @@ void SaveIDAAnalysis(bool ask_file_path);
 
 extern HANDLE gLogFile;
 
-static error_t idaapi idc_set_log_file(
-    idc_value_t *argv,
-    idc_value_t *res)
+static error_t idaapi idc_set_log_file(idc_value_t *argv, idc_value_t *res)
 {
     gLogFile = OpenLogFile(argv[0].c_str());
     res->num = 1;
@@ -91,6 +86,7 @@ static const ext_idcfunc_t idc_save_analysis_data_desc =
 
 BOOL ConnectToDarunGrim(unsigned short port);
 
+#ifdef XXXXX
 static error_t idaapi idc_connect_to_darungrim(idc_value_t *argv, idc_value_t *res)
 {
     LogMessage(1, __FUNCTION__, "%s\n", __FUNCTION__);
@@ -101,6 +97,7 @@ static error_t idaapi idc_connect_to_darungrim(idc_value_t *argv, idc_value_t *r
     res->num = 1;
     return eOk;
 }
+
 
 static const char idc_connect_to_darungrim_args[] = { VT_LONG, 0 };
 
@@ -113,6 +110,7 @@ static const ext_idcfunc_t idc_connect_to_darungrim_desc =
     0,
     0
 };
+#endif
 
 int idaapi init(void)
 {
@@ -124,9 +122,9 @@ int idaapi init(void)
 
 void idaapi term(void)
 {
-    del_idc_func(idc_save_analysis_data_desc.name);
-    del_idc_func(idc_connect_to_darungrim_desc.name);
-    del_idc_func(idc_set_log_file_desc.name);
+    // del_idc_func(idc_save_analysis_data_desc.name);
+    // del_idc_func(idc_connect_to_darungrim_desc.name);
+    // del_idc_func(idc_set_log_file_desc.name);
 }
 
 bool IsNumber(char *data)
@@ -169,7 +167,8 @@ bool IsNumber(char *data)
     return is_number;
 }
 
-typedef list<FunctionMatchInfo*> RangeList;
+#ifdef XXXXX
+// typedef list<FunctionMatchInfo*> RangeList;
 typedef struct _ChooseListObj_ {
     SOCKET socket;
     RangeList range_list;
@@ -382,6 +381,9 @@ ChooseListObj matched_block_choose_list_obj;
 
 bool graph_viewer_callback_installed = FALSE;
 
+#endif
+
+/*REMOVE:
 int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBYTE data)
 {
     if (type == SEND_ANALYSIS_DATA)
@@ -496,7 +498,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
                         graph_viewer_callback_installed = TRUE;
                     }
                 }
-            }*/
+            }
         }
     }
     else if (type == GET_DISASM_LINES && length >= sizeof(CodeBlock))
@@ -533,7 +535,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
     {
         matched_block_choose_list_obj.socket = data_socket;
 
-        /*TODO: choose2(
+        TODO: choose2(
             0,
             -1, -1, -1, -1,
             &unidentified_block_choose_list,
@@ -570,7 +572,7 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
             enter_callback,
             NULL,
             NULL,
-            NULL );*/
+            NULL );
 #ifdef HT_GRAPH
         hook_to_notification_point(HT_GRAPH, graph_callback, (void*)&matched_block_choose_list_obj);
 #endif
@@ -583,8 +585,9 @@ int ProcessCommandFromDarunGrim(SOCKET data_socket, char type, DWORD length, PBY
     }
 
     return 0;
-}
+}*/
 
+/*REMOVE:
 BOOL ConnectToDarunGrim(unsigned short port)
 {
     LogMessage(1, __FUNCTION__, "Connecting to DarunGrim GUI on port %d...\n", port);
@@ -601,7 +604,7 @@ BOOL ConnectToDarunGrim(unsigned short port)
         LogMessage(1, __FUNCTION__, "Failed to connect to DarunGrim GUI on port %d\n", port);
     }
     return FALSE;
-}
+}*/
 
 bool FileWriterWrapper(PVOID Context, BYTE Type, PBYTE Data, DWORD Length)
 {

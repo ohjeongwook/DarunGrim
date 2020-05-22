@@ -2,13 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-
-#include <vector>
 #include <unordered_set>
+#include <vector>
 #include <list>
 #include <string>
 
-#include "Common.h"
 #include "IDAAnalyzer.h"
 #include "Storage.h"
 
@@ -256,14 +254,14 @@ char *EscapeString(qstring& input_string)
     return buffer;
 }
 
-void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <ea_t>& Addresses, ea_t Address)
+void AddInstructionByOrder(map <ea_t, insn_t>& InstructionHash, list <ea_t>& Addresses, ea_t Address)
 {
-    unordered_map <ea_t, insn_t>::iterator InstructionHashIter = InstructionHash.find(Address);
+    map <ea_t, insn_t>::iterator InstructionHashIter = InstructionHash.find(Address);
 
     bool IsInserted = FALSE;
     for (list <ea_t>::iterator AddressesIter = Addresses.begin(); AddressesIter != Addresses.end(); AddressesIter++)
     {
-        unordered_map <ea_t, insn_t>::iterator CurrentInstructionHashIter = InstructionHash.find(*AddressesIter);
+        map <ea_t, insn_t>::iterator CurrentInstructionHashIter = InstructionHash.find(*AddressesIter);
         if (GetInstructionWeight(CurrentInstructionHashIter->second) < GetInstructionWeight(InstructionHashIter->second))
         {
             Addresses.insert(AddressesIter, Address);
@@ -275,7 +273,7 @@ void AddInstructionByOrder(unordered_map <ea_t, insn_t>& InstructionHash, list <
         Addresses.push_back(Address);
 }
 
-list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, unordered_map <ea_t, insn_t>& InstructionHash)
+list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap, map <ea_t, insn_t>& InstructionHash)
 {
     list <insn_t> *CmdArray = new list <insn_t>;
     unordered_set <ea_t> ChildAddresses;
@@ -287,7 +285,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, Op
     }
 
     list <ea_t> RootAddresses;
-    unordered_map <ea_t, insn_t>::iterator InstructionHashIter;
+    map <ea_t, insn_t>::iterator InstructionHashIter;
     for (InstructionHashIter = InstructionHash.begin(); InstructionHashIter != InstructionHash.end(); InstructionHashIter++)
     {
         if (ChildAddresses.find(InstructionHashIter->first) == ChildAddresses.end())
@@ -376,7 +374,7 @@ list <insn_t> *ReoderInstructions(multimap <OperandPosition, OperandPosition, Op
 void DumpDOT(
     char *Filename,
     multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap,
-    unordered_map <ea_t, insn_t>& InstructionHash
+    map <ea_t, insn_t>& InstructionHash
 )
 {
     HANDLE hFile = OpenLogFile(Filename);
@@ -394,7 +392,7 @@ void DumpDOT(
 
     //shape = \"ellipse\"\r\n\
 
-    unordered_map <ea_t, insn_t>::iterator InstructionHashIter;
+    map <ea_t, insn_t>::iterator InstructionHashIter;
     //Write Node Data
     for (InstructionHashIter = InstructionHash.begin(); InstructionHashIter != InstructionHash.end(); InstructionHashIter++)
     {
@@ -489,7 +487,7 @@ void IDAAnalyzer::UpdateInstructionMap
     unordered_map <int, ea_t>& FlagsHash,
     //Instruction Hash and Map
     multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait>& InstructionMap,
-    unordered_map <ea_t, insn_t>& InstructionHash,
+    map <ea_t, insn_t>& InstructionHash,
     insn_t& instruction
 )
 {
@@ -974,8 +972,8 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
 {
     while (1)
     {
-        unordered_map <ea_t, ea_t>::iterator newFoundblockIter = NewFoundBlocks.find(startEA);
-        if (newFoundblockIter != NewFoundBlocks.end())
+        unordered_map <ea_t, ea_t>::iterator newFoundblockIter = m_newBlocks.find(startEA);
+        if (newFoundblockIter != m_newBlocks.end())
         {
             LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Skip %X block to %X\n", __FUNCTION__, startEA, newFoundblockIter->second);
 
@@ -1297,7 +1295,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                     if (currentBlockStartAddress != startEA)
                     {
                         LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress + current_item_size);
-                        NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
+                        m_newBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
                     }
                     if (currentBlockStartAddress != next_block_addr)
                     {
@@ -1337,7 +1335,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
             if (currentBlockStartAddress != startEA)
             {
                 LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress + current_item_size);
-                NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
+                m_newBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
             }
 
             if (firstBlockEndAddress)
@@ -1350,7 +1348,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
     if (currentBlockStartAddress != startEA)
     {
         LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress);
-        NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress));
+        m_newBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress));
     }
 
     LogMessage(0, __FUNCTION__, "%s: CmdArray size=%u\n", __FUNCTION__, pCmdArray->size());
@@ -1379,7 +1377,7 @@ void IDAAnalyzer::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
         {
             unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
             multimap <OperandPosition, OperandPosition, OperandPositionCompareTrait> InstructionMap;
-            unordered_map <ea_t, insn_t> InstructionHash;
+            map <ea_t, insn_t> InstructionHash;
             unordered_map <int, ea_t> FlagsHash;
 
             for (list <insn_t>::iterator CmdArrayIter = CmdArray.begin(); CmdArrayIter != CmdArray.end(); CmdArrayIter++)

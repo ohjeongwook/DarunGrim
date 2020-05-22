@@ -1,4 +1,15 @@
 #pragma once
+#pragma pack(push)
+#pragma pack(1)
+
+#include <unordered_set>
+#include <unordered_map>
+
+#include "windows.h"
+#include <vector>
+
+using namespace std;
+using namespace stdext;
 
 #ifdef _DEBUGX
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -12,49 +23,6 @@
 #define LOG_BASIC_BLOCK	0x0000000F
 #define LOG_MATCH_RATE			0x00000010
 
-#include <unordered_set>
-#include <unordered_map>
-
-#include "windows.h"
-#include <vector>
-
-using namespace std;
-using namespace stdext;
-
-typedef int va_t;
-#define strtoul10(X) strtoul(X, NULL, 10)
-
-#pragma pack(push)
-#pragma pack(1)
-
-typedef struct _FileInfo_
-{
-	TCHAR OriginalFilePath[MAX_PATH + 1];
-	TCHAR ComputerName[100];
-	TCHAR UserName[100];
-	TCHAR CompanyName[100];
-	TCHAR FileVersion[100];
-	TCHAR FileDescription[100];
-	TCHAR InternalName[100];
-	TCHAR ProductName[100];
-	TCHAR ModifiedTime[100];
-	TCHAR MD5Sum[100];
-} FileInfo,  *PFileInfo;
-
-typedef struct _BasicBlock_ {
-	va_t StartAddress; //ea_t
-	va_t EndAddress;
-	BYTE Flag; //Flag_t
-	//func_t get_func(current_addr)
-	va_t FunctionAddress;
-	BYTE BlockType; // FUNCTION, UNKNOWN
-	int NameLen;
-	int DisasmLinesLen;
-	int FingerprintLen;
-	int CmdArrayLen;
-	char Data[0];
-} BasicBlock,  *PBasicBlock;
-
 #define DREF 0
 #define CREF 1
 #define FUNCTION 2
@@ -63,31 +31,11 @@ typedef struct _BasicBlock_ {
 #define DISASM_LINE 5
 #define DATA_TYPE 6
 
-typedef struct
-{
-	va_t Start;
-	va_t End;
-} BLOCK;
-
 struct FileList
 {
 	string SourceFilename;
 	string TargetFilename;
 };
-
-enum { BASIC_BLOCK, MAP_INFO, FILE_INFO, END_OF_DATA, DISASM_LINES, INPUT_NAME };
-//DISASM_LINES,FINGERPRINT_INFO,NAME_INFO
-enum { UNKNOWN_BLOCK, FUNCTION_BLOCK };
-//MapInfo
-//Pushing Map information
-enum { CALL, CREF_FROM, CREF_TO, DREF_FROM, DREF_TO, CALLED };
-
-typedef struct _MapInfo_ {
-	BYTE Type;
-	va_t SrcBlock;
-	va_t SrcBlockEnd;
-	va_t Dst;
-} MapInfo,  *PMapInfo;
 
 typedef struct _FingerPrintInfo_ {
 	va_t addr;
@@ -157,18 +105,6 @@ public:
         m_functionMatchInfoList.clear();
     }    
 };
-
-typedef struct _CodeBlock_
-{
-	va_t StartAddress;
-	va_t EndAddress;
-} CodeBlock;
-
-enum { SEND_ANALYSIS_DATA, UNINDENTIFIED_ADDR, MATCHED_ADDR, SHOW_DATA, SHOW_MATCH_ADDR, JUMP_TO_ADDR, GET_DISASM_LINES, COLOR_ADDRESS, GET_INPUT_NAME, MODIFIED_ADDR };
-
-
-#include <map>
-using namespace std;
 
 class hash_compare_fingerprint
 {
@@ -328,7 +264,6 @@ typedef pair <string, va_t*> TwoLevelFingerPrintAddress_Pair;
 typedef pair <va_t, unsigned char*> AddressFingerPrintAddress_Pair;
 typedef pair <string, va_t> NameAddress_Pair;
 typedef pair <va_t, string> AddressName_Pair;
-typedef pair <va_t, PMapInfo> AddrPMapInfo_Pair;
 typedef pair <va_t, MatchData> MatchMap_Pair;
 typedef pair <unsigned char*, unsigned char*> Fingerprint_Pair;
 

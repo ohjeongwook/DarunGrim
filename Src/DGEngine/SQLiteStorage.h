@@ -1,10 +1,11 @@
 #pragma once
 #include <stdio.h>
-#include "sqlite3.h"
 #include <string>
 
 #include "Common.h"
 #include "Storage.h"
+
+#include "sqlite3.h"
 
 using namespace std;
 
@@ -66,8 +67,6 @@ typedef unsigned char *PBYTE;
 #define UPDATE_BASIC_BLOCK_TABLE_BLOCK_TYPE_STATEMENT "UPDATE " BASIC_BLOCK_TABLE" SET BlockType='%d' WHERE FileID='%u' AND StartAddress='%u';"
 #define UPDATE_BASIC_BLOCK_TABLE_DISASM_LINES_STATEMENT "UPDATE " BASIC_BLOCK_TABLE" SET DisasmLines=%Q WHERE StartAddress='%u';"
 #define UPDATE_BASIC_BLOCK_TABLE_FINGERPRINT_STATEMENT "UPDATE " BASIC_BLOCK_TABLE" SET Fingerprint=%Q WHERE StartAddress='%u';"
-
-
 
 #define MATCH_MAP_TABLE "MatchMap"
 #define CREATE_MATCH_MAP_TABLE_STATEMENT "CREATE TABLE " MATCH_MAP_TABLE" ( \n\
