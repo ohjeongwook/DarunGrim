@@ -6,6 +6,7 @@ using namespace std;
 using namespace stdext;
 
 #include "Common.h"
+#include "Log.h"
 #include "MatchResults.h"
 using namespace std;
 
@@ -26,7 +27,7 @@ public:
         return 0;
     }
 
-    virtual void EndAnalysis()
+    virtual void Close()
     {
     }
 
@@ -35,12 +36,13 @@ public:
         return 0;
     }
 
-    virtual void AddBasicBlock(PBasicBlock p_basic_block)
+    virtual void AddBasicBlock(PBasicBlock p_basic_block, int fileID = 0)
     {
     }
 
-    virtual void AddMapInfo(PMapInfo p_map_info)
+    virtual void AddMapInfo(PMapInfo p_map_info, int fileID = 0)
     {
+        LogMessage(1, __FUNCTION__, "PMapInfo\n");
     }
 
     virtual void ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap)
