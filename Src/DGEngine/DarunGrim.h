@@ -151,7 +151,7 @@ public:
     void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-    Storage *m_disassemblyStorage;
+    Storage *m_storage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
     IDASession *IDAControllers[2];
