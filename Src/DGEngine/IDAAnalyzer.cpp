@@ -998,11 +998,6 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
     int instructionCount = 0;
 
     int logLevel = 0;
-    if (is_code(currentAddress))
-    {
-        logLevel = 1;
-    }
-
     LogMessage(logLevel, __FUNCTION__, "Analyzing %X ~ %X\n", startEA, endEA);
 
     bool found_branch = FALSE; //first we branch
