@@ -13,10 +13,10 @@ using namespace stdext;
 
 SQLiteStorage::SQLiteStorage(const char *DatabaseName)
 {
-    db = NULL;
+    m_database = NULL;
     if (DatabaseName)
     {
-        CreateDatabase(DatabaseName);
+        ConnectDatabase(DatabaseName);
         CreateTables();
     }
 }
@@ -46,20 +46,20 @@ void SQLiteStorage::CreateTables()
 
 bool SQLiteStorage::Open(char *DatabaseName)
 {
-    m_DatabaseName = DatabaseName;
-    return CreateDatabase(DatabaseName);
+    m_databaseName = DatabaseName;
+    return ConnectDatabase(DatabaseName);
 }
 
-bool SQLiteStorage::CreateDatabase(const char *DatabaseName)
+bool SQLiteStorage::ConnectDatabase(const char *DatabaseName)
 {
     //Database Setup
-    m_DatabaseName = DatabaseName;
-    int rc = sqlite3_open(DatabaseName, &db);
+    m_databaseName = DatabaseName;
+    int rc = sqlite3_open(DatabaseName, &m_database);
     if (rc)
     {
         printf("Opening Database [%s] Failed\n", DatabaseName);
-        sqlite3_close(db);
-        db = NULL;
+        sqlite3_close(m_database);
+        m_database = NULL;
         return FALSE;
     }
     return TRUE;
@@ -67,16 +67,16 @@ bool SQLiteStorage::CreateDatabase(const char *DatabaseName)
 
 const char *SQLiteStorage::GetDatabaseName()
 {
-    return m_DatabaseName.c_str();
+    return m_databaseName.c_str();
 }
 
 void SQLiteStorage::CloseDatabase()
 {
     //Close Database
-    if (db)
+    if (m_database)
     {
-        sqlite3_close(db);
-        db = NULL;
+        sqlite3_close(m_database);
+        m_database = NULL;
     }
 }
 
@@ -87,19 +87,19 @@ int SQLiteStorage::BeginTransaction()
 
 int SQLiteStorage::EndTransaction()
 {
-    return ExecuteStatement(NULL, NULL, "COMMIT");
+    return ExecuteStatement(NULL, NULL, "COMMIT TRANSACTION");
 }
 
 int SQLiteStorage::GetLastInsertRowID()
 {
-    return (int)sqlite3_last_insert_rowid(db);
+    return (int)sqlite3_last_insert_rowid(m_database);
 }
 
 int SQLiteStorage::ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...)
 {
     int debug = 0;
 
-    if (db)
+    if (m_database)
     {
         int rc = 0;
         char *statement_buffer = NULL;
@@ -132,12 +132,14 @@ int SQLiteStorage::ExecuteStatement(sqlite3_callback callback, void *context, co
 
         if (debug > 1)
         {
-            LogMessage(1, __FUNCTION__, "Executing [%s]\n", statement_buffer);
+            LogMessage(1, __FUNCTION__, TEXT("Executing [%s]\n"), statement_buffer);
         }
+        
+        LogMessage(1, __FUNCTION__, TEXT("Executing [%s]\n"), statement_buffer);
 
         if (statement_buffer)
         {
-            rc = sqlite3_exec(db, statement_buffer, callback, context, &zErrMsg);
+            rc = sqlite3_exec(m_database, statement_buffer, callback, context, &zErrMsg);
 
             if (rc != SQLITE_OK)
             {
@@ -215,6 +217,7 @@ void SQLiteStorage::AddBasicBlock(PBasicBlock pBasicBlock, int fileID)
 
 void SQLiteStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
 {
+    LogMessage(1, __FUNCTION__, "PMapInfo\n");
     ExecuteStatement(NULL, NULL, INSERT_MAP_INFO_TABLE_STATEMENT,
         fileID,
         pMapInfo->Type,
@@ -224,7 +227,7 @@ void SQLiteStorage::AddMapInfo(PMapInfo pMapInfo, int fileID)
     );
 }
 
-void SQLiteStorage::EndAnalysis()
+void SQLiteStorage::Close()
 {
     CloseDatabase();
 }

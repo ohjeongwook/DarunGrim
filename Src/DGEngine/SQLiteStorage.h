@@ -139,8 +139,8 @@ typedef unsigned char *PBYTE;
 class SQLiteStorage : public Storage
 {
 private:
-    sqlite3 *db;
-    string m_DatabaseName;
+    sqlite3 *m_database;
+    string m_databaseName;
 
 public:
     SQLiteStorage(const char *DatabaseName = NULL);
@@ -150,7 +150,7 @@ public:
     void SetFileInfo(FileInfo *p_file_info);
     int BeginTransaction();
     int EndTransaction();
-    void EndAnalysis();
+    void Close();
     void AddBasicBlock(PBasicBlock pBasicBlock, int fileID = 0);
     void AddMapInfo(PMapInfo p_map_info, int fileID = 0);
 
@@ -160,7 +160,7 @@ public:
     bool Open(char *DatabaseName);
     const char *GetDatabaseName();
     void CloseDatabase();
-    bool CreateDatabase(const char *DatabaseName);
+    bool ConnectDatabase(const char *DatabaseName);
 
     int GetLastInsertRowID();
     int ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...);
