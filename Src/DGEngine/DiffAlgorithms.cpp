@@ -8,7 +8,6 @@
 
 #include "Utility.h"
 #include "Diff.h"
-#include "SQLiteStorage.h"
 #include "DiffAlgorithms.h"
 #include "Log.h"
 #include "LogOperation.h"
