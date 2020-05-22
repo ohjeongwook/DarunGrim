@@ -94,9 +94,6 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x64_win_vc_64</AdditionalLibraryDirectories>
       <AdditionalOptions>/EXPORT:PLUGIN %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /y $(OutDir)\DarunGrim64.dll "C:\Program Files\IDA 7.1\plugins"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IDA32-Debug|x64'">
     <ClCompile>
@@ -115,9 +112,6 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x64_win_vc_64</AdditionalLibraryDirectories>
       <AdditionalOptions>/EXPORT:PLUGIN %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /y $(OutDir)\DarunGrim.dll "C:\Program Files\IDA 7.1\plugins"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IDA64-Release|x64'">
     <ClCompile>
@@ -136,9 +130,6 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x64_win_vc_64</AdditionalLibraryDirectories>
       <AdditionalOptions>/EXPORT:PLUGIN %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /y $(OutDir)\DarunGrim64.dll "C:\Program Files\IDA 7.1\plugins"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='IDA32-Release|x64'">
     <ClCompile>
@@ -157,9 +148,6 @@
       <AdditionalLibraryDirectories>$(SolutionDir)\Lib\idasdk71\lib\x64_win_vc_64</AdditionalLibraryDirectories>
       <AdditionalOptions>/EXPORT:PLUGIN %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>copy /y $(OutDir)\DarunGrim.dll "C:\Program Files\IDA 7.1\plugins"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h" />
