@@ -87,7 +87,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -119,7 +119,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -135,7 +135,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -149,7 +149,7 @@
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DarunGrim.h" />
     <ClInclude Include="DataStructure.h" />
-    <ClInclude Include="Diff.h" />
+    <ClInclude Include="Libs\Diff.h" />
     <ClInclude Include="DiffAlgorithms.h" />
     <ClInclude Include="IDASessions.h" />
     <ClInclude Include="Storage.h" />
@@ -157,44 +157,40 @@
     <ClInclude Include="SQLiteStorage.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="FileVersion.h" />
-    <ClInclude Include="IDAAnalyzer.h" />
     <ClInclude Include="IDASession.h" />
     <ClInclude Include="LogOperation.h" />
-    <ClInclude Include="md5.h" />
     <ClInclude Include="ProcessUtils.h" />
     <ClInclude Include="RegistryUtil.h" />
     <ClInclude Include="SharedMemory.h" />
     <ClInclude Include="SharedSocket.h" />
     <ClInclude Include="SocketOperation.h" />
-    <ClInclude Include="sqlite3.h" />
+    <ClInclude Include="Libs\sqlite3.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TLV.h" />
     <ClInclude Include="Utility.h" />
-    <ClInclude Include="Varray.h" />
-    <ClInclude Include="XGetopt.h" />
+    <ClInclude Include="Libs\Varray.h" />
+    <ClInclude Include="Libs\XGetopt.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DarunGrim.cpp" />
-    <ClCompile Include="Diff.cpp" />
+    <ClCompile Include="Libs\Diff.cpp" />
     <ClCompile Include="DiffAlgorithms.cpp" />
     <ClCompile Include="IDASessions.cpp" />
     <ClCompile Include="MatchResults.cpp" />
     <ClCompile Include="SQLiteStorage.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="FileVersion.cpp" />
-    <ClCompile Include="IDAAnalyzer.cpp" />
     <ClCompile Include="IDASession.cpp" />
     <ClCompile Include="LogOperation.cpp" />
-    <ClCompile Include="md5.cpp" />
     <ClCompile Include="ProcessUtils.cpp" />
     <ClCompile Include="RegistryUtil.cpp" />
     <ClCompile Include="SharedMemory.cpp" />
     <ClCompile Include="SharedSocket.cpp" />
     <ClCompile Include="SocketOperation.cpp" />
-    <ClCompile Include="sqlite3.c" />
+    <ClCompile Include="Libs\sqlite3.c" />
     <ClCompile Include="Utility.cpp" />
-    <ClCompile Include="Varray.cpp" />
-    <ClCompile Include="XGetopt.cpp" />
+    <ClCompile Include="Libs\Varray.cpp" />
+    <ClCompile Include="Libs\XGetopt.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

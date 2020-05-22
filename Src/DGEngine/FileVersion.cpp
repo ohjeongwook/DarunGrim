@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
-#include "md5.h"
 #include "FileVersion.h"
 
 char *GetVersionData(LPVOID pVersionBlock, char *EntryName)

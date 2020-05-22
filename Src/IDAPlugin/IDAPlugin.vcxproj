@@ -150,10 +150,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="IDAAnalyzer.h" />
+    <ClInclude Include="md5.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IDAAnalyzer.cpp" />
     <ClCompile Include="IDAPlugin.cpp" />
+    <ClCompile Include="md5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DGEngine\DGEngine.vcxproj">
