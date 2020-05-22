@@ -637,23 +637,23 @@ void IDAAnalyzer::UpdateInstructionMap
     }
 }
 
-void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArray, flags_t flags, bool gatherCmdArray)
+void IDAAnalyzer::DumpBasicBlock(ea_t srcBlockAddress, list <insn_t> *pCmdArray, flags_t flags, bool gatherCmdArray)
 {
     string disasm_buffer;
 
     BasicBlock basic_block;
     basic_block.FunctionAddress = 0;
     basic_block.BlockType = UNKNOWN_BLOCK;
-    basic_block.StartAddress = src_block_address;
+    basic_block.StartAddress = srcBlockAddress;
     basic_block.Flag = flags;
 
     qstring name;
 
-    get_short_name(&name, src_block_address);
+    get_short_name(&name, srcBlockAddress);
 
     if (is_code(flags))
     {
-        func_t *p_func = get_func(src_block_address);
+        func_t *p_func = get_func(srcBlockAddress);
         if (p_func)
         {
             basic_block.FunctionAddress = p_func->start_ea;
@@ -662,7 +662,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
         //LogMessage(0, __FUNCTION__, "Function: %X Block : %X (%s)\n", basic_block.StartAddress, basic_block.FunctionAddress, name);
         //LogMessage(0, __FUNCTION__, "Function: %X Block : %X (%s)\n", basic_block.FunctionAddress, basic_block.StartAddress, name);
 
-        ea_t cref = get_first_cref_to(src_block_address);
+        ea_t cref = get_first_cref_to(srcBlockAddress);
 
         if (cref == BADADDR || basic_block.StartAddress == basic_block.FunctionAddress)
         {
@@ -826,7 +826,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
             }
         }
 
-        m_disassemblyStorage.AddBasicBlock(p_basic_block);
+        m_pStorage->AddBasicBlock(p_basic_block);
         free(p_basic_block);
     }
     //Reset FingerPrint Data
@@ -835,7 +835,7 @@ void IDAAnalyzer::DumpBasicBlock(ea_t src_block_address, list <insn_t> *pCmdArra
 
 list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
 {
-    ea_t current_addr;
+    ea_t currentAddress;
     size_t current_item_size = 0;
     list <ea_t> blocks;
     list <ea_t>::iterator blocksIter;
@@ -854,13 +854,13 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
         LogMessage(0, __FUNCTION__, "Analyzing %X\n", *blocksIter);
         ea_t block_StartAddress = *blocksIter;
 
-        for (current_addr = block_StartAddress;; current_addr += current_item_size)
+        for (currentAddress = block_StartAddress;; currentAddress += current_item_size)
         {
             bool bEndOfBlock = FALSE;
 
             qstring op_buffer;
-            print_insn_mnem(&op_buffer, current_addr);
-            current_item_size = get_item_size(current_addr);
+            print_insn_mnem(&op_buffer, currentAddress);
+            current_item_size = get_item_size(currentAddress);
 
             if (!strnicmp(op_buffer.c_str(), "ret", 3))
             {
@@ -868,9 +868,9 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
             }
 
             insn_t insn;
-            decode_insn(&insn, current_addr);
+            decode_insn(&insn, currentAddress);
 
-            ea_t cref = get_first_cref_from(current_addr);
+            ea_t cref = get_first_cref_from(currentAddress);
             while (cref != BADADDR)
             {
                 if (
@@ -913,7 +913,7 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
                     insn.itype == NN_jnz                 // Jump if Not Zero (ZF=0)
                     )
                 {
-                    LogMessage(0, __FUNCTION__, "Got Jump at %X\n", current_addr);
+                    LogMessage(0, __FUNCTION__, "Got Jump at %X\n", currentAddress);
                     if (AddressHash.find(cref) == AddressHash.end())
                     {
                         LogMessage(0, __FUNCTION__, "Adding %X to queue\n", cref);
@@ -923,13 +923,13 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
                     //cref is the next block position
                     bEndOfBlock = TRUE;
                 }
-                cref = get_next_cref_from(current_addr, cref);
+                cref = get_next_cref_from(currentAddress, cref);
             }
             //cref_to
-            cref = get_first_cref_to(current_addr + current_item_size);
+            cref = get_first_cref_to(currentAddress + current_item_size);
             while (cref != BADADDR)
             {
-                if (current_addr != cref)
+                if (currentAddress != cref)
                 {
                     print_insn_mnem(&op_buffer, cref);
 
@@ -940,19 +940,19 @@ list <AddressRegion> IDAAnalyzer::GetFunctionBlocks(ea_t address)
                         )
                     {
                         //End of block
-                        LogMessage(0, __FUNCTION__, "Got End of Block at %X\n", current_addr);
+                        LogMessage(0, __FUNCTION__, "Got End of Block at %X\n", currentAddress);
                         bEndOfBlock = TRUE;
                     }
                 }
-                cref = get_next_cref_to(current_addr + current_item_size, cref);
+                cref = get_next_cref_to(currentAddress + current_item_size, cref);
             }
             if (bEndOfBlock)
             {
                 //jump to local block
-                //block_StartAddress,current_addr+item_size is a block
+                //block_StartAddress,currentAddress+item_size is a block
                 AddressRegion address_region;
                 address_region.startEA = block_StartAddress;
-                address_region.endEA = current_addr + current_item_size;
+                address_region.endEA = currentAddress + current_item_size;
                 regions.push_back(address_region);
                 break;
             }
@@ -990,52 +990,56 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
         }
     }
 
-    ea_t current_addr = startEA;
-    ea_t src_block_address = current_addr;
-    ea_t first_block_end_address = 0;
-    ea_t current_block_start_address = current_addr;
+    ea_t currentAddress = startEA;
+    ea_t srcBlockAddress = currentAddress;
+    ea_t firstBlockEndAddress = 0;
+    ea_t currentBlockStartAddress = currentAddress;
 
-    int InstructionCount = 0;
+    int instructionCount = 0;
 
     int logLevel = 0;
-    if (is_code(current_addr))
+    if (is_code(currentAddress))
     {
         logLevel = 1;
     }
-    LogMessage(logLevel, __FUNCTION__, "Analyzing %X ~ %X\n", current_addr, endEA);
+
+    LogMessage(logLevel, __FUNCTION__, "Analyzing %X ~ %X\n", startEA, endEA);
 
     bool found_branch = FALSE; //first we branch
-    for (; current_addr <= endEA; )
+    for (; currentAddress <= endEA; )
     {
-        InstructionCount++;
+        instructionCount++;
         bool cref_to_next_addr = FALSE;
-        *p_flags = get_full_flags(current_addr);
-        int current_item_size = get_item_size(current_addr);
+        *p_flags = get_full_flags(currentAddress);
+        int current_item_size = get_item_size(currentAddress);
 
         qstring op_buffer;
-        print_insn_mnem(&op_buffer, current_addr);
+        print_insn_mnem(&op_buffer, currentAddress);
 
         insn_t insn;
-        decode_insn(&insn, current_addr);
+        decode_insn(&insn, currentAddress);
         pCmdArray->push_back(insn);
         short current_itype = insn.itype;
 
         MapInfo map_info;
         //New Location Found
-        map_info.SrcBlock = src_block_address;
+        map_info.SrcBlock = srcBlockAddress;
+
         //Finding Next CREF
         vector<ea_t> cref_list;
+
         //cref from
-        ea_t cref = get_first_cref_from(current_addr);
-        while (cref != BADADDR)
+        ea_t targetAddress = get_first_cref_from(currentAddress);
+        while (targetAddress != BADADDR)
         {
             //if just flowing
-            if (cref == current_addr + current_item_size)
+            if (targetAddress == currentAddress + current_item_size)
             {
                 //next instruction...
                 cref_to_next_addr = TRUE;
             }
-            else {
+            else
+            {
                 //j* something or call
                 //if branching
                 //if cmd type is "call"
@@ -1054,40 +1058,41 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
 
                     //this is a call
-                    //PUSH THIS: call_addrs cref
+                    //PUSH THIS: call_addrs targetAddress
                     map_info.Type = CALL;
-                    map_info.Dst = cref;
+                    map_info.Dst = targetAddress;
 
-                    m_disassemblyStorage.AddMapInfo(&map_info);
+                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
+                    m_pStorage->AddMapInfo(&map_info);
                 }
                 else {
                     //this is a jump
                     found_branch = TRUE; //j* or ret* instruction found
                     bool IsNOPBlock = FALSE;
-                    //check if the jumped position(cref) is a nop block
+                    //check if the jumped position(targetAddress) is a nop block
                     //if insn type is "j*"
 
-                    decode_insn(&insn, cref);
+                    decode_insn(&insn, targetAddress);
 
                     if (insn.itype == NN_jmp || insn.itype == NN_jmpfi || insn.itype == NN_jmpni || insn.itype == NN_jmpshort)
                     {
                         int cref_from_cref_number = 0;
-                        ea_t cref_from_cref = get_first_cref_from(cref);
+                        ea_t cref_from_cref = get_first_cref_from(targetAddress);
                         while (cref_from_cref != BADADDR)
                         {
                             cref_from_cref_number++;
-                            cref_from_cref = get_next_cref_from(cref, cref_from_cref);
+                            cref_from_cref = get_next_cref_from(targetAddress, cref_from_cref);
                         }
                         if (cref_from_cref_number == 1)
                         {
                             //we add the cref's next position instead cref
                             //because this is a null block(doing nothing but jump)
-                            ea_t cref_from_cref = get_first_cref_from(cref);
+                            ea_t cref_from_cref = get_first_cref_from(targetAddress);
                             while (cref_from_cref != BADADDR)
                             {
                                 //next_ crefs  cref_from_cref
                                 cref_list.push_back(cref_from_cref);
-                                cref_from_cref = get_next_cref_from(cref, cref_from_cref);
+                                cref_from_cref = get_next_cref_from(targetAddress, cref_from_cref);
                             }
                             IsNOPBlock = TRUE;
                         }
@@ -1096,25 +1101,26 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                         //all other cases
                     {
                         //PUSH THIS: next_crefs  cref
-                        cref_list.push_back(cref);
+                        cref_list.push_back(targetAddress);
                     }
                 }
             }
-            cref = get_next_cref_from(current_addr, cref);
+
+            targetAddress = get_next_cref_from(currentAddress, targetAddress);
         }
 
         if (!found_branch)
         {
             //cref_to
-            ea_t cref_to = get_first_cref_to(current_addr + current_item_size);
+            ea_t cref_to = get_first_cref_to(currentAddress + current_item_size);
             while (cref_to != BADADDR)
             {
-                if (cref_to != current_addr)
+                if (cref_to != currentAddress)
                 {
                     found_branch = TRUE;
                     break;
                 }
-                cref_to = get_next_cref_to(current_addr + current_item_size, cref_to);
+                cref_to = get_next_cref_to(currentAddress + current_item_size, cref_to);
             }
             if (!found_branch)
             {
@@ -1125,7 +1131,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
                     found_branch = TRUE;
                 }
-                else if (is_code(*p_flags) != is_code(get_full_flags(current_addr + current_item_size)))
+                else if (is_code(*p_flags) != is_code(get_full_flags(currentAddress + current_item_size)))
                 {
                     //or if code/data type changes
                     found_branch = TRUE; //code, data type change...
@@ -1146,7 +1152,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
             found_branch &&
             cref_to_next_addr)
         {
-            ea_t cref = current_addr + current_item_size;
+            ea_t cref = currentAddress + current_item_size;
 
             insn_t insn;
             decode_insn(&insn, cref);
@@ -1165,32 +1171,34 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
             }
             else
             {
-                //next_crefs  current_addr+current_item_size
-                cref_list.push_back(current_addr + current_item_size);
+                //next_crefs  currentAddress+current_item_size
+                cref_list.push_back(currentAddress + current_item_size);
             }
         }
 
         //dref_to
-        ea_t dref = get_first_dref_to(current_addr);
+        ea_t dref = get_first_dref_to(currentAddress);
         while (dref != BADADDR)
         {
             //PUSH THIS: dref
             map_info.Type = DREF_TO;
             map_info.Dst = dref;
-            m_disassemblyStorage.AddMapInfo(&map_info);
-            dref = get_next_dref_to(current_addr, dref);
+            LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
+            m_pStorage->AddMapInfo(&map_info);
+            dref = get_next_dref_to(currentAddress, dref);
         }
 
         //dref_from
-        dref = get_first_dref_from(current_addr);
+        dref = get_first_dref_from(currentAddress);
         while (dref != BADADDR)
         {
             //PUSH THIS: next_drefs dref
 
             map_info.Type = DREF_FROM;
             map_info.Dst = dref;
-            m_disassemblyStorage.AddMapInfo(&map_info);
-            dref = get_next_dref_from(current_addr, dref);
+            LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
+            m_pStorage->AddMapInfo(&map_info);
+            dref = get_next_dref_from(currentAddress, dref);
         }
 
         if (found_branch)
@@ -1274,7 +1282,7 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
             vector<ea_t>::iterator cref_list_iter;
             //If Split Block
             //must be jmp,next block has only one cref_to
-            if (cref_list.size() == 1 && current_itype == NN_jmp && InstructionCount > 1)
+            if (cref_list.size() == 1 && current_itype == NN_jmp && instructionCount > 1)
             {
                 cref_list_iter = cref_list.begin();
                 ea_t next_block_addr = *cref_list_iter;
@@ -1284,26 +1292,26 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 ea_t cref_to = get_first_cref_to(next_block_addr);
                 while (cref_to != BADADDR)
                 {
-                    if (current_addr != cref_to)
+                    if (currentAddress != cref_to)
                         cref_to_count++;
                     cref_to = get_next_cref_to(next_block_addr, cref_to);
                 }
                 if (cref_to_count == 0)
                 {
                     //Merge it
-                    if (!first_block_end_address)
-                        first_block_end_address = current_addr + current_item_size;
+                    if (!firstBlockEndAddress)
+                        firstBlockEndAddress = currentAddress + current_item_size;
                     //next_block_addr should not be analyzed again next time.
-                    if (current_block_start_address != startEA)
+                    if (currentBlockStartAddress != startEA)
                     {
-                        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, current_block_start_address, current_addr + current_item_size);
-                        NewFoundBlocks.insert(pair<ea_t, ea_t>(current_block_start_address, current_addr + current_item_size));
+                        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress + current_item_size);
+                        NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
                     }
-                    if (current_block_start_address != next_block_addr)
+                    if (currentBlockStartAddress != next_block_addr)
                     {
-                        current_block_start_address = next_block_addr;
-                        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set current_block_start_address=%X\n", __FUNCTION__, current_block_start_address);
-                        current_addr = next_block_addr;
+                        currentBlockStartAddress = next_block_addr;
+                        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set currentBlockStartAddress=%X\n", __FUNCTION__, currentBlockStartAddress);
+                        currentAddress = next_block_addr;
                         found_branch = FALSE;
                         cref_list.clear();
                         continue;
@@ -1318,7 +1326,8 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
                     map_info.Type = CREF_FROM;
                     map_info.Dst = *cref_list_iter;
-                    m_disassemblyStorage.AddMapInfo(&map_info);
+                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
+                    m_pStorage->AddMapInfo(&map_info);
                 }
             }
             else
@@ -1330,49 +1339,52 @@ ea_t IDAAnalyzer::AnalyzeBlock(ea_t startEA, ea_t endEA, list <insn_t> *pCmdArra
                 {
                     map_info.Type = CREF_FROM;
                     map_info.Dst = *cref_list_iter;
-                    m_disassemblyStorage.AddMapInfo(&map_info);
+                    LogMessage(logLevel, __FUNCTION__, "m_pStorage->AddMapInfo\n");
+                    m_pStorage->AddMapInfo(&map_info);
                 }
             }
 
-            if (current_block_start_address != startEA)
+            if (currentBlockStartAddress != startEA)
             {
-                LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, current_block_start_address, current_addr + current_item_size);
-                NewFoundBlocks.insert(pair<ea_t, ea_t>(current_block_start_address, current_addr + current_item_size));
+                LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress + current_item_size);
+                NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress + current_item_size));
             }
 
-            if (first_block_end_address)
-                return first_block_end_address;
-            return current_addr + current_item_size;
+            if (firstBlockEndAddress)
+                return firstBlockEndAddress;
+            return currentAddress + current_item_size;
         }
-        current_addr += current_item_size;
+        currentAddress += current_item_size;
     }
-    if (current_block_start_address != startEA)
+
+    if (currentBlockStartAddress != startEA)
     {
-        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, current_block_start_address, current_addr);
-        NewFoundBlocks.insert(pair<ea_t, ea_t>(current_block_start_address, current_addr));
+        LogMessage(0, __FUNCTION__, "%s: [newFoundblockIter] Set Analyzed %X~%X\n", __FUNCTION__, currentBlockStartAddress, currentAddress);
+        NewFoundBlocks.insert(pair<ea_t, ea_t>(currentBlockStartAddress, currentAddress));
     }
 
     LogMessage(0, __FUNCTION__, "%s: CmdArray size=%u\n", __FUNCTION__, pCmdArray->size());
-    if (first_block_end_address)
-        return first_block_end_address;
-    return current_addr;
+    if (firstBlockEndAddress)
+        return firstBlockEndAddress;
+
+    return currentAddress;
 }
 
-IDAAnalyzer::IDAAnalyzer(Storage& disassemblyStorage)
+IDAAnalyzer::IDAAnalyzer(Storage* p_disassemblyStorage)
 {
-    m_disassemblyStorage = disassemblyStorage;
+    m_pStorage = p_disassemblyStorage;
 }
 
 void IDAAnalyzer::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
 {
     LogMessage(1, __FUNCTION__, "AnalyzeRegion %X ~ %X\n", startEA, endEA);
 
-    for (ea_t current_address = startEA; current_address < endEA; )
+    for (ea_t currentAddressess = startEA; currentAddressess < endEA; )
     {
         list <insn_t> CmdArray;
         flags_t Flag;
 
-        ea_t next_address = AnalyzeBlock(current_address, endEA, &CmdArray, &Flag);
+        ea_t next_address = AnalyzeBlock(currentAddressess, endEA, &CmdArray, &Flag);
         if (0)
         {
             unordered_map <op_t, OperandPosition, OpTypeHasher, OpTypeEqualFn> OperandsHash;
@@ -1388,21 +1400,21 @@ void IDAAnalyzer::AnalyzeRegion(ea_t startEA, ea_t endEA, bool gatherCmdArray)
             list <insn_t> *NewCmdArray = ReoderInstructions(InstructionMap, InstructionHash);
             if (NewCmdArray)
             {
-                DumpBasicBlock(current_address, NewCmdArray, Flag, gatherCmdArray);
+                DumpBasicBlock(currentAddressess, NewCmdArray, Flag, gatherCmdArray);
                 delete NewCmdArray;
             }
         }
         else
         {
-            DumpBasicBlock(current_address, &CmdArray, Flag, gatherCmdArray);
+            DumpBasicBlock(currentAddressess, &CmdArray, Flag, gatherCmdArray);
         }
 
         CmdArray.clear();
 
-        if (current_address == next_address)
+        if (currentAddressess == next_address)
             break;
 
-        current_address = next_address;
+        currentAddressess = next_address;
     }
 }
 
@@ -1422,11 +1434,11 @@ void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
     DWORD UserNameLen = sizeof(file_info.UserName);
     GetUserName(file_info.UserName, &UserNameLen);
 
-    m_disassemblyStorage.BeginTransaction();
+    m_pStorage->BeginTransaction();
 
     char *input_file_path = NULL;
     get_input_file_path(file_info.OriginalFilePath, sizeof(file_info.OriginalFilePath) - 1);
-    m_disassemblyStorage.SetFileInfo(&file_info);
+    m_pStorage->SetFileInfo(&file_info);
 
     LogMessage(1, __FUNCTION__, "Analyze: %x ~ %x\n", startEA, endEA);
 
@@ -1465,9 +1477,7 @@ void IDAAnalyzer::Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray)
         }
     }
 
-    m_disassemblyStorage.EndAnalysis();
-    m_disassemblyStorage.EndTransaction();
-
+    m_pStorage->EndTransaction();
     LogMessage(1, __FUNCTION__, "Finished Analysis\n");
 }
 
@@ -1650,17 +1660,17 @@ void IDAAnalyzer::FixExceptionHandlers()
 		if (seg_p->type == SEG_XTRN)
 		{
 			asize_t current_item_size;
-			ea_t current_addr;
-			for (current_addr = seg_p->start_ea;
-				current_addr < seg_p->end_ea;
-				current_addr += current_item_size)
+			ea_t currentAddress;
+			for (currentAddress = seg_p->start_ea;
+				currentAddress < seg_p->end_ea;
+				currentAddress += current_item_size)
 			{
-				get_name(&name, current_addr);
+				get_name(&name, currentAddress);
 				if (!stricmp(name.c_str(), "_except_handler3") || !stricmp(name.c_str(), "__imp__except_handler3"))
 				{
 					LogMessage(1, __FUNCTION__, "name=%s\n", name);
 					//dref_to
-					ea_t sub_exception_handler = get_first_dref_to(current_addr);
+					ea_t sub_exception_handler = get_first_dref_to(currentAddress);
 					while (sub_exception_handler != BADADDR)
 					{
 						exception_handler_addr = sub_exception_handler;
@@ -1738,11 +1748,11 @@ void IDAAnalyzer::FixExceptionHandlers()
 							push_exception_handler = get_next_dref_to(sub_exception_handler, push_exception_handler);
 						}
 
-						sub_exception_handler = get_next_dref_to(current_addr, sub_exception_handler);
+						sub_exception_handler = get_next_dref_to(currentAddress, sub_exception_handler);
 					}
 
 				}
-				current_item_size = get_item_size(current_addr);
+				current_item_size = get_item_size(currentAddress);
 			}
 		}
 	}

@@ -257,7 +257,7 @@ void DumpDOT(
 class IDAAnalyzer
 {
 private:
-    Storage m_disassemblyStorage;
+    Storage *m_pStorage;
     unordered_map <ea_t, ea_t> NewFoundBlocks;
 
     void UpdateInstructionMap(
@@ -281,6 +281,6 @@ private:
 	void MakeCode(ea_t start_addr, ea_t end_addr);
 	void FixExceptionHandlers();
 public:
-    IDAAnalyzer(Storage& disassemblyStorage);
+    IDAAnalyzer(Storage* p_disassemblyStorage);
     void Analyze(ea_t startEA, ea_t endEA, bool gatherCmdArray = false);
 };
