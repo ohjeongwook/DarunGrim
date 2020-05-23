@@ -1,15 +1,20 @@
 #pragma once
-#pragma pack(push)
-#pragma pack(1)
-
 #include <unordered_set>
 #include <unordered_map>
 
 #include "windows.h"
 #include <vector>
 
+#include "windows.h"
+#include "StorageDataStructures.h"
+
 using namespace std;
 using namespace stdext;
+
+#pragma pack(push)
+#pragma pack(1)
+
+typedef int va_t;
 
 #ifdef _DEBUGX
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
