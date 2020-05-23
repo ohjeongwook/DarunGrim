@@ -87,7 +87,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\DarunGrimIDAExporter</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\DarunGrimIDAExporter</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -119,7 +119,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\DarunGrimIDAExporter</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -135,7 +135,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\DarunGrimIDAExporter</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -156,7 +156,6 @@
     <ClInclude Include="MatchResults.h" />
     <ClInclude Include="SQLiteStorage.h" />
     <ClInclude Include="Log.h" />
-    <ClInclude Include="FileVersion.h" />
     <ClInclude Include="IDASession.h" />
     <ClInclude Include="LogOperation.h" />
     <ClInclude Include="ProcessUtils.h" />
@@ -178,8 +177,6 @@
     <ClCompile Include="IDASessions.cpp" />
     <ClCompile Include="MatchResults.cpp" />
     <ClCompile Include="SQLiteStorage.cpp" />
-    <ClCompile Include="Log.cpp" />
-    <ClCompile Include="FileVersion.cpp" />
     <ClCompile Include="IDASession.cpp" />
     <ClCompile Include="LogOperation.cpp" />
     <ClCompile Include="ProcessUtils.cpp" />
