@@ -40,7 +40,7 @@ IDASession::~IDASession()
 
     if (ClientAnalysisInfo)
     {
-        ClientAnalysisInfo->name_map.clear();
+        ClientAnalysisInfo->symbol_map.clear();
 
         for (auto& val : ClientAnalysisInfo->map_info_map)
         {
@@ -50,14 +50,14 @@ IDASession::~IDASession()
 
         ClientAnalysisInfo->map_info_map.clear();
 
-        for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
+        for (auto& val : ClientAnalysisInfo->address_to_instruction_hash_map)
         {
             if (val.second)
             {
                 free(val.second);
             }
         }
-        ClientAnalysisInfo->address_instruction_hash_map.clear();
+        ClientAnalysisInfo->address_to_instruction_hash_map.clear();
         ClientAnalysisInfo->instruction_hash_map.clear();
 
         delete ClientAnalysisInfo;
@@ -163,7 +163,7 @@ list <va_t> *IDASession::GetFunctionAddresses()
         }
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
 
-        for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
+        for (auto& val : ClientAnalysisInfo->address_to_instruction_hash_map)
         {
             addresses.insert(pair<va_t, short>(val.first, DoCrefFromCheck ? TRUE : FALSE));
         }
@@ -246,12 +246,12 @@ void IDASession::RemoveFromInstructionHashHash(va_t address)
 
 char *IDASession::GetInstructionHashStr(va_t address)
 {
-    if (ClientAnalysisInfo && ClientAnalysisInfo->address_instruction_hash_map.size() > 0)
+    if (ClientAnalysisInfo && ClientAnalysisInfo->address_to_instruction_hash_map.size() > 0)
     {
-        multimap <va_t, unsigned char*>::iterator address_instruction_hash_map_PIter = ClientAnalysisInfo->address_instruction_hash_map.find(address);
-        if (address_instruction_hash_map_PIter != ClientAnalysisInfo->address_instruction_hash_map.end())
+        multimap <va_t, unsigned char*>::iterator address_to_instruction_hash_map_PIter = ClientAnalysisInfo->address_to_instruction_hash_map.find(address);
+        if (address_to_instruction_hash_map_PIter != ClientAnalysisInfo->address_to_instruction_hash_map.end())
         {
-            return BytesWithLengthAmbleToHex(address_instruction_hash_map_PIter->second);
+            return BytesWithLengthAmbleToHex(address_to_instruction_hash_map_PIter->second);
         }
     }
     else
@@ -306,11 +306,11 @@ const char *GetAnalysisDataTypeStr(int type)
     return "Unknown";
 }
 
-enum { TYPE_FILE_INFO, TYPE_ADDRESS_MAP, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_INSTRUCTION_HASH_MAP, TYPE_TWO_LEVEL_INSTRUCTION_HASH_MAP, TYPE_ADDRESS_INSTRUCTION_HASH_MAP, TYPE_NAME_MAP, TYPE_ADDRESS_NAME_MAP, TYPE_MAP_INFO_MAP };
+enum { TYPE_FILE_INFO, TYPE_ADDRESS_MAP, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_INSTRUCTION_HASH_MAP, TYPE_TWO_LEVEL_INSTRUCTION_HASH_MAP, TYPE_address_to_instruction_hash_map, TYPE_NAME_MAP, TYPE_ADDRESS_NAME_MAP, TYPE_MAP_INFO_MAP };
 
 const char *GetFileDataTypeStr(int type)
 {
-    static const char *Types[] = { "FILE_INFO", "ADDRESS_MAP", "ADDRESS_DISASSEMBLY_MAP", "INSTRUCTION_HASH_MAP", "TWO_LEVEL_INSTRUCTION_HASH_MAP", "ADDRESS_INSTRUCTION_HASH_MAP", "NAME_MAP", "ADDRESS_NAME_MAP", "MAP_INFO_MAP" };
+    static const char *Types[] = { "FILE_INFO", "ADDRESS_MAP", "ADDRESS_DISASSEMBLY_MAP", "INSTRUCTION_HASH_MAP", "TWO_LEVEL_INSTRUCTION_HASH_MAP", "address_to_instruction_hash_map", "NAME_MAP", "ADDRESS_NAME_MAP", "MAP_INFO_MAP" };
     if (type < sizeof(Types) / sizeof(Types[0]))
         return Types[type];
     return "Unknown";
@@ -342,7 +342,6 @@ BOOL IDASession::LoadBasicBlock()
         }
 
         m_pStorage->ReadBasicBlockInfo(m_FileID, conditionStr, ClientAnalysisInfo);
-        GenerateInstructionHashHashMap();
     }
     return TRUE;
 }
@@ -409,141 +408,6 @@ typedef struct {
     va_t child_address;
 } AddressPair;
 
-void IDASession::GenerateInstructionHashHashMap()
-{
-    multimap <va_t, PBasicBlock>::iterator addressMapIterator;
-    list <AddressPair> AddressPairs;
-
-    for (auto& val : ClientAnalysisInfo->address_map)
-    {
-        va_t address = val.first;
-        multimap <va_t, PMapInfo>::iterator map_info_map_iter;
-        int matched_children_count = 0;
-        va_t matched_child_addr = 0L;
-        for (map_info_map_iter = ClientAnalysisInfo->map_info_map.find(address);
-            map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
-            map_info_map_iter++
-            )
-        {
-            if (map_info_map_iter->first != address)
-                break;
-            PMapInfo p_map_info = map_info_map_iter->second;
-            if (p_map_info->Type == CREF_FROM)
-            {
-                matched_child_addr = map_info_map_iter->second->Dst;
-                matched_children_count++;
-            }
-        }
-        Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%X children count: %u\n", __FUNCTION__, m_FileID, address, matched_children_count);
-        if (matched_children_count == 1 && matched_child_addr != 0L)
-        {
-            int matched_parents_count = 0;
-            for (map_info_map_iter = ClientAnalysisInfo->map_info_map.find(matched_child_addr);
-                map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
-                map_info_map_iter++
-                )
-            {
-                if (map_info_map_iter->first != matched_child_addr)
-                    break;
-                PMapInfo p_map_info = map_info_map_iter->second;
-                if (p_map_info->Type == CREF_TO || p_map_info->Type == CALLED)
-                    matched_parents_count++;
-            }
-            Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%X -> 0x%X parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
-            if (matched_parents_count == 1)
-            {
-                addressMapIterator = ClientAnalysisInfo->address_map.find(matched_child_addr);
-                if (addressMapIterator != ClientAnalysisInfo->address_map.end())
-                {
-                    PBasicBlock pBasicBlock = (PBasicBlock)addressMapIterator->second;
-                    if (pBasicBlock->FunctionAddress != matched_child_addr)
-                    {
-                        AddressPair address_pair;
-                        address_pair.address = address;
-                        address_pair.child_address = matched_child_addr;
-                        AddressPairs.push_back(address_pair);
-                    }
-                }
-            }
-        }
-    }
-
-    for (AddressPair addressPair : AddressPairs)
-    {
-        va_t address = addressPair.address;
-        va_t child_address = addressPair.child_address;
-        Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d Joining 0x%X-0x%X\n", __FUNCTION__, m_FileID, address, child_address);
-
-        va_t matched_child_addr = 0L;
-
-        multimap <va_t, PMapInfo>::iterator map_info_map_iter;
-        for (map_info_map_iter = ClientAnalysisInfo->map_info_map.find(child_address);
-            map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
-            map_info_map_iter++
-            )
-        {
-            if (map_info_map_iter->first != child_address)
-                break;
-            PMapInfo p_map_info = map_info_map_iter->second;
-            PMapInfo p_new_map_info = (PMapInfo)malloc(sizeof(MapInfo));
-            p_new_map_info->SrcBlockEnd = address;
-            p_new_map_info->SrcBlock = address;
-            p_new_map_info->Dst = p_map_info->Dst;
-            p_new_map_info->Type = p_map_info->Type;
-            ClientAnalysisInfo->map_info_map.insert(AddressPMapInfoPair(address, p_new_map_info));
-        }
-        for (map_info_map_iter = ClientAnalysisInfo->map_info_map.find(address);
-            map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
-            map_info_map_iter++
-            )
-        {
-            if (map_info_map_iter->first != address)
-                break;
-            PMapInfo p_map_info = map_info_map_iter->second;
-            if (p_map_info->Dst == child_address)
-            {
-                ClientAnalysisInfo->map_info_map.erase(map_info_map_iter);
-                break;
-            }
-        }
-        multimap <va_t, string>::iterator child_address_disassembly_map_iter;
-        child_address_disassembly_map_iter = ClientAnalysisInfo->address_disassembly_map.find(child_address);
-        if (child_address_disassembly_map_iter != ClientAnalysisInfo->address_disassembly_map.end())
-        {
-            multimap <va_t, string>::iterator address_disassembly_map_iter;
-            address_disassembly_map_iter = ClientAnalysisInfo->address_disassembly_map.find(address);
-            if (address_disassembly_map_iter != ClientAnalysisInfo->address_disassembly_map.end())
-            {
-                address_disassembly_map_iter->second += child_address_disassembly_map_iter->second;
-            }
-        }
-
-        multimap <va_t, unsigned char*>::iterator child_address_instruction_hash_map_iter;
-        child_address_instruction_hash_map_iter = ClientAnalysisInfo->address_instruction_hash_map.find(child_address);
-        if (child_address_instruction_hash_map_iter != ClientAnalysisInfo->address_instruction_hash_map.end())
-        {
-            multimap <va_t, unsigned char*>::iterator address_instruction_hash_map_iter;
-            address_instruction_hash_map_iter = ClientAnalysisInfo->address_instruction_hash_map.find(address);
-            if (address_instruction_hash_map_iter != ClientAnalysisInfo->address_instruction_hash_map.end())
-            {
-                //TODO: address_instruction_hash_map_iter->second += child_address_instruction_hash_map_iter->second;
-            }
-        }
-        ClientAnalysisInfo->address_map.erase(addressPair.child_address);
-        ClientAnalysisInfo->address_name_map.erase(addressPair.child_address);
-        ClientAnalysisInfo->map_info_map.erase(addressPair.child_address);
-        ClientAnalysisInfo->address_disassembly_map.erase(addressPair.child_address);
-        ClientAnalysisInfo->address_instruction_hash_map.erase(addressPair.child_address);
-    }
-    AddressPairs.clear();
-
-    for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
-    {
-        ClientAnalysisInfo->instruction_hash_map.insert(InstructionHashAddress_Pair(val.second, val.first));
-    }
-    GenerateTwoLevelInstructionHash();
-}
-
 void IDASession::GenerateTwoLevelInstructionHash()
 {
     /*
@@ -563,13 +427,13 @@ void IDASession::GenerateTwoLevelInstructionHash()
             {
                 int TwoLevelInstructionHashLength = 0;
                 TwoLevelInstructionHashLength += *(unsigned short *)instruction_hash_map_pIter->first; //+
-                multimap <va_t,  unsigned char *>::iterator address_instruction_hash_map_Iter;
+                multimap <va_t,  unsigned char *>::iterator address_to_instruction_hash_map_Iter;
                 for (int i = 0;i<addresses_number;i++)
                 {
-                    address_instruction_hash_map_Iter = ClientAnalysisInfo->address_instruction_hash_map.find(addresses[i]);
-                    if(address_instruction_hash_map_Iter != ClientAnalysisInfo->address_instruction_hash_map.end())
+                    address_to_instruction_hash_map_Iter = ClientAnalysisInfo->address_to_instruction_hash_map.find(addresses[i]);
+                    if(address_to_instruction_hash_map_Iter != ClientAnalysisInfo->address_to_instruction_hash_map.end())
                     {
-                        TwoLevelInstructionHashLength += *(unsigned short *)address_instruction_hash_map_Iter->second; //+
+                        TwoLevelInstructionHashLength += *(unsigned short *)address_to_instruction_hash_map_Iter->second; //+
                     }
                 }
 
@@ -585,11 +449,11 @@ void IDASession::GenerateTwoLevelInstructionHash()
                         Offset += *(unsigned short *)instruction_hash_map_pIter->first;
                         for (int i = 0;i<addresses_number;i++)
                         {
-                            address_instruction_hash_map_Iter = ClientAnalysisInfo->address_instruction_hash_map.find(addresses[i]);
-                            if(address_instruction_hash_map_Iter != ClientAnalysisInfo->address_instruction_hash_map.end())
+                            address_to_instruction_hash_map_Iter = ClientAnalysisInfo->address_to_instruction_hash_map.find(addresses[i]);
+                            if(address_to_instruction_hash_map_Iter != ClientAnalysisInfo->address_to_instruction_hash_map.end())
                             {
-                                memcpy(TwoLevelInstructionHash+Offset, address_instruction_hash_map_Iter->second+sizeof(short), *(unsigned short *)address_instruction_hash_map_Iter->second);
-                                Offset += *(unsigned short *)address_instruction_hash_map_Iter->second;
+                                memcpy(TwoLevelInstructionHash+Offset, address_to_instruction_hash_map_Iter->second+sizeof(short), *(unsigned short *)address_to_instruction_hash_map_Iter->second);
+                                Offset += *(unsigned short *)address_to_instruction_hash_map_Iter->second;
                             }
                         }
                         ClientAnalysisInfo->instruction_hash_map.insert(InstructionHashAddress_Pair(TwoLevelInstructionHash, instruction_hash_map_pIter->second));

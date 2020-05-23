@@ -118,7 +118,6 @@ public:
     void JumpToAddress(unsigned long address);
     void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
     list <BLOCK> GetFunctionMemberBlocks(unsigned long FunctionAddress);
-    void GenerateInstructionHashHashMap();
     int GetFileID();
     char *GetOriginalFilePath();
 

@@ -148,12 +148,9 @@ public:
 //,hash_compare<string,equ_str> 
 typedef struct _AnalysisInfo_ {
 	FileInfo file_info;
-	multimap <va_t, PBasicBlock> address_map;
-	multimap <va_t, string> address_disassembly_map;
 	multimap <unsigned char*, va_t, hash_compare_instruction_hash> instruction_hash_map;
-	multimap <va_t, unsigned char*> address_instruction_hash_map;
-	multimap <string, va_t> name_map;
-	multimap <va_t, string> address_name_map;
+	multimap <va_t, unsigned char*> address_to_instruction_hash_map;
+	multimap <string, va_t> symbol_map;
 	multimap <va_t, PMapInfo> map_info_map;
 } AnalysisInfo,  *PAnalysisInfo;
 

@@ -316,7 +316,7 @@ MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFu
 bool IDASessions::Analyze()
 {
     multimap <string, va_t>::iterator instruction_hash_map_pIter;
-    multimap <string, va_t>::iterator name_map_pIter;
+    multimap <string, va_t>::iterator symbol_map_pIter;
     multimap <va_t, PMapInfo>::iterator map_info_map_pIter;
     MATCHMAP TemporaryMatchMap;
 
@@ -333,17 +333,17 @@ bool IDASessions::Analyze()
         SourceIDASession->GetClientAnalysisInfo()->instruction_hash_map.size(),
         TargetIDASession->GetClientAnalysisInfo()->instruction_hash_map.size());
 
-    // Name Match
-    Logger.Log(10, LOG_DIFF_MACHINE, "Name Match\n");
+    // Symbol Match
+    Logger.Log(10, LOG_DIFF_MACHINE, "Symbol Match\n");
 
-    multimap <string, va_t>::iterator patched_name_map_pIter;
+    multimap <string, va_t>::iterator patchedNameMapIterator;
 
-    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->name_map)
+    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->symbol_map)
     {
-        if (SourceIDASession->GetClientAnalysisInfo()->name_map.count(val.first) == 1)
+        if (SourceIDASession->GetClientAnalysisInfo()->symbol_map.count(val.first) == 1)
         {
             //unique key
-            if (TargetIDASession->GetClientAnalysisInfo()->name_map.count(val.first) == 1)
+            if (TargetIDASession->GetClientAnalysisInfo()->symbol_map.count(val.first) == 1)
             {
                 if (val.first.find("loc_") != string::npos ||
                     val.first.find("locret_") != string::npos ||
@@ -351,18 +351,18 @@ bool IDASessions::Analyze()
                     val.first.find("func_") != string::npos)
                     continue;
 
-                patched_name_map_pIter = TargetIDASession->GetClientAnalysisInfo()->name_map.find(val.first);
+                patchedNameMapIterator = TargetIDASession->GetClientAnalysisInfo()->symbol_map.find(val.first);
 
-                if (patched_name_map_pIter != TargetIDASession->GetClientAnalysisInfo()->name_map.end())
+                if (patchedNameMapIterator != TargetIDASession->GetClientAnalysisInfo()->symbol_map.end())
                 {
                     MatchData match_data;
                     memset(&match_data, 0, sizeof(MatchData));
                     match_data.Type = NAME_MATCH;
                     match_data.Addresses[0] = val.second;
-                    match_data.Addresses[1] = patched_name_map_pIter->second;
+                    match_data.Addresses[1] = patchedNameMapIterator->second;
                     match_data.MatchRate = GetMatchRate(
                         val.second,
-                        patched_name_map_pIter->second
+                        patchedNameMapIterator->second
                     );
 
                     if (m_pdumpAddressChecker)
@@ -376,9 +376,9 @@ bool IDASessions::Analyze()
             }
         }
     }
-    Logger.Log(10, LOG_DIFF_MACHINE, "Name Match Ended\n");
+    Logger.Log(10, LOG_DIFF_MACHINE, "Symbol Match Ended\n");
 
-    Logger.Log(10, LOG_DIFF_MACHINE, "%s: Name matched number=%u\n", __FUNCTION__, TemporaryMatchMap.size());
+    Logger.Log(10, LOG_DIFF_MACHINE, "%s: Symbol Matched number=%u\n", __FUNCTION__, TemporaryMatchMap.size());
 
     int OldMatchMapSize = 0;
     while (1)
@@ -598,12 +598,12 @@ int IDASessions::GetMatchRate(va_t unpatched_address, va_t patched_address)
     multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
     multimap <va_t, unsigned char*>::iterator target_instruction_hash_map_Iter;
 
-    source_instruction_hash_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.find(unpatched_address);
-    target_instruction_hash_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.find(patched_address);
+    source_instruction_hash_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map.find(unpatched_address);
+    target_instruction_hash_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map.find(patched_address);
 
     if (
-        source_instruction_hash_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.end() &&
-        target_instruction_hash_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.end()
+        source_instruction_hash_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map.end() &&
+        target_instruction_hash_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map.end()
         )
     {
         return m_pdiffAlgorithms->GetInstructionHashMatchRate(
@@ -1164,7 +1164,7 @@ void IDASessions::PrintMatchMapInfo()
 	int unpatched_unidentified_number = 0;
 	multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
 
-    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map)
+    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map)
 	{
 		if (m_pMatchResults->MatchMap.find(val.first) == m_pMatchResults->MatchMap.end())
 		{
@@ -1180,7 +1180,7 @@ void IDASessions::PrintMatchMapInfo()
 
 	int patched_unidentified_number = 0;
 
-    for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map)
+    for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_to_instruction_hash_map)
 	{
 		if (m_pMatchResults->ReverseAddressMap.find(val.first) == m_pMatchResults->ReverseAddressMap.end())
 		{
