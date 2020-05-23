@@ -159,12 +159,8 @@
     <ClInclude Include="LogOperation.h" />
     <ClInclude Include="ProcessUtils.h" />
     <ClInclude Include="RegistryUtil.h" />
-    <ClInclude Include="SharedMemory.h" />
-    <ClInclude Include="SharedSocket.h" />
-    <ClInclude Include="SocketOperation.h" />
     <ClInclude Include="Libs\sqlite3.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TLV.h" />
     <ClInclude Include="Libs\Varray.h" />
     <ClInclude Include="Libs\XGetopt.h" />
   </ItemGroup>
@@ -178,9 +174,6 @@
     <ClCompile Include="LogOperation.cpp" />
     <ClCompile Include="ProcessUtils.cpp" />
     <ClCompile Include="RegistryUtil.cpp" />
-    <ClCompile Include="SharedMemory.cpp" />
-    <ClCompile Include="SharedSocket.cpp" />
-    <ClCompile Include="SocketOperation.cpp" />
     <ClCompile Include="Libs\sqlite3.c" />
     <ClCompile Include="Libs\Varray.cpp" />
     <ClCompile Include="Libs\XGetopt.cpp" />
