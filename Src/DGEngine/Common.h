@@ -111,49 +111,6 @@ public:
     }    
 };
 
-class hash_compare_instruction_hash
-{
-public:
-	enum
-	{
-		bucket_size = 400000,
-		min_buckets = 4000
-	};
-public:
-	size_t operator() (/*[in]*/ const unsigned char *Bytes) const
-	{
-		size_t Key = 0;
-		for (int i = 0; i < *(unsigned short*)Bytes; i++)
-		{
-			Key += Bytes[sizeof(short) + i];
-		}
-		return  Key;
-	}
-public:
-	bool operator() (/*[in]*/const unsigned char *Bytes01,/*[in]*/ const unsigned char *Bytes02) const
-	{
-		if (Bytes01 == Bytes02)
-		{
-			return 0;
-		}
-
-		if (*(unsigned short*)Bytes01 == *(unsigned short*)Bytes02)
-		{
-			return (memcmp(Bytes01 + sizeof(unsigned short), Bytes02 + sizeof(unsigned short), *(unsigned short*)Bytes01) < 0);
-		}
-		return (*(unsigned short*)Bytes01 >  *(unsigned short*)Bytes02);
-	}
-};
-
-//,hash_compare<string,equ_str> 
-typedef struct _AnalysisInfo_ {
-	FileInfo file_info;
-	multimap <unsigned char*, va_t, hash_compare_instruction_hash> instruction_hash_map;
-	multimap <va_t, unsigned char*> address_to_instruction_hash_map;
-	multimap <string, va_t> symbol_map;
-	multimap <va_t, PMapInfo> map_info_map;
-} AnalysisInfo,  *PAnalysisInfo;
-
 typedef struct _MatchData_ {
 	short Type;
 	short SubType;
@@ -251,19 +208,18 @@ public:
 
 enum { NAME_MATCH, INSTRUCTION_HASH_MATCH, TWO_LEVEL_INSTRUCTION_HASH_MATCH, TREE_MATCH, INSTRUCTION_HASH_INSIDE_FUNCTION_MATCH, FUNCTION_MATCH };
 
-typedef struct _AnalysisInfoList_ {
-	PAnalysisInfo p_analysis_info;
+typedef struct _DisassemblyHashMapsList_ {
+	PDisassemblyHashMaps p_analysis_info;
 	SOCKET socket;
 	va_t address;
-	struct _AnalysisInfoList_ *prev;
-	struct _AnalysisInfoList_ *next;
-} AnalysisInfoList;
+	struct _DisassemblyHashMapsList_ *prev;
+	struct _DisassemblyHashMapsList_ *next;
+} DisassemblyHashMapsList;
 
 typedef pair <va_t, PBasicBlock> AddrPBasicBlock_Pair;
 typedef pair <va_t, string> AddrDisassembly_Pair;
 typedef pair <unsigned char*, va_t> InstructionHashAddress_Pair;
 typedef pair <string, va_t*> TwoLevelInstructionHashAddress_Pair;
-typedef pair <va_t, unsigned char*> AddressInstructionHashAddress_Pair;
 typedef pair <string, va_t> NameAddress_Pair;
 typedef pair <va_t, string> AddressName_Pair;
 typedef pair <va_t, MatchData> MatchMap_Pair;
