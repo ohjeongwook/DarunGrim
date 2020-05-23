@@ -6,7 +6,6 @@
 #include <tchar.h>
 #include <malloc.h>
 
-#include "Utility.h"
 #include "Diff.h"
 #include "DiffAlgorithms.h"
 #include "Log.h"

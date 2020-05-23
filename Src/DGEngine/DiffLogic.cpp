@@ -8,7 +8,6 @@
 #include "sqlite3.h"
 
 #include "Diff.h"
-#include "Log.h"
 #include "DiffLogic.h"
 #include "SQLiteDiffStorage.h"
 #include "SQLiteDisassemblyStorage.h"
