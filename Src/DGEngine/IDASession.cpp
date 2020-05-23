@@ -50,15 +50,15 @@ IDASession::~IDASession()
 
         ClientAnalysisInfo->map_info_map.clear();
 
-        for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
+        for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
         {
             if (val.second)
             {
                 free(val.second);
             }
         }
-        ClientAnalysisInfo->address_fingerprint_map.clear();
-        ClientAnalysisInfo->fingerprint_map.clear();
+        ClientAnalysisInfo->address_instruction_hash_map.clear();
+        ClientAnalysisInfo->instruction_hash_map.clear();
 
         delete ClientAnalysisInfo;
     }
@@ -163,7 +163,7 @@ list <va_t> *IDASession::GetFunctionAddresses()
         }
         Logger.Log(10, LOG_IDA_CONTROLLER, "%s\n", __FUNCTION__);
 
-        for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
+        for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
         {
             addresses.insert(pair<va_t, short>(val.first, DoCrefFromCheck ? TRUE : FALSE));
         }
@@ -212,52 +212,52 @@ list <va_t> *IDASession::GetFunctionAddresses()
     return function_addresses;
 }
 
-#undef USE_LEGACY_MAP_FOR_ADDRESS_unordered_map
-void IDASession::RemoveFromFingerprintHash(va_t address)
+#undef USE_LEGACY_MAP_FOR_ADDRESS_MAP
+void IDASession::RemoveFromInstructionHashHash(va_t address)
 {
-    unsigned char *Fingerprint = NULL;
+    unsigned char *InstructionHash = NULL;
 
-    char *FingerprintStr = m_pStorage->ReadFingerPrint(m_FileID, address);
+    char *InstructionHashStr = m_pStorage->ReadInstructionHash(m_FileID, address);
 
-    if (FingerprintStr)
+    if (InstructionHashStr)
     {
-        Fingerprint = HexToBytesWithLengthAmble(FingerprintStr);
+        InstructionHash = HexToBytesWithLengthAmble(InstructionHashStr);
     }
 
-    if (Fingerprint)
+    if (InstructionHash)
     {
-        multimap <unsigned char*, va_t, hash_compare_fingerprint>::iterator fingerprint_map_PIter;
-        for (fingerprint_map_PIter = ClientAnalysisInfo->fingerprint_map.find(Fingerprint);
-            fingerprint_map_PIter != ClientAnalysisInfo->fingerprint_map.end();
-            fingerprint_map_PIter++
+        multimap <unsigned char*, va_t, hash_compare_instruction_hash>::iterator instruction_hash_map_PIter;
+        for (instruction_hash_map_PIter = ClientAnalysisInfo->instruction_hash_map.find(InstructionHash);
+            instruction_hash_map_PIter != ClientAnalysisInfo->instruction_hash_map.end();
+            instruction_hash_map_PIter++
             )
         {
-            if (!IsEqualByteWithLengthAmble(fingerprint_map_PIter->first, Fingerprint))
+            if (!IsEqualByteWithLengthAmble(instruction_hash_map_PIter->first, InstructionHash))
                 break;
-            if (fingerprint_map_PIter->second == address)
+            if (instruction_hash_map_PIter->second == address)
             {
-                ClientAnalysisInfo->fingerprint_map.erase(fingerprint_map_PIter);
+                ClientAnalysisInfo->instruction_hash_map.erase(instruction_hash_map_PIter);
                 break;
             }
         }
-        free(Fingerprint);
+        free(InstructionHash);
     }
 }
 
-char *IDASession::GetFingerPrintStr(va_t address)
+char *IDASession::GetInstructionHashStr(va_t address)
 {
-    if (ClientAnalysisInfo && ClientAnalysisInfo->address_fingerprint_map.size() > 0)
+    if (ClientAnalysisInfo && ClientAnalysisInfo->address_instruction_hash_map.size() > 0)
     {
-        multimap <va_t, unsigned char*>::iterator address_fingerprint_map_PIter = ClientAnalysisInfo->address_fingerprint_map.find(address);
-        if (address_fingerprint_map_PIter != ClientAnalysisInfo->address_fingerprint_map.end())
+        multimap <va_t, unsigned char*>::iterator address_instruction_hash_map_PIter = ClientAnalysisInfo->address_instruction_hash_map.find(address);
+        if (address_instruction_hash_map_PIter != ClientAnalysisInfo->address_instruction_hash_map.end())
         {
-            return BytesWithLengthAmbleToHex(address_fingerprint_map_PIter->second);
+            return BytesWithLengthAmbleToHex(address_instruction_hash_map_PIter->second);
         }
     }
     else
     {
-        char *FingerprintPtr = m_pStorage->ReadFingerPrint(m_FileID, address);
-        return FingerprintPtr;
+        char *InstructionHashPtr = m_pStorage->ReadInstructionHash(m_FileID, address);
+        return InstructionHashPtr;
     }
     return NULL;
 }
@@ -290,10 +290,10 @@ void IDASession::DumpBlockInfo(va_t block_address)
             Logger.Log(10, LOG_IDA_CONTROLLER, "\n");
         }
     }
-    char *hex_str = GetFingerPrintStr(block_address);
+    char *hex_str = GetInstructionHashStr(block_address);
     if (hex_str)
     {
-        Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d fingerprint: %s\n", __FUNCTION__, m_FileID, hex_str);
+        Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d instruction_hash: %s\n", __FUNCTION__, m_FileID, hex_str);
         free(hex_str);
     }
 }
@@ -306,11 +306,11 @@ const char *GetAnalysisDataTypeStr(int type)
     return "Unknown";
 }
 
-enum { TYPE_FILE_INFO, TYPE_ADDRESS_unordered_map, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_FINGERPRINT_unordered_map, TYPE_TWO_LEVEL_FINGERPRINT_unordered_map, TYPE_ADDRESS_FINGERPRINT_unordered_map, TYPE_NAME_unordered_map, TYPE_ADDRESS_NAME_unordered_map, TYPE_MAP_INFO_unordered_map };
+enum { TYPE_FILE_INFO, TYPE_ADDRESS_MAP, TYPE_ADDRESS_DISASSEMBLY_MAP, TYPE_INSTRUCTION_HASH_MAP, TYPE_TWO_LEVEL_INSTRUCTION_HASH_MAP, TYPE_ADDRESS_INSTRUCTION_HASH_MAP, TYPE_NAME_MAP, TYPE_ADDRESS_NAME_MAP, TYPE_MAP_INFO_MAP };
 
 const char *GetFileDataTypeStr(int type)
 {
-    static const char *Types[] = { "FILE_INFO", "ADDRESS_unordered_map", "ADDRESS_DISASSEMBLY_MAP", "FINGERPRINT_unordered_map", "TWO_LEVEL_FINGERPRINT_unordered_map", "ADDRESS_FINGERPRINT_unordered_map", "NAME_unordered_map", "ADDRESS_NAME_unordered_map", "MAP_INFO_unordered_map" };
+    static const char *Types[] = { "FILE_INFO", "ADDRESS_MAP", "ADDRESS_DISASSEMBLY_MAP", "INSTRUCTION_HASH_MAP", "TWO_LEVEL_INSTRUCTION_HASH_MAP", "ADDRESS_INSTRUCTION_HASH_MAP", "NAME_MAP", "ADDRESS_NAME_MAP", "MAP_INFO_MAP" };
     if (type < sizeof(Types) / sizeof(Types[0]))
         return Types[type];
     return "Unknown";
@@ -333,7 +333,7 @@ char *IDASession::GetOriginalFilePath()
 
 BOOL IDASession::LoadBasicBlock()
 {
-    if (ClientAnalysisInfo->fingerprint_map.size() == 0)
+    if (ClientAnalysisInfo->instruction_hash_map.size() == 0)
     {
         char conditionStr[50] = { 0, };
         if (TargetFunctionAddress)
@@ -342,7 +342,7 @@ BOOL IDASession::LoadBasicBlock()
         }
 
         m_pStorage->ReadBasicBlockInfo(m_FileID, conditionStr, ClientAnalysisInfo);
-        GenerateFingerprintHashMap();
+        GenerateInstructionHashHashMap();
     }
     return TRUE;
 }
@@ -409,7 +409,7 @@ typedef struct {
     va_t child_address;
 } AddressPair;
 
-void IDASession::GenerateFingerprintHashMap()
+void IDASession::GenerateInstructionHashHashMap()
 {
     multimap <va_t, PBasicBlock>::iterator addressMapIterator;
     list <AddressPair> AddressPairs;
@@ -518,81 +518,81 @@ void IDASession::GenerateFingerprintHashMap()
             }
         }
 
-        multimap <va_t, unsigned char*>::iterator child_address_fingerprint_map_iter;
-        child_address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.find(child_address);
-        if (child_address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end())
+        multimap <va_t, unsigned char*>::iterator child_address_instruction_hash_map_iter;
+        child_address_instruction_hash_map_iter = ClientAnalysisInfo->address_instruction_hash_map.find(child_address);
+        if (child_address_instruction_hash_map_iter != ClientAnalysisInfo->address_instruction_hash_map.end())
         {
-            multimap <va_t, unsigned char*>::iterator address_fingerprint_map_iter;
-            address_fingerprint_map_iter = ClientAnalysisInfo->address_fingerprint_map.find(address);
-            if (address_fingerprint_map_iter != ClientAnalysisInfo->address_fingerprint_map.end())
+            multimap <va_t, unsigned char*>::iterator address_instruction_hash_map_iter;
+            address_instruction_hash_map_iter = ClientAnalysisInfo->address_instruction_hash_map.find(address);
+            if (address_instruction_hash_map_iter != ClientAnalysisInfo->address_instruction_hash_map.end())
             {
-                //TODO: address_fingerprint_map_iter->second += child_address_fingerprint_map_iter->second;
+                //TODO: address_instruction_hash_map_iter->second += child_address_instruction_hash_map_iter->second;
             }
         }
         ClientAnalysisInfo->address_map.erase(addressPair.child_address);
         ClientAnalysisInfo->address_name_map.erase(addressPair.child_address);
         ClientAnalysisInfo->map_info_map.erase(addressPair.child_address);
         ClientAnalysisInfo->address_disassembly_map.erase(addressPair.child_address);
-        ClientAnalysisInfo->address_fingerprint_map.erase(addressPair.child_address);
+        ClientAnalysisInfo->address_instruction_hash_map.erase(addressPair.child_address);
     }
     AddressPairs.clear();
 
-    for (auto& val : ClientAnalysisInfo->address_fingerprint_map)
+    for (auto& val : ClientAnalysisInfo->address_instruction_hash_map)
     {
-        ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(val.second, val.first));
+        ClientAnalysisInfo->instruction_hash_map.insert(InstructionHashAddress_Pair(val.second, val.first));
     }
-    GenerateTwoLevelFingerPrint();
+    GenerateTwoLevelInstructionHash();
 }
 
-void IDASession::GenerateTwoLevelFingerPrint()
+void IDASession::GenerateTwoLevelInstructionHash()
 {
     /*
-    multimap <unsigned char *, va_t, hash_compare_fingerprint>::iterator fingerprint_map_pIter;
-    for (fingerprint_map_pIter = ClientAnalysisInfo->fingerprint_map.begin();
-        fingerprint_map_pIter != ClientAnalysisInfo->fingerprint_map.end();
-        fingerprint_map_pIter++)
+    multimap <unsigned char *, va_t, hash_compare_instruction_hash>::iterator instruction_hash_map_pIter;
+    for (instruction_hash_map_pIter = ClientAnalysisInfo->instruction_hash_map.begin();
+        instruction_hash_map_pIter != ClientAnalysisInfo->instruction_hash_map.end();
+        instruction_hash_map_pIter++)
 
     {
-        if(ClientAnalysisInfo->fingerprint_map.count(fingerprint_map_pIter->first)>1)
+        if(ClientAnalysisInfo->instruction_hash_map.count(instruction_hash_map_pIter->first)>1)
         {
             int addresses_number = 0;
-            va_t *addresses = GetMappedAddresses(fingerprint_map_pIter->second, CREF_FROM, &addresses_number);
+            va_t *addresses = GetMappedAddresses(instruction_hash_map_pIter->second, CREF_FROM, &addresses_number);
             if(!addresses)
-                addresses = GetMappedAddresses(fingerprint_map_pIter->second, CREF_TO, NULL);
+                addresses = GetMappedAddresses(instruction_hash_map_pIter->second, CREF_TO, NULL);
             if(addresses)
             {
-                int TwoLevelFingerprintLength = 0;
-                TwoLevelFingerprintLength += *(unsigned short *)fingerprint_map_pIter->first; //+
-                multimap <va_t,  unsigned char *>::iterator address_fingerprint_map_Iter;
+                int TwoLevelInstructionHashLength = 0;
+                TwoLevelInstructionHashLength += *(unsigned short *)instruction_hash_map_pIter->first; //+
+                multimap <va_t,  unsigned char *>::iterator address_instruction_hash_map_Iter;
                 for (int i = 0;i<addresses_number;i++)
                 {
-                    address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
-                    if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())
+                    address_instruction_hash_map_Iter = ClientAnalysisInfo->address_instruction_hash_map.find(addresses[i]);
+                    if(address_instruction_hash_map_Iter != ClientAnalysisInfo->address_instruction_hash_map.end())
                     {
-                        TwoLevelFingerprintLength += *(unsigned short *)address_fingerprint_map_Iter->second; //+
+                        TwoLevelInstructionHashLength += *(unsigned short *)address_instruction_hash_map_Iter->second; //+
                     }
                 }
 
-                if(TwoLevelFingerprintLength>0)
+                if(TwoLevelInstructionHashLength>0)
                 {
-                    unsigned char *TwoLevelFingerprint = (unsigned char *)malloc(TwoLevelFingerprintLength+sizeof(short));
-                    if(TwoLevelFingerprint)
+                    unsigned char *TwoLevelInstructionHash = (unsigned char *)malloc(TwoLevelInstructionHashLength+sizeof(short));
+                    if(TwoLevelInstructionHash)
                     {
-                        *(unsigned short *)TwoLevelFingerprint = TwoLevelFingerprintLength;
+                        *(unsigned short *)TwoLevelInstructionHash = TwoLevelInstructionHashLength;
 
                         int Offset = sizeof(short);
-                        memcpy(TwoLevelFingerprint+Offset, fingerprint_map_pIter->first+sizeof(short), *(unsigned short *)fingerprint_map_pIter->first);
-                        Offset += *(unsigned short *)fingerprint_map_pIter->first;
+                        memcpy(TwoLevelInstructionHash+Offset, instruction_hash_map_pIter->first+sizeof(short), *(unsigned short *)instruction_hash_map_pIter->first);
+                        Offset += *(unsigned short *)instruction_hash_map_pIter->first;
                         for (int i = 0;i<addresses_number;i++)
                         {
-                            address_fingerprint_map_Iter = ClientAnalysisInfo->address_fingerprint_map.find(addresses[i]);
-                            if(address_fingerprint_map_Iter != ClientAnalysisInfo->address_fingerprint_map.end())
+                            address_instruction_hash_map_Iter = ClientAnalysisInfo->address_instruction_hash_map.find(addresses[i]);
+                            if(address_instruction_hash_map_Iter != ClientAnalysisInfo->address_instruction_hash_map.end())
                             {
-                                memcpy(TwoLevelFingerprint+Offset, address_fingerprint_map_Iter->second+sizeof(short), *(unsigned short *)address_fingerprint_map_Iter->second);
-                                Offset += *(unsigned short *)address_fingerprint_map_Iter->second;
+                                memcpy(TwoLevelInstructionHash+Offset, address_instruction_hash_map_Iter->second+sizeof(short), *(unsigned short *)address_instruction_hash_map_Iter->second);
+                                Offset += *(unsigned short *)address_instruction_hash_map_Iter->second;
                             }
                         }
-                        ClientAnalysisInfo->fingerprint_map.insert(FingerPrintAddress_Pair(TwoLevelFingerprint, fingerprint_map_pIter->second));
+                        ClientAnalysisInfo->instruction_hash_map.insert(InstructionHashAddress_Pair(TwoLevelInstructionHash, instruction_hash_map_pIter->second));
                     }
                 }
             }
@@ -615,7 +615,7 @@ void IDASession::DumpAnalysisInfo()
         Logger.Log(10, LOG_IDA_CONTROLLER, "ModifiedTime = %s\n", ClientAnalysisInfo->file_info.ModifiedTime);
         Logger.Log(10, LOG_IDA_CONTROLLER, "MD5Sum = %s\n", ClientAnalysisInfo->file_info.MD5Sum);
 
-        Logger.Log(10, LOG_IDA_CONTROLLER, "fingerprint_map = %u\n", ClientAnalysisInfo->fingerprint_map.size());
+        Logger.Log(10, LOG_IDA_CONTROLLER, "instruction_hash_map = %u\n", ClientAnalysisInfo->instruction_hash_map.size());
     }
 }
 

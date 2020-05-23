@@ -40,7 +40,7 @@ public:
     {
     }
 
-    virtual char *ReadFingerPrint(int fileID, va_t address)
+    virtual char *ReadInstructionHash(int fileID, va_t address)
     {
         return NULL;
     }

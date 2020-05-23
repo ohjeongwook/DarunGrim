@@ -311,7 +311,7 @@ void SQLiteDiffStorage::InsertMatchMap(int sourceFileID, int targetFileID, va_t 
         sourceAddress,
         targetAddress,
         TYPE_MATCH,
-        FINGERPRINT_INSIDE_FUNCTION_MATCH,
+        INSTRUCTION_HASH_INSIDE_FUNCTION_MATCH,
         0,
         0,
         matchRate,

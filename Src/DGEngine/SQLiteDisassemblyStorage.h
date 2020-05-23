@@ -42,7 +42,7 @@ public:
     static int ReadFunctionAddressesCallback(void *arg, int argc, char **argv, char **names);
     void ReadFunctionAddressMap(int fileID, unordered_set <va_t>& functionAddressMap);
 
-    char *ReadFingerPrint(int fileID, va_t address);
+    char *ReadInstructionHash(int fileID, va_t address);
     char *ReadName(int fileID, va_t address);
     va_t ReadBlockStartAddress(int fileID, va_t address);
 

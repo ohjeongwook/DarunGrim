@@ -28,7 +28,7 @@ private:
     AnalysisInfo *ClientAnalysisInfo;
     DataSharer IDADataSharer;
     char *DisasmLine;
-    void GenerateTwoLevelFingerPrint();
+    void GenerateTwoLevelInstructionHash();
     void MergeBlocks();
 public:
     SOCKET GetSocket()
@@ -60,8 +60,8 @@ public:
     void DumpAnalysisInfo();
     char *GetName(va_t address);
     void DumpBlockInfo(va_t block_address);
-    char *GetFingerPrintStr(va_t address);
-    void RemoveFromFingerprintHash(va_t address);
+    char *GetInstructionHashStr(va_t address);
+    void RemoveFromInstructionHashHash(va_t address);
     va_t GetBlockAddress(va_t address);
     va_t *GetMappedAddresses(va_t address, int type, int *p_length);
     BOOL SendTLVData(char type, PBYTE data, DWORD data_length);
@@ -118,7 +118,7 @@ public:
     void JumpToAddress(unsigned long address);
     void ColorAddress(unsigned long start_address, unsigned long end_address, unsigned long color);
     list <BLOCK> GetFunctionMemberBlocks(unsigned long FunctionAddress);
-    void GenerateFingerprintHashMap();
+    void GenerateInstructionHashHashMap();
     int GetFileID();
     char *GetOriginalFilePath();
 

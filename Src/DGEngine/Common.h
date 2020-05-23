@@ -42,9 +42,9 @@ struct FileList
 	string TargetFilename;
 };
 
-typedef struct _FingerPrintInfo_ {
+typedef struct _InstructionHashInfo_ {
 	va_t addr;
-} FingerPrintInfo,  *PFingerPrintInfo;
+} InstructionHashInfo,  *PInstructionHashInfo;
 
 typedef struct _FunctionMatchInfo_
 {
@@ -111,7 +111,7 @@ public:
     }    
 };
 
-class hash_compare_fingerprint
+class hash_compare_instruction_hash
 {
 public:
 	enum
@@ -150,8 +150,8 @@ typedef struct _AnalysisInfo_ {
 	FileInfo file_info;
 	multimap <va_t, PBasicBlock> address_map;
 	multimap <va_t, string> address_disassembly_map;
-	multimap <unsigned char*, va_t, hash_compare_fingerprint> fingerprint_map;
-	multimap <va_t, unsigned char*> address_fingerprint_map;
+	multimap <unsigned char*, va_t, hash_compare_instruction_hash> instruction_hash_map;
+	multimap <va_t, unsigned char*> address_instruction_hash_map;
 	multimap <string, va_t> name_map;
 	multimap <va_t, string> address_name_map;
 	multimap <va_t, PMapInfo> map_info_map;
@@ -252,7 +252,7 @@ public:
     }
 };
 
-enum { NAME_MATCH, FINGERPRINT_MATCH, TWO_LEVEL_FINGERPRINT_MATCH, TREE_MATCH, FINGERPRINT_INSIDE_FUNCTION_MATCH, FUNCTION_MATCH };
+enum { NAME_MATCH, INSTRUCTION_HASH_MATCH, TWO_LEVEL_INSTRUCTION_HASH_MATCH, TREE_MATCH, INSTRUCTION_HASH_INSIDE_FUNCTION_MATCH, FUNCTION_MATCH };
 
 typedef struct _AnalysisInfoList_ {
 	PAnalysisInfo p_analysis_info;
@@ -264,13 +264,13 @@ typedef struct _AnalysisInfoList_ {
 
 typedef pair <va_t, PBasicBlock> AddrPBasicBlock_Pair;
 typedef pair <va_t, string> AddrDisassembly_Pair;
-typedef pair <unsigned char*, va_t> FingerPrintAddress_Pair;
-typedef pair <string, va_t*> TwoLevelFingerPrintAddress_Pair;
-typedef pair <va_t, unsigned char*> AddressFingerPrintAddress_Pair;
+typedef pair <unsigned char*, va_t> InstructionHashAddress_Pair;
+typedef pair <string, va_t*> TwoLevelInstructionHashAddress_Pair;
+typedef pair <va_t, unsigned char*> AddressInstructionHashAddress_Pair;
 typedef pair <string, va_t> NameAddress_Pair;
 typedef pair <va_t, string> AddressName_Pair;
 typedef pair <va_t, MatchData> MatchMap_Pair;
-typedef pair <unsigned char*, unsigned char*> Fingerprint_Pair;
+typedef pair <unsigned char*, unsigned char*> InstructionHash_Pair;
 
 #define STATUS_TREE_CHECKED 0x00000001
 #define STATUS_MAPPING_DISABLED 0x2

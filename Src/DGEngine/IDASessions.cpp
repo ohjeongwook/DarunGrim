@@ -296,7 +296,7 @@ MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFu
 
                 MatchData match_data;
                 memset(&match_data, 0, sizeof(MatchData));
-                match_data.Type = FINGERPRINT_INSIDE_FUNCTION_MATCH;
+                match_data.Type = INSTRUCTION_HASH_INSIDE_FUNCTION_MATCH;
                 match_data.SubType = 0;
                 match_data.Addresses[0] = sourceAddress;
                 match_data.Addresses[1] = targetAddress;
@@ -315,7 +315,7 @@ MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFu
 
 bool IDASessions::Analyze()
 {
-    multimap <string, va_t>::iterator fingerprint_map_pIter;
+    multimap <string, va_t>::iterator instruction_hash_map_pIter;
     multimap <string, va_t>::iterator name_map_pIter;
     multimap <va_t, PMapInfo>::iterator map_info_map_pIter;
     MATCHMAP TemporaryMatchMap;
@@ -329,9 +329,9 @@ bool IDASessions::Analyze()
     m_pMatchResults = new MatchResults();
     m_pMatchResults->SetDumpAddressChecker(m_pdumpAddressChecker);
 
-    Logger.Log(10, LOG_DIFF_MACHINE, "%s: Fingerprint Map Size %u:%u\n", __FUNCTION__,
-        SourceIDASession->GetClientAnalysisInfo()->fingerprint_map.size(),
-        TargetIDASession->GetClientAnalysisInfo()->fingerprint_map.size());
+    Logger.Log(10, LOG_DIFF_MACHINE, "%s: InstructionHash Map Size %u:%u\n", __FUNCTION__,
+        SourceIDASession->GetClientAnalysisInfo()->instruction_hash_map.size(),
+        TargetIDASession->GetClientAnalysisInfo()->instruction_hash_map.size());
 
     // Name Match
     Logger.Log(10, LOG_DIFF_MACHINE, "Name Match\n");
@@ -383,9 +383,9 @@ bool IDASessions::Analyze()
     int OldMatchMapSize = 0;
     while (1)
     {
-        Logger.Log(10, LOG_DIFF_MACHINE, "%s: DoFingerPrintMatch\n", __FUNCTION__);
+        Logger.Log(10, LOG_DIFF_MACHINE, "%s: DoInstructionHashMatch\n", __FUNCTION__);
 
-        MATCHMAP *pTemporaryMap = m_pdiffAlgorithms->DoFingerPrintMatch();
+        MATCHMAP *pTemporaryMap = m_pdiffAlgorithms->DoInstructionHashMatch();
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: Match Map Size: %u\n", __FUNCTION__, pTemporaryMap->size());
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: DoIsomorphMatch\n", __FUNCTION__);
 	    while (pTemporaryMap->size() > 0)
@@ -421,7 +421,7 @@ bool IDASessions::Analyze()
         {
             break;
         }
-        m_pdiffAlgorithms->PurgeFingerprintHashMap(&TemporaryMatchMap);
+        m_pdiffAlgorithms->PurgeInstructionHashHashMap(&TemporaryMatchMap);
         TemporaryMatchMap.clear();
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: Call DoFunctionMatch\n", __FUNCTION__);
@@ -595,20 +595,20 @@ void IDASessions::ShowDiffMap(va_t unpatched_address, va_t patched_address)
 
 int IDASessions::GetMatchRate(va_t unpatched_address, va_t patched_address)
 {
-    multimap <va_t, unsigned char*>::iterator source_fingerprint_map_Iter;
-    multimap <va_t, unsigned char*>::iterator target_fingerprint_map_Iter;
+    multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
+    multimap <va_t, unsigned char*>::iterator target_instruction_hash_map_Iter;
 
-    source_fingerprint_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(unpatched_address);
-    target_fingerprint_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.find(patched_address);
+    source_instruction_hash_map_Iter = SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.find(unpatched_address);
+    target_instruction_hash_map_Iter = TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.find(patched_address);
 
     if (
-        source_fingerprint_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end() &&
-        target_fingerprint_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map.end()
+        source_instruction_hash_map_Iter != SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.end() &&
+        target_instruction_hash_map_Iter != TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map.end()
         )
     {
-        return m_pdiffAlgorithms->GetFingerPrintMatchRate(
-            source_fingerprint_map_Iter->second,
-            target_fingerprint_map_Iter->second);
+        return m_pdiffAlgorithms->GetInstructionHashMatchRate(
+            source_instruction_hash_map_Iter->second,
+            target_instruction_hash_map_Iter->second);
     }
     return 0;
 }
@@ -655,21 +655,21 @@ void IDASessions::GetMatchStatistics(
             }
             else
             {
-                int source_fingerprint_len = 0;
-                int target_fingerprint_len = 0;
+                int source_instruction_hash_len = 0;
+                int target_instruction_hash_len = 0;
 
                 PBasicBlock p_basic_block = SourceIDASession->GetBasicBlock(pMatchData->Addresses[0]);
                 if (p_basic_block)
-                    source_fingerprint_len = p_basic_block->FingerprintLen;
+                    source_instruction_hash_len = p_basic_block->InstructionHashLen;
 
                 p_basic_block = TargetIDASession->GetBasicBlock(pMatchData->Addresses[1]);
                 if (p_basic_block)
-                    target_fingerprint_len = p_basic_block->FingerprintLen;
+                    target_instruction_hash_len = p_basic_block->InstructionHashLen;
 
                 if (debug || m_pdumpAddressChecker->IsDumpPair(pMatchData->Addresses[0], pMatchData->Addresses[1]))
-                    Logger.Log(10, LOG_DIFF_MACHINE | LOG_MATCH_RATE, "%s: Function: %X Different block(%d): %X-%X (%d%%) Fingerprint Lengths (%d:%d)\n", __FUNCTION__, address, index, pMatchData->Addresses[0], pMatchData->Addresses[1], pMatchData->MatchRate, source_fingerprint_len, target_fingerprint_len);
+                    Logger.Log(10, LOG_DIFF_MACHINE | LOG_MATCH_RATE, "%s: Function: %X Different block(%d): %X-%X (%d%%) InstructionHash Lengths (%d:%d)\n", __FUNCTION__, address, index, pMatchData->Addresses[0], pMatchData->Addresses[1], pMatchData->MatchRate, source_instruction_hash_len, target_instruction_hash_len);
 
-                if (source_fingerprint_len > 0 && target_fingerprint_len > 0)
+                if (source_instruction_hash_len > 0 && target_instruction_hash_len > 0)
                     found_match_with_difference_number++;
             }
             total_match_rate += pMatchData->MatchRate;
@@ -677,10 +677,10 @@ void IDASessions::GetMatchStatistics(
         pMatchMapList->FreeMatchMapList();
 
         PBasicBlock p_basic_block = ClientManager->GetBasicBlock(block.Start);
-        if (p_basic_block && p_basic_block->FingerprintLen > 0)
+        if (p_basic_block && p_basic_block->InstructionHashLen > 0)
         {
             if (debug)
-                Logger.Log(10, LOG_DIFF_MACHINE | LOG_MATCH_RATE, "%s: Function: %X Non-matched block(%d): %X (fingerprint length: %d)\n", __FUNCTION__, address, index, block.Start, p_basic_block->FingerprintLen);
+                Logger.Log(10, LOG_DIFF_MACHINE | LOG_MATCH_RATE, "%s: Function: %X Non-matched block(%d): %X (instruction_hash length: %d)\n", __FUNCTION__, address, index, block.Start, p_basic_block->InstructionHashLen);
 
             not_found_match_number++;
         }
@@ -1162,9 +1162,9 @@ void IDASessions::PrintMatchMapInfo()
 	LogMessage(0, __FUNCTION__, "* *unidentified( 0 )\n");
 
 	int unpatched_unidentified_number = 0;
-	multimap <va_t, unsigned char*>::iterator source_fingerprint_map_Iter;
+	multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
 
-    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
+    for (auto& val : SourceIDASession->GetClientAnalysisInfo()->address_instruction_hash_map)
 	{
 		if (m_pMatchResults->MatchMap.find(val.first) == m_pMatchResults->MatchMap.end())
 		{
@@ -1180,7 +1180,7 @@ void IDASessions::PrintMatchMapInfo()
 
 	int patched_unidentified_number = 0;
 
-    for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_fingerprint_map)
+    for (auto& val : TargetIDASession->GetClientAnalysisInfo()->address_instruction_hash_map)
 	{
 		if (m_pMatchResults->ReverseAddressMap.find(val.first) == m_pMatchResults->ReverseAddressMap.end())
 		{

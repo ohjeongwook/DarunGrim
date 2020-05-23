@@ -140,10 +140,10 @@ int SQLiteDisassemblyStorage::ReadBasicBlockDataCallback(void *arg, int argc, ch
     if (argv[1] && argv[1][0] != NULL)
     {
         va_t Address = strtoul10(argv[0]);
-        unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
-        if (FingerprintStr)
+        unsigned char *InstructionHashStr = HexToBytesWithLengthAmble(argv[1]);
+        if (InstructionHashStr)
         {
-            ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
+            ClientAnalysisInfo->address_instruction_hash_map.insert(AddressInstructionHashAddress_Pair(Address, InstructionHashStr));
         }
 
         if (strtoul10(argv[3]) == 1 && strlen(argv[2]) > 0)
@@ -159,7 +159,7 @@ void SQLiteDisassemblyStorage::ReadBasicBlockInfo(int fileID, char *conditionStr
 {
     ExecuteStatement(ReadBasicBlockDataCallback,
         (void*)analysisInfo,
-        "SELECT StartAddress, Fingerprint, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
+        "SELECT StartAddress, InstructionHash, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
         fileID,
         conditionStr);
 }
@@ -222,11 +222,11 @@ void SQLiteDisassemblyStorage::ReadFunctionAddressMap(int fileID, unordered_set 
     ExecuteStatement(ReadFunctionAddressesCallback, &functionAddressMap, "SELECT DISTINCT(FunctionAddress) FROM BasicBlock WHERE FileID = %u AND BlockType = %u", fileID, FUNCTION_BLOCK);
 }
 
-char *SQLiteDisassemblyStorage::ReadFingerPrint(int fileID, va_t address)
+char *SQLiteDisassemblyStorage::ReadInstructionHash(int fileID, va_t address)
 {
     char *fingerPrintString = NULL;
 
-    ExecuteStatement(ReadRecordStringCallback, &fingerPrintString, "SELECT Fingerprint FROM BasicBlock WHERE FileID = %u and StartAddress = %u", fileID, address);
+    ExecuteStatement(ReadRecordStringCallback, &fingerPrintString, "SELECT InstructionHash FROM BasicBlock WHERE FileID = %u and StartAddress = %u", fileID, address);
     return fingerPrintString;
 }
 
@@ -355,7 +355,7 @@ int SQLiteDisassemblyStorage::ReadBasicBlockCallback(void *arg, int argc, char *
     p_basic_block->Flag = strtoul10(argv[2]);
     p_basic_block->FunctionAddress = strtoul10(argv[3]);
     p_basic_block->BlockType = strtoul10(argv[4]);
-    p_basic_block->FingerprintLen = strlen(argv[5]);
+    p_basic_block->InstructionHashLen = strlen(argv[5]);
 
     LogMessage(0, __FUNCTION__, "%X Block Type: %d\n", p_basic_block->StartAddress, p_basic_block->BlockType);
 
@@ -370,7 +370,7 @@ PBasicBlock SQLiteDisassemblyStorage::ReadBasicBlock(int fileID, va_t address)
 {
     PBasicBlock p_basic_block = (PBasicBlock)malloc(sizeof(BasicBlock));
     ExecuteStatement(ReadBasicBlockCallback, p_basic_block,
-        "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, FingerPrint FROM BasicBlock WHERE FileID = %u and StartAddress = %u",
+        "SELECT StartAddress, EndAddress, Flag, FunctionAddress, BlockType, InstructionHash FROM BasicBlock WHERE FileID = %u and StartAddress = %u",
         fileID,
         address);
 
