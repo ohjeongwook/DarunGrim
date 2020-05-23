@@ -6,10 +6,10 @@
 #include "LogOperation.h"
 
 #include "SocketOperation.h"
-#include "Storage.h"
+#include "DiffStorage.h"
 #include "ProcessUtils.h"
 
-#include "SQLiteStorage.h"
+#include "SQLiteDiffStorage.h"
 
 LogOperation Logger;
 
@@ -544,7 +544,6 @@ BOOL DarunGrim::AcceptIDAClient(IDASession *p_ida_controller, bool retrieve_Data
         if (retrieve_Data)
         {
             Logger.Log(10, LOG_DARUNGRIM, "%s: Calling LoadIDARawDataFromSocket\n", __FUNCTION__);
-            p_ida_controller->LoadIDARawDataFromSocket(s);
         }
         else
         {

@@ -10,7 +10,7 @@
 #include "Diff.h"
 #include "Log.h"
 #include "IDASessions.h"
-#include "SQLiteStorage.h"
+#include "SQLiteDiffStorage.h"
 
 using namespace std;
 using namespace stdext;

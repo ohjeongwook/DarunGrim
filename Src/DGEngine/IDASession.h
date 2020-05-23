@@ -29,7 +29,6 @@ private:
     AnalysisInfo *ClientAnalysisInfo;
     DataSharer IDADataSharer;
     char *DisasmLine;
-    void LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Type, DWORD *Length), PVOID Context);
     void GenerateTwoLevelFingerPrint();
     void MergeBlocks();
 public:
@@ -47,9 +46,7 @@ public:
     }
     IDASession(Storage *disassemblyStorage = NULL);
     ~IDASession();
-    BOOL LoadIDARawDataFromFile(const char *Filename);
     void SetSocket(SOCKET socket);
-    BOOL LoadIDARawDataFromSocket(SOCKET socket);
     BOOL Retrieve(char *DataFile, DWORD Offset = 0L, DWORD Length = 0L);
 
     void SetFileID(int FileID = 1);
