@@ -393,7 +393,7 @@ int SQLiteStorage::ReadMapInfoCallback(void *arg, int argc, char **argv, char **
         argv[3], strtoul10(argv[3])
     );
 #endif
-    p_map_info_map->insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+    p_map_info_map->insert(AddressPMapInfoPair(p_map_info->SrcBlock, p_map_info));
     return 0;
 }
 

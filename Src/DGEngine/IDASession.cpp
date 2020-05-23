@@ -542,7 +542,7 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Ty
                 p_map_info->SrcBlockEnd,
                 p_map_info->Dst);
 #endif
-            ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(p_map_info->SrcBlock, p_map_info));
+            ClientAnalysisInfo->map_info_map.insert(AddressPMapInfoPair(p_map_info->SrcBlock, p_map_info));
             /*
             We don't use backward CFG anymore.
             if(p_map_info->Type  ==  CREF_FROM || p_map_info->Type  ==  CALL)
@@ -555,7 +555,7 @@ void IDASession::LoadIDARawData(PBYTE(*RetrieveCallback)(PVOID Context, BYTE *Ty
                     p_new_map_info->Type = CREF_TO;
                 else
                     p_new_map_info->Type = CALLED;
-                ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(p_new_map_info->SrcBlock, p_new_map_info));
+                ClientAnalysisInfo->map_info_map.insert(AddressPMapInfoPair(p_new_map_info->SrcBlock, p_new_map_info));
             }*/
         }
         else
@@ -651,7 +651,7 @@ void IDASession::GenerateFingerprintHashMap()
             p_new_map_info->SrcBlock = address;
             p_new_map_info->Dst = p_map_info->Dst;
             p_new_map_info->Type = p_map_info->Type;
-            ClientAnalysisInfo->map_info_map.insert(AddrPMapInfo_Pair(address, p_new_map_info));
+            ClientAnalysisInfo->map_info_map.insert(AddressPMapInfoPair(address, p_new_map_info));
         }
         for (map_info_map_iter = ClientAnalysisInfo->map_info_map.find(address);
             map_info_map_iter != ClientAnalysisInfo->map_info_map.end();
