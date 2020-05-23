@@ -9,6 +9,9 @@
 #include "MatchResults.h"
 #include "DiffAlgorithms.h"
 
+#include "DiffStorage.h"
+#include "DisassemblyStorage.h"
+
 class IDASessions
 {
 private:
@@ -28,9 +31,9 @@ private:
     string TargetDBName;
     va_t TargetFunctionAddress;
 
-    Storage* m_diffStorage;
-    Storage* m_sourceStorage;
-    Storage* m_targetStorage;
+    DiffStorage* m_pdiffStorage;
+    DisassemblyStorage* m_psourceStorage;
+    DisassemblyStorage* m_ptargetStorage;
 
     IDASession* SourceIDASession;
     IDASession* TargetIDASession;
@@ -89,16 +92,16 @@ public:
         TargetFunctionAddress = function_address;
     }
 
-    void SetSource(Storage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
+    void SetSource(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
-        m_sourceStorage = disassemblyStorage;
+        m_psourceStorage = disassemblyStorage;
         SourceID = id;
         SourceFunctionAddress = function_address;
     }
 
-    void SetTarget(Storage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
+    void SetTarget(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
-        m_targetStorage = disassemblyStorage;
+        m_ptargetStorage = disassemblyStorage;
         TargetID = id;
         TargetFunctionAddress = function_address;
     }
@@ -111,7 +114,7 @@ public:
 
     BOOL Create(const char* DiffDBFilename);
     BOOL Load(const char* DiffDBFilename);
-    BOOL Load(Storage* disassemblyStorage);
+    BOOL Load(DiffStorage *p_diffStorage, DisassemblyStorage  *p_disassemblyStorage);
 
     IDASession *GetSourceIDASession();
     IDASession *GetTargetIDASession();
@@ -138,6 +141,6 @@ public:
     int GetUnidentifiedBlockCount(int index);
     CodeBlock GetUnidentifiedBlock(int index, int i);
     BOOL IsInUnidentifiedBlockHash(int index, va_t address);
-    BOOL Save(Storage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses = NULL, unordered_set <va_t> *pTheTargetSelectedAddresses = NULL);
+    BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses = NULL, unordered_set <va_t> *pTheTargetSelectedAddresses = NULL);
     BREAKPOINTS ShowUnidentifiedAndModifiedBlocks();
 };

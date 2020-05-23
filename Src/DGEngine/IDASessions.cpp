@@ -11,6 +11,7 @@
 #include "Log.h"
 #include "IDASessions.h"
 #include "SQLiteDiffStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 
 using namespace std;
 using namespace stdext;
@@ -32,7 +33,7 @@ IDASessions::IDASessions(IDASession *the_source, IDASession *the_target) :
     ShowNonMatched(false),
     m_pdumpAddressChecker(NULL)
 {
-    m_diffStorage = NULL;
+    m_pdiffStorage = NULL;
     
     SetSource(the_source);
     SetTarget(the_target);
@@ -314,7 +315,6 @@ MATCHMAP *IDASessions::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFu
 
 bool IDASessions::Analyze()
 {
-    multimap <va_t, PBasicBlock>::iterator address_map_pIter;
     multimap <string, va_t>::iterator fingerprint_map_pIter;
     multimap <string, va_t>::iterator name_map_pIter;
     multimap <va_t, PMapInfo>::iterator map_info_map_pIter;
@@ -791,9 +791,9 @@ MatchMapList *IDASessions::GetMatchData(int index, va_t address, BOOL erase)
     {
         pMatchMapList = m_pMatchResults->GetMatchData(index, address, erase);
     }
-    else if (m_diffStorage)
+    else if (m_pdiffStorage)
     {
-        pMatchMapList = m_diffStorage->ReadMatchMap(SourceID, TargetID, index, address, erase);
+        pMatchMapList = m_pdiffStorage->ReadMatchMap(SourceID, TargetID, index, address, erase);
     }
 
     if (pMatchMapList)
@@ -811,15 +811,15 @@ va_t IDASessions::GetMatchAddr(int index, va_t address)
     return matchAddress;
 }
 
-BOOL IDASessions::Save(Storage & disassemblyStorage, unordered_set <va_t>  *pTheSourceSelectedAddresses, unordered_set <va_t>  *pTheTargetSelectedAddresses)
+BOOL IDASessions::Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t>  *pTheSourceSelectedAddresses, unordered_set <va_t>  *pTheTargetSelectedAddresses)
 {
     if (!SourceIDASession || !TargetIDASession)
         return FALSE;
 
     //TODO: DeleteMatchInfo(disassemblyStorage);
-    disassemblyStorage.BeginTransaction();
-    disassemblyStorage.AddFileInfo("Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
-    disassemblyStorage.AddFileInfo("Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
+    m_pdiffStorage->BeginTransaction();
+    m_pdiffStorage->AddFileInfo("Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
+    m_pdiffStorage->AddFileInfo("Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
 
     multimap <va_t, MatchData>::iterator matchMapIterator;
 
@@ -840,7 +840,7 @@ BOOL IDASessions::Save(Storage & disassemblyStorage, unordered_set <va_t>  *pThe
         Logger.Log(20, LOG_DIFF_MACHINE, "%s %X-%X: %d%%\n", __FUNCTION__,
             val.second.Addresses[0], val.second.Addresses[1], val.second.MatchRate);
 
-        disassemblyStorage.InsertMatchMap(
+        m_pdiffStorage->InsertMatchMap(
             SourceIDASession->GetFileID(),
             TargetIDASession->GetFileID(),
             val.first,
@@ -858,7 +858,7 @@ BOOL IDASessions::Save(Storage & disassemblyStorage, unordered_set <va_t>  *pThe
 
     for (FunctionMatchInfo functionMatchInfo : (FunctionMatchInfoList)(*m_pFunctionMatchInfoList))
     {
-        disassemblyStorage.AddFunctionMatchInfo(SourceIDASession->GetFileID(), TargetIDASession->GetFileID(), functionMatchInfo);
+        m_pdiffStorage->AddFunctionMatchInfo(SourceIDASession->GetFileID(), TargetIDASession->GetFileID(), functionMatchInfo);
     }
 
     disassemblyStorage.EndTransaction();
@@ -922,8 +922,8 @@ BOOL IDASessions::Create(const char *DiffDBFilename)
 {
     Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-    m_diffStorage = (Storage*)(new SQLiteStorage(DiffDBFilename));
-    FileList DiffFileList = m_diffStorage->ReadFileList();
+    m_pdiffStorage = (DiffStorage*)(new SQLiteDiffStorage(DiffDBFilename));
+    FileList DiffFileList = m_pdiffStorage->ReadFileList();
 
     if (DiffFileList.SourceFilename.size() > 0 && DiffFileList.TargetFilename.size() > 0)
     {
@@ -959,10 +959,10 @@ BOOL IDASessions::Create(const char *DiffDBFilename)
     if (SourceDBName.size() > 0 && TargetDBName.size() > 0)
     {
         Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", SourceDBName.c_str());
-        m_sourceStorage = new SQLiteStorage(SourceDBName.c_str());
+        m_psourceStorage = new SQLiteDisassemblyStorage(SourceDBName.c_str());
 
         Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
-        m_targetStorage = new SQLiteStorage(TargetDBName.c_str());
+        m_ptargetStorage = new SQLiteDisassemblyStorage(TargetDBName.c_str());
         SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
     }
 
@@ -977,11 +977,11 @@ BOOL IDASessions::Load(const char *DiffDBFilename)
     return _Load();
 }
 
-BOOL IDASessions::Load(Storage  *p_disassemblyStorage)
+BOOL IDASessions::Load(DiffStorage *p_diffStorage, DisassemblyStorage  *p_disassemblyStorage)
 {
-    m_diffStorage = p_disassemblyStorage;
-    m_sourceStorage = p_disassemblyStorage;
-    m_targetStorage = p_disassemblyStorage;
+    m_pdiffStorage = p_diffStorage;
+    m_psourceStorage = p_disassemblyStorage;
+    m_ptargetStorage = p_disassemblyStorage;
 
     return _Load();
 }
@@ -996,7 +996,7 @@ BOOL IDASessions::_Load()
         SourceIDASession = NULL;
     }
 
-    SourceIDASession = new IDASession(m_sourceStorage);
+    SourceIDASession = new IDASession(m_psourceStorage);
 
     Logger.Log(10, LOG_DIFF_MACHINE, "SourceFunctionAddress: %X\n", SourceFunctionAddress);
     SourceIDASession->AddAnalysisTargetFunction(SourceFunctionAddress);
@@ -1014,7 +1014,7 @@ BOOL IDASessions::_Load()
         TargetIDASession = NULL;
     }
 
-    TargetIDASession = new IDASession(m_targetStorage);
+    TargetIDASession = new IDASession(m_ptargetStorage);
     TargetIDASession->AddAnalysisTargetFunction(TargetFunctionAddress);
     TargetIDASession->SetFileID(TargetID);
 
@@ -1026,7 +1026,7 @@ BOOL IDASessions::_Load()
 
     if (LoadMatchResults)
     {
-        m_pMatchResults = m_diffStorage->ReadMatchResults(SourceID, TargetID);
+        m_pMatchResults = m_pdiffStorage->ReadMatchResults(SourceID, TargetID);
     }
 
     return TRUE;

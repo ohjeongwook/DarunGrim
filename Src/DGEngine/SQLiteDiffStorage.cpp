@@ -24,7 +24,7 @@ char* GetFilename(char* full_pathname)
     return full_pathname;
 }
 
-SQLiteStorage::SQLiteStorage(const char *DatabaseName)
+SQLiteDiffStorage::SQLiteDiffStorage(const char *DatabaseName)
 {
     m_database = NULL;
     if (DatabaseName)
@@ -34,12 +34,12 @@ SQLiteStorage::SQLiteStorage(const char *DatabaseName)
     }
 }
 
-SQLiteStorage::~SQLiteStorage()
+SQLiteDiffStorage::~SQLiteDiffStorage()
 {
     CloseDatabase();
 }
 
-void SQLiteStorage::CreateTables()
+void SQLiteDiffStorage::CreateTables()
 {
     ExecuteStatement(NULL, NULL, CREATE_MATCH_MAP_TABLE_STATEMENT);
     ExecuteStatement(NULL, NULL, CREATE_FILE_LIST_TABLE_STATEMENT);
@@ -49,13 +49,13 @@ void SQLiteStorage::CreateTables()
     ExecuteStatement(NULL, NULL, CREATE_FUNCTION_MATCH_INFO_TABLE_INDEX_STATEMENT);
 }
 
-bool SQLiteStorage::Open(char *DatabaseName)
+bool SQLiteDiffStorage::Open(char *DatabaseName)
 {
     m_databaseName = DatabaseName;
     return ConnectDatabase(DatabaseName);
 }
 
-bool SQLiteStorage::ConnectDatabase(const char *DatabaseName)
+bool SQLiteDiffStorage::ConnectDatabase(const char *DatabaseName)
 {
     //Database Setup
     m_databaseName = DatabaseName;
@@ -70,12 +70,12 @@ bool SQLiteStorage::ConnectDatabase(const char *DatabaseName)
     return TRUE;
 }
 
-const char *SQLiteStorage::GetDatabaseName()
+const char *SQLiteDiffStorage::GetDatabaseName()
 {
     return m_databaseName.c_str();
 }
 
-void SQLiteStorage::CloseDatabase()
+void SQLiteDiffStorage::CloseDatabase()
 {
     //Close Database
     if (m_database)
@@ -85,22 +85,22 @@ void SQLiteStorage::CloseDatabase()
     }
 }
 
-int SQLiteStorage::BeginTransaction()
+int SQLiteDiffStorage::BeginTransaction()
 {
     return ExecuteStatement(NULL, NULL, "BEGIN TRANSACTION");
 }
 
-int SQLiteStorage::EndTransaction()
+int SQLiteDiffStorage::EndTransaction()
 {
     return ExecuteStatement(NULL, NULL, "COMMIT TRANSACTION");
 }
 
-int SQLiteStorage::GetLastInsertRowID()
+int SQLiteDiffStorage::GetLastInsertRowID()
 {
     return (int)sqlite3_last_insert_rowid(m_database);
 }
 
-int SQLiteStorage::ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...)
+int SQLiteDiffStorage::ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...)
 {
     int debug = 0;
 
@@ -167,44 +167,12 @@ int SQLiteStorage::ExecuteStatement(sqlite3_callback callback, void *context, co
     return SQLITE_ERROR;
 }
 
-void SQLiteStorage::Close()
+void SQLiteDiffStorage::Close()
 {
     CloseDatabase();
 }
 
-unsigned char *HexToBytesWithLengthAmble(char *HexBytes);
-
-int SQLiteStorage::ReadBasicBlockDataCallback(void *arg, int argc, char **argv, char **names)
-{
-    AnalysisInfo *ClientAnalysisInfo = (AnalysisInfo*)arg;
-    if (argv[1] && argv[1][0] != NULL)
-    {
-        va_t Address = strtoul10(argv[0]);
-        unsigned char *FingerprintStr = HexToBytesWithLengthAmble(argv[1]);
-        if (FingerprintStr)
-        {
-            ClientAnalysisInfo->address_fingerprint_map.insert(AddressFingerPrintAddress_Pair(Address, FingerprintStr));
-        }
-
-        if (strtoul10(argv[3]) == 1 && strlen(argv[2]) > 0)
-        {
-            char *name = argv[2];
-            ClientAnalysisInfo->name_map.insert(NameAddress_Pair(name, Address));
-        }
-    }
-    return 0;
-}
-
-void SQLiteStorage::ReadBasicBlockInfo(int fileID, char *conditionStr, AnalysisInfo *analysisInfo)
-{
-    ExecuteStatement(ReadBasicBlockDataCallback,
-        (void*)analysisInfo,
-        "SELECT StartAddress, Fingerprint, Name, BlockType FROM BasicBlock WHERE FileID = %u %s",
-        fileID,
-        conditionStr);
-}
-
-int SQLiteStorage::ReadOneMatchMapCallback(void *arg, int argc, char **argv, char **names)
+int SQLiteDiffStorage::ReadOneMatchMapCallback(void *arg, int argc, char **argv, char **names)
 {
     MatchMapList *p_pMatchMapList = (MatchMapList*)arg;
     MatchData *match_data = new MatchData();
@@ -223,7 +191,7 @@ int SQLiteStorage::ReadOneMatchMapCallback(void *arg, int argc, char **argv, cha
     return 0;
 }
 
-MatchMapList *SQLiteStorage::ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase)
+MatchMapList *SQLiteDiffStorage::ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase)
 {
     MatchMapList*pMatchMapList = new MatchMapList();
     MatchData match_data;
@@ -258,7 +226,7 @@ MatchMapList *SQLiteStorage::ReadMatchMap(int sourceID, int targetID, int index,
     return pMatchMapList;
 }
 
-int SQLiteStorage::ReadMatchMapCallback(void *arg, int argc, char **argv, char **names)
+int SQLiteDiffStorage::ReadMatchMapCallback(void *arg, int argc, char **argv, char **names)
 {
     MatchResults* p_matchResults = (MatchResults*)arg;
 
@@ -277,20 +245,18 @@ int SQLiteStorage::ReadMatchMapCallback(void *arg, int argc, char **argv, char *
     return 0;
 }
 
-MatchResults* SQLiteStorage::ReadMatchResults(int sourceID, int targetID)
+MatchResults* SQLiteDiffStorage::ReadMatchResults(int sourceID, int targetID)
 {
     MatchResults* p_matchResults = new MatchResults();
 
-    ExecuteStatement(
-        ReadMatchMapCallback,
-        p_matchResults,
+    ExecuteStatement(ReadMatchMapCallback, p_matchResults,
         "SELECT SourceAddress, TargetAddress, MatchType, Type, SubType, Status, MatchRate, UnpatchedParentAddress, PatchedParentAddress From MatchMap WHERE TheSourceFileID=%u AND TheTargetFileID=%u",
         sourceID, targetID);
 
     return p_matchResults;
 }
 
-int SQLiteStorage::QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names)
+int SQLiteDiffStorage::QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names)
 {
     FunctionMatchInfoList *pFunctionMatchList = (FunctionMatchInfoList*)arg;
     FunctionMatchInfo function_match_info;
@@ -312,14 +278,14 @@ int SQLiteStorage::QueryFunctionMatchesCallback(void *arg, int argc, char **argv
     return 0;
 }
 
-FunctionMatchInfoList SQLiteStorage::QueryFunctionMatches(const char *query, int sourceID, int targetID)
+FunctionMatchInfoList SQLiteDiffStorage::QueryFunctionMatches(const char *query, int sourceID, int targetID)
 {
     FunctionMatchInfoList functionMatchList;
     ExecuteStatement(QueryFunctionMatchesCallback, &functionMatchList, query, sourceID, targetID);
     return functionMatchList;
 }
 
-int SQLiteStorage::ReadFileListCallback(void *arg, int argc, char **argv, char **names)
+int SQLiteDiffStorage::ReadFileListCallback(void *arg, int argc, char **argv, char **names)
 {
     FileList *file_list = (FileList*)arg;
     if (file_list)
@@ -336,7 +302,7 @@ int SQLiteStorage::ReadFileListCallback(void *arg, int argc, char **argv, char *
     return 0;
 }
 
-void SQLiteStorage::InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate)
+void SQLiteDiffStorage::InsertMatchMap(int sourceFileID, int targetFileID, va_t sourceAddress, va_t targetAddress, int matchType, int matchRate)
 {
     ExecuteStatement(NULL, NULL,
         INSERT_MATCH_MAP_TABLE_STATEMENT,
@@ -354,7 +320,7 @@ void SQLiteStorage::InsertMatchMap(int sourceFileID, int targetFileID, va_t sour
 
 }
 
-void SQLiteStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
+void SQLiteDiffStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
 {
     ExecuteStatement(NULL, NULL,
         "DELETE FROM  MatchMap WHERE TheSourceFileID='%d' AND SourceAddress IN (SELECT StartAddress FROM BasicBlock WHERE FileID = '%d' AND FunctionAddress='%d')",
@@ -373,18 +339,18 @@ void SQLiteStorage::DeleteMatchInfo(int fileID, va_t functionAddress)
         fileID, functionAddress);
 }
 
-void SQLiteStorage::DeleteMatches(int srcFileID, int dstFileID)
+void SQLiteDiffStorage::DeleteMatches(int srcFileID, int dstFileID)
 {
     ExecuteStatement(NULL, NULL, DELETE_MATCH_MAP_TABLE_STATEMENT, srcFileID, dstFileID);
     ExecuteStatement(NULL, NULL, DELETE_FUNCTION_MATCH_INFO_TABLE_STATEMENT, srcFileID, dstFileID);
 }
 
-void SQLiteStorage::AddFileInfo(char *fileType, const char *dbName, int fileID, va_t functionAddress)
+void SQLiteDiffStorage::AddFileInfo(char *fileType, const char *dbName, int fileID, va_t functionAddress)
 {
     ExecuteStatement(NULL, NULL, INSERT_FILE_LIST_TABLE_STATEMENT, fileType, dbName, fileID, functionAddress);
 }
 
-void SQLiteStorage::AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo)
+void SQLiteDiffStorage::AddFunctionMatchInfo(int srcFileID, int targetFileID, FunctionMatchInfo& functionMatchInfo)
 {
     ExecuteStatement(NULL, NULL, INSERT_FUNCTION_MATCH_INFO_TABLE_STATEMENT,
         srcFileID,

@@ -10,7 +10,7 @@ using namespace stdext;
 #include "MatchResults.h"
 using namespace std;
 
-class Storage
+class DiffStorage
 {
 public:
     virtual void SetFileInfo(FileInfo *p_file_info)
@@ -28,10 +28,6 @@ public:
     }
 
     virtual void Close()
-    {
-    }
-
-    virtual void ReadBasicBlockInfo(int fileID, char *conditionStr, AnalysisInfo *analysisInfo)
     {
     }
 

@@ -2,7 +2,8 @@
 #include <windows.h>
 #include "Configuration.h"
 #include "IDASessions.h"
-#include "Storage.h"
+#include "DisassemblyStorage.h"
+#include "DiffStorage.h"
 
 #include <string>
 using namespace std;
@@ -20,7 +21,9 @@ private:
     IDASession *m_psourceIDASession;
     IDASession *m_ptargetIDASession;
 
-    Storage *pStorage;
+    DisassemblyStorage *m_pdisassemblyStorage;
+    DiffStorage* m_pdiffStorage;
+
     IDASessions *pIDASessions;
     bool OpenDatabase(char *storage_filename);
     string SourceFilename;
@@ -34,7 +37,6 @@ private:
 public:
     DarunGrim();
     ~DarunGrim();
-
 
     void AddSrcDumpAddress(va_t address)
     {
@@ -151,7 +153,7 @@ public:
     void ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color);
 
 private:
-    Storage *m_storage;
+    DisassemblyStorage *m_storage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
     IDASession *IDAControllers[2];
@@ -173,7 +175,7 @@ private:
     string TargetIdentity;
 public:
 
-    void SetDatabase(Storage *disassemblyStorage);
+    void SetDatabase(DisassemblyStorage *p_disassemblyStorage);
     unsigned short StartIDAListenerThread(unsigned short port);
     void ListIDAControllers();
     IDASession *FindIDAController(const char *identity);

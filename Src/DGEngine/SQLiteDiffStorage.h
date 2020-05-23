@@ -78,25 +78,21 @@ typedef unsigned char *PBYTE;
          );"
 #define INSERT_FILE_LIST_TABLE_STATEMENT "INSERT INTO  "FILE_LIST_TABLE" ( Type, Filename, FileID, FunctionAddress ) values ( '%s', '%s', '%d', '%d' );"
 
-class SQLiteStorage : public Storage
+class SQLiteDiffStorage : public DiffStorage
 {
 private:
     sqlite3 *m_database;
     string m_databaseName;
 
 public:
-    SQLiteStorage(const char *DatabaseName = NULL);
-    ~SQLiteStorage();
+    SQLiteDiffStorage(const char *DatabaseName = NULL);
+    ~SQLiteDiffStorage();
 
 public:
     void SetFileInfo(FileInfo *p_file_info);
     int BeginTransaction();
     int EndTransaction();
     void Close();
-    void AddBasicBlock(PBasicBlock pBasicBlock, int fileID = 0);
-    void AddMapInfo(PMapInfo p_map_info, int fileID = 0);
-
-    int ProcessTLV(BYTE Type, PBYTE Data, DWORD Length);
 
     void CreateTables();
     bool Open(char *DatabaseName);
@@ -106,6 +102,11 @@ public:
 
     int GetLastInsertRowID();
     int ExecuteStatement(sqlite3_callback callback, void *context, const char *format, ...);
+
+    MatchResults* ReadMatchResults(int sourceID, int targetID);
+    static int ReadOneMatchMapCallback(void *arg, int argc, char **argv, char **names);
+    static int ReadMatchMapCallback(void *arg, int argc, char **argv, char **names);
+    MatchMapList *ReadMatchMap(int sourceID, int targetID, int index, va_t address, bool erase);
 
     static int QueryFunctionMatchesCallback(void *arg, int argc, char **argv, char **names);
     FunctionMatchInfoList QueryFunctionMatches(const char *query, int sourceID, int targetID);

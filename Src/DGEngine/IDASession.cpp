@@ -21,7 +21,7 @@ extern LogOperation Logger;
 char *MapInfoTypesStr[] = { "Call", "Cref From", "Cref To", "Dref From", "Dref To" };
 int types[] = { CREF_FROM, CREF_TO, CALL, DREF_FROM, DREF_TO, CALLED };
 
-IDASession::IDASession(Storage *disassemblyStorage) :
+IDASession::IDASession(DisassemblyStorage *disassemblyStorage) :
     ClientAnalysisInfo(NULL),
     TargetFunctionAddress(0),
     m_OriginalFilePath(NULL),
@@ -264,34 +264,13 @@ char *IDASession::GetFingerPrintStr(va_t address)
 
 char *IDASession::GetName(va_t address)
 {
-#ifdef USE_LEGACY_MAP
-    multimap <va_t, string>::iterator address_name_map_iter;
-
-    address_name_map_iter = ClientAnalysisInfo->address_name_map.find(address);
-    if (address_name_map_iter != ClientAnalysisInfo->address_name_map.end())
-    {
-        return _strdup((*address_name_map_iter).second.c_str());
-    }
-    return NULL;
-#else
     char *Name = m_pStorage->ReadName(m_FileID, address);
     return Name;
-#endif
 }
 
 va_t IDASession::GetBlockAddress(va_t address)
 {
-#ifdef USE_LEGACY_MAP
-    while (1)
-    {
-        if (ClientAnalysisInfo->address_map.find(address) != ClientAnalysisInfo->address_map.end())
-            break;
-        address--;
-    }
-    return address;
-#else
     return m_pStorage->ReadBlockStartAddress(m_FileID, address);
-#endif
 }
 
 void IDASession::DumpBlockInfo(va_t block_address)
@@ -414,9 +393,9 @@ BOOL IDASession::Load()
     return TRUE;
 }
 
-void IDASession::DeleteMatchInfo(Storage *InputDB, int FileID, va_t FunctionAddress)
+void IDASession::DeleteMatchInfo(DiffStorage *p_diffStorage, int FileID, va_t FunctionAddress)
 {
-    m_pStorage->DeleteMatchInfo(FileID, FunctionAddress);
+    p_diffStorage->DeleteMatchInfo(FileID, FunctionAddress);
 }
 
 void IDASession::AddAnalysisTargetFunction(va_t FunctionAddress)
@@ -432,7 +411,7 @@ typedef struct {
 
 void IDASession::GenerateFingerprintHashMap()
 {
-    multimap <va_t, PBasicBlock>::iterator address_map_pIter;
+    multimap <va_t, PBasicBlock>::iterator addressMapIterator;
     list <AddressPair> AddressPairs;
 
     for (auto& val : ClientAnalysisInfo->address_map)
@@ -473,10 +452,10 @@ void IDASession::GenerateFingerprintHashMap()
             Logger.Log(10, LOG_IDA_CONTROLLER, "%s: ID = %d 0x%X -> 0x%X parent count: %u\n", __FUNCTION__, m_FileID, address, matched_child_addr, matched_parents_count);
             if (matched_parents_count == 1)
             {
-                address_map_pIter = ClientAnalysisInfo->address_map.find(matched_child_addr);
-                if (address_map_pIter != ClientAnalysisInfo->address_map.end())
+                addressMapIterator = ClientAnalysisInfo->address_map.find(matched_child_addr);
+                if (addressMapIterator != ClientAnalysisInfo->address_map.end())
                 {
-                    PBasicBlock pBasicBlock = (PBasicBlock)address_map_pIter->second;
+                    PBasicBlock pBasicBlock = (PBasicBlock)addressMapIterator->second;
                     if (pBasicBlock->FunctionAddress != matched_child_addr)
                     {
                         AddressPair address_pair;
@@ -657,42 +636,6 @@ BOOL IDASession::SendTLVData(char type, PBYTE data, DWORD data_length)
 
 char *IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAddress)
 {
-#ifdef USE_LEGACY_MAP
-    //Look for p_analysis_info->address_disassembly_map first
-    multimap <va_t, string>::iterator address_disassembly_map_pIter;
-    address_disassembly_map_pIter = ClientAnalysisInfo->address_disassembly_map.find(StartAddress);
-    if (address_disassembly_map_pIter != ClientAnalysisInfo->address_disassembly_map.end())
-    {
-        return _strdup(address_disassembly_map_pIter->second.c_str());
-    }
-    CodeBlock code_block;
-    code_block.StartAddress = StartAddress;
-    if (Socket == INVALID_SOCKET)
-        return strdup("");
-
-    multimap <va_t, PBasicBlock>::iterator address_map_pIter;
-    if (EndAddress == 0)
-    {
-        address_map_pIter = ClientAnalysisInfo->address_map.find(StartAddress);
-        if (address_map_pIter != ClientAnalysisInfo->address_map.end())
-        {
-            PBasicBlock pBasicBlock = (PBasicBlock)address_map_pIter->second;
-            EndAddress = pBasicBlock->EndAddress;
-        }
-    }
-    code_block.EndAddress = EndAddress;
-    DisasmLine = NULL;
-    if (SendTLVData(GET_DISASM_LINES, (PBYTE)&code_block, sizeof(code_block)))
-    {
-        char type;
-        DWORD length;
-        PBYTE data = RecvTLVData(Socket, &type, &length);
-        if (data)
-            DisasmLine = (char*)data;
-        return (char*)data;
-    }
-    return strdup("");
-#else
     char *DisasmLines = m_pStorage->ReadDisasmLine(m_FileID, StartAddress);
 
     if (DisasmLines)
@@ -701,7 +644,6 @@ char *IDASession::GetDisasmLines(unsigned long StartAddress, unsigned long EndAd
         return DisasmLines;
     }
     return _strdup("");
-#endif
 }
 
 string IDASession::GetInputName()

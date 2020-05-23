@@ -9,7 +9,8 @@
 #include "Common.h"
 #include "SharedMemory.h"
 #include "SharedSocket.h"
-#include "Storage.h"
+#include "DisassemblyStorage.h"
+#include "DiffStorage.h"
 
 using namespace std;
 using namespace stdext;
@@ -17,10 +18,8 @@ using namespace stdext;
 class IDASession
 {
 private:
-#ifndef USE_LEGACY_MAP
     int m_FileID;
-#endif
-    Storage *m_pStorage;
+    DisassemblyStorage *m_pStorage;
 
     char *m_OriginalFilePath;
     va_t TargetFunctionAddress;
@@ -44,7 +43,7 @@ public:
     {
         return &ClientAnalysisInfo->file_info;
     }
-    IDASession(Storage *disassemblyStorage = NULL);
+    IDASession(DisassemblyStorage *disassemblyStorage = NULL);
     ~IDASession();
     void SetSocket(SOCKET socket);
     BOOL Retrieve(char *DataFile, DWORD Offset = 0L, DWORD Length = 0L);
@@ -52,7 +51,7 @@ public:
     void SetFileID(int FileID = 1);
     void LoadMapInfo(multimap <va_t, PMapInfo> *p_map_info_map, va_t Address, bool IsFunction = false);
     BOOL Load();
-    void DeleteMatchInfo(Storage *disassemblyStorage, int FileID = 1, va_t FunctionAddress = 0);
+    void DeleteMatchInfo(DiffStorage *p_diffStorage, int FileID, va_t FunctionAddress);
 
     void AddAnalysisTargetFunction(va_t FunctionAddress);
     BOOL LoadBasicBlock();

@@ -352,16 +352,16 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 }
 
 /*REMOVE:
-BOOL DiffAlgorithms::DeleteMatchInfo(Storage & disassemblyStorage)
+BOOL DiffAlgorithms::DeleteMatchInfo(DiffStorage & diffStorage)
 {
 	if (SourceFunctionAddress > 0 && targetFunctionAddress > 0)
 	{
-		SourceIDASession->DeleteMatchInfo(&disassemblyStorage, SourceIDASession->GetFileID(), SourceFunctionAddress);
-		TargetIDASession->DeleteMatchInfo(&disassemblyStorage, TargetIDASession->GetFileID(), targetFunctionAddress);
+		SourceIDASession->DeleteMatchInfo(&diffStorage, SourceIDASession->GetFileID(), SourceFunctionAddress);
+		TargetIDASession->DeleteMatchInfo(&diffStorage, TargetIDASession->GetFileID(), targetFunctionAddress);
 	}
 	else
 	{
-		disassemblyStorage.DeleteMatches(SourceIDASession->GetFileID(), TargetIDASession->GetFileID());
+		diffStorage.DeleteMatches(SourceIDASession->GetFileID(), TargetIDASession->GetFileID());
 	}
 	return TRUE;
 }*/

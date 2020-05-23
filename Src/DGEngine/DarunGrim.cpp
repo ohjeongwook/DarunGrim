@@ -10,11 +10,12 @@
 #include "ProcessUtils.h"
 
 #include "SQLiteDiffStorage.h"
+#include "SQLiteDisassemblyStorage.h"
 
 LogOperation Logger;
 
 DarunGrim::DarunGrim() :
-    m_storage(NULL),
+    m_pdisassemblyStorage(NULL),
     m_psourceIDASession(NULL),
     m_ptargetIDASession(NULL),
     pIDASessions(NULL),
@@ -39,11 +40,11 @@ DarunGrim::DarunGrim() :
 DarunGrim::~DarunGrim()
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
-    if (m_storage)
+    if (m_pdisassemblyStorage)
     {
-        m_storage->Close();
-        delete m_storage;
-        m_storage = NULL;
+        m_pdisassemblyStorage->Close();
+        delete m_pdisassemblyStorage;
+        m_pdisassemblyStorage = NULL;
     }
 
     if (pIDASessions)
@@ -180,29 +181,29 @@ bool DarunGrim::AcceptIDAClientsFromSocket(const char *storage_filename)
 
     if (storage_filename)
     {
-        if (m_storage)
-            delete m_storage;
+        if (m_pdisassemblyStorage)
+            delete m_pdisassemblyStorage;
 
-        m_storage = new SQLiteStorage(storage_filename);
+        m_pdisassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
     }
 
-    if (m_storage)
+    if (m_pdisassemblyStorage)
     {
-        SetDatabase(m_storage);
+        SetDatabase(m_pdisassemblyStorage);
     }
     StartIDAListener(DARUNGRIM_PORT);
 
-    m_psourceIDASession = new IDASession(m_storage);
-    m_ptargetIDASession = new IDASession(m_storage);
+    m_psourceIDASession = new IDASession(m_pdisassemblyStorage);
+    m_ptargetIDASession = new IDASession(m_pdisassemblyStorage);
 
     //Create a thread that will call ConnectToDarunGrim one by one
     DWORD dwThreadId;
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(m_psourceIDASession, pIDASessions ? FALSE : m_storage ? TRUE : FALSE);
+    AcceptIDAClient(m_psourceIDASession, pIDASessions ? FALSE : m_pdisassemblyStorage ? TRUE : FALSE);
     SetLoadedSourceFile(TRUE);
 
     CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(m_ptargetIDASession, pIDASessions ? FALSE : m_storage ? TRUE : FALSE);
+    AcceptIDAClient(m_ptargetIDASession, pIDASessions ? FALSE : m_pdisassemblyStorage ? TRUE : FALSE);
 
     if (!pIDASessions)
     {
@@ -233,14 +234,14 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
     Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
     pIDASessions->Analyze();
 
-    if (m_storage)
-        delete m_storage;
+    if (m_pdisassemblyStorage)
+        delete m_pdisassemblyStorage;
 
     Logger.Log(10, LOG_DARUNGRIM, "Save\n");
-    m_storage = new SQLiteStorage(output_storage_filename);
-    SetDatabase(m_storage);
+    m_pdisassemblyStorage = new SQLiteDisassemblyStorage(output_storage_filename);
+    SetDatabase(m_pdisassemblyStorage);
 
-    pIDASessions->Save(*m_storage);
+    pIDASessions->Save(*m_pdisassemblyStorage);
 
     return TRUE;
 }
@@ -249,17 +250,17 @@ bool DarunGrim::OpenDatabase(char *storage_filename)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
 
-    if (m_storage)
-        delete m_storage;
+    if (m_pdisassemblyStorage)
+        delete m_pdisassemblyStorage;
 
-    m_storage = new SQLiteStorage(storage_filename);
+    m_pdisassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
     return TRUE;
 }
 
 bool DarunGrim::Load(const char *storage_filename)
 {
-    m_storage = new SQLiteStorage(storage_filename);
-    if (m_storage)
+    m_pdisassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
+    if (m_pdisassemblyStorage)
     {
         pIDASessions->Load(storage_filename);
         m_psourceIDASession = pIDASessions->GetSourceIDASession();
@@ -274,11 +275,11 @@ bool DarunGrim::PerformDiff()
     int source_file_id = 1;
     int target_file_id = 2;
 
-    if (m_storage)
+    if (m_pdisassemblyStorage)
     {
-        pIDASessions->SetSource(m_storage, source_file_id);
-        pIDASessions->SetSource(m_storage, target_file_id);
-        pIDASessions->Load(m_storage);
+        pIDASessions->SetSource(m_pdisassemblyStorage, source_file_id);
+        pIDASessions->SetSource(m_pdisassemblyStorage, target_file_id);
+        pIDASessions->Load(m_pdiffStorage, m_pdisassemblyStorage);
         m_psourceIDASession = pIDASessions->GetSourceIDASession();
         m_ptargetIDASession = pIDASessions->GetTargetIDASession();
     }
@@ -291,7 +292,7 @@ bool DarunGrim::PerformDiff()
     if (pIDASessions)
     {
         pIDASessions->Analyze();
-        pIDASessions->Save(*m_storage);
+        pIDASessions->Save(*m_pdisassemblyStorage);
     }
     return TRUE;
 }
@@ -303,9 +304,9 @@ bool DarunGrim::ShowOnIDA()
     return TRUE;
 }
 
-void DarunGrim::SetDatabase(Storage *OutputDB)
+void DarunGrim::SetDatabase(DisassemblyStorage * p_disassemblyStorage)
 {
-    m_storage = OutputDB;
+    m_pdisassemblyStorage = p_disassemblyStorage;
 }
 
 typedef struct _IDA_LISTENER_PARAM_
@@ -524,7 +525,7 @@ bool DarunGrim::StopIDAListener()
 
 IDASession *DarunGrim::GetIDAControllerFromFile(char *DataFile)
 {
-    IDASession *p_ida_controller = new IDASession(m_storage);
+    IDASession *p_ida_controller = new IDASession(m_pdisassemblyStorage);
     p_ida_controller->Retrieve(DataFile);
     return p_ida_controller;
 }
