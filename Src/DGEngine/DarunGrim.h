@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "Configuration.h"
-#include "IDASessions.h"
+#include "DiffLogic.h"
 #include "DisassemblyStorage.h"
 #include "DiffStorage.h"
 
@@ -18,13 +18,13 @@ enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 class DarunGrim
 {
 private:
-    IDASession *m_psourceIDASession;
-    IDASession *m_ptargetIDASession;
+    Loader *m_psourceLoader;
+    Loader *m_ptargetLoader;
 
     DisassemblyStorage *m_pdisassemblyStorage;
     DiffStorage* m_pdiffStorage;
 
-    IDASessions *pIDASessions;
+    DiffLogic *pDiffLogic;
     bool OpenDatabase(char *storage_filename);
     string SourceFilename;
     string SourceIDBFilename;
@@ -49,35 +49,35 @@ public:
     }
     void EnableLogType(int type);
 
-    IDASessions *GetDiffMachine()
+    DiffLogic *GetDiffMachine()
     {
-        return pIDASessions;
+        return pDiffLogic;
     }
 
-    IDASession *GetSourceClientManager()
+    Loader *GetSourceClientManager()
     {
-        return m_psourceIDASession;
+        return m_psourceLoader;
     }
 
-    IDASession *GetTargetClientManager()
+    Loader *GetTargetClientManager()
     {
-        return m_ptargetIDASession;
+        return m_ptargetLoader;
     }
 
     void JumpToAddress(va_t address, DWORD type)
     {
         if (type == SOURCE_CONTROLLER)
         {
-            if (m_psourceIDASession)
+            if (m_psourceLoader)
             {
-                m_psourceIDASession->JumpToAddress(address);
+                m_psourceLoader->JumpToAddress(address);
             }
         }
         else
         {
-            if (m_ptargetIDASession)
+            if (m_ptargetLoader)
             {
-                m_ptargetIDASession->JumpToAddress(address);
+                m_ptargetLoader->JumpToAddress(address);
             }
         }
     }
@@ -86,46 +86,46 @@ public:
     {
         if (type == TARGET_CONTROLLER)
         {
-            if (m_psourceIDASession)
+            if (m_psourceLoader)
             {
-                m_psourceIDASession->JumpToAddress(address);
+                m_psourceLoader->JumpToAddress(address);
             }
         }
         else
         {
-            if (m_ptargetIDASession)
+            if (m_ptargetLoader)
             {
-                m_ptargetIDASession->JumpToAddress(address);
+                m_ptargetLoader->JumpToAddress(address);
             }
         }
     }
 
     char *GetSourceOrigFilename()
     {
-        if (m_psourceIDASession)
+        if (m_psourceLoader)
         {
-            char *filename = m_psourceIDASession->GetOriginalFilePath();
+            char *filename = m_psourceLoader->GetOriginalFilePath();
         }
         return NULL;
     }
 
     char *GetTargetOrigFilename()
     {
-        if (m_ptargetIDASession)
+        if (m_ptargetLoader)
         {
-            return m_ptargetIDASession->GetOriginalFilePath();
+            return m_ptargetLoader->GetOriginalFilePath();
         }
         return NULL;
     }
 
     list <BLOCK> GetSourceAddresses(va_t address)
     {
-        return m_psourceIDASession->GetFunctionMemberBlocks(address);
+        return m_psourceLoader->GetFunctionMemberBlocks(address);
     }
 
     list <BLOCK> GetTargetAddresses(va_t address)
     {
-        return m_ptargetIDASession->GetFunctionMemberBlocks(address);
+        return m_ptargetLoader->GetFunctionMemberBlocks(address);
     }
 
     void SetLogParameters(int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL);
@@ -156,7 +156,7 @@ private:
     DisassemblyStorage *m_storage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
-    IDASession *IDAControllers[2];
+    Loader *IDAControllers[2];
 
     char *IDAPath;
     char *IDA64Path;
@@ -167,7 +167,7 @@ private:
     char *EscapeFilename(char *filename);
     char *LogFilename;
     PSLIST_HEADER pIDAClientListHead;
-    vector<IDASession*> IDAControllerList;
+    vector<Loader*> IDAControllerList;
     void UpdateIDAControllers();
 
     bool SetController(int type, const char *identity);
@@ -178,15 +178,15 @@ public:
     void SetDatabase(DisassemblyStorage *p_disassemblyStorage);
     unsigned short StartIDAListenerThread(unsigned short port);
     void ListIDAControllers();
-    IDASession *FindIDAController(const char *identity);
-    bool SetSourceIDASession(const char *identity);
-    bool SetTargetIDASession(const char *identity);
+    Loader *FindIDAController(const char *identity);
+    bool SetSourceLoader(const char *identity);
+    bool SetTargetLoader(const char *identity);
 
     bool StartIDAListener(unsigned short port);
     bool StopIDAListener();
 
-    IDASession *GetIDAControllerFromFile(char *DataFile);
-    DWORD SetMembers(IDASessions *pArgDiffMachine);
+    Loader *GetIDAControllerFromFile(char *DataFile);
+    DWORD SetMembers(DiffLogic *pArgDiffMachine);
     DWORD IDACommandProcessor();
     BOOL CreateIDACommandProcessorThread();
     void SetIDAPath(const char *ParamIDAPath, bool is_64);
@@ -200,7 +200,7 @@ public:
     void ConnectToDarunGrim(const char *ida_filename);
     void SetIDALogFilename(const char *ida_log_filename);
     const char *GetIDALogFilename();
-    BOOL AcceptIDAClient(IDASession *p_ida_controller, bool retrieve_Data);
+    BOOL AcceptIDAClient(Loader *p_ida_controller, bool retrieve_Data);
     void SetAutoMode(bool mode)
     {
         IDAAutoMode = mode;

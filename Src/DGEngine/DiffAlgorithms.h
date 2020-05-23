@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatchResults.h"
-#include "IDASession.h"
+#include "Loader.h"
 
 #define DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING 1
 
@@ -18,8 +18,8 @@ private:
 	int DebugFlag;
 	DumpAddressChecker *m_pdumpAddressChecker;
 
-	IDASession *SourceIDASession;
-	IDASession *TargetIDASession;    
+	Loader *SourceLoader;
+	Loader *TargetLoader;    
 
 
 	void RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t address, va_t match_address);

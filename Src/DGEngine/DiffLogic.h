@@ -4,7 +4,7 @@
 #include <list>
 
 #include "Common.h"
-#include "IDASession.h"
+#include "Loader.h"
 #include "LogOperation.h"
 #include "MatchResults.h"
 #include "DiffAlgorithms.h"
@@ -12,7 +12,7 @@
 #include "DiffStorage.h"
 #include "DisassemblyStorage.h"
 
-class IDASessions
+class DiffLogic
 {
 private:
     int DebugFlag;
@@ -35,8 +35,8 @@ private:
     DisassemblyStorage* m_psourceStorage;
     DisassemblyStorage* m_ptargetStorage;
 
-    IDASession* SourceIDASession;
-    IDASession* TargetIDASession;
+    Loader* SourceLoader;
+    Loader* TargetLoader;
 
     MatchResults* m_pMatchResults;
     FunctionMatchInfoList* m_pFunctionMatchInfoList;
@@ -51,22 +51,22 @@ private:
 	BOOL _Load();
 
 public:
-    IDASessions(IDASession *the_source = NULL, IDASession *the_target = NULL);
-    ~IDASessions();
+    DiffLogic(Loader *the_source = NULL, Loader *the_target = NULL);
+    ~DiffLogic();
 
     void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
     {
         m_pdumpAddressChecker = p_dump_address_checker;
     }
 
-    void SetSource(IDASession *NewSource)
+    void SetSource(Loader *NewSource)
     {
-        SourceIDASession = NewSource;
+        SourceLoader = NewSource;
     }
 
-    void SetTarget(IDASession *NewTarget)
+    void SetTarget(Loader *NewTarget)
     {
-        TargetIDASession = NewTarget;
+        TargetLoader = NewTarget;
     }
 
     void SetLoadMatchResults(bool NewLoadMatchResults)
@@ -116,8 +116,8 @@ public:
     BOOL Load(const char* DiffDBFilename);
     BOOL Load(DiffStorage *p_diffStorage, DisassemblyStorage  *p_disassemblyStorage);
 
-    IDASession *GetSourceIDASession();
-    IDASession *GetTargetIDASession();
+    Loader *GetSourceLoader();
+    Loader *GetTargetLoader();
 
     void AppendToMatchMap(MATCHMAP* pBaseMap, MATCHMAP* pTemporaryMap);
     MatchMapList* GetMatchData(int index, va_t address, BOOL erase = FALSE);
