@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythonExt", "Src\Scripts\Py
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DGEngine", "Src\DGEngine\DGEngine.vcxproj", "{F0FF5FB2-BB74-405C-8582-9AA5262C7041}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IDAPlugin", "Src\IDAPlugin\IDAPlugin.vcxproj", "{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		IDA32-Debug|x64 = IDA32-Debug|x64
@@ -31,14 +29,6 @@ Global
 		{F0FF5FB2-BB74-405C-8582-9AA5262C7041}.IDA64-Debug|x64.Build.0 = IDA64-Debug|x64
 		{F0FF5FB2-BB74-405C-8582-9AA5262C7041}.IDA64-Release|x64.ActiveCfg = IDA64-Release|x64
 		{F0FF5FB2-BB74-405C-8582-9AA5262C7041}.IDA64-Release|x64.Build.0 = IDA64-Release|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA32-Debug|x64.ActiveCfg = IDA32-Debug|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA32-Debug|x64.Build.0 = IDA32-Debug|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA32-Release|x64.ActiveCfg = IDA32-Release|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA32-Release|x64.Build.0 = IDA32-Release|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA64-Debug|x64.ActiveCfg = IDA64-Debug|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA64-Debug|x64.Build.0 = IDA64-Debug|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA64-Release|x64.ActiveCfg = IDA64-Release|x64
-		{25AC1E59-2327-45DB-B696-EE0EFE1A4A44}.IDA64-Release|x64.Build.0 = IDA64-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
