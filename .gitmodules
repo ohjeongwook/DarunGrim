@@ -1,0 +1,3 @@
+[submodule "Src/DarunGrimIDAExporter"]
+	path = Src/DarunGrimIDAExporter
+	url = https://github.com/ohjeongwook/DarunGrimIDAExporter
