@@ -53,8 +53,6 @@ DarunGrim::~DarunGrim()
         pDiffLogic = NULL;
     }
 
-    StopIDAListener();
-
     if (IDAPath)
         free(IDAPath);
 
@@ -175,47 +173,6 @@ void DarunGrim::SetLoadedSourceFile(bool is_loaded)
     IsLoadedSourceFile = is_loaded;
 }
 
-bool DarunGrim::AcceptIDAClientsFromSocket(const char *storage_filename)
-{
-    Logger.Log(10, LOG_DARUNGRIM, "%s: entry\n", __FUNCTION__);
-
-    if (storage_filename)
-    {
-        if (m_pdisassemblyStorage)
-            delete m_pdisassemblyStorage;
-
-        m_pdisassemblyStorage = new SQLiteDisassemblyStorage(storage_filename);
-    }
-
-    if (m_pdisassemblyStorage)
-    {
-        SetDatabase(m_pdisassemblyStorage);
-    }
-    StartIDAListener(DARUNGRIM_PORT);
-
-    m_psourceLoader = new Loader(m_pdisassemblyStorage);
-    m_ptargetLoader = new Loader(m_pdisassemblyStorage);
-
-    //Create a thread that will call ConnectToDarunGrim one by one
-    DWORD dwThreadId;
-    CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(m_psourceLoader, pDiffLogic ? FALSE : m_pdisassemblyStorage ? TRUE : FALSE);
-    SetLoadedSourceFile(TRUE);
-
-    CreateThread(NULL, 0, ConnectToDarunGrimThread, (PVOID)this, 0, &dwThreadId);
-    AcceptIDAClient(m_ptargetLoader, pDiffLogic ? FALSE : m_pdisassemblyStorage ? TRUE : FALSE);
-
-    if (!pDiffLogic)
-    {
-        PerformDiff();
-    }
-
-    CreateIDACommandProcessorThread();
-    StopIDAListener();
-
-    return TRUE;
-}
-
 bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_address, const char *target_storage_filename, va_t target_address, const char *output_storage_filename)
 {
     Logger.Log(10, LOG_DARUNGRIM, "%s: (output storage: %s)\n", __FUNCTION__, output_storage_filename);
@@ -226,7 +183,7 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
     pDiffLogic->SetSource((char*)src_storage_filename, 1, source_address);
     pDiffLogic->SetTarget((char*)target_storage_filename, 1, target_address);
 
-    pDiffLogic->SetLoadIDAController(true);
+    pDiffLogic->Setm_bloadMaps(true);
     pDiffLogic->Load((char*)output_storage_filename);
     m_psourceLoader = pDiffLogic->GetSourceLoader();
     m_ptargetLoader = pDiffLogic->GetTargetLoader();
@@ -356,31 +313,6 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
     return 0;
 }
 
-unsigned short DarunGrim::StartIDAListenerThread(unsigned short port)
-{
-    Logger.Log(10, LOG_DARUNGRIM, "StartIDAListenerThread on port: %d\n", port);
-    DWORD dwThreadId;
-
-    pIDAClientListHead = (PSLIST_HEADER)_aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
-
-    if (pIDAClientListHead == NULL)
-        return 0;
-
-    InitializeSListHead(pIDAClientListHead);
-
-    SOCKET s = CreateListener(NULL, port);
-    Logger.Log(10, LOG_DARUNGRIM, "%s: listening socket: %d (port: %d)\n", __FUNCTION__, s, port);
-
-    IDA_LISTENER_PARAM *param = new IDA_LISTENER_PARAM();
-    param->pListEntry = pIDAClientListHead;
-    param->port = port;
-    param->socket = s;
-
-    HANDLE thread = CreateThread(NULL, 0, IDAListenerThread, (PVOID)param, 0, &dwThreadId);
-
-    return port;
-}
-
 void DarunGrim::UpdateIDAControllers()
 {
     if (!pIDAClientListHead)
@@ -498,36 +430,6 @@ void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned lon
         if (m_ptargetLoader)
             m_ptargetLoader->ColorAddress(start_address, end_address, color);
     }
-}
-
-bool DarunGrim::StartIDAListener(unsigned short port)
-{
-    StopIDAListener();
-    ListeningPort = port;
-    if (ListeningPort > 0)
-    {
-        ListeningSocket = CreateListener(NULL, port);
-        Logger.Log(10, LOG_DARUNGRIM, "%s: ListeningSocket=%d\n", __FUNCTION__, ListeningSocket);
-        return TRUE;
-    }
-    return FALSE;
-}
-
-bool DarunGrim::StopIDAListener()
-{
-    if (ListeningSocket != INVALID_SOCKET)
-    {
-        closesocket(ListeningSocket);
-        return TRUE;
-    }
-    return FALSE;
-}
-
-Loader *DarunGrim::GetIDAControllerFromFile(char *DataFile)
-{
-    Loader *p_ida_controller = new Loader(m_pdisassemblyStorage);
-    p_ida_controller->Retrieve(DataFile);
-    return p_ida_controller;
 }
 
 BOOL DarunGrim::AcceptIDAClient(Loader *p_ida_controller, bool retrieve_Data)

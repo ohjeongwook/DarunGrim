@@ -21,7 +21,7 @@ private:
     bool ShowNonMatched;
 
     bool LoadMatchResults;
-    bool LoadIDAController;
+    bool m_bloadMaps;
 
     int SourceID;
     string SourceDBName;
@@ -73,9 +73,9 @@ public:
     {
         LoadMatchResults = NewLoadMatchResults;
     }
-    void SetLoadIDAController(bool NewLoadIDAController)
+    void Setm_bloadMaps(bool Newm_bloadMaps)
     {
-        LoadIDAController = NewLoadIDAController;
+        m_bloadMaps = Newm_bloadMaps;
     }
 
     void SetSource(const char* db_filename, DWORD id = 1, va_t function_address = 0)

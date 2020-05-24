@@ -26,7 +26,7 @@ DiffLogic::DiffLogic(Loader *the_source, Loader *the_target) :
     SourceFunctionAddress(0),
     TargetID(0),
     TargetFunctionAddress(0),
-    LoadIDAController(false),
+    m_bloadMaps(false),
     LoadMatchResults(true),
     ShowFullMatched(false),
     ShowNonMatched(false),
@@ -321,9 +321,6 @@ bool DiffLogic::Analyze()
 
     if (!SourceLoader || !TargetLoader)
         return FALSE;
-
-    SourceLoader->LoadBasicBlock();
-    TargetLoader->LoadBasicBlock();
 
     m_pMatchResults = new MatchResults();
     m_pMatchResults->SetDumpAddressChecker(m_pdumpAddressChecker);
@@ -1001,7 +998,7 @@ BOOL DiffLogic::_Load()
     SourceLoader->AddAnalysisTargetFunction(SourceFunctionAddress);
     SourceLoader->SetFileID(SourceID);
 
-    if (LoadIDAController)
+    if (m_bloadMaps)
     {
         SourceLoader->FixFunctionAddresses();
         SourceLoader->Load();
@@ -1017,7 +1014,7 @@ BOOL DiffLogic::_Load()
     TargetLoader->AddAnalysisTargetFunction(TargetFunctionAddress);
     TargetLoader->SetFileID(TargetID);
 
-    if (LoadIDAController)
+    if (m_bloadMaps)
     {
         TargetLoader->FixFunctionAddresses();
         TargetLoader->Load();

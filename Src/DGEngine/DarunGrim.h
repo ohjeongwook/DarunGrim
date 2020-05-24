@@ -130,8 +130,6 @@ public:
 
     void SetLogParameters(int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL);
 
-    bool AcceptIDAClientsFromSocket(const char *storage_filename = NULL);
-
     bool Load(const char *storage_filename);
 
     bool PerformDiff();
@@ -176,16 +174,11 @@ private:
 public:
 
     void SetDatabase(DisassemblyStorage *p_disassemblyStorage);
-    unsigned short StartIDAListenerThread(unsigned short port);
     void ListIDAControllers();
     Loader *FindIDAController(const char *identity);
     bool SetSourceLoader(const char *identity);
     bool SetTargetLoader(const char *identity);
 
-    bool StartIDAListener(unsigned short port);
-    bool StopIDAListener();
-
-    Loader *GetIDAControllerFromFile(char *DataFile);
     DWORD SetMembers(DiffLogic *pArgDiffMachine);
     DWORD IDACommandProcessor();
     BOOL CreateIDACommandProcessorThread();

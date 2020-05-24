@@ -229,8 +229,8 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 				last_patched_addr != match_info.TargetAddress
 				)
 			{
-				match_info.SourceFunctionName = SourceLoader->GetName(match_info.SourceAddress);
-				match_info.TargetFunctionName = TargetLoader->GetName(match_info.TargetAddress);
+				match_info.SourceFunctionName = SourceLoader->GetSymbol(match_info.SourceAddress);
+				match_info.TargetFunctionName = TargetLoader->GetSymbol(match_info.TargetAddress);
 
 				float source_match_rate = 0.0;
 
@@ -283,7 +283,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 				if (p_basic_block->BlockType == FUNCTION_BLOCK)
 				{
 					match_info.SourceAddress = p_basic_block->StartAddress;
-					match_info.SourceFunctionName = SourceLoader->GetName(match_info.SourceAddress);
+					match_info.SourceFunctionName = SourceLoader->GetSymbol(match_info.SourceAddress);
 					match_info.BlockType = p_basic_block->BlockType;
 					match_info.EndAddress = p_basic_block->EndAddress;
 					match_info.Type = 0;
@@ -324,7 +324,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 					match_info.EndAddress = 0;
 					match_info.Type = 0;
 					match_info.TargetAddress = p_basic_block->StartAddress;
-					match_info.TargetFunctionName = TargetLoader->GetName(match_info.TargetAddress);
+					match_info.TargetFunctionName = TargetLoader->GetSymbol(match_info.TargetAddress);
 					match_info.MatchRate = 0;
 					match_info.MatchCountForTheSource = 0;
 					match_info.MatchCountWithModificationForTheSource = 0;
