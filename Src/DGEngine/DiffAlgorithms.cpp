@@ -896,16 +896,16 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 						if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, 0)))
 							LogMessage(0, __FUNCTION__, "Function: %X Block: %X:%X\r\n", source_function_addr, match_map_it->second.Addresses[0], target_addr);
 
-						va_t target_function_address;
-						if (TargetLoader->GetFunctionAddress(target_addr, target_function_address))
+						va_t targetFunctionAddress;
+						if (TargetLoader->GetFunctionAddress(target_addr, targetFunctionAddress))
 						{
-							if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, target_function_address)))
-								LogMessage(0, __FUNCTION__, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, target_function_address, block_address, target_addr);
+							if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, targetFunctionAddress)))
+								LogMessage(0, __FUNCTION__, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, targetFunctionAddress, block_address, target_addr);
 
-							unordered_map <va_t, va_t>::iterator function_match_count_it = function_match_count.find(target_function_address);
+							unordered_map <va_t, va_t>::iterator function_match_count_it = function_match_count.find(targetFunctionAddress);
 							if (function_match_count_it == function_match_count.end())
 							{
-								function_match_count.insert(pair<va_t, va_t>(target_function_address, 1));
+								function_match_count.insert(pair<va_t, va_t>(targetFunctionAddress, 1));
 							}
 							else
 							{

@@ -41,9 +41,9 @@ public:
         return NULL;
     }
 
-    virtual list<BLOCK> ReadFunctionMemberAddresses(int fileID, va_t function_address)
+    virtual list<AddressRange> ReadFunctionMemberAddresses(int fileID, va_t function_address)
     {
-        list<BLOCK> ret;
+        list<AddressRange> ret;
         return ret;
     }
 

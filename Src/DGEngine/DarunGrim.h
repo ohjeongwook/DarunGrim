@@ -118,12 +118,12 @@ public:
         return NULL;
     }
 
-    list <BLOCK> GetSourceAddresses(va_t address)
+    list <AddressRange> GetSourceAddresses(va_t address)
     {
         return m_psourceLoader->GetFunctionMemberBlocks(address);
     }
 
-    list <BLOCK> GetTargetAddresses(va_t address)
+    list <AddressRange> GetTargetAddresses(va_t address)
     {
         return m_ptargetLoader->GetFunctionMemberBlocks(address);
     }

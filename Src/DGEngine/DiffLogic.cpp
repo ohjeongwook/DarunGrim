@@ -155,7 +155,7 @@ void DiffLogic::TestFunctionMatchRate(int index, va_t Address)
 void DiffLogic::RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t> & Members)
 {
     Loader *ClientManager = index == 0 ? SourceLoader : TargetLoader;
-    list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(FunctionAddress);
+    list <AddressRange> address_list = ClientManager->GetFunctionMemberBlocks(FunctionAddress);
 
     for (auto& val : address_list)
     {
@@ -422,8 +422,8 @@ bool DiffLogic::Analyze()
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: Call DoFunctionMatch\n", __FUNCTION__);
 
-		SourceLoader->LoadBlockToFunction();
-		TargetLoader->LoadBlockToFunction();
+		SourceLoader->LoadBlockFunctionMaps();
+		TargetLoader->LoadBlockFunctionMaps();
 
         MATCHMAP *pFunctionMatchMap = m_pdiffAlgorithms->DoFunctionMatch(&m_pMatchResults->MatchMap, SourceLoader->GetFunctionToBlock(), TargetLoader->GetFunctionToBlock());
 
@@ -437,23 +437,23 @@ bool DiffLogic::Analyze()
                 it != pCurrentMatchMap->end() && it->first == sourceAddress;
                 )
             {
-                va_t source_function_address;
+                va_t sourceFunctionAddress;
                 va_t targetAddress = it->second.Addresses[1];
                 BOOL function_matched = FALSE;
-                if (SourceLoader->GetFunctionAddress(sourceAddress, source_function_address))
+                if (SourceLoader->GetFunctionAddress(sourceAddress, sourceFunctionAddress))
                 {
-                    function_matched = TargetLoader->FindBlockFunctionMatch(targetAddress, chosen_target_function_addr);
+                    function_matched = TargetLoader->IsFunctionBlock(targetAddress, chosenTargetFunctionAddress);
                 }
 
                 if (!function_matched)
                 {
                     if (m_pdumpAddressChecker &&
                         (
-                            m_pdumpAddressChecker->IsDumpPair(source_function_address, targetAddress) ||
-                            m_pdumpAddressChecker->IsDumpPair(source_function_address, chosen_target_function_addr)
+                            m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, targetAddress) ||
+                            m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, chosenTargetFunctionAddress)
                             )
                         )
-                        LogMessage(0, __FUNCTION__, "Removing address %X( %X )-%X( %X )\n", sourceAddress, source_function_address, targetAddress, chosen_target_function_addr);
+                        LogMessage(0, __FUNCTION__, "Removing address %X( %X )-%X( %X )\n", sourceAddress, sourceFunctionAddress, targetAddress, chosenTargetFunctionAddress);
                     it = m_pMatchResults->Erase(it);
 
                 }
@@ -466,8 +466,8 @@ bool DiffLogic::Analyze()
         }
         */
 
-		SourceLoader->ClearBlockToFunction();
-		TargetLoader->ClearBlockToFunction();
+		SourceLoader->ClearBlockFunctionMaps();
+		TargetLoader->ClearBlockFunctionMaps();
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: One Loop Of Analysis MatchMap size is %u.\n", __FUNCTION__, m_pMatchResults->MatchMap.size());
 
@@ -632,14 +632,14 @@ void DiffLogic::GetMatchStatistics(
     if (index == 1)
         ClientManager = TargetLoader;
 
-    list <BLOCK> address_list = ClientManager->GetFunctionMemberBlocks(address);
+    list <AddressRange> address_list = ClientManager->GetFunctionMemberBlocks(address);
 
     found_match_number = 0;
     not_found_match_number = 0;
     found_match_with_difference_number = 0;
     float total_match_rate = 0;
 
-    for (BLOCK block : address_list)
+    for (AddressRange block : address_list)
     {
         MatchMapList *pMatchMapList = GetMatchData(index, block.Start);
 
@@ -995,13 +995,12 @@ BOOL DiffLogic::_Load()
     SourceLoader = new Loader(m_psourceStorage);
 
     Logger.Log(10, LOG_DIFF_MACHINE, "SourceFunctionAddress: %X\n", SourceFunctionAddress);
-    SourceLoader->AddAnalysisTargetFunction(SourceFunctionAddress);
     SourceLoader->SetFileID(SourceID);
 
     if (m_bloadMaps)
     {
         SourceLoader->FixFunctionAddresses();
-        SourceLoader->Load();
+        SourceLoader->Load(SourceFunctionAddress);
     }
 
     if (TargetLoader)
@@ -1011,13 +1010,12 @@ BOOL DiffLogic::_Load()
     }
 
     TargetLoader = new Loader(m_ptargetStorage);
-    TargetLoader->AddAnalysisTargetFunction(TargetFunctionAddress);
     TargetLoader->SetFileID(TargetID);
 
     if (m_bloadMaps)
     {
         TargetLoader->FixFunctionAddresses();
-        TargetLoader->Load();
+        TargetLoader->Load(TargetFunctionAddress);
     }
 
     if (LoadMatchResults)
