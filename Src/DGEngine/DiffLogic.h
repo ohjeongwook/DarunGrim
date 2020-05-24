@@ -124,7 +124,7 @@ public:
     va_t GetMatchAddr(int index, va_t address);
     int GetMatchRate(va_t unpatched_address, va_t patched_address);
     void RemoveMatchData(va_t source_address, va_t target_address);
-    void PrintMatchMapInfo();
+    void PrintMatchControlFlow();
 
     va_t DumpFunctionMatchInfo(int index, va_t address);
 

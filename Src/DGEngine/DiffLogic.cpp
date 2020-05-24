@@ -314,9 +314,6 @@ MATCHMAP *DiffLogic::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFunc
 
 bool DiffLogic::Analyze()
 {
-    multimap <string, va_t>::iterator instruction_hash_map_pIter;
-    multimap <string, va_t>::iterator symbol_map_pIter;
-    multimap <va_t, PMapInfo>::iterator map_info_map_pIter;
     MATCHMAP TemporaryMatchMap;
 
     if (!SourceLoader || !TargetLoader)
@@ -326,20 +323,20 @@ bool DiffLogic::Analyze()
     m_pMatchResults->SetDumpAddressChecker(m_pdumpAddressChecker);
 
     Logger.Log(10, LOG_DIFF_MACHINE, "%s: InstructionHash Map Size %u:%u\n", __FUNCTION__,
-        SourceLoader->GetClientDisassemblyHashMaps()->instruction_hash_map.size(),
-        TargetLoader->GetClientDisassemblyHashMaps()->instruction_hash_map.size());
+        SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size(),
+        TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size());
 
     // Symbol Match
     Logger.Log(10, LOG_DIFF_MACHINE, "Symbol Match\n");
 
     multimap <string, va_t>::iterator patchedNameMapIterator;
 
-    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->symbol_map)
+    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->symbolMap)
     {
-        if (SourceLoader->GetClientDisassemblyHashMaps()->symbol_map.count(val.first) == 1)
+        if (SourceLoader->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
         {
             //unique key
-            if (TargetLoader->GetClientDisassemblyHashMaps()->symbol_map.count(val.first) == 1)
+            if (TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
             {
                 if (val.first.find("loc_") != string::npos ||
                     val.first.find("locret_") != string::npos ||
@@ -347,9 +344,9 @@ bool DiffLogic::Analyze()
                     val.first.find("func_") != string::npos)
                     continue;
 
-                patchedNameMapIterator = TargetLoader->GetClientDisassemblyHashMaps()->symbol_map.find(val.first);
+                patchedNameMapIterator = TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.find(val.first);
 
-                if (patchedNameMapIterator != TargetLoader->GetClientDisassemblyHashMaps()->symbol_map.end())
+                if (patchedNameMapIterator != TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.end())
                 {
                     MatchData match_data;
                     memset(&match_data, 0, sizeof(MatchData));
@@ -591,20 +588,20 @@ void DiffLogic::ShowDiffMap(va_t unpatched_address, va_t patched_address)
 
 int DiffLogic::GetMatchRate(va_t unpatched_address, va_t patched_address)
 {
-    multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
-    multimap <va_t, unsigned char*>::iterator target_instruction_hash_map_Iter;
+    multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter;
+    multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter;
 
-    source_instruction_hash_map_Iter = SourceLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map.find(unpatched_address);
-    target_instruction_hash_map_Iter = TargetLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map.find(patched_address);
+    source_instructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(unpatched_address);
+    target_instructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(patched_address);
 
     if (
-        source_instruction_hash_map_Iter != SourceLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map.end() &&
-        target_instruction_hash_map_Iter != TargetLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map.end()
+        source_instructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
+        target_instructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end()
         )
     {
         return m_pdiffAlgorithms->GetInstructionHashMatchRate(
-            source_instruction_hash_map_Iter->second,
-            target_instruction_hash_map_Iter->second);
+            source_instructionHashMap_Iter->second,
+            target_instructionHashMap_Iter->second);
     }
     return 0;
 }
@@ -1132,7 +1129,7 @@ BREAKPOINTS DiffLogic::ShowUnidentifiedAndModifiedBlocks()
 }
 
 
-void DiffLogic::PrintMatchMapInfo()
+void DiffLogic::PrintMatchControlFlow()
 {
 	multimap <va_t, MatchData>::iterator matchMapIterator;
 	int unique_match_count = 0;
@@ -1156,9 +1153,9 @@ void DiffLogic::PrintMatchMapInfo()
 	LogMessage(0, __FUNCTION__, "* *unidentified( 0 )\n");
 
 	int unpatched_unidentified_number = 0;
-	multimap <va_t, unsigned char*>::iterator source_instruction_hash_map_Iter;
+	multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter;
 
-    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map)
+    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
 		if (m_pMatchResults->MatchMap.find(val.first) == m_pMatchResults->MatchMap.end())
 		{
@@ -1174,7 +1171,7 @@ void DiffLogic::PrintMatchMapInfo()
 
 	int patched_unidentified_number = 0;
 
-    for (auto& val : TargetLoader->GetClientDisassemblyHashMaps()->address_to_instruction_hash_map)
+    for (auto& val : TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
 		if (m_pMatchResults->ReverseAddressMap.find(val.first) == m_pMatchResults->ReverseAddressMap.end())
 		{
