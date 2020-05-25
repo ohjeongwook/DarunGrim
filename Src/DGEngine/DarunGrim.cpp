@@ -16,8 +16,8 @@ LogOperation Logger;
 
 DarunGrim::DarunGrim() :
     m_pdisassemblyStorage(NULL),
-    m_psourceLoader(NULL),
-    m_ptargetLoader(NULL),
+    m_psourceBinary(NULL),
+    m_ptargetBinary(NULL),
     pDiffLogic(NULL),
     LogFilename(NULL),
     IsLoadedSourceFile(false),
@@ -185,8 +185,8 @@ bool DarunGrim::PerformDiff(const char *src_storage_filename, va_t source_addres
 
     pDiffLogic->Setm_bloadMaps(true);
     pDiffLogic->Load((char*)output_storage_filename);
-    m_psourceLoader = pDiffLogic->GetSourceLoader();
-    m_ptargetLoader = pDiffLogic->GetTargetLoader();
+    m_psourceBinary = pDiffLogic->GetSourceBinary();
+    m_ptargetBinary = pDiffLogic->GetTargetBinary();
 
     Logger.Log(10, LOG_DARUNGRIM, "Analyze\n");
     pDiffLogic->Analyze();
@@ -220,8 +220,8 @@ bool DarunGrim::Load(const char *storage_filename)
     if (m_pdisassemblyStorage)
     {
         pDiffLogic->Load(storage_filename);
-        m_psourceLoader = pDiffLogic->GetSourceLoader();
-        m_ptargetLoader = pDiffLogic->GetTargetLoader();
+        m_psourceBinary = pDiffLogic->GetSourceBinary();
+        m_ptargetBinary = pDiffLogic->GetTargetBinary();
     }
     return FALSE;
 }
@@ -237,13 +237,13 @@ bool DarunGrim::PerformDiff()
         pDiffLogic->SetSource(m_pdisassemblyStorage, source_file_id);
         pDiffLogic->SetSource(m_pdisassemblyStorage, target_file_id);
         pDiffLogic->Load(m_pdiffStorage, m_pdisassemblyStorage);
-        m_psourceLoader = pDiffLogic->GetSourceLoader();
-        m_ptargetLoader = pDiffLogic->GetTargetLoader();
+        m_psourceBinary = pDiffLogic->GetSourceBinary();
+        m_ptargetBinary = pDiffLogic->GetTargetBinary();
     }
-    else if (m_psourceLoader && m_ptargetLoader)
+    else if (m_psourceBinary && m_ptargetBinary)
     {
-        pDiffLogic->SetSource(m_psourceLoader);
-        pDiffLogic->SetTarget(m_ptargetLoader);
+        pDiffLogic->SetSource(m_psourceBinary);
+        pDiffLogic->SetTarget(m_ptargetBinary);
     }
 
     if (pDiffLogic)
@@ -276,7 +276,7 @@ typedef struct _IDA_LISTENER_PARAM_
 typedef struct _IDA_CONTROLLER_
 {
     SLIST_ENTRY ItemEntry;
-    Loader *pIDAController;
+    Binary *pIDAController;
 } IDA_CONTROLLER,  *PIDA_CONTROLLER;
 
 DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
@@ -301,7 +301,7 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
             if (p_ida_controller_item == NULL)
                 return -1;
             Logger.Log(10, LOG_DARUNGRIM, "New connection: %d", s);
-            p_ida_controller_item->pIDAController = new Loader();
+            p_ida_controller_item->pIDAController = new Binary();
             p_ida_controller_item->pIDAController->SetSocket(s);
             p_ida_controller_item->pIDAController->RetrieveIdentity();
 
@@ -334,12 +334,12 @@ void DarunGrim::UpdateIDAControllers()
         if (identity == SourceIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", identity.c_str());
-            m_psourceLoader = p_ida_controller_item->pIDAController;
+            m_psourceBinary = p_ida_controller_item->pIDAController;
         }
         else if (identity == TargetIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting target controller: %s\n", identity.c_str());
-            m_ptargetLoader = p_ida_controller_item->pIDAController;
+            m_ptargetBinary = p_ida_controller_item->pIDAController;
         }
     }
 }
@@ -348,22 +348,22 @@ void DarunGrim::ListIDAControllers()
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for(Loader *pLoader: IDAControllerList)
+    for(Binary *pBinary: IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pLoader->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pBinary->GetIdentity());
     }
 }
 
-Loader *DarunGrim::FindIDAController(const char *identity)
+Binary *DarunGrim::FindIDAController(const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (Loader *pLoader : IDAControllerList)
+    for (Binary *pBinary : IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pLoader->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "%s\n", pBinary->GetIdentity());
 
-        if (pLoader->GetIdentity() == identity)
-            return pLoader;
+        if (pBinary->GetIdentity() == identity)
+            return pBinary;
     }
 
     return NULL;
@@ -373,17 +373,17 @@ bool DarunGrim::SetController(int type, const char *identity)
 {
     UpdateIDAControllers();
     //list clients from IDAControllerList
-    for (Loader *pLoader : IDAControllerList)
+    for (Binary *pBinary : IDAControllerList)
     {
-        Logger.Log(10, LOG_DARUNGRIM, "IDAController: %s\n", pLoader->GetIdentity());
+        Logger.Log(10, LOG_DARUNGRIM, "IDAController: %s\n", pBinary->GetIdentity());
 
-        if (pLoader->GetIdentity() == identity)
+        if (pBinary->GetIdentity() == identity)
         {
-            Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", pLoader->GetIdentity());
+            Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", pBinary->GetIdentity());
             if (type == SOURCE_CONTROLLER)
-                m_psourceLoader = pLoader;
+                m_psourceBinary = pBinary;
             else if (type == TARGET_CONTROLLER)
-                m_ptargetLoader = pLoader;
+                m_ptargetBinary = pBinary;
 
             return TRUE;
         }
@@ -392,13 +392,13 @@ bool DarunGrim::SetController(int type, const char *identity)
     return FALSE;
 }
 
-bool DarunGrim::SetSourceLoader(const char *identity)
+bool DarunGrim::SetSourceBinary(const char *identity)
 {
     SourceIdentity = identity;
     return SetController(SOURCE_CONTROLLER, identity);
 }
 
-bool DarunGrim::SetTargetLoader(const char *identity)
+bool DarunGrim::SetTargetBinary(const char *identity)
 {
     TargetIdentity = identity;
     return SetController(TARGET_CONTROLLER, identity);
@@ -409,11 +409,11 @@ void DarunGrim::JumpToAddresses(unsigned long source_address, unsigned long targ
 {
     UpdateIDAControllers();
 
-    if (m_psourceLoader)
-        m_psourceLoader->JumpToAddress(source_address);
+    if (m_psourceBinary)
+        m_psourceBinary->JumpToAddress(source_address);
 
-    if (m_ptargetLoader)
-        m_ptargetLoader->JumpToAddress(target_address);
+    if (m_ptargetBinary)
+        m_ptargetBinary->JumpToAddress(target_address);
 }
 
 void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned long end_address, unsigned long color)
@@ -422,17 +422,17 @@ void DarunGrim::ColorAddress(int type, unsigned long start_address, unsigned lon
 
     if (type == SOURCE_CONTROLLER)
     {
-        if (m_psourceLoader)
-            m_psourceLoader->ColorAddress(start_address, end_address, color);
+        if (m_psourceBinary)
+            m_psourceBinary->ColorAddress(start_address, end_address, color);
     }
     else
     {
-        if (m_ptargetLoader)
-            m_ptargetLoader->ColorAddress(start_address, end_address, color);
+        if (m_ptargetBinary)
+            m_ptargetBinary->ColorAddress(start_address, end_address, color);
     }
 }
 
-BOOL DarunGrim::AcceptIDAClient(Loader *p_ida_controller, bool retrieve_Data)
+BOOL DarunGrim::AcceptIDAClient(Binary *p_ida_controller, bool retrieve_Data)
 {
     SOCKET s = accept(ListeningSocket, NULL, NULL);
     Logger.Log(10, LOG_DARUNGRIM, "%s: accepting=%d\n", __FUNCTION__, s);
@@ -465,8 +465,8 @@ DWORD DarunGrim::IDACommandProcessor()
     WSANETWORKEVENTS NetworkEvents;
     DWORD EventTotal = 0, index;
 
-    SocketArray[0] = m_psourceLoader->GetSocket();
-    SocketArray[1] = m_ptargetLoader->GetSocket();
+    SocketArray[0] = m_psourceBinary->GetSocket();
+    SocketArray[1] = m_ptargetBinary->GetSocket();
     for (int i = 0; i < 2; i++)
     {
         WSAEVENT NewEvent = WSACreateEvent();
@@ -542,11 +542,11 @@ DWORD DarunGrim::IDACommandProcessor()
                                     //Show using JUMP_TO_ADDR
                                     if (i == 0)
                                     {
-                                        m_ptargetLoader->JumpToAddress(MatchingAddress);
+                                        m_ptargetBinary->JumpToAddress(MatchingAddress);
                                     }
                                     else
                                     {
-                                        m_psourceLoader->JumpToAddress(MatchingAddress);
+                                        m_psourceBinary->JumpToAddress(MatchingAddress);
                                     }
                                 }
                             }
@@ -600,7 +600,7 @@ BOOL DarunGrim::CreateIDACommandProcessorThread()
 
 bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 {
-    Loader *ClientManager = (Loader*)Context;
+    Binary *ClientManager = (Binary*)Context;
 
     if (ClientManager)
     {
@@ -611,7 +611,7 @@ bool SendMatchedAddrTLVData(FunctionMatchInfo& Data, PVOID Context)
 
 bool SendAddrTypeTLVData(int Type, va_t Start, va_t End, PVOID Context)
 {
-    Loader *ClientManager = (Loader*)Context;
+    Binary *ClientManager = (Binary*)Context;
     if (ClientManager)
     {
         return ClientManager->SendAddrTypeTLVData(Type, Start, End);

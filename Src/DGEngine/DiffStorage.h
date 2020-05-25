@@ -63,7 +63,7 @@ public:
     {
     }
 
-    virtual char *GetOriginalFilePath(int fileID)
+    virtual string GetOriginalFilePath(int fileID)
     {
         return NULL;
     }

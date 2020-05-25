@@ -265,9 +265,9 @@ int SQLiteDiffStorage::QueryFunctionMatchesCallback(void *arg, int argc, char **
     function_match_info.TargetAddress = strtoul10(argv[2]);
     function_match_info.BlockType = atoi(argv[3]);
     function_match_info.MatchRate = atoi(argv[4]);
-    function_match_info.SourceFunctionName = _strdup(argv[5]);
+    function_match_info.SourceFunctionName = string(argv[5]);
     function_match_info.Type = atoi(argv[6]);
-    function_match_info.TargetFunctionName = _strdup(argv[7]);
+    function_match_info.TargetFunctionName = string(argv[7]);
     function_match_info.MatchCountForTheSource = atoi(argv[8]);
     function_match_info.NoneMatchCountForTheSource = atoi(argv[9]);
     function_match_info.MatchCountWithModificationForTheSource = atoi(argv[10]);

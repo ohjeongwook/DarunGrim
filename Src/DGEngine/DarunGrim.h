@@ -18,8 +18,8 @@ enum { SOURCE_CONTROLLER, TARGET_CONTROLLER };
 class DarunGrim
 {
 private:
-    Loader *m_psourceLoader;
-    Loader *m_ptargetLoader;
+    Binary *m_psourceBinary;
+    Binary *m_ptargetBinary;
 
     DisassemblyStorage *m_pdisassemblyStorage;
     DiffStorage* m_pdiffStorage;
@@ -54,30 +54,30 @@ public:
         return pDiffLogic;
     }
 
-    Loader *GetSourceClientManager()
+    Binary *GetSourceClientManager()
     {
-        return m_psourceLoader;
+        return m_psourceBinary;
     }
 
-    Loader *GetTargetClientManager()
+    Binary *GetTargetClientManager()
     {
-        return m_ptargetLoader;
+        return m_ptargetBinary;
     }
 
     void JumpToAddress(va_t address, DWORD type)
     {
         if (type == SOURCE_CONTROLLER)
         {
-            if (m_psourceLoader)
+            if (m_psourceBinary)
             {
-                m_psourceLoader->JumpToAddress(address);
+                m_psourceBinary->JumpToAddress(address);
             }
         }
         else
         {
-            if (m_ptargetLoader)
+            if (m_ptargetBinary)
             {
-                m_ptargetLoader->JumpToAddress(address);
+                m_ptargetBinary->JumpToAddress(address);
             }
         }
     }
@@ -86,46 +86,46 @@ public:
     {
         if (type == TARGET_CONTROLLER)
         {
-            if (m_psourceLoader)
+            if (m_psourceBinary)
             {
-                m_psourceLoader->JumpToAddress(address);
+                m_psourceBinary->JumpToAddress(address);
             }
         }
         else
         {
-            if (m_ptargetLoader)
+            if (m_ptargetBinary)
             {
-                m_ptargetLoader->JumpToAddress(address);
+                m_ptargetBinary->JumpToAddress(address);
             }
         }
     }
 
-    char *GetSourceOrigFilename()
+    string GetSourceOrigFilename()
     {
-        if (m_psourceLoader)
+        if (m_psourceBinary)
         {
-            char *filename = m_psourceLoader->GetOriginalFilePath();
+            return m_psourceBinary->GetOriginalFilePath();
         }
-        return NULL;
+        return {};
     }
 
-    char *GetTargetOrigFilename()
+    string GetTargetOrigFilename()
     {
-        if (m_ptargetLoader)
+        if (m_ptargetBinary)
         {
-            return m_ptargetLoader->GetOriginalFilePath();
+            return m_ptargetBinary->GetOriginalFilePath();
         }
-        return NULL;
+        return {};
     }
 
     list <AddressRange> GetSourceAddresses(va_t address)
     {
-        return m_psourceLoader->GetFunctionMemberBlocks(address);
+        return m_psourceBinary->GetFunctionBasicBlocks(address);
     }
 
     list <AddressRange> GetTargetAddresses(va_t address)
     {
-        return m_ptargetLoader->GetFunctionMemberBlocks(address);
+        return m_ptargetBinary->GetFunctionBasicBlocks(address);
     }
 
     void SetLogParameters(int ParamLogOutputType, int ParamDebugLevel, const char *LogFile = NULL);
@@ -154,7 +154,7 @@ private:
     DisassemblyStorage *m_storage;
     unsigned short ListeningPort;
     SOCKET ListeningSocket;
-    Loader *IDAControllers[2];
+    Binary *IDAControllers[2];
 
     char *IDAPath;
     char *IDA64Path;
@@ -165,7 +165,7 @@ private:
     char *EscapeFilename(char *filename);
     char *LogFilename;
     PSLIST_HEADER pIDAClientListHead;
-    vector<Loader*> IDAControllerList;
+    vector<Binary*> IDAControllerList;
     void UpdateIDAControllers();
 
     bool SetController(int type, const char *identity);
@@ -175,9 +175,9 @@ public:
 
     void SetDatabase(DisassemblyStorage *p_disassemblyStorage);
     void ListIDAControllers();
-    Loader *FindIDAController(const char *identity);
-    bool SetSourceLoader(const char *identity);
-    bool SetTargetLoader(const char *identity);
+    Binary *FindIDAController(const char *identity);
+    bool SetSourceBinary(const char *identity);
+    bool SetTargetBinary(const char *identity);
 
     DWORD SetMembers(DiffLogic *pArgDiffMachine);
     DWORD IDACommandProcessor();
@@ -193,7 +193,7 @@ public:
     void ConnectToDarunGrim(const char *ida_filename);
     void SetIDALogFilename(const char *ida_log_filename);
     const char *GetIDALogFilename();
-    BOOL AcceptIDAClient(Loader *p_ida_controller, bool retrieve_Data);
+    BOOL AcceptIDAClient(Binary *p_ida_controller, bool retrieve_Data);
     void SetAutoMode(bool mode)
     {
         IDAAutoMode = mode;

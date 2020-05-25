@@ -52,13 +52,13 @@ int DiffAlgorithms::GetInstructionHashMatchRate(unsigned char *unpatched_finger_
 	return rate;
 }
 
-void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
+void DiffAlgorithms::RemoveDuplicates(MATCHMAP *p_matchMap)
 {
 	multimap <va_t, MatchData>::iterator match_map_iter;
 	multimap <va_t, MatchData>::iterator found_match_map_iter;
 	multimap <va_t, MatchData>::iterator max_match_map_iter;
-	for (match_map_iter = pMatchMap->begin();
-		match_map_iter != pMatchMap->end();
+	for (match_map_iter = p_matchMap->begin();
+		match_map_iter != p_matchMap->end();
 		match_map_iter++)
 	{
 		if (match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
@@ -66,8 +66,8 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 		int found_duplicate = FALSE;
 		max_match_map_iter = match_map_iter;
 		int maximum_matchrate = match_map_iter->second.MatchRate;
-		for (found_match_map_iter = pMatchMap->find(match_map_iter->first);
-			found_match_map_iter != pMatchMap->end() && match_map_iter->first == found_match_map_iter->first;
+		for (found_match_map_iter = p_matchMap->find(match_map_iter->first);
+			found_match_map_iter != p_matchMap->end() && match_map_iter->first == found_match_map_iter->first;
 			found_match_map_iter++)
 		{
 			if (!(found_match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
@@ -86,7 +86,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 		if( found_duplicate )
 		{
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing %X %X match\n", , max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
-			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
+			Dump_matchMapIterInfo( __FUNCTION__, max_match_map_iter );
 			for ( found_match_map_iter=DiffResults->MatchMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->MatchMap.end() &&
 				match_map_iter->first==found_match_map_iter->first;
@@ -95,7 +95,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 				if( max_match_map_iter->second.Addresses[1]!=found_match_map_iter->second.Addresses[1] )
 				{
 					if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Removing %X %X match\n", found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
-					DumpMatchMapIterInfo( __FUNCTION__, found_match_map_iter );
+					Dump_matchMapIterInfo( __FUNCTION__, found_match_map_iter );
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
 
@@ -142,7 +142,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 		if( found_duplicate )
 		{
 			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing( reverse ) %X %X match\n", __FUNCTION__, max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
-			DumpMatchMapIterInfo( __FUNCTION__, max_match_map_iter );
+			Dump_matchMapIterInfo( __FUNCTION__, max_match_map_iter );
 			unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
 			for ( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
 				found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
@@ -153,7 +153,7 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 				{
 					if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Removing( reverse ) %X:%X match\n", __FUNCTION__,
 							found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
-					DumpMatchMapIterInfo( __FUNCTION__, found_match_map_iter );
+					Dump_matchMapIterInfo( __FUNCTION__, found_match_map_iter );
 					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
 					RevokeTreeMatchMapIterInfo( found_match_map_iter->second.Addresses[1], found_match_map_iter->first );
 					multimap <va_t,  MatchData>::iterator iter=DiffResults->MatchMap.find( found_match_map_iter->second.Addresses[1] );
@@ -172,12 +172,12 @@ void DiffAlgorithms::RemoveDuplicates(MATCHMAP *pMatchMap)
 	*/
 }
 
-void DiffAlgorithms::RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t address, va_t match_address)
+void DiffAlgorithms::RevokeTreeMatchMapIterInfo(MATCHMAP *p_matchMap, va_t address, va_t match_address)
 {
 	return;
 	multimap <va_t, MatchData>::iterator match_map_iter;
-	for (match_map_iter = pMatchMap->begin();
-		match_map_iter != pMatchMap->end();
+	for (match_map_iter = p_matchMap->begin();
+		match_map_iter != p_matchMap->end();
 		match_map_iter++)
 	{
 		if (match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
@@ -187,13 +187,13 @@ void DiffAlgorithms::RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t addres
 			if (match_map_iter->second.UnpatchedParentAddress == address && match_map_iter->second.PatchedParentAddress == match_address)
 			{
 				match_map_iter->second.Status |= STATUS_MAPPING_DISABLED;
-				RevokeTreeMatchMapIterInfo(pMatchMap, match_map_iter->first, match_map_iter->second.Addresses[1]);
+				RevokeTreeMatchMapIterInfo(p_matchMap, match_map_iter->first, match_map_iter->second.Addresses[1]);
 			}
 		}
 	}
 }
 
-FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatchMap, multimap <va_t, va_t> *pReverseAddressMap)
+FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *p_matchMap, multimap <va_t, va_t> *pReverseAddressMap)
 {
     FunctionMatchInfoList *pFunctionMatchInfoList = new FunctionMatchInfoList();
 	multimap <va_t, MatchData>::iterator match_map_iter;
@@ -201,14 +201,14 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 	va_t last_patched_addr = 0;
 	FunctionMatchInfo match_info;
 
-	for (match_map_iter = pMatchMap->begin(); match_map_iter != pMatchMap->end(); match_map_iter++)
+	for (match_map_iter = p_matchMap->begin(); match_map_iter != p_matchMap->end(); match_map_iter++)
 	{
 		if (match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
 		{
 			LogMessage(0, __FUNCTION__, "Skipping %X %X\n", match_map_iter->first, match_map_iter->second.Addresses[1]);
 			continue;
 		}
-		PBasicBlock p_basic_block = SourceLoader->GetBasicBlock(match_map_iter->first);
+		PBasicBlock p_basic_block = m_psourceBinary->GetBasicBlock(match_map_iter->first);
 
 		if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_map_iter->first, 0))
 		{
@@ -229,8 +229,8 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 				last_patched_addr != match_info.TargetAddress
 				)
 			{
-				match_info.SourceFunctionName = SourceLoader->GetSymbol(match_info.SourceAddress);
-				match_info.TargetFunctionName = TargetLoader->GetSymbol(match_info.TargetAddress);
+				match_info.SourceFunctionName = m_psourceBinary->GetSymbol(match_info.SourceAddress);
+				match_info.TargetFunctionName = m_ptargetBinary->GetSymbol(match_info.TargetAddress);
 
 				float source_match_rate = 0.0;
 
@@ -273,17 +273,17 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 	LogMessage(0, __FUNCTION__, "pFunctionMatchInfoList->Size()=%u\n", pFunctionMatchInfoList->Size());
 
 	int unpatched_unidentified_number = 0;
-	for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
+	for (auto& val : m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
-		if (pMatchMap->find(val.first) == pMatchMap->end())
+		if (p_matchMap->find(val.first) == p_matchMap->end())
 		{
-			PBasicBlock p_basic_block = SourceLoader->GetBasicBlock(val.first);
+			PBasicBlock p_basic_block = m_psourceBinary->GetBasicBlock(val.first);
 			if (p_basic_block)
 			{
 				if (p_basic_block->BlockType == FUNCTION_BLOCK)
 				{
 					match_info.SourceAddress = p_basic_block->StartAddress;
-					match_info.SourceFunctionName = SourceLoader->GetSymbol(match_info.SourceAddress);
+					match_info.SourceFunctionName = m_psourceBinary->GetSymbol(match_info.SourceAddress);
 					match_info.BlockType = p_basic_block->BlockType;
 					match_info.EndAddress = p_basic_block->EndAddress;
 					match_info.Type = 0;
@@ -309,11 +309,11 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 	//TODO: LogMessage(0, __FUNCTION__, "unpatched_unidentified_number=%u\n", m_sourceUnidentifedBlockHash.size());
 
 	int patched_unidentified_number = 0;
-	for (auto& val : TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
+	for (auto& val : m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
 		if (pReverseAddressMap->find(val.first) == pReverseAddressMap->end())
 		{
-			PBasicBlock p_basic_block = TargetLoader->GetBasicBlock(val.first);
+			PBasicBlock p_basic_block = m_ptargetBinary->GetBasicBlock(val.first);
 			if (p_basic_block)
 			{
 				if (p_basic_block->BlockType == FUNCTION_BLOCK)
@@ -324,7 +324,7 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 					match_info.EndAddress = 0;
 					match_info.Type = 0;
 					match_info.TargetAddress = p_basic_block->StartAddress;
-					match_info.TargetFunctionName = TargetLoader->GetSymbol(match_info.TargetAddress);
+					match_info.TargetFunctionName = m_ptargetBinary->GetSymbol(match_info.TargetAddress);
 					match_info.MatchRate = 0;
 					match_info.MatchCountForTheSource = 0;
 					match_info.MatchCountWithModificationForTheSource = 0;
@@ -353,14 +353,14 @@ FunctionMatchInfoList *DiffAlgorithms::GenerateFunctionMatchInfo(MATCHMAP *pMatc
 /*REMOVE:
 BOOL DiffAlgorithms::DeleteMatchInfo(DiffStorage & diffStorage)
 {
-	if (SourceFunctionAddress > 0 && targetFunctionAddress > 0)
+	if (sourceFunctionAddress > 0 && targetFunctionAddress > 0)
 	{
-		SourceLoader->DeleteMatchInfo(&diffStorage, SourceLoader->GetFileID(), SourceFunctionAddress);
-		TargetLoader->DeleteMatchInfo(&diffStorage, TargetLoader->GetFileID(), targetFunctionAddress);
+		m_psourceBinary->DeleteMatchInfo(&diffStorage, m_psourceBinary->GetFileID(), sourceFunctionAddress);
+		m_ptargetBinary->DeleteMatchInfo(&diffStorage, m_ptargetBinary->GetFileID(), targetFunctionAddress);
 	}
 	else
 	{
-		diffStorage.DeleteMatches(SourceLoader->GetFileID(), TargetLoader->GetFileID());
+		diffStorage.DeleteMatches(m_psourceBinary->GetFileID(), m_ptargetBinary->GetFileID());
 	}
 	return TRUE;
 }*/
@@ -375,31 +375,31 @@ void DiffAlgorithms::PurgeInstructionHashHashMap(MATCHMAP *pTemporaryMap)
 	{
 		//Remove from instruction_hash hash map
 		multimap <va_t, unsigned char*>::iterator addressToInstructionHashMap_Iter;
-		addressToInstructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(match_map_iter->second.Addresses[0]);
-		if (addressToInstructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+		addressToInstructionHashMap_Iter = m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(match_map_iter->second.Addresses[0]);
+		if (addressToInstructionHashMap_Iter != m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 		{
-			SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap.erase(addressToInstructionHashMap_Iter->second);
+			m_psourceBinary->GetClientDisassemblyHashMaps()->instructionHashMap.erase(addressToInstructionHashMap_Iter->second);
 		}
-		addressToInstructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(match_map_iter->second.Addresses[1]);
-		if (addressToInstructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+		addressToInstructionHashMap_Iter = m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(match_map_iter->second.Addresses[1]);
+		if (addressToInstructionHashMap_Iter != m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 		{
-			TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.erase(addressToInstructionHashMap_Iter->second);
+			m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.erase(addressToInstructionHashMap_Iter->second);
 		}
 	}
 
 	LogMessage(0, __FUNCTION__, "%u-%u\n",
-		SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size(),
-		TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size());
+		m_psourceBinary->GetClientDisassemblyHashMaps()->instructionHashMap.size(),
+		m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.size());
 }
 
-MATCHMAP *DiffAlgorithms::DoInstructionHashMatchInsideFunction(va_t SourceFunctionAddress, list <va_t>& SourceBlockAddresses, va_t targetFunctionAddress, list <va_t>& TargetBlockAddresses)
+MATCHMAP *DiffAlgorithms::DoInstructionHashMatchInsideFunction(va_t sourceFunctionAddress, list <va_t>& sourceFunctionAddress, va_t targetFunctionAddress, list <va_t>& TargetBlockAddresses)
 {
-    MATCHMAP *pMatchMap = new MATCHMAP;
+    MATCHMAP *p_matchMap = new MATCHMAP;
 
-	//InstructionHash match on SourceBlockAddresses, TargetBlockAddresse
+	//InstructionHash match on sourceFunctionAddress, TargetBlockAddresse
 	/*
 	list <va_t>::iterator SourceBlockAddressIter;
-	for ( SourceBlockAddressIter=SourceBlockAddresses.begin();SourceBlockAddressIter!=SourceBlockAddresses.end();SourceBlockAddressIter++ )
+	for ( SourceBlockAddressIter=sourceFunctionAddress.begin();SourceBlockAddressIter!=sourceFunctionAddress.end();SourceBlockAddressIter++ )
 	{
 		va_t SourceAddress=*SourceBlockAddressIter;
 		multimap <va_t, MatchData>:: MatchDataIterator;
@@ -415,11 +415,11 @@ MATCHMAP *DiffAlgorithms::DoInstructionHashMatchInsideFunction(va_t SourceFuncti
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_instruction_hash> instructionHashMap;
 	unordered_map <unsigned char*, AddressesInfo, hash_compare_instruction_hash>::iterator instructionHashMap_iter;
 
-	for (va_t SourceAddress : SourceBlockAddresses)
+	for (va_t SourceAddress : sourceFunctionAddress)
 	{
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tSource=%X\n", SourceAddress );
-		addressToInstructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(SourceAddress);
-		if (addressToInstructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+		addressToInstructionHashMap_Iter = m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(SourceAddress);
+		if (addressToInstructionHashMap_Iter != m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 		{
 			unsigned char *InstructionHash = addressToInstructionHashMap_Iter->second;
 			instructionHashMap_iter = instructionHashMap.find(InstructionHash);
@@ -441,8 +441,8 @@ MATCHMAP *DiffAlgorithms::DoInstructionHashMatchInsideFunction(va_t SourceFuncti
 	for (va_t targetAddress: TargetBlockAddresses)
 	{
 		//Logger.Log( 10, LOG_DIFF_MACHINE,  "\tTarget=%X\n", TargetAddress );
-		addressToInstructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(targetAddress);
-		if (addressToInstructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+		addressToInstructionHashMap_Iter = m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(targetAddress);
+		if (addressToInstructionHashMap_Iter != m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 		{
 			unsigned char *InstructionHash = addressToInstructionHashMap_Iter->second;
 			instructionHashMap_iter = instructionHashMap.find(InstructionHash);
@@ -479,18 +479,18 @@ MATCHMAP *DiffAlgorithms::DoInstructionHashMatchInsideFunction(va_t SourceFuncti
 			match_data.Addresses[0] = val.second.SourceAddress;
 			match_data.Addresses[1] = val.second.TargetAddress;
 
-			match_data.UnpatchedParentAddress = SourceFunctionAddress;
+			match_data.UnpatchedParentAddress = sourceFunctionAddress;
 			match_data.PatchedParentAddress = targetFunctionAddress;
 			match_data.MatchRate = 100;
 
 			if (m_pdumpAddressChecker)
 				m_pdumpAddressChecker->DumpMatchInfo(match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate, "%s Add instruction_hash match:\n", __FUNCTION__);
-            pMatchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
+            p_matchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
 		}
 	}
 	instructionHashMap.clear();
 
-    return pMatchMap;
+    return p_matchMap;
 }
 
 MATCHMAP *DiffAlgorithms::DoInstructionHashMatch()
@@ -499,15 +499,15 @@ MATCHMAP *DiffAlgorithms::DoInstructionHashMatch()
 	multimap <unsigned char*, va_t, hash_compare_instruction_hash>::iterator instructionHashIt;
 	multimap <unsigned char*, va_t, hash_compare_instruction_hash>::iterator patchedInstructionHashIt;
 
-	for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap)
+	for (auto& val : m_psourceBinary->GetClientDisassemblyHashMaps()->instructionHashMap)
 	{
-		if (SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap.count(val.first) == 1)
+		if (m_psourceBinary->GetClientDisassemblyHashMaps()->instructionHashMap.count(val.first) == 1)
 		{
 			//unique key
-			if (TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.count(val.first) == 1)
+			if (m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.count(val.first) == 1)
 			{
-				patchedInstructionHashIt = TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.find(val.first);
-				if (patchedInstructionHashIt != TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.end())
+				patchedInstructionHashIt = m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.find(val.first);
+				if (patchedInstructionHashIt != m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.end())
 				{
 					MatchData match_data;
 					memset(&match_data, 0, sizeof(MatchData));
@@ -543,8 +543,8 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 		LogMessage(0, __FUNCTION__, "%X-%X %d\n", source_address, target_address, type);
 	}
 
-	va_t *source_addresses = SourceLoader->GetMappedAddresses(source_address, type, &source_addresses_number);
-	va_t *target_addresses = TargetLoader->GetMappedAddresses(target_address, type, &target_addresses_number);
+	va_t *source_addresses = m_psourceBinary->GetCodeReferences(source_address, type, &source_addresses_number);
+	va_t *target_addresses = m_ptargetBinary->GetCodeReferences(target_address, type, &target_addresses_number);
 
 	if (debug)
 	{
@@ -572,11 +572,11 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 			//Special case for switch case
 			for (int i = 0; i < source_addresses_number; i++)
 			{
-				multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(source_addresses[i]);
-				multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(target_addresses[i]);
+				multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter = m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(source_addresses[i]);
+				multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter = m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(target_addresses[i]);
 
-				if (source_instructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
-					target_instructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+				if (source_instructionHashMap_Iter != m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
+					target_instructionHashMap_Iter != m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 				{
 					p_match_rate_info_array[match_rate_info_count].Source = source_addresses[i];
 					p_match_rate_info_array[match_rate_info_count].Target = target_addresses[i];
@@ -599,7 +599,7 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 			multimap <va_t, va_t> address_pair_map;
 			for (int i = 0; i < source_addresses_number; i++)
 			{
-				multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(source_addresses[i]);
+				multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter = m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(source_addresses[i]);
 
 				for (int j = 0; j < target_addresses_number; j++)
 				{
@@ -623,10 +623,10 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 
 					address_pair_map.insert(pair<va_t, va_t>(source_addresses[i], target_addresses[j]));
 
-					multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(target_addresses[j]);
+					multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter = m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(target_addresses[j]);
 
-					if (source_instructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
-						target_instructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+					if (source_instructionHashMap_Iter != m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
+						target_instructionHashMap_Iter != m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 					{
 						p_match_rate_info_array[match_rate_info_count].Source = source_addresses[i];
 						p_match_rate_info_array[match_rate_info_count].Target = target_addresses[j];
@@ -637,8 +637,8 @@ MatchRateInfo *DiffAlgorithms::GetMatchRateInfoArray(va_t source_address, va_t t
 							LogMessage(0, __FUNCTION__, "\tAdding %X-%X (%d%%, IndexDiff: %d)\n", p_match_rate_info_array[match_rate_info_count].Source, p_match_rate_info_array[match_rate_info_count].Target, p_match_rate_info_array[match_rate_info_count].MatchRate, p_match_rate_info_array[match_rate_info_count].IndexDiff);
 						match_rate_info_count++;
 					}
-					else if (source_instructionHashMap_Iter == SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
-						target_instructionHashMap_Iter == TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
+					else if (source_instructionHashMap_Iter == m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
+						target_instructionHashMap_Iter == m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end())
 					{
 						p_match_rate_info_array[match_rate_info_count].Source = source_addresses[i];
 						p_match_rate_info_array[match_rate_info_count].Target = target_addresses[j];
@@ -668,7 +668,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 {
 	int link_types[] = { CREF_FROM, CALL, DREF_FROM }; //CREF_TO, DREF_TO
 	int processed_count = 0;
-	MATCHMAP *pMatchMap = new MATCHMAP;
+	MATCHMAP *p_matchMap = new MATCHMAP;
 
 	LogMessage(0, __FUNCTION__, "Current match count=%u\n", pTemporaryMap->size());
 
@@ -718,7 +718,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 				MATCHMAP *p_compared_match_map[] = {
 					pMainMatchMap,
 					pOrigTemporaryMap,
-					pMatchMap,
+					p_matchMap,
 					pTemporaryMap
                 };
 
@@ -789,7 +789,7 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 						LogMessage(0, __FUNCTION__, "\tParent %X-%X (link type: %d, match_rate_info_count:%d)\n", val.first, val.second.Addresses[1], link_types[i], match_rate_info_count);
 					}
 
-					pMatchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
+					p_matchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
 
 					for (int i = 0; i < match_rate_info_count; i++)
 					{
@@ -817,31 +817,35 @@ MATCHMAP *DiffAlgorithms::DoIsomorphMatch(MATCHMAP *pMainMatchMap, MATCHMAP *pOr
 			LogMessage(0, __FUNCTION__, "%u/%u Items processed and produced %u match entries.\n",
 				processed_count,
 				pTemporaryMap->size(),
-				pMatchMap->size()
+				p_matchMap->size()
 			);
 		}
 	}
 
-	LogMessage(0, __FUNCTION__, "New Tree Match count=%u\n", pMatchMap->size());
-	return pMatchMap;
+	LogMessage(0, __FUNCTION__, "New Tree Match count=%u\n", p_matchMap->size());
+	return p_matchMap;
 }
 
-MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <va_t, va_t> *functionMembersMapForSource, multimap <va_t, va_t> *functionMembersMapForTarget)
+MATCHMAP *DiffAlgorithms::DoFunctionMatch(
+    MATCHMAP *pCurrentMatchMap,
+    multimap <va_t, va_t> *functionMembersMapForSource,
+    multimap <va_t, va_t> *functionMembersMapForTarget
+)
 {
-    MATCHMAP *pMatchMap = new MATCHMAP;
-	multimap <va_t, va_t>::iterator FunctionMembersIter;
+    MATCHMAP *p_matchMap = new MATCHMAP;
+	multimap <va_t, va_t>::iterator functionMembersIterator;
 
-	va_t SourceFunctionAddress = 0;
-	list <va_t> SourceBlockAddresses;
-	for (multimap <va_t, va_t>::iterator SourceFunctionMembersIter = functionMembersMapForSource->begin();; SourceFunctionMembersIter++)
+	va_t sourceFunctionAddress = 0;
+	list <va_t> sourceFunctionAddress;
+	for (multimap <va_t, va_t>::iterator SourcefunctionMembersIterator = functionMembersMapForSource->begin();; SourcefunctionMembersIterator++)
 	{
-		if (SourceFunctionMembersIter == functionMembersMapForSource->end() || SourceFunctionAddress != SourceFunctionMembersIter->first)
+		if (SourcefunctionMembersIterator == functionMembersMapForSource->end() || sourceFunctionAddress != SourcefunctionMembersIterator->first)
 		{
-			//SourceFunctionAddress, SourceBlockAddresses
+			//sourceFunctionAddress, sourceFunctionAddress
 			unordered_set <va_t> targetFunctionAddresses;
-			for (multimap <va_t, MatchData>::iterator matchMapIterator = pCurrentMatchMap->find(SourceFunctionAddress);
+			for (multimap <va_t, MatchData>::iterator matchMapIterator = pCurrentMatchMap->find(sourceFunctionAddress);
 				matchMapIterator != pCurrentMatchMap->end() &&
-				matchMapIterator->first == SourceFunctionAddress;
+				matchMapIterator->first == sourceFunctionAddress;
 				matchMapIterator++)
 			{
 				//targetFunctionAddress, TargetBlockAddresses
@@ -850,56 +854,55 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 					continue;
 
 				targetFunctionAddresses.insert(targetFunctionAddress);
-				multimap <va_t, va_t>::iterator TargetFunctionMembersIter;
+				multimap <va_t, va_t>::iterator TargetfunctionMembersIterator;
 				list <va_t> TargetBlockAddresses;
-				for (TargetFunctionMembersIter = functionMembersMapForTarget->find(targetFunctionAddress);
-					TargetFunctionMembersIter != functionMembersMapForTarget->end() &&
-					TargetFunctionMembersIter->first == targetFunctionAddress;
-					TargetFunctionMembersIter++)
+				for (TargetfunctionMembersIterator = functionMembersMapForTarget->find(targetFunctionAddress);
+					TargetfunctionMembersIterator != functionMembersMapForTarget->end() &&
+					TargetfunctionMembersIterator->first == targetFunctionAddress;
+					TargetfunctionMembersIterator++)
 				{
-					TargetBlockAddresses.push_back(TargetFunctionMembersIter->second);
+					TargetBlockAddresses.push_back(TargetfunctionMembersIterator->second);
 				}
-				DoInstructionHashMatchInsideFunction(SourceFunctionAddress, SourceBlockAddresses, targetFunctionAddress, TargetBlockAddresses);
+				DoInstructionHashMatchInsideFunction(sourceFunctionAddress, sourceFunctionAddress, targetFunctionAddress, TargetBlockAddresses);
 				TargetBlockAddresses.clear();
 			}
 			targetFunctionAddresses.clear();
-			SourceBlockAddresses.clear();
-			if (SourceFunctionMembersIter == functionMembersMapForSource->end())
+			sourceFunctionAddress.clear();
+			if (SourcefunctionMembersIterator == functionMembersMapForSource->end())
 				break;
 			else
-				SourceFunctionAddress = SourceFunctionMembersIter->first;
+				sourceFunctionAddress = SourcefunctionMembersIterator->first;
 		}
-		SourceBlockAddresses.push_back(SourceFunctionMembersIter->second);
+		sourceFunctionAddress.push_back(SourcefunctionMembersIterator->second);
 	}
 
-	list <va_t> block_addresses;
-	va_t source_function_addr = 0;
-	for (FunctionMembersIter = functionMembersMapForSource->begin();; FunctionMembersIter++)
+	list <va_t> blockAddresses;
+	for (functionMembersIterator = functionMembersMapForSource->begin();; functionMembersIterator++)
 	{
-		if (FunctionMembersIter == functionMembersMapForSource->end() || source_function_addr != FunctionMembersIter->first)
+		if (functionMembersIterator == functionMembersMapForSource->end() || sourceFunctionAddress != functionMembersIterator->first)
 		{
-			//Analyze Function, block_addresses contains all the members
+			//Analyze Function, blockAddresses contains all the members
 			unordered_map <va_t, va_t> function_match_count;
-			if (source_function_addr != 0)
+			if (sourceFunctionAddress != 0)
 			{
-				for (va_t block_address : block_addresses)
+				for (va_t block_address : blockAddresses)
 				{
-					if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, 0) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, 0)))
-						LogMessage(0, __FUNCTION__, "Function: %X Block: %X\r\n", source_function_addr, block_address);
+					if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, 0) || m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, 0)))
+						LogMessage(0, __FUNCTION__, "Function: %X Block: %X\r\n", sourceFunctionAddress, block_address);
 
 					for (multimap <va_t, MatchData>::iterator match_map_it = pCurrentMatchMap->find(block_address);
 						match_map_it != pCurrentMatchMap->end() && match_map_it->first == block_address;
 						match_map_it++)
 					{
 						va_t target_addr = match_map_it->second.Addresses[1];
-						if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, 0)))
-							LogMessage(0, __FUNCTION__, "Function: %X Block: %X:%X\r\n", source_function_addr, match_map_it->second.Addresses[0], target_addr);
+						if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, 0)))
+							LogMessage(0, __FUNCTION__, "Function: %X Block: %X:%X\r\n", sourceFunctionAddress, match_map_it->second.Addresses[0], target_addr);
 
 						va_t targetFunctionAddress;
-						if (TargetLoader->GetFunctionAddress(target_addr, targetFunctionAddress))
+						if (m_ptargetBinary->GetFunctionAddress(target_addr, targetFunctionAddress))
 						{
-							if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(source_function_addr, targetFunctionAddress)))
-								LogMessage(0, __FUNCTION__, "Function: %X:%X Block: %X:%X\r\n", source_function_addr, targetFunctionAddress, block_address, target_addr);
+							if (m_pdumpAddressChecker && (m_pdumpAddressChecker->IsDumpPair(block_address, target_addr) || m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, targetFunctionAddress)))
+								LogMessage(0, __FUNCTION__, "Function: %X:%X Block: %X:%X\r\n", sourceFunctionAddress, targetFunctionAddress, block_address, target_addr);
 
 							unordered_map <va_t, va_t>::iterator function_match_count_it = function_match_count.find(targetFunctionAddress);
 							if (function_match_count_it == function_match_count.end())
@@ -913,7 +916,7 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 						}
 					}
 				}
-				//source_function_addr
+				//sourceFunctionAddress
 				//We have function_match_count filled up!
 				//Get Maximum value in function_match_count
 				va_t maximum_function_match_count = 0;
@@ -921,8 +924,8 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 
 				for (auto& val : function_match_count)
 				{
-					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(source_function_addr, val.first))
-						LogMessage(0, __FUNCTION__, "%X:%X( %u )\n", source_function_addr, val.first, val.second);
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, val.first))
+						LogMessage(0, __FUNCTION__, "%X:%X( %u )\n", sourceFunctionAddress, val.first, val.second);
 
 					if (maximum_function_match_count < val.second)
 					{
@@ -935,48 +938,48 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(MATCHMAP *pCurrentMatchMap, multimap <
 				if (chosen_target_function_addr)
 				{
 					//Remove Except chosen_target_function_addr from match_map
-					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(source_function_addr, chosen_target_function_addr))
-						LogMessage(0, __FUNCTION__, "Choosing ( %X:%X )\n", source_function_addr, chosen_target_function_addr);
+					if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, chosen_target_function_addr))
+						LogMessage(0, __FUNCTION__, "Choosing ( %X:%X )\n", sourceFunctionAddress, chosen_target_function_addr);
 
-					if (pCurrentMatchMap->find(source_function_addr) == pCurrentMatchMap->end())
+					if (pCurrentMatchMap->find(sourceFunctionAddress) == pCurrentMatchMap->end())
 					{
 						MatchData match_data;
 						memset(&match_data, 0, sizeof(MatchData));
 						match_data.Type = FUNCTION_MATCH;
-						match_data.Addresses[0] = source_function_addr;
+						match_data.Addresses[0] = sourceFunctionAddress;
 						match_data.Addresses[1] = chosen_target_function_addr;
 						match_data.MatchRate = 100;
 
 						if (m_pdumpAddressChecker && m_pdumpAddressChecker->IsDumpPair(match_data.Addresses[0], match_data.Addresses[1]))
 							LogMessage(0, __FUNCTION__, "%s adding to temporary map %X-%X: %d%%\n", __FUNCTION__, match_data.Addresses[0], match_data.Addresses[1], match_data.MatchRate);
 
-						pMatchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
+						p_matchMap->insert(MatchMap_Pair(match_data.Addresses[0], match_data));
 					}
 				}
 
-				block_addresses.clear();
+				blockAddresses.clear();
 				function_match_count.clear();
 				//AddressToFunctionMap.clear();
 			}
 
-			if (FunctionMembersIter == functionMembersMapForSource->end())
+			if (functionMembersIterator == functionMembersMapForSource->end())
 				break;
 			else
-				source_function_addr = FunctionMembersIter->first;
+				sourceFunctionAddress = functionMembersIterator->first;
 		}
-		if (FunctionMembersIter == functionMembersMapForSource->end())
+		if (functionMembersIterator == functionMembersMapForSource->end())
 			break;
 
 		//Collect BlockAddresses
-		block_addresses.push_back(FunctionMembersIter->second);
+		blockAddresses.push_back(functionMembersIterator->second);
 	}
 
-    return pMatchMap;
+    return p_matchMap;
 }
 
 const char* MatchDataTypeStr[] = { "Name", "InstructionHash", "Two Level InstructionHash", "IsoMorphic Match", "InstructionHash Inside Function", "Function" };
 
-void DiffAlgorithms::DumpMatchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter)
+void DiffAlgorithms::Dump_matchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter)
 {
 	const char *SubTypeStr[] = { "Cref From", "Cref To", "Call", "Dref From", "Dref To" };
 

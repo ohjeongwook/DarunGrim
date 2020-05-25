@@ -18,14 +18,14 @@ using namespace stdext;
 
 extern LogOperation Logger;
 
-DiffLogic::DiffLogic(Loader *the_source, Loader *the_target) :
+DiffLogic::DiffLogic(Binary *the_source, Binary *the_target) :
     DebugFlag(0),
-    SourceLoader(NULL),
-    TargetLoader(NULL),
+    m_psourceBinary(NULL),
+    m_ptargetBinary(NULL),
     SourceID(0),
-    SourceFunctionAddress(0),
+    m_sourceFunctionAddress(0),
     TargetID(0),
-    TargetFunctionAddress(0),
+    m_targetFunctionAddress(0),
     m_bloadMaps(false),
     LoadMatchResults(true),
     ShowFullMatched(false),
@@ -44,11 +44,11 @@ DiffLogic::~DiffLogic()
 {
     m_pFunctionMatchInfoList->ClearFunctionMatchList();
 
-    if (SourceLoader)
-        delete SourceLoader;
+    if (m_psourceBinary)
+        delete m_psourceBinary;
 
-    if (TargetLoader)
-        delete TargetLoader;
+    if (m_ptargetBinary)
+        delete m_ptargetBinary;
 
 	if (m_pMatchResults)
 	{
@@ -57,14 +57,14 @@ DiffLogic::~DiffLogic()
 	}        
 }
 
-Loader *DiffLogic::GetSourceLoader()
+Binary *DiffLogic::GetSourceBinary()
 {
-    return SourceLoader;
+    return m_psourceBinary;
 }
 
-Loader *DiffLogic::GetTargetLoader()
+Binary *DiffLogic::GetTargetBinary()
 {
-    return TargetLoader;
+    return m_ptargetBinary;
 }
 
 void DiffLogic::AnalyzeFunctionSanity()
@@ -77,7 +77,7 @@ void DiffLogic::AnalyzeFunctionSanity()
     Logger.Log(10, LOG_DIFF_MACHINE, "%s: DiffResults->MatchMap Size=%u\n", __FUNCTION__, m_pMatchResults->MatchMap.size());
     for (auto& val : m_pMatchResults->MatchMap)
     {
-        PBasicBlock p_basic_block = SourceLoader->GetBasicBlock(val.first);
+        PBasicBlock p_basic_block = m_psourceBinary->GetBasicBlock(val.first);
         if (p_basic_block)
         {
             unpatched_addr = val.first;
@@ -108,7 +108,7 @@ void DiffLogic::AnalyzeFunctionSanity()
 
     for (auto& val : m_pMatchResults->ReverseAddressMap)
     {
-        PBasicBlock p_basic_block = SourceLoader->GetBasicBlock(val.first);
+        PBasicBlock p_basic_block = m_psourceBinary->GetBasicBlock(val.first);
         if (p_basic_block)
         {
             unpatched_addr = val.first;
@@ -143,8 +143,8 @@ void DiffLogic::AnalyzeFunctionSanity()
 
 void DiffLogic::TestFunctionMatchRate(int index, va_t Address)
 {
-    Loader *ClientManager = index == 0 ? SourceLoader : TargetLoader;
-    for (auto& val : ClientManager->GetFunctionMemberBlocks(Address))
+    Binary *ClientManager = index == 0 ? m_psourceBinary : m_ptargetBinary;
+    for (auto& val : ClientManager->GetFunctionBasicBlocks(Address))
     {
         MatchMapList *pMatchMapList = GetMatchData(index, val.Start);
         pMatchMapList->Print();
@@ -154,8 +154,8 @@ void DiffLogic::TestFunctionMatchRate(int index, va_t Address)
 
 void DiffLogic::RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t> & Members)
 {
-    Loader *ClientManager = index == 0 ? SourceLoader : TargetLoader;
-    list <AddressRange> address_list = ClientManager->GetFunctionMemberBlocks(FunctionAddress);
+    Binary *ClientManager = index == 0 ? m_psourceBinary : m_ptargetBinary;
+    list <AddressRange> address_list = ClientManager->GetFunctionBasicBlocks(FunctionAddress);
 
     for (auto& val : address_list)
     {
@@ -232,8 +232,8 @@ MATCHMAP *DiffLogic::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFunc
 			"NoneMatchCountForTheTarget : 0x%.8x\n"
 			"MatchCountWithModificationForTheTarget: 0x%.8x\n"
 			"\r\n",
-			SourceLoader->GetFileID(),
-			TargetLoader->GetFileID(),
+			m_psourceBinary->GetFileID(),
+			m_ptargetBinary->GetFileID(),
 			val.SourceAddress,
 			val.EndAddress,
 			val.TargetAddress,
@@ -316,27 +316,27 @@ bool DiffLogic::Analyze()
 {
     MATCHMAP TemporaryMatchMap;
 
-    if (!SourceLoader || !TargetLoader)
+    if (!m_psourceBinary || !m_ptargetBinary)
         return FALSE;
 
     m_pMatchResults = new MatchResults();
     m_pMatchResults->SetDumpAddressChecker(m_pdumpAddressChecker);
 
     Logger.Log(10, LOG_DIFF_MACHINE, "%s: InstructionHash Map Size %u:%u\n", __FUNCTION__,
-        SourceLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size(),
-        TargetLoader->GetClientDisassemblyHashMaps()->instructionHashMap.size());
+        m_psourceBinary->GetClientDisassemblyHashMaps()->instructionHashMap.size(),
+        m_ptargetBinary->GetClientDisassemblyHashMaps()->instructionHashMap.size());
 
     // Symbol Match
     Logger.Log(10, LOG_DIFF_MACHINE, "Symbol Match\n");
 
     multimap <string, va_t>::iterator patchedNameMapIterator;
 
-    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->symbolMap)
+    for (auto& val : m_psourceBinary->GetClientDisassemblyHashMaps()->symbolMap)
     {
-        if (SourceLoader->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
+        if (m_psourceBinary->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
         {
             //unique key
-            if (TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
+            if (m_ptargetBinary->GetClientDisassemblyHashMaps()->symbolMap.count(val.first) == 1)
             {
                 if (val.first.find("loc_") != string::npos ||
                     val.first.find("locret_") != string::npos ||
@@ -344,9 +344,9 @@ bool DiffLogic::Analyze()
                     val.first.find("func_") != string::npos)
                     continue;
 
-                patchedNameMapIterator = TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.find(val.first);
+                patchedNameMapIterator = m_ptargetBinary->GetClientDisassemblyHashMaps()->symbolMap.find(val.first);
 
-                if (patchedNameMapIterator != TargetLoader->GetClientDisassemblyHashMaps()->symbolMap.end())
+                if (patchedNameMapIterator != m_ptargetBinary->GetClientDisassemblyHashMaps()->symbolMap.end())
                 {
                     MatchData match_data;
                     memset(&match_data, 0, sizeof(MatchData));
@@ -419,10 +419,10 @@ bool DiffLogic::Analyze()
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: Call DoFunctionMatch\n", __FUNCTION__);
 
-		SourceLoader->LoadBlockFunctionMaps();
-		TargetLoader->LoadBlockFunctionMaps();
+		m_psourceBinary->LoadBlockFunctionMaps();
+		m_ptargetBinary->LoadBlockFunctionMaps();
 
-        MATCHMAP *pFunctionMatchMap = m_pdiffAlgorithms->DoFunctionMatch(&m_pMatchResults->MatchMap, SourceLoader->GetFunctionToBlock(), TargetLoader->GetFunctionToBlock());
+        MATCHMAP *pFunctionMatchMap = m_pdiffAlgorithms->DoFunctionMatch(&m_pMatchResults->MatchMap, m_psourceBinary->GetFunctionToBlock(), m_ptargetBinary->GetFunctionToBlock());
 
         /*TODO: Against pFUnctionMatchMap
 
@@ -437,9 +437,9 @@ bool DiffLogic::Analyze()
                 va_t sourceFunctionAddress;
                 va_t targetAddress = it->second.Addresses[1];
                 BOOL function_matched = FALSE;
-                if (SourceLoader->GetFunctionAddress(sourceAddress, sourceFunctionAddress))
+                if (m_psourceBinary->GetFunctionAddress(sourceAddress, sourceFunctionAddress))
                 {
-                    function_matched = TargetLoader->IsFunctionBlock(targetAddress, chosenTargetFunctionAddress);
+                    function_matched = m_ptargetBinary->IsFunctionBlock(targetAddress, chosenm_targetFunctionAddress);
                 }
 
                 if (!function_matched)
@@ -447,10 +447,10 @@ bool DiffLogic::Analyze()
                     if (m_pdumpAddressChecker &&
                         (
                             m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, targetAddress) ||
-                            m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, chosenTargetFunctionAddress)
+                            m_pdumpAddressChecker->IsDumpPair(sourceFunctionAddress, chosenm_targetFunctionAddress)
                             )
                         )
-                        LogMessage(0, __FUNCTION__, "Removing address %X( %X )-%X( %X )\n", sourceAddress, sourceFunctionAddress, targetAddress, chosenTargetFunctionAddress);
+                        LogMessage(0, __FUNCTION__, "Removing address %X( %X )-%X( %X )\n", sourceAddress, sourceFunctionAddress, targetAddress, chosenm_targetFunctionAddress);
                     it = m_pMatchResults->Erase(it);
 
                 }
@@ -463,8 +463,8 @@ bool DiffLogic::Analyze()
         }
         */
 
-		SourceLoader->ClearBlockFunctionMaps();
-		TargetLoader->ClearBlockFunctionMaps();
+		m_psourceBinary->ClearBlockFunctionMaps();
+		m_ptargetBinary->ClearBlockFunctionMaps();
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: One Loop Of Analysis MatchMap size is %u.\n", __FUNCTION__, m_pMatchResults->MatchMap.size());
 
@@ -566,7 +566,7 @@ void DiffLogic::ShowDiffMap(va_t unpatched_address, va_t patched_address)
     {
         int addresses_number;
         Logger.Log(10, LOG_DIFF_MACHINE, "%s:  address=%X\n", __FUNCTION__, address);
-        p_addresses = SourceLoader->GetMappedAddresses(address, CREF_FROM, &addresses_number);
+        p_addresses = m_psourceBinary->GetCodeReferences(address, CREF_FROM, &addresses_number);
         if (p_addresses && addresses_number > 0)
         {
             Logger.Log(10, LOG_DIFF_MACHINE, "%s:  p_addresses=%X addresses_number=%u\n", __FUNCTION__, p_addresses, addresses_number);
@@ -591,12 +591,12 @@ int DiffLogic::GetMatchRate(va_t unpatched_address, va_t patched_address)
     multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter;
     multimap <va_t, unsigned char*>::iterator target_instructionHashMap_Iter;
 
-    source_instructionHashMap_Iter = SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(unpatched_address);
-    target_instructionHashMap_Iter = TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(patched_address);
+    source_instructionHashMap_Iter = m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(unpatched_address);
+    target_instructionHashMap_Iter = m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.find(patched_address);
 
     if (
-        source_instructionHashMap_Iter != SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
-        target_instructionHashMap_Iter != TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end()
+        source_instructionHashMap_Iter != m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end() &&
+        target_instructionHashMap_Iter != m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap.end()
         )
     {
         return m_pdiffAlgorithms->GetInstructionHashMatchRate(
@@ -624,12 +624,12 @@ void DiffLogic::GetMatchStatistics(
         )
         debug = true;
 
-    Loader *ClientManager = SourceLoader;
+    Binary *ClientManager = m_psourceBinary;
 
     if (index == 1)
-        ClientManager = TargetLoader;
+        ClientManager = m_ptargetBinary;
 
-    list <AddressRange> address_list = ClientManager->GetFunctionMemberBlocks(address);
+    list <AddressRange> address_list = ClientManager->GetFunctionBasicBlocks(address);
 
     found_match_number = 0;
     not_found_match_number = 0;
@@ -651,11 +651,11 @@ void DiffLogic::GetMatchStatistics(
                 int source_instruction_hash_len = 0;
                 int target_instruction_hash_len = 0;
 
-                PBasicBlock p_basic_block = SourceLoader->GetBasicBlock(pMatchData->Addresses[0]);
+                PBasicBlock p_basic_block = m_psourceBinary->GetBasicBlock(pMatchData->Addresses[0]);
                 if (p_basic_block)
                     source_instruction_hash_len = p_basic_block->InstructionHashLen;
 
-                p_basic_block = TargetLoader->GetBasicBlock(pMatchData->Addresses[1]);
+                p_basic_block = m_ptargetBinary->GetBasicBlock(pMatchData->Addresses[1]);
                 if (p_basic_block)
                     target_instruction_hash_len = p_basic_block->InstructionHashLen;
 
@@ -698,7 +698,7 @@ int DiffLogic::GetUnidentifiedBlockCount(int index)
         return m_targetUnidentifedBlockHash.size();
 }
 
-CodeBlock DiffLogic::GetUnidentifiedBlock(int index, int i)
+AddressRange DiffLogic::GetUnidentifiedBlock(int index, int i)
 {
     /*
     if( index==0 )
@@ -707,7 +707,7 @@ CodeBlock DiffLogic::GetUnidentifiedBlock(int index, int i)
         return m_targetUnidentifedBlockHash.at( i );
         */
 
-    CodeBlock x;
+    AddressRange x;
     memset(&x, 0, sizeof(x));
     return x;
 }
@@ -718,27 +718,27 @@ va_t DiffLogic::DumpFunctionMatchInfo(int index, va_t address)
 
     /*
     if( index==0 )
-        block_address = SourceLoader->GetBlockAddress( address );
+        block_address = m_psourceBinary->GetBasicBlockStart( address );
     else
-        block_address = TargetLoader->GetBlockAddress( address );
+        block_address = m_ptargetBinary->GetBasicBlockStart( address );
     */
 
     multimap <va_t, MatchData>::iterator matchMapIterator;
     if (index == 0)
     {
-        SourceLoader->DumpBlockInfo(block_address);
+        m_psourceBinary->DumpBlockInfo(block_address);
         matchMapIterator = m_pMatchResults->MatchMap.find(block_address);
         while (matchMapIterator != m_pMatchResults->MatchMap.end() &&
             matchMapIterator->first == block_address)
         {
             //TODO: DumpMatchMapIterInfo("", matchMapIterator);
-            TargetLoader->DumpBlockInfo(matchMapIterator->second.Addresses[1]);
+            m_ptargetBinary->DumpBlockInfo(matchMapIterator->second.Addresses[1]);
             matchMapIterator++;
         }
     }
     else
     {
-        TargetLoader->DumpBlockInfo(block_address);
+        m_ptargetBinary->DumpBlockInfo(block_address);
         multimap <va_t, va_t>::iterator reverse_matchMapIteratorator;
         reverse_matchMapIteratorator = m_pMatchResults->ReverseAddressMap.find(block_address);
         if (reverse_matchMapIteratorator != m_pMatchResults->ReverseAddressMap.end())
@@ -806,13 +806,13 @@ va_t DiffLogic::GetMatchAddr(int index, va_t address)
 
 BOOL DiffLogic::Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t>  *pTheSourceSelectedAddresses, unordered_set <va_t>  *pTheTargetSelectedAddresses)
 {
-    if (!SourceLoader || !TargetLoader)
+    if (!m_psourceBinary || !m_ptargetBinary)
         return FALSE;
 
     //TODO: DeleteMatchInfo(disassemblyStorage);
     m_pdiffStorage->BeginTransaction();
-    m_pdiffStorage->AddFileInfo("Source", SourceDBName.c_str(), SourceID, SourceFunctionAddress);
-    m_pdiffStorage->AddFileInfo("Target", TargetDBName.c_str(), TargetID, TargetFunctionAddress);
+    m_pdiffStorage->AddFileInfo("Source", SourceDBName.c_str(), SourceID, m_sourceFunctionAddress);
+    m_pdiffStorage->AddFileInfo("Target", TargetDBName.c_str(), TargetID, m_targetFunctionAddress);
 
     multimap <va_t, MatchData>::iterator matchMapIterator;
 
@@ -834,8 +834,8 @@ BOOL DiffLogic::Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t
             val.second.Addresses[0], val.second.Addresses[1], val.second.MatchRate);
 
         m_pdiffStorage->InsertMatchMap(
-            SourceLoader->GetFileID(),
-            TargetLoader->GetFileID(),
+            m_psourceBinary->GetFileID(),
+            m_ptargetBinary->GetFileID(),
             val.first,
             val.second.Addresses[1],
             val.second.Type,
@@ -851,7 +851,7 @@ BOOL DiffLogic::Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t
 
     for (FunctionMatchInfo functionMatchInfo : (FunctionMatchInfoList)(*m_pFunctionMatchInfoList))
     {
-        m_pdiffStorage->AddFunctionMatchInfo(SourceLoader->GetFileID(), TargetLoader->GetFileID(), functionMatchInfo);
+        m_pdiffStorage->AddFunctionMatchInfo(m_psourceBinary->GetFileID(), m_ptargetBinary->GetFileID(), functionMatchInfo);
     }
 
     disassemblyStorage.EndTransaction();
@@ -956,7 +956,7 @@ BOOL DiffLogic::Create(const char *DiffDBFilename)
 
         Logger.Log(10, LOG_DIFF_MACHINE, "	Loading %s\n", TargetDBName.c_str());
         m_ptargetStorage = new SQLiteDisassemblyStorage(TargetDBName.c_str());
-        SetTarget(TargetDBName.c_str(), 1, TargetFunctionAddress);
+        SetTarget(TargetDBName.c_str(), 1, m_targetFunctionAddress);
     }
 
     return true;
@@ -983,36 +983,36 @@ BOOL DiffLogic::_Load()
 {
     Logger.Log(10, LOG_DIFF_MACHINE, "%s\n", __FUNCTION__);
 
-    if (SourceLoader)
+    if (m_psourceBinary)
     {
-        delete SourceLoader;
-        SourceLoader = NULL;
+        delete m_psourceBinary;
+        m_psourceBinary = NULL;
     }
 
-    SourceLoader = new Loader(m_psourceStorage);
+    m_psourceBinary = new Binary(m_psourceStorage);
 
-    Logger.Log(10, LOG_DIFF_MACHINE, "SourceFunctionAddress: %X\n", SourceFunctionAddress);
-    SourceLoader->SetFileID(SourceID);
+    Logger.Log(10, LOG_DIFF_MACHINE, "m_sourceFunctionAddress: %X\n", m_sourceFunctionAddress);
+    m_psourceBinary->Open(SourceID);
 
     if (m_bloadMaps)
     {
-        SourceLoader->FixFunctionAddresses();
-        SourceLoader->Load(SourceFunctionAddress);
+        m_psourceBinary->FixFunctionAddresses();
+        m_psourceBinary->Load(m_sourceFunctionAddress);
     }
 
-    if (TargetLoader)
+    if (m_ptargetBinary)
     {
-        delete TargetLoader;
-        TargetLoader = NULL;
+        delete m_ptargetBinary;
+        m_ptargetBinary = NULL;
     }
 
-    TargetLoader = new Loader(m_ptargetStorage);
-    TargetLoader->SetFileID(TargetID);
+    m_ptargetBinary = new Binary(m_ptargetStorage);
+    m_ptargetBinary->Open(TargetID);
 
     if (m_bloadMaps)
     {
-        TargetLoader->FixFunctionAddresses();
-        TargetLoader->Load(TargetFunctionAddress);
+        m_ptargetBinary->FixFunctionAddresses();
+        m_ptargetBinary->Load(m_targetFunctionAddress);
     }
 
     if (LoadMatchResults)
@@ -1043,7 +1043,7 @@ BREAKPOINTS DiffLogic::ShowUnidentifiedAndModifiedBlocks()
 
             bool found_source_blocks = false;
 
-            for (auto& val : SourceLoader->GetFunctionMemberBlocks(val.SourceAddress))
+            for (auto& val : m_psourceBinary->GetFunctionBasicBlocks(val.SourceAddress))
             {
                 multimap <va_t, MatchData>::iterator matchMapIterator = m_pMatchResults->MatchMap.find(val.Start);
 
@@ -1083,7 +1083,7 @@ BREAKPOINTS DiffLogic::ShowUnidentifiedAndModifiedBlocks()
             //Target
             bool found_target_blocks = false;
 
-            for (auto& val : TargetLoader->GetFunctionMemberBlocks(val.TargetAddress))
+            for (auto& val : m_ptargetBinary->GetFunctionBasicBlocks(val.TargetAddress))
             {
                 multimap <va_t, va_t>::iterator reverse_matchMapIterator = m_pMatchResults->ReverseAddressMap.find(val.Start);
 
@@ -1155,7 +1155,7 @@ void DiffLogic::PrintMatchControlFlow()
 	int unpatched_unidentified_number = 0;
 	multimap <va_t, unsigned char*>::iterator source_instructionHashMap_Iter;
 
-    for (auto& val : SourceLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
+    for (auto& val : m_psourceBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
 		if (m_pMatchResults->MatchMap.find(val.first) == m_pMatchResults->MatchMap.end())
 		{
@@ -1171,7 +1171,7 @@ void DiffLogic::PrintMatchControlFlow()
 
 	int patched_unidentified_number = 0;
 
-    for (auto& val : TargetLoader->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
+    for (auto& val : m_ptargetBinary->GetClientDisassemblyHashMaps()->addressToInstructionHashMap)
 	{
 		if (m_pMatchResults->ReverseAddressMap.find(val.first) == m_pMatchResults->ReverseAddressMap.end())
 		{

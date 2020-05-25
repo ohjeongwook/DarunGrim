@@ -4,7 +4,7 @@
 #include <list>
 
 #include "Common.h"
-#include "Loader.h"
+#include "Binary.h"
 #include "LogOperation.h"
 #include "MatchResults.h"
 #include "DiffAlgorithms.h"
@@ -25,18 +25,18 @@ private:
 
     int SourceID;
     string SourceDBName;
-    va_t SourceFunctionAddress;
+    va_t m_sourceFunctionAddress;
 
     int TargetID;
     string TargetDBName;
-    va_t TargetFunctionAddress;
+    va_t m_targetFunctionAddress;
 
     DiffStorage* m_pdiffStorage;
     DisassemblyStorage* m_psourceStorage;
     DisassemblyStorage* m_ptargetStorage;
 
-    Loader* SourceLoader;
-    Loader* TargetLoader;
+    Binary* m_psourceBinary;
+    Binary* m_ptargetBinary;
 
     MatchResults* m_pMatchResults;
     FunctionMatchInfoList* m_pFunctionMatchInfoList;
@@ -51,7 +51,7 @@ private:
 	BOOL _Load();
 
 public:
-    DiffLogic(Loader *the_source = NULL, Loader *the_target = NULL);
+    DiffLogic(Binary *the_source = NULL, Binary *the_target = NULL);
     ~DiffLogic();
 
     void SetDumpAddressChecker(DumpAddressChecker *p_dump_address_checker)
@@ -59,14 +59,14 @@ public:
         m_pdumpAddressChecker = p_dump_address_checker;
     }
 
-    void SetSource(Loader *NewSource)
+    void SetSource(Binary *NewSource)
     {
-        SourceLoader = NewSource;
+        m_psourceBinary = NewSource;
     }
 
-    void SetTarget(Loader *NewTarget)
+    void SetTarget(Binary *NewTarget)
     {
-        TargetLoader = NewTarget;
+        m_ptargetBinary = NewTarget;
     }
 
     void SetLoadMatchResults(bool NewLoadMatchResults)
@@ -82,42 +82,42 @@ public:
     {
         SourceDBName = db_filename;
         SourceID = id;
-        SourceFunctionAddress = function_address;
+        m_sourceFunctionAddress = function_address;
     }
 
     void SetTarget(const char* db_filename, DWORD id = 1, va_t function_address = 0)
     {
         TargetDBName = db_filename;
         TargetID = id;
-        TargetFunctionAddress = function_address;
+        m_targetFunctionAddress = function_address;
     }
 
     void SetSource(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
         m_psourceStorage = disassemblyStorage;
         SourceID = id;
-        SourceFunctionAddress = function_address;
+        m_sourceFunctionAddress = function_address;
     }
 
     void SetTarget(DisassemblyStorage* disassemblyStorage, DWORD id = 1, va_t function_address = 0)
     {
         m_ptargetStorage = disassemblyStorage;
         TargetID = id;
-        TargetFunctionAddress = function_address;
+        m_targetFunctionAddress = function_address;
     }
 
-    void SetTargetFunctions(va_t ParamSourceFunctionAddress, va_t ParamTargetFunctionAddress)
+    void SetTargetFunctions(va_t Paramm_sourceFunctionAddress, va_t Paramm_targetFunctionAddress)
     {
-        SourceFunctionAddress = ParamSourceFunctionAddress;
-        TargetFunctionAddress = ParamTargetFunctionAddress;
+        m_sourceFunctionAddress = Paramm_sourceFunctionAddress;
+        m_targetFunctionAddress = Paramm_targetFunctionAddress;
     }
 
     BOOL Create(const char* DiffDBFilename);
     BOOL Load(const char* DiffDBFilename);
     BOOL Load(DiffStorage *p_diffStorage, DisassemblyStorage  *p_disassemblyStorage);
 
-    Loader *GetSourceLoader();
-    Loader *GetTargetLoader();
+    Binary *GetSourceBinary();
+    Binary *GetTargetBinary();
 
     void AppendToMatchMap(MATCHMAP* pBaseMap, MATCHMAP* pTemporaryMap);
     MatchMapList* GetMatchData(int index, va_t address, BOOL erase = FALSE);
@@ -139,7 +139,7 @@ public:
     void AnalyzeFunctionSanity();
 
     int GetUnidentifiedBlockCount(int index);
-    CodeBlock GetUnidentifiedBlock(int index, int i);
+    AddressRange GetUnidentifiedBlock(int index, int i);
     BOOL IsInUnidentifiedBlockHash(int index, va_t address);
     BOOL Save(DisassemblyStorage& disassemblyStorage, unordered_set <va_t> *pTheSourceSelectedAddresses = NULL, unordered_set <va_t> *pTheTargetSelectedAddresses = NULL);
     BREAKPOINTS ShowUnidentifiedAndModifiedBlocks();

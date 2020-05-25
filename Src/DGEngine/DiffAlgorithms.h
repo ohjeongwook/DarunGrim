@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatchResults.h"
-#include "Loader.h"
+#include "Binary.h"
 
 #define DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING 1
 
@@ -18,8 +18,8 @@ private:
 	int DebugFlag;
 	DumpAddressChecker *m_pdumpAddressChecker;
 
-	Loader *SourceLoader;
-	Loader *TargetLoader;    
+	Binary *m_psourceBinary;
+	Binary *m_ptargetBinary;    
 
 
 	void RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t address, va_t match_address);
@@ -32,7 +32,7 @@ public:
 	FunctionMatchInfoList* GenerateFunctionMatchInfo(MATCHMAP* pMatchMap, multimap <va_t, va_t>* pReverseAddressMap);
 	int GetInstructionHashMatchRate(unsigned char *unpatched_finger_print, unsigned char *patched_finger_print);
 
-	MATCHMAP *DoInstructionHashMatchInsideFunction(va_t SourceFunctionAddress, list <va_t>& SourceBlockAddresses, va_t TargetFunctionAddress, list <va_t>& TargetBlockAddresses);
+	MATCHMAP *DoInstructionHashMatchInsideFunction(va_t m_sourceFunctionAddress, list <va_t>& SourceBlockAddresses, va_t m_targetFunctionAddress, list <va_t>& TargetBlockAddresses);
 	MATCHMAP *DoInstructionHashMatch();
 
 	void PurgeInstructionHashHashMap(MATCHMAP *pTemporaryMap);
