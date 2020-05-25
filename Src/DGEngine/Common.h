@@ -53,9 +53,9 @@ typedef struct _FunctionMatchInfo_
 	va_t TargetAddress;
 	short BlockType;
 	short MatchRate;
-	char *SourceFunctionName;
+	string SourceFunctionName;
 	short Type;
-	char *TargetFunctionName;
+	string TargetFunctionName;
 	int MatchCountForTheSource;
 	int NoneMatchCountForTheSource;
 	int MatchCountWithModificationForTheSource;
@@ -102,11 +102,6 @@ public:
 
     void ClearFunctionMatchList()
     {
-        for (auto& val : m_functionMatchInfoList)
-        {
-            free(val.SourceFunctionName);
-            free(val.TargetFunctionName);
-        }
         m_functionMatchInfoList.clear();
     }    
 };
