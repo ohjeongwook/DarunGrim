@@ -1,3 +1,3 @@
-[submodule "Src/IDAHasher"]
-	path = Src/IDAHasher
-	url = https://github.com/ohjeongwook/IDAHasher
+[submodule "Src/binkit"]
+	path = Src/binkit
+	url = https://github.com/ohjeongwook/binkit
