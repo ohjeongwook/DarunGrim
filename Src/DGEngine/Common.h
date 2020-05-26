@@ -211,7 +211,6 @@ typedef struct _DisassemblyHashMapsList_ {
 	struct _DisassemblyHashMapsList_ *next;
 } DisassemblyHashMapsList;
 
-typedef pair <va_t, PBasicBlock> AddrPBasicBlock_Pair;
 typedef pair <va_t, string> AddrDisassembly_Pair;
 typedef pair <unsigned char*, va_t> InstructionHashAddress_Pair;
 typedef pair <string, va_t*> TwoLevelInstructionHashAddress_Pair;

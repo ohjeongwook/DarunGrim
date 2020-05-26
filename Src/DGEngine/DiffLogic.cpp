@@ -419,9 +419,6 @@ bool DiffLogic::Analyze()
 
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: Call DoFunctionMatch\n", __FUNCTION__);
 
-		m_psourceBinary->LoadBlockFunctionMaps();
-		m_ptargetBinary->LoadBlockFunctionMaps();
-
         MATCHMAP *pFunctionMatchMap = m_pdiffAlgorithms->DoFunctionMatch(&m_pMatchResults->MatchMap, m_psourceBinary->GetFunctionToBlock(), m_ptargetBinary->GetFunctionToBlock());
 
         /*TODO: Against pFUnctionMatchMap
@@ -439,7 +436,7 @@ bool DiffLogic::Analyze()
                 BOOL function_matched = FALSE;
                 if (m_psourceBinary->GetFunctionAddress(sourceAddress, sourceFunctionAddress))
                 {
-                    function_matched = m_ptargetBinary->IsFunctionBlock(targetAddress, chosenm_targetFunctionAddress);
+                    function_matched = m_ptargetBinary->IsInFunction(targetAddress, chosenm_targetFunctionAddress);
                 }
 
                 if (!function_matched)
@@ -462,10 +459,6 @@ bool DiffLogic::Analyze()
             }
         }
         */
-
-		m_psourceBinary->ClearBlockFunctionMaps();
-		m_ptargetBinary->ClearBlockFunctionMaps();
-
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: One Loop Of Analysis MatchMap size is %u.\n", __FUNCTION__, m_pMatchResults->MatchMap.size());
 
         if (OldMatchMapSize == m_pMatchResults->MatchMap.size())
@@ -996,7 +989,6 @@ BOOL DiffLogic::_Load()
 
     if (m_bloadMaps)
     {
-        m_psourceBinary->FixFunctionAddresses();
         m_psourceBinary->Load(m_sourceFunctionAddress);
     }
 
@@ -1011,7 +1003,6 @@ BOOL DiffLogic::_Load()
 
     if (m_bloadMaps)
     {
-        m_ptargetBinary->FixFunctionAddresses();
         m_ptargetBinary->Load(m_targetFunctionAddress);
     }
 

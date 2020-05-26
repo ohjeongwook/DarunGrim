@@ -17,11 +17,8 @@ class DiffAlgorithms
 private:
 	int DebugFlag;
 	DumpAddressChecker *m_pdumpAddressChecker;
-
 	Binary *m_psourceBinary;
 	Binary *m_ptargetBinary;    
-
-
 	void RevokeTreeMatchMapIterInfo(MATCHMAP *pMatchMap, va_t address, va_t match_address);
 
 public:
@@ -43,4 +40,3 @@ public:
 	void DumpMatchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter);
 	const char* GetMatchTypeStr(int Type);
 };
-
