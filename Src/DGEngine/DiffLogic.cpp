@@ -383,7 +383,7 @@ bool DiffLogic::Analyze()
         Logger.Log(10, LOG_DIFF_MACHINE, "%s: DoIsomorphMatch\n", __FUNCTION__);
 	    while (pTemporaryMap->size() > 0)
 	    {
-            MATCHMAP *pMatchMap = m_pdiffAlgorithms->DoIsomorphMatch(&m_pMatchResults->MatchMap, &TemporaryMatchMap, pTemporaryMap);
+            MATCHMAP *pMatchMap = m_pdiffAlgorithms->DoIsomorphMatch(&m_pMatchResults->MatchMap, & , pTemporaryMap);
 
             if (pMatchMap->size() > 0)
             {

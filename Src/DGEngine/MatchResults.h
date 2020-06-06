@@ -9,57 +9,7 @@ const enum { DiffMachineFileSQLiteFormat };
 
 enum { TYPE_MATCH, TYPE_REVERSE_MATCH, TYPE_BEFORE_UNIDENTIFIED_BLOCK, TYPE_AFTER_UNIDENTIFIED_BLOCK };
 
-#undef TEST_MATCHMAP
-
-#ifdef TEST_MATCHMAP
-class MATCHMAP
-{
-public:
-    multimap <va_t, MatchData> MatchMap;
-
-    void insert(MatchMap_Pair d)
-    {
-        MatchMap.insert(d);
-    }
-
-    multimap <va_t, MatchData>::iterator erase(multimap <va_t, MatchData>::iterator d)
-    {
-        return MatchMap.erase(d);
-    }
-
-    multimap <va_t, MatchData>::iterator find(va_t d)
-    {
-        return MatchMap.find(d);
-    }
-
-    multimap <va_t, MatchData>::iterator begin()
-    {
-        return MatchMap.begin();
-    }
-
-    multimap <va_t, MatchData>::iterator end()
-    {
-        return MatchMap.end();
-    }
-
-    int size()
-    {
-        return MatchMap.size();
-    }
-
-    int count(va_t d)
-    {
-        return MatchMap.count(d);
-    }
-
-    void clear()
-    {
-        return MatchMap.clear();
-    }
-};
-#else
 typedef multimap <va_t, MatchData> MATCHMAP;
-#endif
 
 class DumpAddressChecker
 {
@@ -95,11 +45,3 @@ public:
     MatchMapList* GetMatchData(int index, va_t address, BOOL erase);
 };
 
-
-typedef struct
-{
-	va_t Source;
-	va_t Target;
-	int MatchRate;
-	int IndexDiff;
-} MatchRateInfo;

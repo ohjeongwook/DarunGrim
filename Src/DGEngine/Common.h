@@ -23,7 +23,7 @@ typedef int va_t;
 
 #define LOG_DARUNGRIM			0x00000001
 #define LOG_DIFF_MACHINE		0x00000002
-#define LOG_IDA_CONTROLLER		0x00000004
+#define LOG_BINARIES		0x00000004
 #define LOG_SQL					0x00000008
 #define LOG_BASIC_BLOCK	0x0000000F
 #define LOG_MATCH_RATE			0x00000010
@@ -105,17 +105,6 @@ public:
         m_functionMatchInfoList.clear();
     }    
 };
-
-typedef struct _MatchData_ {
-	short Type;
-	short SubType;
-	short Status;
-	va_t Addresses[2];
-	short MatchRate;
-	va_t UnpatchedParentAddress;
-	va_t PatchedParentAddress;
-} MatchData;
-
 class MatchMapList
 {
 private:
@@ -200,8 +189,6 @@ public:
         }
     }
 };
-
-enum { NAME_MATCH, INSTRUCTION_HASH_MATCH, TWO_LEVEL_INSTRUCTION_HASH_MATCH, TREE_MATCH, INSTRUCTION_HASH_INSIDE_FUNCTION_MATCH, FUNCTION_MATCH };
 
 typedef struct _DisassemblyHashMapsList_ {
 	PDisassemblyHashMaps p_analysis_info;

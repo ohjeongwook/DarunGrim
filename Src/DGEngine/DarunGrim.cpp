@@ -273,11 +273,11 @@ typedef struct _IDA_LISTENER_PARAM_
     SOCKET socket;
 } IDA_LISTENER_PARAM;
 
-typedef struct _IDA_CONTROLLER_
+typedef struct _BINARIES_
 {
     SLIST_ENTRY ItemEntry;
-    Binary *pIDAController;
-} IDA_CONTROLLER,  *PIDA_CONTROLLER;
+    Binary *p_binary;
+} BINARIES,  *PBINARIES;
 
 DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
 {
@@ -297,17 +297,17 @@ DWORD WINAPI IDAListenerThread(LPVOID lpParameter)
         }
         else
         {
-            PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)_aligned_malloc(sizeof(IDA_CONTROLLER), MEMORY_ALLOCATION_ALIGNMENT);
-            if (p_ida_controller_item == NULL)
+            PBINARIES p_binaries = (PBINARIES)_aligned_malloc(sizeof(BINARIES), MEMORY_ALLOCATION_ALIGNMENT);
+            if (p_binaries == NULL)
                 return -1;
             Logger.Log(10, LOG_DARUNGRIM, "New connection: %d", s);
-            p_ida_controller_item->pIDAController = new Binary();
-            p_ida_controller_item->pIDAController->SetSocket(s);
-            p_ida_controller_item->pIDAController->RetrieveIdentity();
+            p_binaries->p_binary = new Binary();
+            p_binaries->p_binary->SetSocket(s);
+            p_binaries->p_binary->RetrieveIdentity();
 
-            Logger.Log(10, LOG_DARUNGRIM, "Identity: %s\n", p_ida_controller_item->pIDAController->GetIdentity());
+            Logger.Log(10, LOG_DARUNGRIM, "Identity: %s\n", p_binaries->p_binary->GetIdentity());
 
-            InterlockedPushEntrySList(pListHead, &(p_ida_controller_item->ItemEntry));
+            InterlockedPushEntrySList(pListHead, &(p_binaries->ItemEntry));
         }
     }
     return 0;
@@ -325,21 +325,21 @@ void DarunGrim::UpdateIDAControllers()
         if (pListEntry == NULL)
             break;
 
-        PIDA_CONTROLLER p_ida_controller_item = (PIDA_CONTROLLER)pListEntry;
-        string identity = p_ida_controller_item->pIDAController->GetIdentity();
+        PBINARIES p_binaries = (PBINARIES)pListEntry;
+        string identity = p_binaries->p_binary->GetIdentity();
 
         Logger.Log(10, LOG_DARUNGRIM, "Identity: %s\n", identity.c_str());
-        IDAControllerList.push_back(p_ida_controller_item->pIDAController);
+        IDAControllerList.push_back(p_binaries->p_binary);
 
         if (identity == SourceIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting source controller: %s\n", identity.c_str());
-            m_psourceBinary = p_ida_controller_item->pIDAController;
+            m_psourceBinary = p_binaries->p_binary;
         }
         else if (identity == TargetIdentity)
         {
             Logger.Log(10, LOG_DARUNGRIM, "Setting target controller: %s\n", identity.c_str());
-            m_ptargetBinary = p_ida_controller_item->pIDAController;
+            m_ptargetBinary = p_binaries->p_binary;
         }
     }
 }
