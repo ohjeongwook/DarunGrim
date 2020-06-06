@@ -17,134 +17,6 @@ extern LogOperation Logger;
 using namespace std;
 using namespace stdext;
 
-DiffAlgorithms::DiffAlgorithms()
-{
-}
-
-DiffAlgorithms::~DiffAlgorithms()
-{
-}
-
-void DiffAlgorithms::RemoveDuplicates(MATCHMAP *p_matchMap)
-{
-	multimap <va_t, MatchData>::iterator match_map_iter;
-	multimap <va_t, MatchData>::iterator found_match_map_iter;
-	multimap <va_t, MatchData>::iterator max_match_map_iter;
-	for (match_map_iter = p_matchMap->begin();
-		match_map_iter != p_matchMap->end();
-		match_map_iter++)
-	{
-		if (match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
-			continue;
-		int found_duplicate = FALSE;
-		max_match_map_iter = match_map_iter;
-		int maximum_matchrate = match_map_iter->second.MatchRate;
-		for (found_match_map_iter = p_matchMap->find(match_map_iter->first);
-			found_match_map_iter != p_matchMap->end() && match_map_iter->first == found_match_map_iter->first;
-			found_match_map_iter++)
-		{
-			if (!(found_match_map_iter->second.Status & STATUS_MAPPING_DISABLED)
-				&& match_map_iter->second.Addresses[1] != found_match_map_iter->second.Addresses[1])
-			{
-				//Duplicates found
-				if (maximum_matchrate <= found_match_map_iter->second.MatchRate)
-				{
-					found_duplicate = TRUE;
-					max_match_map_iter = found_match_map_iter;
-					maximum_matchrate = found_match_map_iter->second.MatchRate;
-				}
-			}
-		}
-		/*
-		if( found_duplicate )
-		{
-			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing %X %X match\n", , max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
-			Dump_matchMapIterInfo( __FUNCTION__, max_match_map_iter );
-			for ( found_match_map_iter=DiffResults->MatchMap.find( match_map_iter->first );
-				found_match_map_iter!=DiffResults->MatchMap.end() &&
-				match_map_iter->first==found_match_map_iter->first;
-				found_match_map_iter++ )
-			{
-				if( max_match_map_iter->second.Addresses[1]!=found_match_map_iter->second.Addresses[1] )
-				{
-					if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Removing %X %X match\n", found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
-					Dump_matchMapIterInfo( __FUNCTION__, found_match_map_iter );
-					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
-					RevokeTreeMatchMapIterInfo( found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
-
-					unordered_map <va_t, va_t>::iterator reverse_match_map_iterator=DiffResults->ReverseAddressMap.find( found_match_map_iter->second.Addresses[1] );
-					if( reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end() && reverse_match_map_iterator->second.Address==found_match_map_iter->first )
-					{
-						iter->second.Status|=STATUS_MAPPING_DISABLED;
-						RevokeTreeMatchMapIterInfo( iter->first, iter->second.Address );
-					}
-				}
-			}
-		}*/
-	}
-
-	/*CLEAN UP
-	unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
-	for ( reverse_match_map_iterator=DiffResults->ReverseAddressMap.begin();
-		reverse_match_map_iterator!=DiffResults->ReverseAddressMap.end();
-		reverse_match_map_iterator++ )
-	{
-		if( match_map_iter->second.Status&STATUS_MAPPING_DISABLED )
-			continue;
-		int found_duplicate=FALSE;
-		max_match_map_iter=match_map_iter;
-		int maximum_matchrate=match_map_iter->second.MatchRate;
-		unordered_map <va_t, va_t>::iterator found_reverse_match_map_iterator;
-		for ( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
-			found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
-			match_map_iter->first==found_match_map_iter->first;
-			found_match_map_iter++ )
-		{
-			if( !( found_match_map_iter->second.Status&STATUS_MAPPING_DISABLED ) &&
-				match_map_iter->second.Addresses[1]!=found_match_map_iter->second.Addresses[1] )
-			{
-				//Duplicates found
-				if( maximum_matchrate<found_match_map_iter->second.MatchRate )
-				{
-					found_duplicate=TRUE;
-					max_match_map_iter=found_match_map_iter;
-					maximum_matchrate=found_match_map_iter->second.MatchRate;
-				}
-			}
-		}
-		if( found_duplicate )
-		{
-			if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Choosing( reverse ) %X %X match\n", __FUNCTION__, max_match_map_iter->first, max_match_map_iter->second.Addresses[1] );
-			Dump_matchMapIterInfo( __FUNCTION__, max_match_map_iter );
-			unordered_map <va_t, va_t>::iterator reverse_match_map_iterator;
-			for ( found_match_map_iter=DiffResults->ReverseAddressMap.find( match_map_iter->first );
-				found_match_map_iter!=DiffResults->ReverseAddressMap.end() &&
-				match_map_iter->first==found_match_map_iter->first;
-				found_match_map_iter++ )
-			{
-				if( max_match_map_iter->second.Addresses[1]!=found_match_map_iter->second.Addresses[1] )
-				{
-					if( DebugLevel&1 ) Logger.Log( 10, LOG_DIFF_MACHINE,  "%s: Removing( reverse ) %X:%X match\n", __FUNCTION__,
-							found_match_map_iter->first, found_match_map_iter->second.Addresses[1] );
-					Dump_matchMapIterInfo( __FUNCTION__, found_match_map_iter );
-					found_match_map_iter->second.Status|=STATUS_MAPPING_DISABLED;
-					RevokeTreeMatchMapIterInfo( found_match_map_iter->second.Addresses[1], found_match_map_iter->first );
-					multimap <va_t,  MatchData>::iterator iter=DiffResults->MatchMap.find( found_match_map_iter->second.Addresses[1] );
-					for ( ;iter!=DiffResults->MatchMap.end() && iter->first==found_match_map_iter->second.Addresses[1];iter++ )
-					{
-						if( iter->second.Address==found_match_map_iter->first )
-						{
-							iter->second.Status|=STATUS_MAPPING_DISABLED;
-							RevokeTreeMatchMapIterInfo( iter->second.Address, iter->first );
-						}
-					}
-				}
-			}
-		}
-	}
-	*/
-}
-
 void DiffAlgorithms::RevokeTreeMatchMapIterInfo(MATCHMAP *p_matchMap, va_t address, va_t match_address)
 {
 	return;
@@ -348,7 +220,6 @@ MATCHMAP *DiffAlgorithms::DoFunctionMatch(
     return p_matchMap;
 }
 
-const char* MatchDataTypeStr[] = { "Name", "InstructionHash", "Two Level InstructionHash", "IsoMorphic Match", "InstructionHash Inside Function", "Function" };
 
 void DiffAlgorithms::Dump_matchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter)
 {
@@ -364,13 +235,4 @@ void DiffAlgorithms::Dump_matchMapIterInfo(const char *prefix, multimap <va_t, M
 		match_map_iter->second.PatchedParentAddress,
 		match_map_iter->second.MatchRate,
 		match_map_iter->second.Status);
-}
-
-const char* DiffAlgorithms::GetMatchTypeStr(int Type)
-{
-	if (Type < sizeof(MatchDataTypeStr) / sizeof(MatchDataTypeStr[0]))
-	{
-		return MatchDataTypeStr[Type];
-	}
-	return "Unknown";
 }

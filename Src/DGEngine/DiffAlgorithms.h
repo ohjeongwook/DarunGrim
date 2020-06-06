@@ -26,6 +26,5 @@ public:
 	~DiffAlgorithms();
 	void PurgeInstructionHashHashMap(MATCHMAP *pTemporaryMap);
 	void DumpMatchMapIterInfo(const char *prefix, multimap <va_t, MatchData>::iterator match_map_iter);
-	const char* GetMatchTypeStr(int Type);
 	void RemoveDuplicates(MATCHMAP* pMatchMap);    
 };
