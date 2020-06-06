@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "windows.h"
-#include "StorageDataStructures.h"
 
 using namespace std;
 using namespace stdext;

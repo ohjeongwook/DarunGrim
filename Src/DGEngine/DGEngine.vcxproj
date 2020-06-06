@@ -148,34 +148,20 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DarunGrim.h" />
-    <ClInclude Include="DataStructure.h" />
-    <ClInclude Include="Libs\Diff.h" />
-    <ClInclude Include="DiffAlgorithms.h" />
     <ClInclude Include="DiffLogic.h" />
     <ClInclude Include="DiffStorage.h" />
     <ClInclude Include="MatchResults.h" />
     <ClInclude Include="SQLiteDiffStorage.h" />
-    <ClInclude Include="Log.h" />
     <ClInclude Include="LogOperation.h" />
-    <ClInclude Include="ProcessUtils.h" />
-    <ClInclude Include="RegistryUtil.h" />
-    <ClInclude Include="Libs\sqlite3.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Libs\Varray.h" />
     <ClInclude Include="Libs\XGetopt.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DarunGrim.cpp" />
-    <ClCompile Include="Libs\Diff.cpp" />
-    <ClCompile Include="DiffAlgorithms.cpp" />
     <ClCompile Include="DiffLogic.cpp" />
     <ClCompile Include="MatchResults.cpp" />
     <ClCompile Include="SQLiteDiffStorage.cpp" />
     <ClCompile Include="LogOperation.cpp" />
-    <ClCompile Include="ProcessUtils.cpp" />
-    <ClCompile Include="RegistryUtil.cpp" />
-    <ClCompile Include="Libs\sqlite3.c" />
-    <ClCompile Include="Libs\Varray.cpp" />
     <ClCompile Include="Libs\XGetopt.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -7,7 +7,6 @@
 #include <malloc.h>
 #include "sqlite3.h"
 
-#include "Diff.h"
 #include "DiffLogic.h"
 #include "SQLiteDiffStorage.h"
 #include "SQLiteDisassemblyStorage.h"

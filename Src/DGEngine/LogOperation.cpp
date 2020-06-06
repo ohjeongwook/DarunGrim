@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <string>
 #include <tchar.h>
-#include "RegistryUtil.h"
 #include "LogOperation.h"
 
 static CRITICAL_SECTION LogFileCS;
