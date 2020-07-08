@@ -140,17 +140,6 @@ void DiffLogic::AnalyzeFunctionSanity()
     }
 }
 
-void DiffLogic::TestFunctionMatchRate(int index, va_t Address)
-{
-    Binary *ClientManager = index == 0 ? m_psourceBinary : m_ptargetBinary;
-    for (auto& val : ClientManager->GetFunctionBasicBlocks(Address))
-    {
-        MatchMapList *pMatchMapList = GetMatchData(index, val.Start);
-        pMatchMapList->Print();
-        pMatchMapList->FreeMatchMapList();
-    }
-}
-
 void DiffLogic::RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t> & Members)
 {
     Binary *ClientManager = index == 0 ? m_psourceBinary : m_ptargetBinary;
@@ -248,14 +237,6 @@ MATCHMAP *DiffLogic::DoFunctionLevelMatchOptimizing(FunctionMatchInfoList *pFunc
 			val.NoneMatchCountForTheTarget,
 			val.MatchCountWithModificationForTheTarget
 		);
-		if (DebugFlag & DEBUG_FUNCTION_LEVEL_MATCH_OPTIMIZING)
-		{
-			LogMessage(0, __FUNCTION__, "* *Unpatched:\n");
-			TestFunctionMatchRate(0, val.SourceAddress);
-
-			LogMessage(0, __FUNCTION__, "* *Patched:\n");
-			TestFunctionMatchRate(1, val.TargetAddress);
-		}
 
 		list <va_t> sourceMembers;
 		RetrieveNonMatchingMembers(0, val.SourceAddress, sourceMembers);

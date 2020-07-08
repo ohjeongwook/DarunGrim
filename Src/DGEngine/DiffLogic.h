@@ -131,7 +131,6 @@ public:
     void GetMatchStatistics(va_t address, int index, int& found_match_number, int& found_match_with_difference_number, int& not_found_match_number, float& matchrate);
 
     void ShowDiffMap(va_t unpatched_address, va_t patched_address);
-    void TestFunctionMatchRate(int index, va_t Address);
     void RetrieveNonMatchingMembers(int index, va_t FunctionAddress, list <va_t>& Members);
     bool TestAnalysis();
     MATCHMAP* DoFunctionLevelMatchOptimizing(FunctionMatchInfoList* pFunctionMatchInfoList);
