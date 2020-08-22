@@ -87,7 +87,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\IDAHasher</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Loader</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_DEBUG;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\IDAHasher</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Loader</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -119,7 +119,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;__EA64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\IDAHasher</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Loader</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
@@ -135,7 +135,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;__NT__;__IDP__;__X64__;WIN32;_LIB;</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Src\IDAHasher</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib\idasdk71\include;Libs;$(SolutionDir)\Loader</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>

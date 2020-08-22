@@ -2,6 +2,9 @@
 #include <vector>
 #include <unordered_set>
 #include <list>
+#include <map>
+
+using namespace std;
 
 #include "Common.h"
 

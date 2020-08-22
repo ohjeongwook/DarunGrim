@@ -5,7 +5,7 @@
 #include "windows.h"
 #include <vector>
 
-#include "windows.h"
+#include "Structures.h"
 
 using namespace std;
 using namespace stdext;
